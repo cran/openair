@@ -1,0 +1,21 @@
+citHeader("To cite package 'openair' in publications use:")
+
+citEntry(entry="Manual",
+         title = "openair: Open-source tools for the analysis of air pollution data",
+         author = personList(as.person("David Carslaw"),
+                             as.person("Karl Ropkins")),
+         year = format(as.Date(packageDescription("openair", fields = c("Date"))), "%Y"),
+         note = paste("R package version ", packageDescription("openair", fields = c("Version"))[1], sep=""),
+
+         textVersion =
+         paste("David Carslaw and Karl Ropkins (",
+               format(as.Date(packageDescription("openair", fields = c("Date"))), "%Y"),
+               "). openair: Open-source tools for the analysis of air pollution data. ",
+               "R package version ",
+               packageDescription("openair", fields = c("Version"))[1],
+               ".", sep=""))
+
+citFooter("Please cite both 'openair' and R ",
+          "when using 'openair' for data analysis.",
+          "For R citation, see ", sQuote("citation()"))
+
