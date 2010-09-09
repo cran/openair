@@ -23,7 +23,7 @@ example.}
   specfic years use \code{year = c(1990, 1995, 2000)} for example.}
 
   \item{pollutant}{Pollutants to import. If omitted will import all
-  pollutants ffrom a site. To import only NOx and NO2 for example use
+  pollutants from a site. To import only NOx and NO2 for example use
   \code{pollutant = c("nox", "no2")}.}
 
 \item{met}{Should meteorological data be added to the import data? The
@@ -35,10 +35,9 @@ example.}
   usage.}
 \item{units}{By default the returned data frame expresses the units in
   mass terms (ug/m3 for NOx, NO2, O3, SO2; mg/m3 for CO). Use
-  \code{units = "volume"} to use ppb etc. PM10 TEOM data are multiplied
-  by 1.3 and PM2.5 have no correction applied. We are considering how
-  best to express PM units in the light of the wide range of measurement
-  techniques now employed in the UK e.g. FDMS.}
+  \code{units = "volume"} to use ppb etc. PM10_raw TEOM data are multiplied
+  by 1.3 and PM2.5 have no correction applied. See details below
+  concerning PM10 concentrations.}
 
 }
 
@@ -70,10 +69,49 @@ pollutant(s). Sometimes it is useful to have columns of site
 data. This can be done using the \code{reshape} function --- see
 examples below.
 
+The function imports two measures of PM10 where
+available. \code{PM10_raw} are TEOM measurements with a 1.3 factor
+applied to take account of volatile losses. The \code{PM10} data is a
+current best estimate of a gravimetric equivalent measure as described
+below.
+
+For the assessment of the EU Limit Values, PM10 needs to be measured
+using the reference method or one shown to be equivalent to the
+reference method. Defra carried out extensive trials between 2004 and
+2006 to establish which types of particulate analysers in use in the UK
+were equivalent. These trials found that measurements made using
+Partisol, FDMS, BAM and SM200 instruments were shown to be equivalent to
+the PM10 reference method. However, correction factors need to be
+applied to measurements from the SM200 and BAM instruments. Importantly,
+the TEOM was demonstrated as not being equivalent to the reference
+method due to the loss of volatile PM, even when the 1.3 correction
+factor was applied.  The Volatile Correction Model (VCM) was developed
+for Defra at King's to allow measurements of PM10 from TEOM instruments
+to be converted to reference equivalent; it uses the measurements of
+volatile PM made using nearby FDMS instruments to correct the
+measurements made by the TEOM. It passed the equivalence testing using
+the same methodology used in the Defra trials and is now the recommended
+method for correcting TEOM measurements (Defra, 2009). VCM correction of
+TEOM measurements can only be applied after 1st January 2004, when
+sufficiently widespread measurements of volatile PM became
+available. The 1.3 correction factor is now considered redundant for
+measurements of PM10 made after 1st January 2004.  Further information
+on the VCM can be found at
+\url{http://www.volatile-correction-model.info/}.
+
+All PM10 statistics on the LondonAir web site, including the bulletins
+and statistical tools (and in the RData objects downloaded using
+\code{importKCL}), now report PM10 results as reference equivalent. For
+PM10 measurements made by BAM and SM200 analysers the applicable
+correction factors have been applied. For measurements from TEOM
+analysers the 1.3 factor has been applied up to 1st January 2004, then
+the VCM method has been used to convert to reference equivalent.
+
 While the function is being developed, the following site codes should
 help with selection. We will also make available other meta data such as
 site type and location to make it easier to select sites based on other
 information.
+
 \itemize{
   \item A30 A3 - AURN
 \item AR1 Chichester - Lodsworth

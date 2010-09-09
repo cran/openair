@@ -168,7 +168,7 @@ polarPlot <- function(polar,
              call. = FALSE)
     legend <- list(temp = list(fun = drawOpenKey, args = list(key = legend, 
          draw = FALSE)))
-    names(legend)[1] <- key.position
+    names(legend)[1] <- if(is.null(key$space)) key.position else key$space
 
     levelplot(z ~ u * v | cond, results.grid, axes = FALSE,
               as.table = TRUE,

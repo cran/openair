@@ -135,7 +135,7 @@ windRose <- function (polar, ws.int = 2, angle = 30, type = "default", cols = "d
             call. = FALSE)
     legend <- list(temp = list(fun = drawOpenKey, args = list(key = legend, draw = FALSE)))
     
-    names(legend)[1] <- key.position
+    names(legend)[1] <- if(is.null(key$space)) key.position else key$space
 
     plt <- xyplot(.z.poll1 ~ wd | cond,
                   xlim = c(-max.freq - off.set, max.freq + off.set),

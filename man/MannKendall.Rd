@@ -211,7 +211,7 @@ MannKendall(mydata, pollutant = "nox")
 # trend plot for ozone with p=0.01 i.e. uncertainty in slope shown at
 # 99 % confidence interval
 
-MannKendall(mydata, pollutant = "o3", ylab = "o3 (ppb)", alpha = 0.01)
+\dontrun{MannKendall(mydata, pollutant = "o3", ylab = "o3 (ppb)", alpha = 0.01)}
 
 # trend plot by each of 8 wind sectors
 \dontrun{MannKendall(mydata, pollutant = "o3", type = "wd", ylab = "o3 (ppb)")}
