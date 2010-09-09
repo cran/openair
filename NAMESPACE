@@ -1,0 +1,71 @@
+
+#useDynLib(openair, .registration = TRUE)
+
+#import
+#import()
+#importFrom()
+
+export(
+
+       ##data:
+       ##mydata,
+
+       ##imports:
+       import,
+       importADMS,
+       importAURN,
+       importAURNCsv,
+       importKCL,
+
+       ##general utils:
+       cutData,
+       drawOpenKey,
+       openColours,
+       prepareModel,
+       quickText,
+       selectByDate,
+       splitByDate,
+       timeAverage,
+
+       ##calc utils:
+       calcPercentile,
+       rollingMean,
+
+       ##general plots:
+       scatterPlot,
+       summaryPlot,
+       timePlot,
+       trendLevel, trendLevelHour, trendLevelWd,
+
+       ##specialist plot/functions:
+
+       #misc
+       calcFno2,
+       calendarPlot,
+       linearRelation,
+       MannKendall,
+       smoothTrend,
+       timeVariation,
+
+       #polar plots:
+       polarAnnulus,
+       polarFreq,
+       polarPlot,
+              
+       ##wind roses:
+       windRose, pollutionRose
+
+       #terminator pollutionRose
+
+       )
+
+
+## methods for
+#S3method()
+
+### Local variables:
+### mode: R
+### End:
+
+#old version
+#exportPattern("^[^\\.]")
