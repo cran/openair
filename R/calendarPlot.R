@@ -157,7 +157,7 @@ calendarPlot <- function(mydata,
              call. = FALSE)
     legend <- list(temp = list(fun = drawOpenKey, args = list(key = legend, 
          draw = FALSE)))
-    names(legend)[1] <- key.position
+    names(legend)[1] <- if(is.null(key$space)) key.position else key$space
 
     print(levelplot(conc.mat ~ x * y | month, data = mydata,
               par.settings = cal.theme,

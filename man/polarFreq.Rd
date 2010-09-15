@@ -167,7 +167,7 @@ polarFreq(mydata, type = "year")
 polarFreq(mydata, strip = FALSE)
 
 # mean SO2 by year, showing only bins with at least 2 points
-polarFreq(mydata, pollutant = "so2", type = "year", statistic = "mean", min.bin = 2)
+\dontrun{polarFreq(mydata, pollutant = "so2", type = "year", statistic = "mean", min.bin = 2)}
 
 # weighted mean SO2 by year, showing only bins with at least 2 points
 \dontrun{polarFreq(mydata, pollutant = "so2", type = "year", statistic = "weighted.mean", min.bin = 2)}

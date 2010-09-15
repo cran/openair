@@ -160,7 +160,7 @@ data(mydata)
 summaryPlot(mydata, clip = FALSE)
 
 # exclude highest 5 \% of data etc.
-summaryPlot(mydata, percentile = 0.95)
+\dontrun{summaryPlot(mydata, percentile = 0.95)}
 
 # show missing data where there are at least 96 contiguous missing
 # values (4 days)

@@ -95,9 +95,9 @@ drawOpenKey(key,
   (Note: \code{drawOpenKey} is a crude modification of 
   \code{lattice::draw.colorkey}, that provides labelling options 
   for \code{openair} plot scale keys. Some aspects of the function are 
-  in development and may to subject to change. Therefore, where possible 
+  in development and may to subject to change. Therefore,  
   it is recommended that you use parent \code{openair} function controls, 
-  e.g. \code{key.position}, \code{key.header}, \code{key.footer} options where possible. 
+  e.g. \code{key.position}, \code{key.header}, \code{key.footer} options, where possible. 
   \code{drawOpenKey} may obviously be used in other plots but it is 
   recommended that \code{draw.colorkey} itself be used wherever this type of additional 
   scale labelling is not required.)}       

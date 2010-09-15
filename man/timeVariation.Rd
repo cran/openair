@@ -168,7 +168,7 @@ timeVariation(mydata, pollutant = "nox", type = "gmtbst")
 #  expressed in local time. These two plots can help show whether the
 #  variation is dominated by man-made influences or natural processes
 
-timeVariation(mydata, pollutant = "ws", type = "gmtbst")
+\dontrun{timeVariation(mydata, pollutant = "ws", type = "gmtbst")}
 
 ## sub plots can be extracted, in which case set key = TRUE
 ## plots are retruned in a list e.g. to get the diurnal plot of NO2:
