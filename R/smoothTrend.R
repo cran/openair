@@ -15,7 +15,7 @@ smoothTrend <- function(mydata,
                          lty = 1,
                          lwd = 1,
                          pch = 1,
-                         cex = 1,
+                         cex = 0.6,
                          key.columns = length(percentile),
                          main = "",
                          ci = TRUE,
@@ -223,7 +223,7 @@ smoothTrend <- function(mydata,
                panel.xyplot(x, y, type = "b", lwd = lwd, lty = lty, pch = pch,
                             col.line = myColors[group.number],col.symbol = myColors[group.number], ...)
 
-               panel.gam(x, y, col =  myColors[group.number], col.se =  myColors[group.number],
+               panel.gam(x, y, col =  myColors[group.number], col.se =  "black",#myColors[group.number],
                          simulate = simulate, n.sim = n,
                          autocor = autocor, lty = 1, lwd = 1, se = ci, ...)
 
