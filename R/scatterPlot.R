@@ -241,9 +241,9 @@ scatterPlot <- function(mydata,
                                                                myColors[group.number],
                                                                as.table = TRUE,...)
                                  if (smooth) panel.gam(x, y, col = myColors[group.number],
-                                                       col.se = myColors[group.number],
+                                                       col.se = "black",#myColors[group.number],
                                                        lty = 1, lwd = 1, se = ci, ...)
-                                 if (linear) panel.linear(x, y, col = myColors[group.number], lwd = 1,
+                                 if (linear) panel.linear(x, y, col = "black",myColors[group.number], lwd = 1,
                                                           lty = 5, x.nam = x.nam, y.nam = y.nam,
                                                           se = ci,  ...)
                              })
@@ -256,7 +256,7 @@ scatterPlot <- function(mydata,
                                 xlab = quickText(xlab, auto.text),
                                 strip = strip,
                                 as.table = TRUE,
-                                xbins = 30,
+                                xbins = 40,
                                 colorkey = TRUE,
                                 aspect = 1,
                                 colramp = function(n) {openColours("default", n)},

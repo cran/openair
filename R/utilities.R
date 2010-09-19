@@ -31,11 +31,10 @@ weekday.abbs <- make.weekday.abbs()
 month.names <- make.month.names()
 month.abbs <- make.month.abbs()
 
-
-startYear <- function(dat) as.numeric(format(min(sort(dat)), "%Y"))
-endYear <- function(dat) as.numeric(format(max(sort(dat)), "%Y"))
-startMonth <- function(dat) as.numeric(format(min(sort(dat)), "%m"))
-endMonth <- function(dat) as.numeric(format(max(sort(dat)), "%m"))
+startYear <- function(dat) as.numeric(format(min(dat[order(dat)]), "%Y"))
+endYear <- function(dat) as.numeric(format(max(dat[order(dat)]), "%Y"))
+startMonth <- function(dat) as.numeric(format(min(dat[order(dat)]), "%m"))
+endMonth <- function(dat) as.numeric(format(max(dat[order(dat)]), "%m"))
 
 ###############################################################################
 
@@ -367,7 +366,7 @@ panel.gam <- function (x, y, form = y ~ x, method = "loess", ..., simulate = FAL
                        autocor = FALSE, se = TRUE,
                        level = 0.95, n = 100, col = plot.line$col, col.se = col,
                        lty = plot.line$lty, lwd = plot.line$lwd, alpha = plot.line$alpha,
-                       alpha.se = 0.25, border = NA, subscripts, group.number, group.value,
+                       alpha.se = 0.20, border = NA, subscripts, group.number, group.value,
                        type, col.line, col.symbol, fill, pch, cex, font, fontface,
                        fontfamily)
 {
