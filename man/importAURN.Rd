@@ -63,7 +63,36 @@ data. This can be done using the \code{reshape} function --- see
 examples below.
 
 All units are expressed in mass terms for gaseous species (ug/m3 for NO,
-NO2, NOx, SO2 and hydrocarbons; and mg/m3 for CO).
+NO2, NOx (as NO2), SO2 and hydrocarbons; and mg/m3 for CO). PM10
+concentrations are provided in gravimetric units of ug/m3 or scaled to
+be comparable with these units. Over the years a variety of instruments
+have been used to measure particulate matter and the technical issues of
+measuring PM10 are complex. In recent years the measurements rely on
+FDMS (Filter Dynamics Measurement System), which is able to measure the
+volatile component of PM. In cases where the FDMS system is in use there
+will be a separate volatile component recorded as 'v10', which is
+already included in the absolute PM10 measurement. Prior to the use of
+FDMS the measurements used TEOM (Tapered Element
+Oscillating. Microbalance) and these concentrations have been multiplied
+by 1.3 to provide an estimate of the total mass including the volatile
+fraction.
+
+The few BAM (Beta-Attenuation Monitor) instruments that have been
+incorporated into the network throughout its history have been scaled by
+1.3 if they have a heated inlet (to account for loss of volatile
+particles) and 0.83 if they do not have a heated inlet. The few TEOM
+instruments in the network after 2008 have been scaled using VCM
+(Volatile Correction Model) values to account for the loss of volatile
+particles. The object of all these scaling processes is to provide a
+reasonable degree of comparison between data sets and with the reference
+method and to produce a consistent data record over the operational
+period of the network, however there may be some discontinuity in the
+time series associated with instrument changes.
+
+No corrections have been made to teh PM2.5 data. The volatile component
+of FDMS PM2.5 (where available) is shown in the 'v2.5' column.
+
+
 
 While the function is being developed, the following site codes should
 help with selection.

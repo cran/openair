@@ -130,7 +130,7 @@ summaryPlot <- function(mydata,
         median.dat <- round(median(value, na.rm = TRUE), 1)
         percentile <- round(quantile(value, probs = 0.95, na.rm = TRUE), 1)
 
-        if (period == "year") format.t <- "%Y" else format.t <- "%Y-%m"
+        if (period == "years") format.t <- "%Y" else format.t <- "%Y-%m"
         all.hours <- aggregate(value, list(year = format(mydata$date, format.t)), length)
         data.hours <- aggregate(value, list(year = format(mydata$date, format.t)),
                                 function(x) length(na.omit(x)))
@@ -152,7 +152,7 @@ summaryPlot <- function(mydata,
     split.dat <- split(mydata, mydata$variable)
 
     sum.stats <- lapply(split.dat, summmary.stats, period)
-
+print(sum.stats)
     missing.dat <-  lapply(split.dat, plot.missing, na.len)
 
     dummy.dat <- lapply(split.dat, head)
