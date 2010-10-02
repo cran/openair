@@ -4,22 +4,22 @@
 \alias{importADMSBgd}
 \alias{importADMSMet}
 \alias{importADMSMop}
-\alias{simplifyNamesADMS}
+\alias{importADMSPst}
 
 \title{ ADMS data import function(s) for openair }
 \description{
   Function(s) to import various ADMS file types into openair. Currently handles 
-  ".met", ".bgd" and ".mop" file structures. Uses \code{read.csv} (in \code{utils}) to 
+  ".met", ".bgd", ".mop" and ".pst" file structures. Uses \code{read.csv} (in \code{utils}) to 
   read in data, format for R and openair and apply some file structure testing. }
 
 
 \usage{
 mydata <- importADMS(file = file.choose(),
-		file.type="unknown", 
-		drop.case = TRUE, drop.input.dates = TRUE, 
-		keep.units = TRUE, simplify.names = TRUE, 
-		test.file.structure = TRUE, 
-		drop.delim = TRUE, add.prefixes = TRUE,
+                file.type="unknown", 
+                drop.case = TRUE, drop.input.dates = TRUE, 
+                keep.units = TRUE, simplify.names = TRUE, 
+                test.file.structure = TRUE, 
+                drop.delim = TRUE, add.prefixes = TRUE,
                 names = NULL,
                 ...)
  }
@@ -35,7 +35,7 @@ mydata <- importADMS(file = file.choose(),
   uses the file extension to identify the file type and, where recognised, uses this to 
   identify the file structure and import method to be applied. Where file extension is 
   not recognised the choice may be forced by setting \code{file.type} to one of the known 
-  \code{file.type} options: "bgd", "met" or "mop". } 
+  \code{file.type} options: "bgd", "met", "mop" or "pst". } 
 
   \item{drop.case}{ Option to convert all data names to lower case. Default, \code{TRUE}. 
   Alternative, \code{FALSE}, returns data with name cases as defined in file. }
@@ -46,8 +46,9 @@ mydata <- importADMS(file = file.choose(),
 
   \item{keep.units}{ Option to retain ADMS data units. Default, \code{TRUE}, 
   retains units as character vector in data frame comment if defined in \code{file}. 
-  Alternative, \code{FALSE}, discards units. (NOTE: currently, only \code{.bgd} files assign 
-  units. So, this option is ignored when importing \code{.met} and \code{.mop} files.) }
+  Alternative, \code{FALSE}, discards units. (NOTE: currently, only \code{.bgd} and \code{.pst} 
+  files assign units. So, this option is ignored when importing \code{.met} and \code{.mop} 
+  files.) }
 
   \item{simplify.names}{ Option to simplify data names in accordance with common \code{openair} 
   practices. Default, \code{TRUE}. Alternative, \code{FALSE}, returns data with names as 
@@ -63,7 +64,7 @@ mydata <- importADMS(file = file.choose(),
   \item{drop.delim}{ Option to remove delim columns from the data frame. ADMS .mop files include 
   two columns, "INPUT_DATA:" and "PROCESSED_DATA:", to separate model input and output types. 
   Default, \code{TRUE}, removes these. Alternative, \code{FALSE}, retains them as part of import. 
-  (Note: Option ignored when importing \code{.bgd} or \code{.met} files.)}
+  (Note: Option ignored when importing \code{.bgd}, \code{.met} or \code{.pst} files.)}
 
   \item{add.prefixes}{ Option to add prefixes to data names. ADMS .mop files include a number of
   input and process data types with shared names. Prefixes can be automatically added to these so 
@@ -75,22 +76,22 @@ mydata <- importADMS(file = file.choose(),
   respectively. For example, the argument (\code{add.prefixes="out"}) would add the "out" prefix to 
   processed data names, while the argument (\code{add.prefixes=c("in","out")}) would add "in" and 
   "out" prefixes to input and output data names, respectively. (Note: Option ignored when importing 
-  \code{.bgd} or \code{.met} files.)} 
+  \code{.bgd}, \code{.met} or \code{.pst} files.)}     
 
-  \item{names}{ Either \code{NULL} to summarise \code{simplify.names} operations or a vector of data series 
-  names to be simplified using those operations. Only used as part of a \code{simplify.names} call (see below). }        
+  \item{names}{ Option applied by \code{simplifyNamesADMS} when \code{simplify.names} is enabled. 
+  All names are simplified for the default setting, \code{NULL}.}
 
-  \item{...}{Additional arguments, passed to \code{read.csv} as part of import operation.}
+  \item{...}{ Additional arguments, passed to \code{read.csv} as part of import operation.}
 
 } 
 
 \details{ The \code{importADMS} function were developed to help import various 
 ADMS file types into openair. In most cases the parent import function should work in 
 default configuration, e.g. \code{mydata <- importADMS()}. The function currently 
-recognises three file formats: \code{.bgd}, \code{.met} and \code{.mop}. Where other 
-file extensions have been set but the file structure is known, the import call can be 
-forced by, e.g, \code{mydata <- importADMS(file.type="bgd")}. Other options can be 
-adjusted to provide fine control of the data structuring and renaming. }
+recognises four file formats: \code{.bgd}, \code{.met}, \code{.mop} and \code{.pst}. 
+Where other file extensions have been set but the file structure is known, the import 
+call can be forced by, e.g, \code{mydata <- importADMS(file.type="bgd")}. Other options 
+can be adjusted to provide fine control of the data structuring and renaming. }
 
 \value{ In standard use \code{importADMS()} returns a data
 frame for use in openair. By comparison to the original file, the
@@ -105,7 +106,7 @@ If \code{simplify.names} is enabled common chemical names may be simplified, and
 some other parameters may be reset to openair standards (e.g. "ws", "wd" and 
 "temp") according to operations defined in \code{simplifyNamesADMS}. A summary 
 of simplfication operations can be obtained using, e.g., the call 
-\code{importADMS(simplify.names).} 
+\code{importADMS(simplify.names)}. 
 
 If \code{drop.case} is enabled all upper case characters in names will be converted 
 to lower case.
@@ -116,7 +117,8 @@ frame comment if available.
 With \code{.mop} files, input and processed data series names may also been modified 
 on the basis of \code{drop.delim} and \code{add.prefixes} settings}
 
-\note{Times are assumed to be in GMT.}
+\note{Times are assumed to be in GMT. Zero wind directions reset to 360 as part 
+of \code{.mop} file import.}
 
 \section{Warning }{\code{importADMS} is currently released as a test version only.}
 

@@ -50,8 +50,17 @@ if(file.type=="met") {
     ...
   )) 
 }
+if(file.type=="pst") { 
+  return(importADMSPst(
+    file=file, drop.case = drop.case, drop.input.dates = drop.input.dates, 
+    keep.units = keep.units, simplify.names = simplify.names, 
+    test.file.structure = test.file.structure,
+    drop.delim = drop.delim, add.prefixes = add.prefixes,
+    ...
+  )) 
+}
 
-stop("File extension not recognised\n       [If valid ADMS file, try setting file.type to one of: bgd, mop or met]", 
+stop("File extension not recognised\n       [If valid ADMS file, try setting file.type to one of: bgd, mop, met or pst]", 
   call. = FALSE) 
 }
 
@@ -294,8 +303,6 @@ importADMSMop <- function(file=file.choose()
     , ...
 ){
 
-#new function (kr)
-
 #problem 
 #mismatch in file header line end with lr; data lines end with comma then lr
 #########
@@ -303,9 +310,8 @@ importADMSMop <- function(file=file.choose()
 
 #problem
 #no obvious file structure for testing
-###########
-#discuss with cerc/david
-#meantime added provisional based on delim names
+########
+#provisional tester based on delim names
 
 #problem
 #r handling of x(y) names and x: names is messy
@@ -321,8 +327,7 @@ importADMSMop <- function(file=file.choose()
 #problem 
 #no keep.units options
 ##############
-#discuss with David and Matthew
-#bit tricky given info in file format documentation
+#no option to use
 
 ######################
 #code
@@ -358,7 +363,7 @@ ans <- read.csv(file, header=FALSE, skip=1
 ) 
 ans[] <- lapply(ans, function(x) { replace(x, x == -999, NA) })
 
-##check for mismatchs
+##check for extra empty column
 if(length(ans[,ncol(ans)][!is.na(ans[,ncol(ans)])])==0) {
     ans <- ans[,1:(ncol(ans)-1)]
 }
@@ -367,6 +372,8 @@ if(ncol(ans)!=length(check.names)){
         , call. = FALSE
     )
 }
+
+if(simplify.names) check.names <- simplifyNamesADMS(check.names)
 
 ##restructure names and data according to arguments and put together
 if(is.logical(add.prefixes)==TRUE){
@@ -386,11 +393,22 @@ if(is.logical(add.prefixes)==TRUE){
         }
     }
 }
+
 names(ans) <- make.names(check.names, unique=TRUE)
 
-if(simplify.names){
-    names(ans) <- simplifyNamesADMS(names(ans))
+##reset wd 0 to 360
+##get current PHI terminology
+temp <- if(simplify.names) simplifyNamesADMS("PHI") else "PHI" 
+temp <- if(length(add.prefixes)>1) paste(add.prefixes[1], temp, sep=".") else temp
+if(temp %in% names(ans)) {
+    ans[, temp][ans[, temp]==0] <- 360
+    warning("Zero wind directions encountered, resetting to 360"
+        , call. = FALSE)
 }
+
+#if(simplify.names){
+#    names(ans) <- simplifyNamesADMS(names(ans))
+#}
 
 #drop messy name handling
 names(ans) <- gsub("[.][.]", ".", names(ans))
@@ -429,13 +447,129 @@ print(unlist(sapply(ans, class)))
 ans
 }
 
+
+###############
+#daughter
+#importADMSPst
+#kr v0.1
+
+importADMSPst <- function(file=file.choose()
+    , drop.case=TRUE, drop.input.dates=TRUE
+    , keep.units=TRUE, simplify.names=TRUE
+    , test.file.structure=TRUE
+    , drop.delim = TRUE, add.prefixes = TRUE    
+    , ...
+){
+
+#notes
+#########
+#used the header/data dimension mismatcher handler from importADMSMop
+#maybe not be needed.
+#########
+#no obvious file structure for testing
+#provisional tester checks Hour, Day, Year and Receptor.name  in file names
+#NEED to confirm these are standard, case specific, etc.
+#########
+#units are recovered from names row
+
+
+#problems
+#########
+#currently dropping and ignoring Time(s)
+#talk to Matt about how it works/is used
+#########
+#Not my name simplifications on Conc terms may need work
+#talk to Matt/David 
+
+
+######################
+#code
+
+#read top line/data headers
+check.names <- read.csv(file, header=FALSE, nrow=1, ...)
+check.names <- make.names(as.vector(apply(check.names, 1, as.character)))
+
+#test structure
+if(test.file.structure){
+   temp <- c("Hour", "Day", "Year", "Receptor.name")
+   test <- temp[temp %in% check.names]
+   if(!identical(temp, test))
+    stop("File not recognised ADMS.pst structure\n       [please contact openair if valid]"
+      , call. = FALSE)
+}
+
+#read in data
+ans <- read.csv(file, header=FALSE, skip=1
+    , na.strings = c("", "NA", "-999", "-999.0")
+    , ...
+) 
+ans[] <- lapply(ans, function(x) { replace(x, x == -999, NA) })
+
+#match up data and names
+if(ncol(ans)!=length(check.names)){
+    warning("Unexpected name/data mismatch, handled pragmatically\n       [compare openair import settings and data structure]"
+        , call. = FALSE
+    )
+}
+
+names(ans) <- make.names(check.names, unique=TRUE)
+
+date <- paste(ans$Year, ans$Day, ans$Hour, sep = "-")
+date <- as.POSIXct(strptime(date, format = "%Y-%j-%H"), "GMT")
+
+if(drop.input.dates==TRUE){
+    ans <- ans[,!names(ans) %in% c("Year", "Day", "Hour", "Time.s.")]
+}
+
+#recover units from names
+units <- rep(NA, ncol(ans))
+units[grep("^.[.]m", names(ans))] <- "m"
+units[grep("[.]ug.m3[.]", names(ans))] <- "ug/m3"
+units[grep("[.]ug/m3[.]", names(ans))] <- "ug/m3"
+units[grep("[.]ppb[.]", names(ans))] <- "ppb"
+units[grep("[.]ppm[.]", names(ans))] <- "ppm"
+if(length(na.omit(units))==0)
+     units <- "units: unknown" else  
+     units <- paste("units: ",paste(units, sep = "", collapse = ", "), sep="")
+
+if(simplify.names){
+    names(ans) <- simplifyNamesADMS(names(ans))
+}
+
+ans <- cbind(date=date,ans)
+
+if(drop.case==TRUE) {  
+    names(ans) <- tolower(names(ans))
+}
+
+comment(ans) <- c(comment(ans), units)
+
+#error handling for bad days
+ids <- which(is.na(ans$date))
+if (length(ids) > 0) {
+    if(length(ids)==nrow(ans)) {
+        stop("Invalid date (and time) format requested\n       [compare openair import settings and data structure]"
+            , call. = FALSE
+        )
+    }
+    ans <- ans[-ids, ]
+    reply <- paste("Missing dates detected, removing", length(ids), "line", sep=" ")
+    if(length(ids)>1) { reply <- paste(reply,"s",sep="") }
+    warning(reply, call. = FALSE)
+}
+
+print(unlist(sapply(ans, class)))
+ans
+}
+
+
 ###############
 ##daughter
 ##simplifyNamesADMS
 
 simplifyNamesADMS <- function(names=NULL){
    #simplify.names lookup table for import.adms functions
-   #v0.1 kr
+   #v0.2 kr
    #handles as inputs (don't use after drop.case option)
    #names=NULL returns simplification operation summary
 
@@ -450,11 +584,15 @@ simplifyNamesADMS <- function(names=NULL){
            x <- rbind(x,temp)
            x 
        }
+       fun.temp.2 <- function(x,y,z, y.name) x
    } else {
        names <- make.names(names)
        fun.temp <- function(x,y,z){
            x[which(x == make.names(y))] <- z
            x
+       }
+       fun.temp.2 <- function(x,y,z, y.name) {
+           x <- if(y.name) gsub(make.names(y),z,x) else (gsub(y,z,x))
        }
    }
 
@@ -510,6 +648,23 @@ simplifyNamesADMS <- function(names=NULL){
        names <- fun.temp(names, "CLOUD", "CL")
    #CLOUD AMOUNT (OKTAS)
        names <- fun.temp(names, "CLOUD AMOUNT (OKTAS)", "CL")
+
+   #Conc|ppb|[NAME]|All sources|-| 1hr
+      names <- fun.temp(names, "Conc|ppb|[NAME]|[SOURCES]|-| 1hr", "[NAME].[SOURCES]")
+   #Conc|ppm|[NAME]|All sources|-| 1hr
+      names <- fun.temp(names, "Conc|ppm|[NAME]|[SOURCES]|-| 1hr", "[NAME].[SOURCES]")      
+   #Conc|ug/m³|[NAME]|All sources|-| 1hr
+      names <- fun.temp(names, "Conc|ug/m3|[NAME]|[SOURCES]|-| 1hr", "[NAME].[SOURCES]")
+   #Conc|ug/m3|[NAME]|All sources|-| 1hr
+      names <- fun.temp(names, "Conc|ug/m3|[NAME]|[SOURCES]|-| 1hr", "[NAME].[SOURCES]")
+    
+   #general for above 
+      names <- fun.temp.2(names, "Conc|ppb|", "", TRUE)
+      names <- fun.temp.2(names, "Conc|ppm|", "", TRUE)
+      names <- fun.temp.2(names, "Conc|ug/m3|", "", TRUE)
+      names <- fun.temp.2(names, "Conc|ug/m3|", "", TRUE)
+      names <- fun.temp.2(names, "[.][.][.][.]1hr", "", FALSE)
+
    #D(RELATIVE HUMIDITY)/DZ ABOVE BOUNDARY LAYER (PERCENT/M)
        names <- fun.temp(names, "D(RELATIVE HUMIDITY)/DZ ABOVE BOUNDARY LAYER (PERCENT/M)", "DRHDZU")
    #DAY
@@ -640,7 +795,13 @@ simplifyNamesADMS <- function(names=NULL){
    #WIND SPEED
        names <- fun.temp(names, "WIND SPEED", "WS")
    #WSTAR
+   #X(m)
+     names <- fun.temp(names, "X(m)", "X")
+   #Y(m)
+     names <- fun.temp(names, "Y(m)", "Y")
    #YEAR
+   #Z(m)
+     names <- fun.temp(names, "Z(m)", "Z")
    #Z0(D)
        names <- fun.temp(names, "Z0(D)", "Z0.DISP")
        names <- fun.temp(names, "Z0 (D)", "Z0.DISP")

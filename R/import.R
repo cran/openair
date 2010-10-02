@@ -75,7 +75,24 @@ import <- function (file = file.choose(), file.type = "csv", header.at = 1,
                 1), ]
         }
     }
-    names(file.data) <- make.names(file.names, unique = TRUE)
+    #name and data dimension mismatch
+    if(ncol(file.data)!=length(file.names)){
+        if(ncol(file.data)<length(file.names)) {
+            file.names <- file.names[1:ncol(file.data)]
+            warning("Unexpected extra names extracted, dropped unassigned names\n       [check openair import settings and data structure if unexpected]"
+                , call. = FALSE)
+        } else {
+            file.names <- c(file.names, paste("new", 1:(ncol(file.data)-length(file.names)), sep="."))
+            warning("Unexpected extra data extracted, extra names created\n       [check openair import settings and data structure if unexpected]"
+                , call. = FALSE)
+
+        }     
+    }
+    temp <- make.names(file.names, unique = TRUE)
+    if(!identical(file.names,temp))
+        warning("Non-unqiue or non-R names extracted, names modifications applied\n       [check openair import settings and data structure if unexpected]"
+                , call. = FALSE) 
+    names(file.data) <- temp
     if(tolower(substr(date.order,1,5))=="posix") {  
         date.order <- gsub("posix", "", date.order, ignore.case = TRUE)
         date.order <- gsub("(^ +)|( +$)", "", date.order)
@@ -86,7 +103,7 @@ import <- function (file = file.choose(), file.type = "csv", header.at = 1,
             date.order, ignore.case = TRUE)
         date.order <- gsub("m", paste("%m", date.break, sep = ""), 
             date.order, ignore.case = TRUE)
-        date.order <- gsub("y", paste("%Y", date.break, sep = ""), 
+        date.order <- gsub("y", paste("%y", date.break, sep = ""), 
             date.order, ignore.case = TRUE)
         date.order <- substr(date.order, 1, (nchar(date.order) - 
             1))
@@ -129,6 +146,17 @@ import <- function (file = file.choose(), file.type = "csv", header.at = 1,
     b <- apply(cbind(a, b), 1, paste, collapse = " ")
     a <- as.POSIXct(b, format = paste(date.order, time.order, 
         sep = " "), time.format)
+
+    #yy/yyyy tester
+    #if invalid try year
+    #NOTE: Can't test for Y first 
+    #(Y%=01 is year 0001!, etc 
+    if(all(is.na(a))){
+        date.order <- gsub("y", "Y", date.order)
+        a <- as.POSIXct(b, format = paste(date.order, time.order, 
+            sep = " "), time.format)
+    }
+
     if (bad.24 == TRUE) {
         bad.time <- gsub("%H", "24", time.order, ignore.case = TRUE)
         bad.time <- gsub("%M", "00", bad.time, ignore.case = TRUE)

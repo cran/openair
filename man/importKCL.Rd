@@ -28,16 +28,15 @@ example.}
 
 \item{met}{Should meteorological data be added to the import data? The
   default is \code{FALSE}. If \code{TRUE} wind speed (m/s), wind
-  direction (degrees) and
-  temperature (deg. C) are added from the Heathrow site. This is
-  currently for testing and we intend to use representative London data
-  from sites where there are no commercial issues related to data
-  usage.}
-\item{units}{By default the returned data frame expresses the units in
+  direction (degrees), solar radiation and rain amount are
+  available. See details below.
+
+ Access to reliable and free meteorological data is problematic.}
+  \item{units}{By default the returned data frame expresses the units in
   mass terms (ug/m3 for NOx, NO2, O3, SO2; mg/m3 for CO). Use
-  \code{units = "volume"} to use ppb etc. PM10_raw TEOM data are multiplied
-  by 1.3 and PM2.5 have no correction applied. See details below
-  concerning PM10 concentrations.}
+  \code{units = "volume"} to use ppb etc. PM10_raw TEOM data are
+  multiplied by 1.3 and PM2.5 have no correction applied. See details
+  below concerning PM10 concentrations.}
 
 }
 
@@ -107,10 +106,23 @@ correction factors have been applied. For measurements from TEOM
 analysers the 1.3 factor has been applied up to 1st January 2004, then
 the VCM method has been used to convert to reference equivalent.
 
+The meteolrogical are meant to represent 'typical' conditions in London,
+  but users may prefer to use their own data. The data provide a an
+  estimate of general meteorological conditions across Greater
+  London. For meteorological species (wd, ws, rain, solar) each data
+  point is formed by averaging measurements from a subset of LAQN
+  monitoring sites that have been identified as having minimal
+  disruption from local obstacles and a long term reliable dataset. The
+  exact sites used varies between species, but include between two and
+  five sites per species. Therefore, the data should represent 'London
+  scale' meteorology, rather than local conditions.
+
 While the function is being developed, the following site codes should
 help with selection. We will also make available other meta data such as
 site type and location to make it easier to select sites based on other
-information.
+information. Note that these codes need to be refined because only the
+common species are available for export currently i.e. NOx, NO2, O3, CO,
+SO2, PM10, PM2.5.
 
 \itemize{
   \item A30 A3 - AURN
@@ -585,7 +597,7 @@ information.
 \value{Returns a data frame of hourly mean values with date in POSIXct
   class and time zone GMT. }
 
-\author{David Carslaw}
+\author{David Carslaw and Ben Barratt}
 
 \section{Warning }{The \code{importKCL} function is currently released as a
   test version. NOTE - Information is required on the site codes for
