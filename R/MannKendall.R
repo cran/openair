@@ -147,8 +147,9 @@ MannKendall <- function(mydata,
     split.data <- do.call(rbind, split.data)
 
     ## define the levels for plotting
+    layout = if (type == "wd") c(3, 3) else NULL
 
-    if (type == "wd") layout = c(3, 3)
+    #if (type == "wd") layout = c(3, 3)
 
     strip <- TRUE
     skip <- FALSE

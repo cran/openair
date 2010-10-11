@@ -161,8 +161,9 @@ smoothTrend <- function(mydata,
     
     ## define the levels for plotting
 
-    if (type == "wd") layout = c(3, 3)
-
+  #  if (type == "wd") layout = c(3, 3)
+    layout = if (type == "wd") c(3, 3) else NULL
+    
     strip <- TRUE
     skip <- FALSE
     if (type == "default") strip <- FALSE ## remove strip

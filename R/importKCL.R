@@ -65,9 +65,6 @@ importKCL <- function(site = "my1", year = 2009, pollutant = "all", met = FALSE,
     thedata <- thedata[order(thedata$site, thedata$date), ]
 
     cat(unitMessage)
-    res <-    tkmessageBox(title="Import information", 
-      message = unitMessage, type = "ok") 
-if (tclvalue(res) == "ok") 
-
+    
     thedata
 }

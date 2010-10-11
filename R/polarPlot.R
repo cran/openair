@@ -154,6 +154,7 @@ polarPlot <- function(polar,
     col.scale = breaks
 
     if (uncertainty) layout <- c(3, 1)
+    layout = if (uncertainty) c(3, 1) else NULL
 
     #################
     #scale key setup
