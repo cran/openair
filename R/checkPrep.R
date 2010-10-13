@@ -55,13 +55,16 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE) {
 
             if (remove.calm) {
                 mydata$wd[mydata$wd == 0] <- NA
+
+                ## round wd for use in functions - except windRose/pollutionRose
+                mydata$wd <- 10 * round(mydata$wd / 10)
+                mydata$wd[mydata$wd == 0] <- 360   # angles <5 should be in 360 bin 
             } else { ## only used for windRose
                 mydata$wd[mydata$wd == 0] <- -999
                 mydata$wd[mydata$ws == 0] <- -999 ## some times met data wrong, need both here!
                 mydata$ws[mydata$wd == -999] <- 0
             }
-            mydata$wd <- 10 * round(mydata$wd / 10)
-            mydata$wd[mydata$wd == 0] <- 360   # angles <5 should be in 360 bin
+       
         }
 
         if ("ws" %in% Names) {
