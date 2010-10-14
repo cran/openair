@@ -152,7 +152,7 @@ summaryPlot <- function(mydata,
     split.dat <- split(mydata, mydata$variable)
 
     sum.stats <- lapply(split.dat, summmary.stats, period)
-print(sum.stats)
+
     missing.dat <-  lapply(split.dat, plot.missing, na.len)
 
     dummy.dat <- lapply(split.dat, head)

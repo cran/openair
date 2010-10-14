@@ -41,7 +41,7 @@ req.pcks <- all.pcks[!all.pcks %in% "proto"]
 message(paste("\nThis is openair version ", packageDescription("openair", field = "Version")), sep = "")
 
 if(open.test==0){
-  message("\topenair and dependents correctly installed \n\nNOTE!! - many function names have changed \n\tto improve consistency e.g. polar.plot is now polarPlot. \n\tType help(openair) for details.")
+  message("\topenair and dependents correctly installed \n")
 } else {
   message("\topenair only managed a partial install, \n\tso it may not work correctly.")
   r1 <- paste("\t", open.test, " problem", sep="")
@@ -55,8 +55,8 @@ if(open.test==0){
 
   #message("\ntype openair.news() for recent updates")
 
-  message("\nPlease cite both R and openair if you find them useful.")
-  message("\ttype citation() for how to cite R")
+ # message("\nPlease cite both R and openair if you find them useful.")
+ # message("\ttype citation() for how to cite R")
   message("\ttype citation(\"openair\") for how to cite openair")
      
 }

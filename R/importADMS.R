@@ -653,15 +653,13 @@ simplifyNamesADMS <- function(names=NULL){
       names <- fun.temp(names, "Conc|ppb|[NAME]|[SOURCES]|-| 1hr", "[NAME].[SOURCES]")
    #Conc|ppm|[NAME]|All sources|-| 1hr
       names <- fun.temp(names, "Conc|ppm|[NAME]|[SOURCES]|-| 1hr", "[NAME].[SOURCES]")      
-   #Conc|ug/m³|[NAME]|All sources|-| 1hr
-      names <- fun.temp(names, "Conc|ug/m3|[NAME]|[SOURCES]|-| 1hr", "[NAME].[SOURCES]")
    #Conc|ug/m3|[NAME]|All sources|-| 1hr
       names <- fun.temp(names, "Conc|ug/m3|[NAME]|[SOURCES]|-| 1hr", "[NAME].[SOURCES]")
     
    #general for above 
       names <- fun.temp.2(names, "Conc|ppb|", "", TRUE)
       names <- fun.temp.2(names, "Conc|ppm|", "", TRUE)
-      names <- fun.temp.2(names, "Conc|ug/m3|", "", TRUE)
+      names <- fun.temp.2(names, "Conc|ug/m.|", "", TRUE)
       names <- fun.temp.2(names, "Conc|ug/m3|", "", TRUE)
       names <- fun.temp.2(names, "[.][.][.][.]1hr", "", FALSE)
 
