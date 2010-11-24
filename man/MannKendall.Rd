@@ -14,7 +14,7 @@ deseason = FALSE,
 type = "default",
 period = "monthly",
 statistic = "mean",
-percentile = 95,
+percentile = NA,
 data.thresh = 0,
 simulate = FALSE,
 alpha = 0.05,
@@ -128,6 +128,28 @@ estimate - sometimes by a large amount.}
   \item{\dots}{Other graphical parameters.}
 }
 
+\value{
+  As well as generating the plot itself, \code{MannKendall} also returns an object of class 
+  ``openair''. The object includes three main components: \code{call}, the command used to 
+  generate the plot; \code{data}, the data frame of summarised information used to make the 
+  plot; and \code{plot}, the plot itself. If retained, e.g. using 
+  \code{output <- MannKendall(mydata, "nox")}, this output can be used to recover the data, reproduce 
+  or rework the original plot or undertake further analysis.  
+
+  An openair output can be manipulated using a number of generic operations, including 
+  \code{print}, \code{plot} and \code{summarise}. See \code{\link{openair.generics}} 
+  for further details.
+
+  The \code{data} component of the \code{MannKendall} output includes to subsets: 
+  \code{main.data}, the monthly data \code{res2} the trend
+  statistics. For \code{output <- MannKendall(mydata, "nox")}, these can be extracted as 
+  \code{object$data$main.data} and \code{object$data$res2}, respectively. 
+
+  Note: In the case of the intercept, it is assumed the
+  y-axis crosses the x-axis on 1/1/1970.
+  
+}
+
 \details{The \code{Mann-Kendall} function provides a collection of
 functions to analyse trends in air pollution data. The Mann-Kendall test
 is a commonly used test in environmental sciences to detect the presence
@@ -161,15 +183,6 @@ data using block bootstrap simulations (Kunsch, 1989). The principal
 reason for doing so is to gain a better estimate of trend uncertainty.
 }
 
-\value{Function will return the monthly data and trend statistics, if
-  read into a variable. For example,
-
-  res <- MannKendall(mydata, pollutant = "nox")
-
-  res[[1]] contains the monthly data and res[[2]] contains the trend
-  statistics. Note that in the case of the intercept, it is assumed the
-  y-axis crosses the x-axis on 1/1/1970.
-}
 
 \references{
 

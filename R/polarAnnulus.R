@@ -254,7 +254,7 @@ polarAnnulus <- function(polar,
          draw = FALSE)))
     names(legend)[1] <- if(is.null(key$space)) key.position else key$space
 
-    levelplot(z ~ u * v | cond, results.grid, axes = FALSE,
+    plt <- levelplot(z ~ u * v | cond, results.grid, axes = FALSE,
               as.table = TRUE,
               aspect = 1,
               xlab = "",
@@ -356,6 +356,15 @@ polarAnnulus <- function(polar,
                   ltext(upper + d + 1.5, 0, "E")
 
               })
+
+    #################
+    #output
+    #################
+    plot(plt)
+    newdata <- results.grid
+    output <- list(plot = plt, data = newdata, call = match.call())
+    class(output) <- "openair"
+    invisible(output)  
 
 }
 

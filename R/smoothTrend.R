@@ -4,7 +4,7 @@ smoothTrend <- function(mydata,
                          deseason = FALSE,
                          type = "default",
                          statistic = "mean",
-                         percentile = 95,
+                         percentile = NA,
                          data.thresh = 0,
                          simulate = FALSE,
                          n = 200, #bootstrap simulations
@@ -195,7 +195,7 @@ smoothTrend <- function(mydata,
         key <- NULL ## either there is a key or there is not
     }
 
-    xyplot(conc ~ date | cond, data = split.data, groups = group,
+    plt <- xyplot(conc ~ date | cond, data = split.data, groups = group,
            as.table = TRUE,
            strip = strip,
            layout = layout,
@@ -230,7 +230,15 @@ smoothTrend <- function(mydata,
 
            })
 
-    ## invisible(results)
+    #################
+    #output
+    #################
+    plot(plt)
+    newdata <- split.data
+    output <- list(plot = plt, data = newdata, call = match.call())
+    class(output) <- "openair"
+    invisible(output)  
+
 }
 
 

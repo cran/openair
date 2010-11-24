@@ -1,27 +1,28 @@
 
 polarPlot <- function(polar,
-                       pollutant = "nox",
-                       type = "default",
-                       resolution = "normal",
-                       limits = c(0, 100),
-                       exclude.missing = TRUE,
-                       uncertainty = FALSE,
-                       cols = "default",
-                       min.bin = 1,
-                       upper = 10,
-                       ws.int = 5,
-                       angle.scale = 45,
-                       units = "(m/s)",
-                       force.positive = TRUE,
-                       k = 100,
-                       main = "",
-                       key.header = "",
-                       key.footer = pollutant,
-                       key.position = "right",
-                       key = NULL,
-                       auto.text = TRUE, ...) {
-   
-   
+                      pollutant = "nox",
+                      type = "default",
+                      resolution = "normal",
+                      limits = NA,
+                      exclude.missing = TRUE,
+                      uncertainty = FALSE,
+                      cols = "default",
+                      min.bin = 1,
+                      upper = NA,
+                      ws.int = 5,
+                      angle.scale = 45,
+                      units = "(m/s)",
+                      force.positive = TRUE,
+                      k = 100,
+                      normalise = FALSE,
+                      main = "",
+                      key.header = "",
+                      key.footer = pollutant,
+                      key.position = "right",
+                      key = NULL,
+                      auto.text = TRUE, ...) {
+    
+    
 
     if (uncertainty) type <- "default" ## can't have conditioning here
 
@@ -29,6 +30,16 @@ polarPlot <- function(polar,
     vars <- c("ws", "wd", "date", pollutant)
 
     polar <- checkPrep(polar, vars, type)
+
+    ## if more than one pollutant, need to stack the data and set type = "variable"
+    ## this case is most relevent for model-measurement compasrions where data are in columns
+    if (length(pollutant) > 1) {
+        polar <- melt(polar, measure.vars = pollutant)
+        ## now set pollutant to "value"
+        pollutant <- "value"
+        type <- "variable"       
+    }
+    
     polar <- na.omit(polar)
     ## cutData depending on type
     polar <- cutData(polar, type)
@@ -87,7 +98,7 @@ polarPlot <- function(polar,
             pred <- predict.gam(Mgam, input.data, se = TRUE)
             uncer <- 2 * as.vector(pred[[2]]) ## for approx 95% CI
             pred <- as.vector(pred[[1]]) ^ (1 / n)
-           
+            
 
             ## do not weight for central prediction
             Mgam <- gam(binned ^ n ~ s(u, v, k = k))
@@ -134,11 +145,21 @@ polarPlot <- function(polar,
 
     ## remove wind speeds > upper to make a circle
     results.grid$z[(results.grid$u ^ 2 + results.grid$v ^ 2) ^ 0.5 > upper] <- NA
+    
+    ## proper names of labelling
+    pol.name <- sapply(unique(results.grid$cond), function(x) quickText(x, auto.text))
+    strip <- strip.custom(factor.levels = pol.name)
 
-    strip <- TRUE
     skip <- FALSE
     if (type == "default") strip <- FALSE ## remove strip
     if (uncertainty) strip <- TRUE
+
+    ## normalise by divining by mean conditioning value if needed
+    if (normalise){
+        results.grid <- ddply(results.grid, .(cond), transform, z = z / mean(z, na.rm = TRUE))
+        if (missing(key.footer)) key.footer <- "normalised \nlevel"
+    }
+
 
     ## auto-scaling
     nlev <- 200  ## preferred number of intervals
@@ -156,65 +177,79 @@ polarPlot <- function(polar,
     if (uncertainty) layout <- c(3, 1)
     layout = if (uncertainty) c(3, 1) else NULL
 
-    #################
-    #scale key setup
-    #################
+#################
+                                        #scale key setup
+#################
     legend <- list(col = col, at = col.scale, space = key.position, 
-         auto.text = auto.text, footer = key.footer, header = key.header, 
-         height = 1, width = 1.5, fit = "all")
+                   auto.text = auto.text, footer = key.footer, header = key.header, 
+                   height = 1, width = 1.5, fit = "all")
     if (!is.null(key)) 
-         if (is.list(key)) 
-             legend[names(key)] <- key
-         else warning("In polarPlot(...):\n  non-list key not exported/applied\n  [see ?drawOpenKey for key structure/options]", 
-             call. = FALSE)
+        if (is.list(key)) 
+            legend[names(key)] <- key
+        else warning("In polarPlot(...):\n  non-list key not exported/applied\n  [see ?drawOpenKey for key structure/options]", 
+                     call. = FALSE)
     legend <- list(temp = list(fun = drawOpenKey, args = list(key = legend, 
-         draw = FALSE)))
+                                                  draw = FALSE)))
     names(legend)[1] <- if(is.null(key$space)) key.position else key$space
 
-    levelplot(z ~ u * v | cond, results.grid, axes = FALSE,
-              as.table = TRUE,
-              layout = layout,
-              strip = strip,
-              col.regions = col,
-              region = TRUE,
-              aspect = 1,
-              at = col.scale,
-              xlab = "",
-              ylab = "",
-              main = quickText(main, auto.text),
-              scales = list(draw = FALSE),
-              xlim = c(-upper * 1.15, upper * 1.15),
-              ylim = c(-upper * 1.15, upper * 1.15),
-              colorkey = FALSE, legend = legend, 
-              ...,
 
-              panel = function(x, y, z,subscripts,...) {
-                  panel.levelplot(x, y, z,
-                                  subscripts,
-                                  at = col.scale,
-                                  pretty = TRUE,
-                                  col.regions = col,
-                                  labels = FALSE)
+    plt <- levelplot(z ~ u * v | cond, results.grid, axes = FALSE,
+                     as.table = TRUE,
+                     layout = layout,
+                     strip = strip,
+                     col.regions = col,
+                     region = TRUE,
+                     aspect = 1,
+                     at = col.scale,
+                     xlab = "",
+                     ylab = "",
+                     par.strip.text = list(cex = 0.8),
+                     main = quickText(main, auto.text),
+                     scales = list(draw = FALSE),
+                     xlim = c(-upper * 1.15, upper * 1.15),
+                     ylim = c(-upper * 1.15, upper * 1.15),
+                     colorkey = FALSE, legend = legend, 
+                     ...,
 
-                  angles <- seq(0, 2 * pi, length = 360)
+                     panel = function(x, y, z,subscripts,...) {
+                         panel.levelplot(x, y, z,
+                                         subscripts,
+                                         at = col.scale,
+                                         pretty = TRUE,
+                                         col.regions = col,
+                                         labels = FALSE)
 
-                  sapply(seq(ws.int, 10 * ws.int, ws.int), function(x)
-                         llines(x * sin(angles), x * cos(angles), col = "grey", lty = 5))
+                         angles <- seq(0, 2 * pi, length = 360)
 
-                  ltext(seq(ws.int, 10 * ws.int, by = ws.int) * sin(pi * angle.scale / 180),
-                        seq(ws.int, 10 * ws.int, by = ws.int) * cos(pi * angle.scale / 180),
-                        paste(seq(ws.int, 10 * ws.int, by = ws.int), c("", "",
-                                                       units, rep("", 7))), cex = 0.7)
+                         sapply(seq(ws.int, 10 * ws.int, ws.int), function(x)
+                                llines(x * sin(angles), x * cos(angles), col = "grey", lty = 5))
 
-                  ## add axis line to central polarPlot
-                  larrows(-upper, 0, upper, 0, code = 3, length = 0.1)
-                  larrows(0, -upper, 0, upper, code = 3, length = 0.1)
+                         ltext(seq(ws.int, 10 * ws.int, by = ws.int) * sin(pi * angle.scale / 180),
+                               seq(ws.int, 10 * ws.int, by = ws.int) * cos(pi * angle.scale / 180),
+                               paste(seq(ws.int, 10 * ws.int, by = ws.int), c("", "",
+                                                              units, rep("", 7))), cex = 0.7)
 
-                  ltext(-upper * 1.07, 0, "W", cex = 0.7)
-                  ltext(0, -upper * 1.07, "S", cex = 0.7)
-                  ltext(0, upper * 1.07, "N", cex = 0.7)
-                  ltext(upper * 1.07, 0, "E", cex = 0.7)
-              })
+                         ## add axis line to central polarPlot
+                         larrows(-upper, 0, upper, 0, code = 3, length = 0.1)
+                         larrows(0, -upper, 0, upper, code = 3, length = 0.1)
+
+                         ltext(-upper * 1.07, 0, "W", cex = 0.7)
+                         ltext(0, -upper * 1.07, "S", cex = 0.7)
+                         ltext(0, upper * 1.07, "N", cex = 0.7)
+                         ltext(upper * 1.07, 0, "E", cex = 0.7)
+                     })
+
+#################
+                                        #output
+#################
+    plot(plt)
+    newdata <- results.grid
+    names(newdata)[3] <- pollutant 
+    newdata <- newdata[c("cond", "u", "v", pollutant)]
+    output <- list(plot = plt, data = newdata, call = match.call())
+    class(output) <- "openair"
+    invisible(output)  
+
 }
 
 

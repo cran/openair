@@ -110,9 +110,20 @@ trendLevel(mydata,
 }
 
 \value{
-  As well as generating the plot itself, \code{trendLevel} also returns an object (a list) with 
-  two parts: \code{data}, a data frame of the summarised information used to make the plot, and 
-  \code{plot}, the plot itself. 
+  As well as generating the plot itself, \code{trendLevel} also returns an object of class 
+  ``openair''. The object includes three main components: \code{call}, the command used to 
+  generate the plot; \code{data}, the data frame of summarised information used to make the 
+  plot; and \code{plot}, the plot itself. If retained, e.g. using 
+  \code{output <- trendLevel(mydata)}, this output can be used to recover the data, reproduce 
+  or rework the original plot or undertake further analysis.  
+
+  An openair output can be manipulated using a number of generic operations, including 
+  \code{print}, \code{plot} and \code{summarise}. See \code{\link{openair.generics}} 
+  for further details.
+  
+  Summary statistics can also be extracted directly using the \code{$data} operator, e.g. 
+  \code{object$data} for \code{output <- trendLevel(mydata)}.   
+  
 }
 
 \details{
@@ -136,7 +147,7 @@ trendLevel(mydata,
       
 }
 
-\author{ David Carslaw and Karl Ropkins }
+\author{ Karl Ropkins }
 
 \examples{
 

@@ -11,7 +11,7 @@ pollutant = "nox",
 deseason = FALSE,
 type = "default",
 statistic = "mean",
-percentile = 95,
+percentile = NA,
 data.thresh = 0,
 simulate = FALSE,
 n = 200,
@@ -141,6 +141,22 @@ auto.text = TRUE,...)
 
   \item{\dots}{Other graphical parameters e.g. pch = 16 for filled circles.}
 }
+
+\value{
+  As well as generating the plot itself, \code{smoothTrend} also returns an object of class 
+  ``openair''. The object includes three main components: \code{call}, the command used to 
+  generate the plot; \code{data}, the data frame of summarised information used to make the 
+  plot; and \code{plot}, the plot itself. If retained, e.g. using 
+  \code{output <- smoothTrend(mydata, "nox")}, this output can be used to recover the data, reproduce 
+  or rework the original plot or undertake further analysis.  
+
+  An openair output can be manipulated using a number of generic operations, including 
+  \code{print}, \code{plot} and \code{summarise}. See \code{\link{openair.generics}} 
+  for further details.   
+  
+}
+
+
 \details{
 The \code{smoothTrend} function provides a flexible way of estimating
 the trend in the concentration of a pollutant or other variable. Monthly

@@ -8,16 +8,17 @@ for use with the openair package. The function uses \code{read.table} (in
 
 \usage{ 
 mydata <- import(file = file.choose(), file.type="csv", 
-		header.at = 1, data.at = 2, 
-		eof.report = NULL, na.strings = c("", "NA"), quote="\"", 
-		date.name = "date", date.break = "/", date.order = "dmy", 
-		time.name = "date", time.break = ":", time.order = "hm", 
-		time.format ="GMT", 
-		is.ws = NULL, is.wd = NULL, is.site = NULL,
-		misc.info = NULL, 
-		bad.24 = FALSE, 
-		correct.time = NULL, 
-		output = "final")
+                 header.at = 1, data.at = 2, 
+                 eof.report = NULL, na.strings = c("", "NA"), quote="\"", 
+                 date.name = "date", date.break = "/", date.order = "dmy", 
+                 time.name = "date", time.break = ":", time.order = "hm", 
+                 time.format ="GMT", cipher = NULL,
+                 is.ws = NULL, is.wd = NULL, is.site = NULL,
+                 misc.info = NULL, 
+                 bad.24 = FALSE, 
+                 correct.time = NULL,
+                 previous = FALSE, 
+                 output = "final")
 }
 
 \arguments{
@@ -30,8 +31,13 @@ tested). }
 \item{file.type}{ The file format, defaults to common "csv"
   (comma delimited) format, but also allows "txt" (tab delimited). }
 
-\item{header.at}{ The file row holding header information. This is used
-  to set names for the resulting imported data frame. }
+\item{header.at}{ The file row holding header information or 
+  \code{NULL} if no header to be used. If valid numeric, this is used
+  to set names for the resulting imported data frame. If \code{NULL} 
+  default column names are generated that can then be modified using R
+  function \code{names}. Note: If NULL no header is identified and 
+  associated column identifiers (\code{date.name}, \code{field.name}, 
+  \code{is.ws}, \code{is.wd} and \code{is.site}) must be numeric. }
 
 \item{data.at}{The file row to start reading data from. When generating the data frame,
 the function will ignore all information before this row, and attempt to
@@ -47,7 +53,7 @@ encountered. The default setting (NULL) turns this argument off. }
 \item{quote}{ String of characters (or character equivalents) the imported file 
 may use to represent a character field. }
 
-\item{date.name}{ Header name of column (or columns)
+\item{date.name}{ Header name or number of column (or columns)
 holding date information. Combined with time information as single date
 column in the generated data frame. }
 
@@ -64,7 +70,7 @@ apply the POSIX* format structure "%d-%b-%Y" and allow the import of date enteri
 like "01-JAN-2010". See associated help, ?format.POSIXct, for full list of format 
 options. (Note: direct POSIX calls supercede other date settings.)}
 
-\item{time.name}{ Header name of column (or columns) holding time 
+\item{time.name}{ Header name or number of column (or columns) holding time 
 information. Combined with date information as
 single date column in the generated data frame. }
 
@@ -85,20 +91,31 @@ options. (Note: direct POSIX calls supercede other time settings.)}
 Allows most common formats, e.g.: "GMT" (default), "UTC", etc. 
 See \code{as.POSIX*} functions for further information. }
 
+\item{cipher}{ Alternative date and time handling method, currently in 
+development. If supplied the key date/time Saturday 1st February 2003 16:05:06 (or 
+nearest case) in the format used within the supplied file, \code{cipher} attempts 
+to decode this and format supplied date/time information using the associated method. 
+\code{cipher} is more flexible than \code{date.order} and \code{time.order}, allowing 
+the import of both numeric and non-numeric month descriptors (02, Feb, February), YY and 
+YYYY year formats (03, 2003), days of week (Sat, Saturday), and 12 and 24 hour time stamps 
+(04:05 PM, 16:05). Like \code{date.order} and \code{time.order}, \code{cipher} can also 
+handle more complex formats by calling POSIX* directly. Note: This option is currently 
+in development and should be used with care. } 
+
 \item{is.ws}{ Wind speed information identifier. Default
-NULL turns this option off. When set to valid header/data column name,
+NULL turns this option off. When set to valid header name or data column number,
 used to select wind speed data. Note: data renamed "ws" as part of this
 operation. }
 
 \item{is.wd}{ Wind direction information
 identifier. Default NULL turns this option off. When set to valid
-header/data column name, used to select wind direction data. Note: data
+header name or data column number, used to select wind direction data. Note: data
 renamed "wd" as part of this operation. }
 
 \item{is.site}{ Site
-information identifier. Default NULL turns this option off. When set,
-the standard (import) method uses this information to generate a "site" 
-data column.}
+information identifier. Default NULL turns this option off. When set to valid 
+header name or data column number, the standard (import) method uses this 
+information to generate a "site" data column.}
 
 \item{misc.info}{ Row number(s) of
 any additional information that may be required from the original
@@ -114,6 +131,10 @@ functions. }
 \item{correct.time}{ Numerical correction (in seconds) for
 imported date. Default NULL turns this option off. When enabled, used to
 offset "date" entries. }
+
+\item{previous}{ Logical (TRUE/FALSE) to use earlier version of import. 
+Default FALSE uses the most recent version of import. Alternative TRUE 
+accesses earlier alternative. }
 
 \item{output}{ Type of data object to be
 generated. Default "final" returns a standard data set for use in
@@ -174,10 +195,11 @@ data frame (data, names, date, misc.info, etc.).
 # data obtained from http://www.openair-project.org
 
 #import data as mydata
-## mydata <- import("example data long.csv")
+# basic plot
+\dontrun{mydata <- import("example data long.csv")}
 
 #use openair function
-## polar.plot(mydata, pollutant="nox")
+\dontrun{polar.plot(mydata, pollutant="nox")}
 
 
 }

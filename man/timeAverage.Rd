@@ -13,7 +13,7 @@ timeAverage(mydata,
 period = "day",
 data.thresh = 0,
 statistic = "mean",
-percentile = 95,
+percentile = NA,
 start.date = NA)
 }
 
@@ -39,11 +39,10 @@ start.date = NA)
 
 \item{statistic}{The statistic to apply when aggregating the data;
   default is the mean. Can be one of "mean", "max", "min", "median",
-  "frequency", "sd", "percentile". Note that "sd" is the standard
-  deviation and "frequency" is the number (frequency) of valid
-  records in the period. "percentile" is the percentile level (\%)
-  between 0-100, which can be set using the "percentile" option -
-  see below. }
+  "sum", "frequency", "sd", "percentile". Note that "sd" is the standard
+  deviation and "frequency" is the number (frequency) of valid records
+  in the period. "percentile" is the percentile level (\%) between
+  0-100, which can be set using the "percentile" option - see below. }
 
 \item{percentile}{The percentile level in \% used when \code{statistic =
     "percentile"}. The default is 95.}

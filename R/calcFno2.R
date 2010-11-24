@@ -151,7 +151,15 @@ calcFno2 <- function(input,
 
         if (plot) print(plot.fno2(results,...))
         results <- list(results = results, hourly = hourly)
-        invisible(results)
+        
+    #################
+    #output
+    #################
+    plt <- trellis.last.object()
+    newdata <- results
+    output <- list(plot = plt, data = newdata, call = match.call())
+    class(output) <- "openair"
+    invisible(output)  
 
     } else {  ## calculate NO2 concentrations based on user input for whole series
         res <- calc.error(user.fno2, input.all$nox, input.all$no2,
@@ -168,9 +176,21 @@ calcFno2 <- function(input,
         res <- rbind(res, gaps)
         res <- res[order(res$date), ]
         if (plot) print(plot.no2(input.all, res,...))
-        invisible(res)
+
+    #################
+    #output
+    #################
+    plt <- trellis.last.object()
+    newdata <- res
+    output <- list(plot = plt, data = newdata, call = match.call())
+    class(output) <- "openair"
+    invisible(output)          
+        
     }
 }
+
+
+
 }
 
 

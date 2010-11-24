@@ -7,12 +7,13 @@ scatterPlot <- function(mydata,
                          avg.time = "default",
                          data.thresh = 0,
                          statistic = "mean",
-                         percentile = 95,
+                         percentile = NA,
                          type = "default",
                          layout = c(1, 1),
                          smooth = TRUE,
                          linear = FALSE,
                          ci = TRUE,
+                        mod.line = FALSE,
                          cols = "hue",
                          main = "",
                          ylab = y,
@@ -99,6 +100,10 @@ scatterPlot <- function(mydata,
     ## remove missing data
     mydata <- na.omit(mydata)
 
+    ## if x is a factor/character, then rotate axis labels for clearer labels
+    x.rot <- 0
+    if ("factor" %in% class(mydata[, x]) | "character"  %in% class(mydata[, x])) x.rot <- 90
+
     ## continuous colors
     if (continuous & method == "scatter") {
         ## check to see if type is numeric/integer
@@ -153,7 +158,7 @@ scatterPlot <- function(mydata,
     ## basic function for lattice call + defaults
     myform <- formula(paste(y, "~", x))
 
-    scales <- list(x = list(log = nlog.x), y = list(log = nlog.y))
+    scales <- list(x = list(log = nlog.x, rot = x.rot), y = list(log = nlog.y))
 
     if (x == "date") { ## get proper date scaling
         date.breaks <- 7
@@ -179,7 +184,7 @@ scatterPlot <- function(mydata,
         myform <- formula(paste(y, "~", x, "| site"))
         ## proper names of labelling
         strip <- strip.custom(par.strip.text = list(cex = 0.8), factor.levels = pol.name)
-        scales <- list(y = list(rot = 0, log = nlog.y), x = list(log = nlog.x))
+        scales <- list(y = list(rot = 0, log = nlog.y), x = list(log = nlog.x, rot = x.rot))
     }
 
     if (key & type != "default") {
@@ -246,6 +251,11 @@ scatterPlot <- function(mydata,
                                  if (linear) panel.linear(x, y, col = "black",myColors[group.number], lwd = 1,
                                                           lty = 5, x.nam = x.nam, y.nam = y.nam,
                                                           se = ci,  ...)
+                                 if (mod.line) {
+                                     panel.abline(a = c(0, 0.5), lty = 5)
+                                     panel.abline(a = c(0, 2), lty = 5)
+                                     panel.abline(a = c(0, 1), lty = 1)
+                                 }
                              })
     }
 
@@ -264,6 +274,11 @@ scatterPlot <- function(mydata,
                                 panel = function(x,...) {
                                     panel.grid(-1, -1)
                                     panel.hexbinplot(x,...)
+                                    if (mod.line) {
+                                     panel.abline(a = c(0, 0.5), lty = 5)
+                                     panel.abline(a = c(0, 2), lty = 5)
+                                     panel.abline(a = c(0, 1), lty = 1)
+                                 }
                                 })
     }
 
@@ -326,11 +341,27 @@ scatterPlot <- function(mydata,
                                                    pretty = TRUE,
                                                    col.regions = col,
                                                    labels = FALSE)
+                                   if (mod.line) {
+                                     panel.abline(a = c(0, 0.5), lty = 5)
+                                     panel.abline(a = c(0, 2), lty = 5)
+                                     panel.abline(a = c(0, 1), lty = 1)
+                                 }
                                })
     }
     if (method == "scatter") print(pltscatter)
     if (method == "hexbin") print(plthexbin)
     if (method == "density") print(pltkernel)
+
+    #################
+    #output
+    #################
+    plt <- trellis.last.object()
+    newdata <- mydata
+    output <- list(plot = plt, data = newdata, call = match.call())
+    class(output) <- "openair"
+    invisible(output)      
+
+
 }
 
 

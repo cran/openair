@@ -17,12 +17,13 @@ group = FALSE,
 avg.time = "default",
 data.thresh = 0,
 statistic = "mean",
-percentile = 95,
+percentile = NA,
 type = "default",
 layout = c(1, 1),
 smooth = TRUE,
 linear = FALSE,
 ci = TRUE,
+mod.line = FALSE,
 cols = "hue",
 main = "",
 ylab = y,
@@ -117,7 +118,15 @@ auto.text = TRUE,
  optionally with 95\% confidence intervals shown. The equation of the
  line and R2 value is also shown.}
 
- \item{ci}{Should the confidence intervals for the smooth/linear fit be shown?}
+ \item{ci}{Should the confidence intervals for the smooth/linear fit be
+   shown?}
+
+ \item{mod.line}{If \code{TRUE} three lines are added to the scatter
+ plot to help inform model evaluation. The 1:1 line is solid and the
+ 1:0.5 and 1:2 lines are dashed. Together these lines help show how
+ close a group of points are to a 1:1 relationship and also show the
+ points that are within a factor of two (FAC2). In time, more
+ comprehensive model evaluation statistics will be considered.}
 
   \item{cols}{Colours to be used for plotting. Options include "default",
     "increment", "heat", "spectral", "hue", "brewer1"  and user
@@ -174,6 +183,22 @@ auto.text = TRUE,
     names and units properly e.g.  by subscripting the `2' in NO2.}
 
   \item{\dots}{Other graphical parameters.}
+}
+
+\value{As well as generating the plot itself, \code{scatterPlot} also
+  returns an object of class ``openair''. The object includes three main
+  components: \code{call}, the command used to generate the plot;
+  \code{data}, the data frame of summarised information used to make the
+  plot; and \code{plot}, the plot itself. If retained, e.g. using
+  \code{output <- scatterPlot(mydata, "nox", "no2")}, this output can be
+  used to recover the data, reproduce or rework the original plot or
+  undertake further analysis.
+
+  An openair output can be manipulated using a number of generic
+  operations, including \code{print}, \code{plot} and
+  \code{summarise}. See \code{\link{openair.generics}} for further
+  details.
+  
 }
 
 \details{ The \code{scatterPlot} is the basic function for plotting

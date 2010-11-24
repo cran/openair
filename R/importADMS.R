@@ -451,7 +451,8 @@ ans
 ###############
 #daughter
 #importADMSPst
-#kr v0.1
+#kr v0.2
+#08 nov 2010
 
 importADMSPst <- function(file=file.choose()
     , drop.case=TRUE, drop.input.dates=TRUE
@@ -468,26 +469,26 @@ importADMSPst <- function(file=file.choose()
 #########
 #no obvious file structure for testing
 #provisional tester checks Hour, Day, Year and Receptor.name  in file names
-#NEED to confirm these are standard, case specific, etc.
 #########
 #units are recovered from names row
-
+#########
+#drops Time(s) if empty
 
 #problems
 #########
-#currently dropping and ignoring Time(s)
-#talk to Matt about how it works/is used
-#########
-#Not my name simplifications on Conc terms may need work
-#talk to Matt/David 
-
+#my name simplifications on Conc terms may need work
+#due to compiler can't catch mu.g/m3 units
+#talk to Matt/David re mug, ug and mg
 
 ######################
 #code
 
 #read top line/data headers
 check.names <- read.csv(file, header=FALSE, nrow=1, ...)
-check.names <- make.names(as.vector(apply(check.names, 1, as.character)))
+check.names <- as.vector(apply(check.names, 1, as.character))
+check.names <- sub('[[:space:]]+$', '', check.names) #strip out tail spaces
+check.names <- sub('^[[:space:]]{1,}', '', check.names) #strip leading space (safer?)
+check.names <- make.names(check.names) #after removing front spaces or X.m. conflict
 
 #test structure
 if(test.file.structure){
@@ -514,20 +515,24 @@ if(ncol(ans)!=length(check.names)){
 
 names(ans) <- make.names(check.names, unique=TRUE)
 
+#setup date/time
 date <- paste(ans$Year, ans$Day, ans$Hour, sep = "-")
 date <- as.POSIXct(strptime(date, format = "%Y-%j-%H"), "GMT")
 
-if(drop.input.dates==TRUE){
-    ans <- ans[,!names(ans) %in% c("Year", "Day", "Hour", "Time.s.")]
-}
+if(drop.input.dates==TRUE)
+    ans <- ans[,!names(ans) %in% c("Year", "Day", "Hour")]
+
+#drop Time.s. if empty
+if(all(is.na(ans$Time.s.)))
+    ans <- ans[,!names(ans) %in% c("Time.s.")]
 
 #recover units from names
 units <- rep(NA, ncol(ans))
+units[grep("[.]s[.]", names(ans))] <- "s"
 units[grep("^.[.]m", names(ans))] <- "m"
-units[grep("[.]ug.m3[.]", names(ans))] <- "ug/m3"
-units[grep("[.]ug/m3[.]", names(ans))] <- "ug/m3"
-units[grep("[.]ppb[.]", names(ans))] <- "ppb"
-units[grep("[.]ppm[.]", names(ans))] <- "ppm"
+units[grep("[.]ug.m.", names(ans))] <- "ug/m3" #both 3 and superscript 3
+units[grep("[.]ppb", names(ans))] <- "ppb"
+units[grep("[.]ppm", names(ans))] <- "ppm"
 if(length(na.omit(units))==0)
      units <- "units: unknown" else  
      units <- paste("units: ",paste(units, sep = "", collapse = ", "), sep="")
@@ -566,6 +571,21 @@ ans
 ###############
 ##daughter
 ##simplifyNamesADMS
+#kr v0.5
+#08 nov 2010
+
+#notes
+################
+#two handlers: fun.temp and fun.temp.2
+################
+#fun.temp(x,y,z)
+#replaces full term y with full term z in x
+################
+#fun.temp.2(x,y,z, y.names)
+#replaces partial term y with partial term 2 in x
+#if y.names = TRUE makes y r-friend first
+#[make.names(y)...]
+#
 
 simplifyNamesADMS <- function(names=NULL){
    #simplify.names lookup table for import.adms functions
@@ -649,19 +669,30 @@ simplifyNamesADMS <- function(names=NULL){
    #CLOUD AMOUNT (OKTAS)
        names <- fun.temp(names, "CLOUD AMOUNT (OKTAS)", "CL")
 
-   #Conc|ppb|[NAME]|All sources|-| 1hr
-      names <- fun.temp(names, "Conc|ppb|[NAME]|[SOURCES]|-| 1hr", "[NAME].[SOURCES]")
-   #Conc|ppm|[NAME]|All sources|-| 1hr
-      names <- fun.temp(names, "Conc|ppm|[NAME]|[SOURCES]|-| 1hr", "[NAME].[SOURCES]")      
-   #Conc|ug/m3|[NAME]|All sources|-| 1hr
-      names <- fun.temp(names, "Conc|ug/m3|[NAME]|[SOURCES]|-| 1hr", "[NAME].[SOURCES]")
-    
+   #Conc|ppb|NAME|All sources|-| 1hr
+      names <- fun.temp(names, "Conc|ppb|NAME|SOURCES|-| RESOLUTION", "NAME.SOURCES.RESOLUTION")
+   #Conc|ppm|NAME|All sources|-| 1hr
+      names <- fun.temp(names, "Conc|ppm|NAME|SOURCES|-| RESOLUTION", "NAME.SOURCES.RESOLUTION")      
+   #Conc|ug/m3|NAME|All sources|-| 1hr
+      names <- fun.temp(names, "Conc|ug/m3|NAME|SOURCES|-| RESOLUTION", "NAME.SOURCES.RESOLUTION")
+   #NAME.All.sources.1hr
+      names <- fun.temp(names, "NAME.All.sources.1hr", "NAME")
+   #NAME.All.sources.RESOLUTION
+      names <- fun.temp(names, "NAME.All.sources.RESOLUTION", "NAME.RESOLUTION")
+   #NAME.SOURCE.1hr
+      names <- fun.temp(names, "NAME.SOURCE.1hr", "NAME.SOURCE")
+   
    #general for above 
       names <- fun.temp.2(names, "Conc|ppb|", "", TRUE)
       names <- fun.temp.2(names, "Conc|ppm|", "", TRUE)
-      names <- fun.temp.2(names, "Conc|ug/m.|", "", TRUE)
-      names <- fun.temp.2(names, "Conc|ug/m3|", "", TRUE)
-      names <- fun.temp.2(names, "[.][.][.][.]1hr", "", FALSE)
+      names <- fun.temp.2(names, "Conc|.g/m.|", "", TRUE) 
+      #above covers 
+      ##u, m and mu for 1st and 
+      ##3 and superscript3 for second
+      names <- fun.temp.2(names, "[.][.][.][.]", ".", FALSE)
+      names <- fun.temp.2(names, "[.][.][.]", ".", FALSE)
+      names <- fun.temp.2(names, "[.]All[.]sources", "", FALSE)
+      names <- fun.temp.2(names, "[.]1hr", "", FALSE)
 
    #D(RELATIVE HUMIDITY)/DZ ABOVE BOUNDARY LAYER (PERCENT/M)
        names <- fun.temp(names, "D(RELATIVE HUMIDITY)/DZ ABOVE BOUNDARY LAYER (PERCENT/M)", "DRHDZU")
@@ -772,6 +803,9 @@ simplifyNamesADMS <- function(names=NULL){
    #THOUR
    #TEMPERATURE OVER LAND MINUS SEA SURFACE TEMPERATURE
        names <- fun.temp(names, "TEMPERATURE OVER LAND MINUS SEA SURFACE TEMPERATURE", "DELTA.T")
+   #Time(s)
+   #X(m)
+     names <- fun.temp(names, "Time(s)", "Time")
    #TSEA
    #TYEAR
    #U
