@@ -13,8 +13,10 @@ cutData <- function(x, type = "default") {
 
         if (is.factor(x[, type]) | is.character(x[, type])) {
 
-            x$cond <- as.character(x[, type])
+            if (is.character(x[, type])) x$cond <- as.character(x[, type])
 
+            if (is.factor(x[, type])) x$cond <- x[, type]
+            
 
         } else {
 

@@ -202,5 +202,14 @@ linearRelation <- function(mydata,
     }
 
     if (condition & period == "day.hour") print(useOuterStrips(plt)) else print(plt)
-    invisible(results) ## return data used in plots
+
+    #################
+    #output
+    #################
+    plt <- trellis.last.object()
+    newdata <- results
+    output <- list(plot = plt, data = newdata, call = match.call())
+    class(output) <- "openair"
+    invisible(output)  
+
 }

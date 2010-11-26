@@ -15,7 +15,7 @@ normalise = FALSE,
 avg.time = "default",
 data.thresh = 0,
 statistic = "mean",
-percentile = 95,
+percentile = NA,
 date.pad = FALSE,
 type = "default",
 layout = c(1, 1),
@@ -24,6 +24,7 @@ main = "",
 ylab = pollutant,
 lty = 1:length(pollutant),
 lwd = 1,
+pch = NA,
 key = TRUE,
 strip = TRUE,
 log = FALSE,
@@ -37,9 +38,8 @@ auto.text = TRUE, ...)
 
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{mydata}{A data frame of hourly (or higher temporal resolution
-    data). Must include a \code{date} field and at least one variable to
-    plot.}
+\item{mydata}{A data frame of time series. Must include a \code{date}
+field and at least one variable to plot.}
 
   \item{pollutant}{Name of variable to plot. Two or more pollutants can be
     plotted, in which case a form like \code{pollutant = c("nox", "co")}
@@ -79,25 +79,35 @@ auto.text = TRUE, ...)
 \item{statistic}{The statistic to apply when aggregating the data;
   default is the mean. Can be one of "mean", "max", "min", "median",
   "frequency", "sd", "percentile". Note that "sd" is the standard
-  deviation and "frequency" is the number (frequency) of valid
-  records in the period. "percentile" is the percentile level (\%)
-  between 0-100, which can be set using the "percentile" option -
-  see below. Not used if \code{avg.time = "default"}.}
+  deviation and "frequency" is the number (frequency) of valid records
+  in the period. "percentile" is the percentile level (\%) between
+  0-100, which can be set using the "percentile" option - see
+  below. Not used if
+  \code{avg.time = "default"}.}
 
 \item{percentile}{The percentile level in \% used when \code{statistic =
     "percentile"} and when aggregating the data with
-    \code{avg.time}. The default is 95. Not used if \code{avg.time =
-    "default"}.}
+    \code{avg.time}. More than one percentile level is allowed for
+    \code{type = "default"} e.g. \code{percentile = c(50, 95)}. Not used
+    if \code{avg.time = "default"}.}
 
 \item{date.pad}{Should missing data be padded-out? This is useful where
   a data frame consists of two or more "chunks" of data with time gaps
   between them. By setting \code{date.pad = TRUE} the time gaps between
   the chunks are shown properly, rather than with a line connecting each
-  chunk. For irregular data, set to \code{FALSE}.}
+  chunk. For irregular data, set to \code{FALSE}. Note, this should not
+  be set for \code{type} other than \code{default}.}
 
-  \item{type}{Currently only \code{"default"} or \code{"site"} are
-    available options. If \code{type = "site"} then plots for a
-    \emph{single} pollutant across several sites will be plotted.}
+  \item{type}{The type of analysis to be done. The default is will
+produce a single plot using the entire data. There is an option "site",
+which requires a slightly different format. If "site" is used a data
+frame with headings \code{date}, a pollutant and \code{site} is
+required. It is also possible to choose \code{type} as another variable
+in the data frame. For example, \code{type = "o3"} will plot four
+quantiles of levels of ozone. This offers great flexibility for
+understanding the variation of different variables dependent on
+another. See function \code{cutData} for more details on the flexibility
+here.}
 
   \item{layout}{Determines how the panels are laid out. By default,
     plots will be shown in one column with the number of rows equal to the
@@ -126,6 +136,12 @@ auto.text = TRUE, ...)
     example, if \code{pollutant = c("nox", "no2", "o3")}, and a wider line
     was wanted for ozone, then \code{lwd} can be expressed as \code{lwd =
       c(1, 1, 2)}.}
+
+  \item{pch}{The type of symbol to be plotted. The default is not to
+  plot a symbol. It can be useful to do so in cases where there are not
+  consecutive points in time and a line cannot be drawn between two
+  points. Symbols can be plotted as a vector of types e.g. for unfilled
+  and filled symbols use \code{pch = c(1, 16)}.}
 
   \item{key}{Should a key be drawn? The default is \code{TRUE}.}
 
@@ -169,6 +185,22 @@ auto.text = TRUE, ...)
 
   \item{\dots}{Other graphical parameters.}
 }
+
+\value{
+  As well as generating the plot itself, \code{timePlot} also returns an object of class 
+  ``openair''. The object includes three main components: \code{call}, the command used to 
+  generate the plot; \code{data}, the data frame of summarised information used to make the 
+  plot; and \code{plot}, the plot itself. If retained, e.g. using 
+  \code{output <- timePlot(mydata, "nox")}, this output can be used to recover the data, reproduce 
+  or rework the original plot or undertake further analysis.  
+
+  An openair output can be manipulated using a number of generic operations, including 
+  \code{print}, \code{plot} and \code{summarise}. See \code{\link{openair.generics}} 
+  for further details.   
+  
+}
+
+
 
 \details{
   The \code{timePlot} is the basic time series plotting function in

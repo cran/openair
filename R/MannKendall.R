@@ -14,7 +14,7 @@ MannKendall <- function(mydata,
                         type = "default",
                         period = "monthly",
                         statistic = "mean",
-                        percentile = 95,
+                        percentile = NA,
                         data.thresh = 0,
                         simulate = FALSE,
                         alpha = 0.05,
@@ -172,16 +172,16 @@ MannKendall <- function(mydata,
 
     ## calculate percentage changes in slope and uncertainties
     ## need start and end dates (in days) to work out concentrations at those points
-    ## percentage change defind as 100.(C.end/C.start -1) / (Date.end = Date.start)
+    ## percentage change defind as 100.(C.end/C.start -1) / (Date.end - Date.start)
 
     start <- aggregate(split.data, list(variable = split.data$cond), function (x) head(x, 1))
     end <- aggregate(split.data, list(variable = split.data$cond), function (x) tail(x, 1))
     percent.change <- merge(start, end, by = "variable", suffixes = c(".start", ".end"))
 
     percent.change <- transform(percent.change, slope.percent = 100 * 365 *
-                                ((slope.start * date.end / 365 + intercept.start) /
-                                 (slope.start * date.start / 365 + intercept.start) - 1) /
-                                (date.end - date.start))
+                                ((slope.start * as.numeric(date.end) / 365 + intercept.start) /
+                                 (slope.start * as.numeric(date.start) / 365 + intercept.start) - 1) /
+                                (as.numeric(date.end) - as.numeric(date.start)))
 
     percent.change <- transform(percent.change, lower.percent = slope.percent / slope.start * lower.start,
                                 upper.percent = slope.percent / slope.start * upper.start)
@@ -244,8 +244,15 @@ MannKendall <- function(mydata,
                   }
                   )
     
-    print(plt)
-    invisible(list(split.data, res2))
+    #################
+    #output
+    #################
+    plot(plt)
+    newdata <- list(main.data = split.data, res2 = res2, subsets = c("main.data", "res2"))
+    output <- list(plot = plt, data = newdata, call = match.call())
+    class(output) <- "openair"
+    invisible(output)  
+
 }
 
 

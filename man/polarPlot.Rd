@@ -1,7 +1,7 @@
 \name{polarPlot}
 \alias{polarPlot}
 %- Also NEED an '\alias' for EACH other topic documented here.
-\title{Bivariate polarPlot with smoothing}
+\title{Bivariate polar plot with smoothing}
 
 \description{ Function for
   plotting pollutant concentration in polar coordinates showing
@@ -13,12 +13,12 @@
 \usage{
 polarPlot(polar, 
     pollutant = "nox", type = "default",
-    resolution = "normal", limits = c(0, 100), 
+    resolution = "normal", limits = NA, 
     exclude.missing = TRUE, uncertainty = FALSE, 
-    cols = "default", min.bin = 1, upper = 10, 
+    cols = "default", min.bin = 1, upper = NA, 
     ws.int = 5, angle.scale = 45, units = "(m/s)", 
-    force.positive = TRUE, k = 100, main = "", 
-    key.header = "", key.footer = pollutant, 
+    force.positive = TRUE, k = 100, normalise = FALSE,
+main = "", key.header = "", key.footer = pollutant, 
     key.position = "right", key = NULL, 
     auto.text = TRUE, ...)  
 }
@@ -31,21 +31,28 @@ polarPlot(polar,
 
   \item{pollutant}{Mandatory. A pollutant name corresponding to a
     variable in a data frame should be supplied e.g. \code{pollutant =
-      "nox"} }
+    "nox"}. There can also be more than one pollutant specified
+    e.g. \code{pollutant = c("nox", "no2")}. The main use of using two
+    or more pollutants is for model evaluation where two species would
+    be expected to have similar concentrations. This saves the user
+    stacking the data and it is possible to work with columns of data
+    directly. A typical use would be \code{pollutant = c("obs", "mod")}
+    to compare two columns "obs" (the observations) and "mod" (modelled
+    values).}
 
   \item{type}{The type of analysis to be done. The default is will
     produce a single plot using the entire data. Other types include
     "hour" (for hour of the day), "weekday" (for day of the week) and
-    "month" (for month of the year), "year" for a polarPlot for each
-    year. There is also an option "site", which requires users to format
-    their data in the form: \code{date, ws, wd, site}. It is also
-    possible to choose \code{type} as another variable in the data
-    frame. For example, \code{type = "o3"} will plot four windRoses
-    for different levels of ozone, split into four quantiles
-    (approximately equal numbers of counts in each of the four
-    splits). This offers great flexibility for understanding the
-    variation of different variables dependent on another. See function 
-    \code{cutData} for further details.}
+    "month" (for month of the year), "year" for a polar plot for each
+    year. It is also possible to choose \code{type} as another variable
+    in the data frame. A common example would be polar plots for several
+    sites. This would require a column "site" containing the site name
+    and the option \code{type = "site"} set. Another example is
+    \code{type = "o3"} will plot four windRoses for different levels of
+    ozone, split into four quantiles (approximately equal numbers of
+    counts in each of the four splits). This offers great flexibility
+    for understanding the variation of different variables dependent on
+    another. See function \code{cutData} for further details.}
 
   \item{resolution}{Two plot resolutions can be set: "normal" (the
     default) and "fine", for a smoother plot. It should be noted
@@ -131,6 +138,13 @@ polarPlot(polar,
     set to \code{FALSE}. Typically, value of around 100 (the default)
     seems to be suitable and will resolve more features in the plot.}
 
+  \item{normalise}{If \code{TRUE} concentrations are normalised by
+  dividing by their mean value. This is done \emph{after} fitting the
+  smooth surface. This option is particularly useful if one is
+  interested in the patterns of concentrations for several pollutants on
+  different scales e.g. NOx and CO. Often useful if more than one
+  \code{pollutant} is chosen. }
+
   \item{main}{The plot title; default is no title.}
 
  \item{key.header, key.footer}{Adds additional text/labels to the scale
@@ -155,15 +169,39 @@ polarPlot(polar,
 
   \item{\dots}{Other graphical parameters.}  }
 
-\details{ The bivariate polarPlot is a useful diagnostic tool for
+\value{ As well as generating the plot itself, \code{polarPlot} also
+  returns an object of class ``openair''. The object includes three main
+  components: \code{call}, the command used to generate the plot;
+  \code{data}, the data frame of summarised information used to make the
+  plot; and \code{plot}, the plot itself. If retained, e.g. using
+  \code{output <- polarPlot(mydata, "nox")}, this output can be used to
+  recover the data, reproduce or rework the original plot or undertake
+  further analysis.
+
+  An openair output can be manipulated using a number of generic
+  operations, including \code{print}, \code{plot} and
+  \code{summarise}. See \code{\link{openair.generics}} for further
+  details.
+  
+  \code{polarPlot} surface data can also be extracted directly using the
+  \code{$data} operator, e.g.  \code{object$data} for \code{output <-
+  polarPlot(mydata, "nox")}. This returns a data frame with four set
+  columns: \code{cond}, conditioning based on \code{type}; \code{u} and
+  \code{v}, the translational vectors based on \code{ws} and \code{wd};
+  and the local \code{pollutant} estimate.
+  
+}
+
+
+\details{ The bivariate polar plot is a useful diagnostic tool for
   quickly gaining an idea of potential sources. Wind speed is one of the
   most useful variables to use to separate source types (see
   references). For example, ground-level concentrations resulting from
-  buoyant plumes from chimney stacks tend to peak under higher wind speed
-  conditions. Conversely, ground-level, non-buoyant plumes such as from
-  road traffic, tend to have highest concentrations under low wind speed
-  conditions. Other sources such as from aircraft engines also show
-  differing characteristics by wind speed.
+  buoyant plumes from chimney stacks tend to peak under higher wind
+  speed conditions. Conversely, ground-level, non-buoyant plumes such as
+  from road traffic, tend to have highest concentrations under low wind
+  speed conditions. Other sources such as from aircraft engines also
+  show differing characteristics by wind speed.
 
   The plots can vary considerably depending on how much smoothing is
   done. The approach adopted here is based on the very flexible and

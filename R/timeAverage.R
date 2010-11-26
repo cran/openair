@@ -9,22 +9,27 @@
 ## NOTE - will only return numeric data apart from site name
 
 timeAverage <- function(mydata, period = "day", data.thresh = 0,
-                         statistic = "mean", percentile = 95, start.date = NA) {
+                         statistic = "mean", percentile = NA, start.date = NA) {
    
 
-    percentile <- percentile / 100
-    if (percentile < 0 | percentile > 100) stop("Percentile range outside 0-100")
+    if (!is.na(percentile)) {
+        percentile <- percentile / 100
+        if (percentile < 0 | percentile > 100) stop("Percentile range outside 0-100")
+    }
     if (data.thresh < 0 | data.thresh > 100) stop("Data capture range outside 0-100")
 
     if (statistic == "mean") form <- "mean(x, na.rm = TRUE)"
-    if (statistic == "max") form <- "suppressWarnings(max(x, na.rm = TRUE))"
+    if (statistic == "max") form <- "suppressWarnings(newMax(x))"
     if (statistic == "min") form <- "suppressWarnings(min(x, na.rm = TRUE))"
     if (statistic == "median") form <- "median(x, na.rm = TRUE)"
-    if (statistic == "median") form <- "median(x, na.rm = TRUE)"
+    if (statistic == "sum") form <- "sum(x, na.rm = TRUE)"
     if (statistic == "sd") form <- "sd(x, na.rm = TRUE)"
     if (statistic == "frequency") form <- "length(na.omit(x))"
     if (statistic == "percentile") form <- "quantile(x, probs = percentile, na.rm = TRUE)"
 
+    ## max retruns -Inf if all are missing (never understood this!) therefore choose to
+    ## return NA if all are missing
+    newMax <- function(x) {if (all(is.na(x))) return(NA) else max(x, na.rm = TRUE)}
 
     calc.mean <- function(mydata, start.date) { ## function to calculate means
 

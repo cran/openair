@@ -1,8 +1,8 @@
 Package: openair
 Type: Package
 Title: Tools for the analysis of air pollution data
-Version: 0.3-15
-Date: 2010-10-13
+Version: 0.3-25
+Date: 2010-11-24
 Author: David Carslaw and Karl Ropkins
 Depends: R (>= 2.10.0),
 Imports: proto, grid, plyr, reshape, mgcv, zoo, lattice,
@@ -18,6 +18,6 @@ License: GPL (>= 2)
 URL: http://www.openair-project.org/
 LazyLoad: yes
 LazyData: yes
-Packaged: 2010-10-14 10:23:36 UTC; david
+Packaged: 2010-11-25 13:03:48 UTC; david
 Repository: CRAN
-Date/Publication: 2010-10-14 13:47:30
+Date/Publication: 2010-11-26 07:05:35

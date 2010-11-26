@@ -47,6 +47,20 @@ xlab = "year",
   \item{\dots}{Other graphical parameters.}
 }
 
+\value{
+  As well as generating the plot itself, \code{calcFno2} also returns an object of class 
+  ``openair''. The object includes three main components: \code{call}, the command used to 
+  generate the plot; \code{data}, the data frame of summarised information used to make the 
+  plot; and \code{plot}, the plot itself. If retained, e.g. using 
+  \code{output <- calcFno2(...)}, this output can be used to recover the data, reproduce 
+  or rework the original plot or undertake further analysis.  
+
+  An openair output can be manipulated using a number of generic operations, including 
+  \code{print}, \code{plot} and \code{summarise}. See \code{\link{openair.generics}} 
+  for further details.   
+  
+}
+
 \details{ The principal purpose of this function is to estimate the
  level of primary (or direct) NO2 from road vehicles. When hourly data
  of NOX, NO2 and O3 are available, the total oxidant method of Clapp and

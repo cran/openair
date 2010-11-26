@@ -2,13 +2,12 @@
 \alias{windRose}
 \alias{pollutionRose}
 
-\title{Traditional windRose plot and pollutionRose variation}
-\description{
-The traditional windRose plot that plots wind speed  and wind direction by
-different intervals. The pollutionRose applies the same plot 
-structure but substitutes other measurements, most commonly a pollutant 
-time series, for wind speed.
-}
+\title{Traditional wind rose plot and pollution rose variation}
+
+\description{The traditional wind rose plot that plots wind speed and
+wind direction by different intervals. The pollution rose applies the
+same plot structure but substitutes other measurements, most commonly a
+pollutant time series, for wind speed. }
 
 \usage{
 windRose(polar,
@@ -17,7 +16,7 @@ windRose(polar,
     width = 1, auto.text = TRUE, breaks = 4, paddle = TRUE,
     key.header = NULL, key.footer = "(m/s)",
     key.position = "bottom", key = NULL, dig.lab = 5,
-    pollutant = NULL, output = "graph",
+    pollutant = NULL,
     ...)
 
 ans <- windRose(...)
@@ -39,7 +38,7 @@ ans <- pollutionRose(...)
 
   \item{ws.int}{The Wind speed interval. Default is 2 m/s but for low met
   masts with low mean wind speeds a value of 1 or 0.5 m/s may be
-  better. Note, this argument is superceded in \code{pollutionRose}. See 
+  better. Note, this argument is superseded in \code{pollutionRose}. See 
   \code{breaks} below.}
 
   \item{breaks}{The number of break points produced for wind speed in
@@ -106,16 +105,36 @@ ans <- pollutionRose(...)
   instead of wind speed. The \code{windRose} default NULL is equivalent 
   to \code{pollutant = "ws"}.}  
 
-  \item{output}{The type of output returned by call. Default, 
-  \code{graph}, returns the rose plot itself. Alternative, 
-  \code{data}, plots the rose but returns the plot data frame.}
-
   \item{...}{For \code{pollutionRose} other parameters that are 
   passed on to \code{windRose}. For \code{windRose} other parameters 
   that are passed on to \code{drawOpenKey} and 
   \code{lattice:xyplot}. }
 
 }
+
+\value{
+  As well as generating the plot itself, \code{windRose} and \code{pollutionRose} 
+  also return an object of class ``openair''. The object includes three main 
+  components: \code{call}, the command used to generate the plot; \code{data}, 
+  the data frame of summarised information used to make the 
+  plot; and \code{plot}, the plot itself. If retained, e.g. using 
+  \code{output <- windRose(mydata)}, this output can be used to recover the data, reproduce 
+  or rework the original plot or undertake further analysis.  
+
+  An openair output can be manipulated using a number of generic operations, including 
+  \code{print}, \code{plot} and \code{summarise}. See \code{\link{openair.generics}} 
+  for further details.
+  
+  Summarised proportions can also be extracted directly using the \code{$data} operator, e.g. 
+  \code{object$data} for \code{output <- windRose(mydata)}. This returns a data frame with 
+  three set columns: \code{cond}, conditioning based on \code{type}; \code{wd}, the wind 
+  direction; and \code{calm}, proportion of data unattributed to any specific wind direction 
+  because it was collected under calm conditions; and then several (one for each range binned 
+  for the plot) columns giving proportions of measurements associated with each \code{ws} or 
+  \code{pollutant} range plotted as a discrete panel.     
+  
+}
+
 
 \details{For \code{windRose} data are summarised by direction, 
   typically by 45 or 30 (or 10) degrees and by different wind speed 
@@ -128,7 +147,7 @@ ans <- pollutionRose(...)
   "paddle" style segments and placing the scale key below the plot. 
   
   The argument \code{pollutant} uses the same plotting structure but 
-  substiutes another data series, defined by \code{pollutant}, for 
+  substitutes another data series, defined by \code{pollutant}, for 
   wind speed. 
 
   \code{pollutionRose} is a \code{windRose} wrapper which brings 
@@ -136,9 +155,13 @@ ans <- pollutionRose(...)
   sensibly rescale break points based on the \code{pollutant} data 
   range by by-passing \code{ws.int}.
  
-  By default, \code{pollutionRose} will plot a pollutionRose of 
+  By default, \code{pollutionRose} will plot a pollution rose of 
   \code{nox} using "wedge" style segments and placing the scale 
   key to the right of the plot.
+
+  Note also that all rows that contain at least one \code{NA} are
+  removed to make the plot. Therefore the the frequencies will be based
+  on the proportions of data that have had missing data removed first.
 
 }
 
@@ -146,17 +169,16 @@ ans <- pollutionRose(...)
 \author{David Carslaw (with some additional contributions by Karl 
 Ropkins)}
 
-%\note{ ~~further notes~~
+\note{ 
+ \code{windRose} and \code{pollutionRose} both use 
+  \link{drawOpenKey} to produce scale keys.
+}
 
-\section{Warnings }{Note that \code{windRose} and \code{pollutionRose} 
-  are designed to work with UK Met Office files. Wind directions of 0 degrees 
-  are assumed to be calms. The function will assume any data with 
-  wind speed = 0 or wind direction = 0 will be calm.
-
-  Note that \code{windRose} and \code{pollutionRose} both use 
-  \link{drawOpenKey} to produce scale keys.} 
+\section{Warnings}{Note that \code{windRose} and \code{pollutionRose}
+  are designed to work with UK Met Office files. Wind directions of 0
+  degrees are assumed to be calms. The function will assume any data
+  with wind speed = 0 or wind direction = 0 will be calm. } 
  
-%}
 \seealso{See \code{\link{drawOpenKey}} for fine control of the scale key. 
  
 See \code{\link{polarFreq}} for a more flexible version that

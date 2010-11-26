@@ -208,5 +208,14 @@ calendarPlot <- function(mydata,
     ## reset theme
     lattice.options(default.theme = def.theme)
 
+    #################
+    #output
+    #################
+    plt <- trellis.last.object()
+    newdata <- mydata
+    output <- list(plot = plt, data = newdata, call = match.call())
+    class(output) <- "openair"
+    invisible(output)  
+
 }
 

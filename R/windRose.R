@@ -19,7 +19,7 @@ pollutionRose <- function(polar,
 windRose <- function (polar, ws.int = 2, angle = 30, type = "default", cols = "default", 
                       main = "", grid.line = 5, width = 1, auto.text = TRUE, breaks = 4, 
                       paddle = TRUE, key.header = NULL, key.footer = "(m/s)", key.position = "bottom", 
-                      key = NULL, dig.lab = 5, pollutant = NULL, output = "graph", 
+                      key = NULL, dig.lab = 5, pollutant = NULL, 
                       ...) 
 {
     if (360/angle != round(360/angle)) {
@@ -179,11 +179,19 @@ windRose <- function (polar, ws.int = 2, angle = 30, type = "default", cols = "d
                                                  sprintf("%.1f", 100 * subdata$calm[1]), "%", 
                                                  sep = ""), adj = c(1, 0), cex = 0.7, col = "forestgreen")
                   }, legend = legend)
-    if (output == "data") {
-        plot(plt)
-        invisible(results.grid)
-    }
-    else {
-        plt
-    }
+
+    #################
+    #output
+    #################
+    plot(plt)
+    newdata <- results.grid
+    if(is.null(pollutant))
+        theLabels <- paste("ws", theLabels, sep=".") else
+        theLabels <- paste(pollutant, theLabels, sep=".")
+    names(newdata)[1:length(theLabels)] <- theLabels
+    newdata <- newdata[c("cond", "wd", "calm", theLabels)]
+    output <- list(plot = plt, data = newdata, call = match.call())
+    class(output) <- "openair"
+    invisible(output)  
+
 }

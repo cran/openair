@@ -567,7 +567,9 @@ trendLevel <- function(mydata,
    plot(plt)
    newdata <- newdata[,c("x", "y", "type", "value")]
    names(newdata) <- c(x, y, type, paste(pollutant, stat.name, sep="."))
-   invisible(list(data=newdata, plot = plt))
-
+   output <- list(plot = plt, data = newdata, call = match.call())
+   class(output) <- "openair"
+   invisible(output)  
+       
 }
 

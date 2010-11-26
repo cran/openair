@@ -51,6 +51,9 @@ export(
        polarAnnulus,
        polarFreq,
        polarPlot,
+
+       #kernel density
+       kernelExceed,
               
        ##wind roses:
        windRose, pollutionRose
@@ -62,6 +65,11 @@ export(
 
 ## methods for
 #S3method()
+
+       S3method(names, openair)
+       S3method(plot, openair)
+       S3method(print, openair)
+       S3method(summary, openair)
 
 ### Local variables:
 ### mode: R

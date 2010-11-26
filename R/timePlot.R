@@ -1,29 +1,30 @@
 timePlot <- function(mydata,
-                      pollutant = "nox",
-                      group = FALSE,
-                      stack = FALSE,
-                      normalise = FALSE,
-                      avg.time = "default",
-                      data.thresh = 0,
-                      statistic = "mean",
-                      percentile = 95,
-                      date.pad = FALSE,
-                      type = "default",
-                      layout = c(1, 1),
-                      cols = "brewer1",
-                      main = "",
-                      ylab = pollutant,
-                      lty = 1:length(pollutant),
-                      lwd = 1,
-                      key = TRUE,
-                      strip = TRUE,
-                      log = FALSE,
-                      smooth = FALSE,
-                      ci = TRUE,
-                      key.columns = 1,
-                      name.pol = pollutant,
-                      date.breaks = 7,
-                      auto.text = TRUE, ...)   {
+                     pollutant = "nox",
+                     group = FALSE,
+                     stack = FALSE,
+                     normalise = FALSE,
+                     avg.time = "default",
+                     data.thresh = 0,
+                     statistic = "mean",
+                     percentile = NA,
+                     date.pad = FALSE,
+                     type = "default",
+                     layout = c(1, 1),
+                     cols = "brewer1",
+                     main = "",
+                     ylab = pollutant,
+                     lty = 1:length(pollutant),
+                     lwd = 1,
+                     pch = NA,
+                     key = TRUE,
+                     strip = TRUE,
+                     log = FALSE,
+                     smooth = FALSE,
+                     ci = TRUE,
+                     key.columns = 1,
+                     name.pol = pollutant,
+                     date.breaks = 7,
+                     auto.text = TRUE, ...)   {
 
 
     ## basic function to plot single/multiple time series in flexible ways
@@ -34,7 +35,7 @@ timePlot <- function(mydata,
 
     ## Author: David Carslaw 11 Sep. 09
     ## CHANGES:
-   
+    
 
 ### EXPERIMENTAL LOG SCALING###############################################
     if(log) nlog <- 10 else nlog <- FALSE
@@ -65,8 +66,6 @@ timePlot <- function(mydata,
     vars <- c("date", pollutant)
 
 ##### warning messages and other checks ################################################################
-    if (type =="site" & length(pollutant) > 1) stop("Only one pollutant allowed
-with option type = 'site'")
 
     ## also ckeck that column "site" is present when type set to "default"
     ## but also check to see if dates are duplicated, if not, OK to proceed
@@ -74,13 +73,13 @@ with option type = 'site'")
     len.unique <- length(unique(mydata$date))
 
     if (type == "default" & "site" %in% names(mydata) & len.all != len.unique) {
-        if (length(unique(factor(mydata$site))) > 1) stop("More than one site has been detected: choose type = 'site' and a single pollutant")
+        if (length(unique(factor(mydata$site))) > 1) stop("More than one site has been detected: choose type = 'site' and pollutant(s)")
     }
 
     if (length(percentile) > 1 & length(pollutant) > 1) {stop("Only one pollutant allowed when considering more than one percentile")}
 
     if (!missing(statistic) & missing(avg.time)) {
-        warning("No averaging time applied, using avg.time ='month'")
+        message("No averaging time applied, using avg.time ='month'")
         avg.time <- "month"}
 
 #######################################################################################################
@@ -94,24 +93,6 @@ with option type = 'site'")
 
     if (date.pad) mydata <- date.pad(mydata, type)
 
-    ## average the data if necessary (default does nothing)
-    if (avg.time != "default") {
-        ## deal with mutiple percentile values
-        if (length(percentile) > 1) {
-
-            mydata <- calcPercentile(mydata, pollutant = pollutant, period = avg.time,
-                                      data.thresh = data.thresh, percentile = percentile)
-            pollutant <-  paste("percentile.", percentile,  sep = "")
-            vars <- names(mydata) ## new variables to use
-            if (missing(group)) group <- TRUE
-
-        } else {
-            mydata <- timeAverage(mydata, period = avg.time,
-                                   data.thresh = data.thresh, statistic = statistic,
-                                   percentile = percentile)
-        }
-    }
-
     mydata <- cutData(mydata, type)
 
     ## The aim to to get colums "date", "site" then turn to column data using melt
@@ -123,13 +104,33 @@ with option type = 'site'")
     mydata <- mydata[, vars]
     mydata <- rename(mydata, c(cond = "site")) ## change to name "site"
 
-    if (type == "default") {
-        mydata <- melt(mydata, id.var = c("date", "site"))
-    } else {
-        ## should always be in this order
-        names(mydata)[2:3] <- c("value", "variable")
-    }
+    ## average the data if necessary (default does nothing)
+    if (avg.time != "default") {
+        ## deal with mutiple percentile values
+        
+        if (length(percentile) > 1) {
 
+            mydata <- ddply(mydata, .(site), calcPercentile, pollutant = pollutant, period = avg.time,
+                            data.thresh = data.thresh, percentile = percentile)
+            pollutant <-  paste("percentile.", percentile,  sep = "")
+            vars <- names(mydata) ## new variables to use
+            if (missing(group)) group <- TRUE        
+
+        } else {
+            
+            mydata <- timeAverage(mydata, period = avg.time, data.thresh = data.thresh,
+                                  statistic = statistic, percentile = percentile)
+        }
+        
+    }
+    
+    mydata <- melt(mydata, id.var = c("date", "site"))
+    if (type != "default") {
+        
+        group <- TRUE ## need to group pollutants if conditioning
+        if (missing(layout)) layout <- NULL else layout <- layout
+    }   
+    
     ## number of pollutants (or sites for type = "site")
     npol <- length(unique(mydata$variable)) ## number of pollutants
 
@@ -148,27 +149,21 @@ with option type = 'site'")
         mydata <-  ddply(mydata, .(variable), divide.by.mean)
     }
 
-    ## ylabs for more than one pollutant
-    if (missing(ylab)) ylab <-  paste(pollutant, collapse = ", ")
-
     mylab <- sapply(seq_along(pollutant), function(x) quickText(pollutant[x], auto.text))
-
-    if (type == "site") {
-        mylab <- levels(mydata$variable)
-        if (!group) layout <- c(1, npol)
-        if (group) layout <- c(1, 1)
-    }
 
     ## user-supplied names
     if (!missing(name.pol)) {mylab <- sapply(seq_along(name.pol), function(x)
                                              quickText(name.pol[x], auto.text))
                          }
+    
+    ## ylabs for more than one pollutant
+    if (missing(ylab)) ylab <-  paste(pollutant, collapse = ", ")
 
     ## set up colours
     myColors <- openColours(cols, npol)
 
     ## basic function for lattice call + defaults
-    myform <- formula("value ~ date")
+    myform <- formula("value ~ date | site")
     strip <- TRUE
     strip.left <- FALSE
     dates <- dateBreaks(mydata$date, date.breaks)$major ## for date scale
@@ -183,14 +178,12 @@ with option type = 'site'")
     if (!group) { ## sepate panels per pollutant
         strip <- FALSE
         myform <- formula("value ~ date | variable")
-        ## proper names of labelling
-        pol.name <- sapply(levels(mydata$variable),  function(x) quickText(x, auto.text))
-
+        
         if (npol == 1) {
             strip.left <- FALSE
         } else {
             strip.left <- strip.custom(par.strip.text = list(cex = 0.9), horizontal = FALSE,
-                                       factor.levels = pol.name)
+                                       factor.levels = mylab)
         }
 
         scales <- list(x = list(at = dates, format = formats), y = list(relation = "free",
@@ -206,11 +199,13 @@ with option type = 'site'")
         strip <- FALSE
         myform <- formula("value ~ date | year")
         strip.left <- strip.custom(par.strip.text = list(cex = 0.9), horizontal = FALSE)
-        dates <- as.POSIXct(unique(trunc(mydata$date, "months")), "GMT")
+        ##  dates <- unique(dateTrunc(mydata$date, "months")) - this does not work?
+        dates <- as.POSIXct(unique(paste(format(mydata$date, "%Y-%m"), "-01", sep ="")), "GMT")
 
         scales <- list(x = list(at = dates, format = "%d-%b", relation = "sliced"), y = list(log = nlog))
 
         xlim <- dlply(mydata, .(year), function (x) range(x$date))
+        
 
     }
 
@@ -220,8 +215,15 @@ with option type = 'site'")
 
 
     if (key) {
-        key <- list(lines = list(col = myColors[1:npol], lty = lty, lwd = lwd),
-                    text = list(lab = mylab),  space = "bottom", columns = key.columns)
+        ## type of key depends on whether points are plotted or not
+        if (any(!is.na(pch))) {   
+            key <- list(lines = list(col = myColors[1:npol], lty = lty, lwd = lwd),
+                        points = list(pch = pch, col = myColors[1:npol]),
+                        text = list(lab = mylab),  space = "bottom", columns = key.columns)
+        } else {
+            key <- list(lines = list(col = myColors[1:npol], lty = lty, lwd = lwd),
+                        text = list(lab = mylab),  space = "bottom", columns = key.columns)
+        }
     } else {
         key <- NULL ## either there is a key or there is not
     }
@@ -234,11 +236,18 @@ with option type = 'site'")
         strip.left <- FALSE
     }
 
-    xyplot(myform,  data = mydata, groups = variable,
+    ## special layout if type = "wd"
+    layout = if (type == "wd") c(3, 3) else layout
+    skip <- FALSE
+    if (type == "wd") skip <-  c(FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE)
+
+    plt <- xyplot(myform,  data = mydata, groups = variable,
            as.table = TRUE,
            layout = layout,
+           skip = skip,
            lty = lty,
            lwd = lwd,
+           pch = pch,
            xlim = xlim,
            main = quickText(main),
            ylab = quickText(ylab, auto.text),
@@ -248,7 +257,8 @@ with option type = 'site'")
            strip.left = strip.left,
            yscale.components = yscale.components.log10,
            panel =  panel.superpose,...,
-           panel.groups = function(x, y, col.line, col, col.se, type, group.number, lty, lwd, subscripts,...) {
+           panel.groups = function(x, y, col.line, col.symbol, col, col.se, type, group.number, lty,
+           lwd, pch, subscripts,...) {
 
                if (group.number == 1) {
                    panel.grid(-1, 0)
@@ -261,11 +271,25 @@ with option type = 'site'")
                }
 
                panel.xyplot(x, y, type = "l", lty = lty, lwd = lwd, col.line = myColors[group.number],...)
+               ## deal with points separately - useful if missing data where line does not join consequtive points
+               if (any(!is.na(pch))) {                   
+                   lpoints(x, y, type = "p", pch = pch, col.symbol = myColors[group.number],...)
+               }
                if (smooth) panel.gam(x, y, col = myColors[group.number] , col.se =  myColors[group.number],
                                      lty = 1, lwd = 1, se = ci, ...)
 
            }
            )
+
+    #################
+    #output
+    #################
+    plot(plt)
+    newdata <- mydata
+    output <- list(plot = plt, data = newdata, call = match.call())
+    class(output) <- "openair"
+    invisible(output)  
+
 }
 
 

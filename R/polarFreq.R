@@ -165,7 +165,7 @@ polarFreq <- function(polar,
          draw = FALSE)))
     names(legend)[1] <- if(is.null(key$space)) key.position else key$space
 
-    xyplot(ws ~ wd | cond,
+    plt <- xyplot(ws ~ wd | cond,
            xlim = c(-max.ws - 4.0, max.ws + 4.0),
            ylim = c(-max.ws - 4.0, max.ws + 4.0),
            data = results.grid,
@@ -203,4 +203,15 @@ polarFreq <- function(polar,
            },
            legend = legend 
            )
+
+    #################
+    #output
+    #################
+    plot(plt)
+    newdata <- results.grid
+    output <- list(plot = plt, data = newdata, call = match.call())
+    class(output) <- "openair"
+    invisible(output)  
+
+
 }
