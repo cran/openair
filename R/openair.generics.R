@@ -4,23 +4,38 @@
 #S3
 #
 
+#functions
+
+#openair 
+#is.openair
+#results, results.default, results.openair
+#openairApply (hidden)
+#summary.openair, head.openair, tail.openair
+#plot.openair
+#print.openair
+#names.openair
+
+
+#####################
+#openair
+#is.openair - two level tester
+#####################
+#kr 23/10/2010 v 0.0.1
+
+#####################
+#to do
+#####################
+#make test more robust?
+
+
 #crude def
 openair <- function(x){
     class(x) <- "openair"
     x
 }
 
+#is tester
 is.openair <- function(x, full.test=TRUE, ...){
-
-   #####################
-   #is.openair - two level tester
-   #####################
-   #kr 23/10/2010 v 0.0.1
-
-   #####################
-   #to do
-   #####################
-   #make test more robust?
 
    #standard test
    output <- is(x)[1]=="openair"
@@ -32,20 +47,109 @@ is.openair <- function(x, full.test=TRUE, ...){
    output
 }
 
-summary.openair <- function(object, subset = "all", ...){
 
-   #################
-   #summary.openair
-   #################
-   #kr 03/11/2010 v 0.0.2
+#results
 
-   #################
-   #to do
-   #################
-   #tidy messy deadend for is.openair test
-   #
+####################
+#results method
+#results.default
+####################
+#to handle all other cases without error
+#
+
+results <- function(object,...)
+                  UseMethod("results")
+
+results.default <- function(object,...){
+
+    object
+}
+
+#################
+#results.openair
+#################
+#kr 13/12/2010 v 0.0.1
+
+#################
+#to do
+#################
+
+results.openair <- function(object,
+                       subset = "all", silent=FALSE, 
+                       ...){
 
    if(!is.openair(object)) return(invisible(NULL))
+
+   if(!silent){
+       message("\nopenair object created by: \n\t", deparse(object$call), "\n")
+   }
+
+   test <- object$data$subsets
+
+   if(is.null(test)){
+      if(!is.null(subset) && subset != "all"){
+          warning("In results(...): subset option ignored,",
+                  "\n\t[subset requested from openair object without data subsets]", 
+                  call. = FALSE)
+      }
+      return(object$data)
+   }
+
+   
+   if(is.null(subset) || subset=="all") {
+        if(!silent){
+            message("contains", length(test), " data frame(s):")
+            message("returning as list")
+            message("\t$", paste(test, collapse=", $", sep=", $"), "\n")
+        }
+        return(object$data[names(object$data) != "subsets"])
+   }
+
+   temp <- subset[subset %in% test]
+   if(length(temp) < 1)
+       stop("In results(...): requested subset(s) not found",
+           "\n\t[suggest NULL, all or one or more of available subsets]", 
+           "\n\t[available subset(s): ", paste(test, collapse = ", ", sep = ", "),"]", 
+           call. = FALSE)
+   if(!silent & length(temp) < length(subset))
+       warning("In results(...): some requested subset(s) not found, so ignored",
+                    "\n\t[ignored subset(s): ", paste(subset[subset != temp], collapse = ", ", sep = ", "),"]", 
+                    "\n\t[available subset(s): ", paste(test, collapse = ", ", sep = ", "),"]", 
+                    call. = FALSE)
+   if(length(temp)==1)
+       return(object$data[[temp]]) else {
+           if(!silent){
+               message("returning as list of ", length(temp), " data frame(s):")
+               message("\t$", paste(temp, collapse=", $", sep=", $"), "\n")
+           }
+           return(object$data[names(object$data) %in% temp])
+       }
+
+}
+
+
+#################
+#openairApply
+#################
+#kr 17/12/2010 v 0.0.1
+
+################
+#notes
+################
+#hidden? workhorse for simple generics
+#
+
+#################
+#to do
+#################
+
+openairApply <- function(object, fun=summary, subset = "all", 
+                         ..., fun.name=deparse(substitute(fun))){
+
+   if(!is.openair(object)) return(invisible(NULL))
+   fun.name <- if(grepl("[(]",fun.name)==TRUE)
+                   "supplied 'fun'" else
+                       paste(fun.name, "(...)", sep="")
 
    message("\nopenair object created by:\n\t", deparse(object$call))
 
@@ -53,11 +157,11 @@ summary.openair <- function(object, subset = "all", ...){
 
    if(is.null(test)){
       if(!is.null(subset) && subset != "all"){
-          warning("In summary(...): subset option ignored,",
+          warning("In ", fun.name, ": subset option ignored,",
                   "\n\t[subset requested from openair object without data subsets]", 
                   call. = FALSE)
       }
-      ans <- summary(object$data,...)
+      ans <- fun(object$data,...)
       message("")
       print(ans)
       message("")
@@ -72,7 +176,7 @@ summary.openair <- function(object, subset = "all", ...){
         temp <- subset[subset %in% test]
         if(length(temp) < 1){ 
              message("")
-             stop("In summary(...): requested subset(s) not found", 
+             stop("In ", fun.name, ": requested subset(s) not found", 
                   "\n\t[suggest one (or more) of: ", paste(test, collapse=", ", sep=", "), "]",
                   call. = FALSE)
         }
@@ -81,14 +185,14 @@ summary.openair <- function(object, subset = "all", ...){
         message("\t$data$", paste(subset, collapse=", $data$", sep = ", $data$"), "\n")
         
         if(length(temp) < length(subset))
-            warning("In summary(...): some requested subset(s) not found, so ignored",
+            warning("In ", fun.name, ": some requested subset(s) not found, so ignored",
                     "\n\t[ignored subset(s): ", paste(subset[subset != temp], collapse = ", ", sep = ", "),"]", 
                     "\n\t[available subset(s): ", paste(test, collapse = ", ", sep = ", "),"]", 
                     call. = FALSE)
    }
 
    ans <- sapply(temp, function(y){
-       summary(object$data[[y]], ...) }, 
+       fun(object$data[[y]], ...) }, 
        simplify = FALSE, USE.NAMES = TRUE
    )
 
@@ -103,16 +207,46 @@ summary.openair <- function(object, subset = "all", ...){
 
 }
 
+
+#################
+#summary.openair
+#################
+#kr 17/12/2010 v 0.0.3
+
+summary.openair <- function(object, subset = "all", ...)
+    openairApply(object, fun=summary, subset=subset, ..., fun.name="summary")
+
+
+#################
+#head.openair
+#tail.openair
+#################
+#kr 17/12/2010 v 0.0.1
+
+################
+#note
+################
+#x not object!
+#see ?head, ?tail
+#
+
+head.openair <- function(x, subset = "all", ...)
+    openairApply(x, fun=head, subset=subset, ..., fun.name="tail")
+tail.openair <- function(x, subset = "all", ...)
+    openairApply(x, fun=tail, subset=subset, ..., fun.name="head")
+
+
+
+#################
+#plot.openair
+#################
+#kr 03/11/2010 v 0.0.2
+
+#################
+#to do
+#################
+
 plot.openair <- function(x, subset = "all", silent=TRUE, ...){
-
-   #################
-   #plot.openair
-   #################
-   #kr 03/11/2010 v 0.0.2
-
-   #################
-   #to do
-   #################
 
    if(!is.openair(x)) return(invisible(NULL))
 
@@ -163,21 +297,28 @@ plot.openair <- function(x, subset = "all", silent=TRUE, ...){
    } 
 
    temp <- temp[1]
+   #own plot style
+   test <- x[[paste(temp,"plot", sep=".")]]
+   if(!is.null(test))
+       return(test(x$plot[[temp]]))
+   #ind plot handling
    test <- x$ind.plot
-   if(is.null(test)) return(x$plot[[temp]]) else 
+   if(!is.null(test))  
        return(x$ind.plot(x$plot[[temp]]))
+   #staight plot
+   return(x$plot[[temp]])
 }
 
+#################
+#print.openair
+#################
+#kr 03/11/2010 v 0.0.2
+
+#################
+#to do
+#################
+
 print.openair <- function(x, silent = FALSE, plot = TRUE, ...){
-
-   #################
-   #print.openair
-   #################
-   #kr 03/11/2010 v 0.0.2
-
-   #################
-   #to do
-   #################
 
    if(!is.openair(x)) return(invisible(NULL)) 
       #must have call, data and plot elements
@@ -211,13 +352,28 @@ print.openair <- function(x, silent = FALSE, plot = TRUE, ...){
    if(plot) plot(x, silent = TRUE, ...)
 }
 
+
+#########################
+#names.openair
+#########################
+#kr 16/12/2010 v 0.0.2
+
+#########################
+#to do
+#########################
+#review this 
+#currently not S3 and base names(x)
+#so can't pass extra args via ...!
+#
+
 names.openair <- function(x, ...){
 
     #stuff we own up to...
     vis.elements <- c("data", "plot", "call")
     #make names non-recursive
     class(x) <- "not-openair"
-    names(x)[names(x) %in% vis.elements]
+
+    names(x)[names(x) %in% vis.elements] 
 
 }
 

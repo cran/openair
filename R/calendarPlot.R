@@ -24,7 +24,8 @@ calendarPlot <- function(mydata,
 
     ##international keyboard
     ##first letter and ordered Sun to Sat
-    weekday.abb <- substr(make.weekday.abbs(), 1, 1)[c(7, 1:6)]    
+    weekday.abb <- substr(make.weekday.abbs(), 1, 1)[c(7, 1:6)]
+
 
     ## extract variables of interest
     if (annotate == "date") vars <- c("date", pollutant)
@@ -114,25 +115,27 @@ calendarPlot <- function(mydata,
     }
 
     ## calculate daily means
-    if (class(mydata$date)[1] == "POSIXt") {
+    if ("POSIXt" %in% class(mydata$date)) {
         mydata <- timeAverage(mydata, "day")
         mydata$date <- as.Date(mydata$date)
     }
-
-    mydata <- cutData(mydata, type = "month")
+    
+    ## type not yet used, set to month
+    type <- "month"
+    mydata <- cutData(mydata, type = type)
     baseData <- mydata
 
-    mydata <- ddply(mydata, .(cond), function(x) prepare.grid(x, pollutant))
+    mydata <- ddply(mydata, type, function(x) prepare.grid(x, pollutant))
 
     if (annotate == "wd") {
         baseData$wd <- baseData$wd * 2 * pi / 360
-        wd <- ddply(baseData, .(cond), function(x) prepare.grid(x, "wd"))
+        wd <- ddply(baseData, type, function(x) prepare.grid(x, "wd"))
     }
 
     if (annotate == "ws") {
         baseData$wd <- baseData$wd * 2 * pi / 360
-        wd <- ddply(baseData, .(cond), function(x) prepare.grid(x, "wd"))
-        ws <- ddply(baseData, .(cond), function(x) prepare.grid(x, "ws"))
+        wd <- ddply(baseData, type, function(x) prepare.grid(x, "wd"))
+        ws <- ddply(baseData, type, function(x) prepare.grid(x, "ws"))
         ## normalise wind speeds to highest daily mean
         ws$conc.mat <- ws$conc.mat / max(ws$conc.mat, na.rm = TRUE)
     }
@@ -167,6 +170,7 @@ calendarPlot <- function(mydata,
               as.table = TRUE,
               scales = list(y = list(draw = FALSE),
               x = list(at = 1:7, labels = weekday.abb, tck = 0),
+              par.strip.text = list(cex = 0.8),
               alternating = 1, relation = "free"),
               xlab = "",
               aspect = 6/7,

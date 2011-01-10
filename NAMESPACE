@@ -3,12 +3,16 @@
 
 #import
 #import()
-#importFrom()
+
+importFrom(utils, head, tail)
 
 export(
 
        ##data:
        ##mydata,
+
+       #methods
+       results,
 
        ##imports:
        import,
@@ -53,7 +57,7 @@ export(
        polarPlot,
 
        #kernel density
-       kernelExceed,
+       kernelExceed, 
               
        ##wind roses:
        windRose, pollutionRose
@@ -70,6 +74,10 @@ export(
        S3method(plot, openair)
        S3method(print, openair)
        S3method(summary, openair)
+       S3method(head, openair)
+       S3method(tail, openair)
+       S3method(results, openair)
+       S3method(results, default)
 
 ### Local variables:
 ### mode: R

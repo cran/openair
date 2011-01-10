@@ -13,13 +13,13 @@ scatterPlot(mydata,
 x = "nox",
 y = "no2",
 method = "scatter",
-group = FALSE,
+group = NULL,
 avg.time = "default",
 data.thresh = 0,
 statistic = "mean",
 percentile = NA,
 type = "default",
-layout = c(1, 1),
+layout = NULL,
 smooth = TRUE,
 linear = FALSE,
 ci = TRUE,
@@ -31,13 +31,16 @@ xlab = x,
 pch = 1,
 lwd = 1,
 key = TRUE,
-key.title = type,
+key.title = group,
 key.columns = 1,
 strip = TRUE,
 log.x = FALSE,
 log.y = FALSE,
+y.relation = "same",
+x.relation = "same",
 nbin = 256,
 continuous = FALSE,
+trans = TRUE,
 auto.text = TRUE,
 ...)
 }
@@ -46,19 +49,24 @@ auto.text = TRUE,
 \arguments{
 \item{mydata}{A data frame containing at least two numeric variables to plot.}
 
-  \item{x}{Name of the x-variable to plot.}
+  \item{x}{Name of the x-variable to plot. Note that x can be a date
+  field or a factor. For example, \code{x} can be one of the
+  \code{openair} built in types such as \code{"year"} or
+  \code{"season"}. If \code{x} is a factor a box and whisker plot is
+  produced.}
 
-  \item{y}{Name of the y-variable to plot.}
+  \item{y}{Name of the numeric y-variable to plot.}
 
   \item{method}{Methods include \code{"scatter"} (conventional scatter
   plot), \code{"hexbin"} (hexagonal binning using the \code{hexbin}
   package) and \code{"density"} (2D kernel density estimates). }
 
-  \item{group}{If more than one pollutant is chosen, should they all be
-    plotted on the same graph together? The default is \code{FALSE}, which
-    means they are plotted in separate panels with their own scaled. If
-    \code{TRUE} then they are plotted on the same plot with the same
-    scale.}
+  \item{group}{The grouping variable to use, if any. Setting this to a
+  variable in the data frame has the effect of plotting several series
+  in the same panel using different symbols/colours etc. If set to a
+  variable that is a character or factor, those categories or factor
+  levels will be used directly. If set to a numeric variable, it will
+  split that variable in to quantiles.}
 
  \item{avg.time}{This defines the time period to average to. Can be "sec",
   "min", "hour", "day", "DSTday", "week", "month", "quarter" or
@@ -93,16 +101,16 @@ auto.text = TRUE,
  \item{type}{The type of analysis to be done. The default is will
     produce a single plot using the entire data. Other types include
     "hour" (for hour of the day), "weekday" (for day of the week) and
-    "month" (for month of the year), "year" for a polarPlot for each
+    "month" (for month of the year), "year" for a scatter plot for each
     year. It is also possible to choose \code{type} as another variable
     in the data frame. For example, \code{type = "o3"} will plot four
     windRoses for different levels of ozone, split into four quantiles
     (approximately equal numbers of counts in each of the four
     splits). This offers great flexibility for understanding the
     variation of different variables dependent on another. See function
-    \code{cutData} for further details. Note there is also an option
-    "site", which is used for situations where there is a column "site"
-    and multiple sites are present..}
+    \code{cutData} for further details. Type can be up length two
+    e.g. \code{type = c("season", "weekday")} will produce a 2x2 plot
+    showing \code{x} and \code{y} split be season and day of the week.}
 
 
   \item{layout}{Determines how the panels are laid out. By default,
@@ -125,8 +133,9 @@ auto.text = TRUE,
  plot to help inform model evaluation. The 1:1 line is solid and the
  1:0.5 and 1:2 lines are dashed. Together these lines help show how
  close a group of points are to a 1:1 relationship and also show the
- points that are within a factor of two (FAC2). In time, more
- comprehensive model evaluation statistics will be considered.}
+ points that are within a factor of two (FAC2). Also, for \code{method =
+ "scatter"} (the default) the scales are made to be isometric. In time,
+ more comprehensive model evaluation statistics will be considered.}
 
   \item{cols}{Colours to be used for plotting. Options include "default",
     "increment", "heat", "spectral", "hue", "brewer1"  and user
@@ -167,16 +176,29 @@ auto.text = TRUE,
    \code{FALSE}. If \code{TRUE} a well-formatted log10 scale is
    used. This can be useful for checking linearity once logged.}
 
+\item{y.relation}{This determines how the y-axis scale is
+  plotted. "same" ensures all panels use the same scale and "free" will
+  use panel-specfic scales. The latter is a useful setting when plotting
+  data with very different values.}
+\item{x.relation}{This determines how the y-axis scale is
+  plotted. "same" ensures all panels use the same scale and "free" will
+  use panel-specfic scales. The latter is a useful setting when plotting
+  data with very different values.} 
+
  \item{nbin}{Number of bins used for kernel density output using method
    \code{"density"}.}
 
  \item{continuous}{When this option is \code{TRUE} a plot of x vs. y
- will be made, colour-coded by levels of \code{type}. A continuous
+ will be made, colour-coded by levels of \code{group}, provided
+ \code{group} is a numeric variable. A continuous
  separate colour scale is shown. If \code{continuous = FALSE} and
- \code{type} is numeric then the plot of x vs. y is shown by different
- \emph{quantiles} of \code{type}. Note that all data will be used, even
- if several sites are present. Sometimes it may be useful to subset for
- an individual site. See example below.}
+ \code{group} is numeric then the plot of x vs. y is shown by different
+ \emph{quantiles} of \code{group}. }
+
+\item{trans}{\code{trans} is used when \code{continuous = TRUE}. Often
+  for a good colour scale with skewed data it is a good idea to
+  "compress" the scale. If \code{TRUE} a square root transform is used,
+  if \code{FALSE} a linear scale is used.}
 
   \item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE}
     titles and axis labels will automatically try and format pollutant
@@ -204,7 +226,7 @@ auto.text = TRUE,
 \details{ The \code{scatterPlot} is the basic function for plotting
   scatterPlots in flexible ways in \code{openair}. It is flexible
   enough to consider lots of conditioning variables and takes care of
-  fitting smooth or linearRelationships to the data.
+  fitting smooth or linear relationships to the data.
 
   There are three main ways of plotting the relationship between two
   variables, which are set using the \code{method} option. The default
@@ -275,7 +297,12 @@ FALSE, linear = TRUE, avg.time = "day")}
 FALSE, linear = TRUE, avg.time = "day", log.x = TRUE, log.y = TRUE)}
 
 # also works with the x-axis in date format (alternative to timePlot)
-\dontrun{scatterPlot(mydata, x = "date", y = "no2", avg.time = "month", key = FALSE)}
+\dontrun{scatterPlot(mydata, x = "date", y = "no2", avg.time = "month",
+key = FALSE)}
+
+## multiple types and grouping variable and continuous colour scale
+\dontrun{scatterPlot(mydata, x = "nox", y = "no2", type = c("season", "weekend"),
+group = "o3", continuous = TRUE)}
 
 # use hexagonal binning
 \dontrun{
@@ -284,7 +311,12 @@ library(hexbin)
 scatterPlot(mydata, x = "nox", y = "no2", method = "hexbin")
 
 # scatterPlot by year
-scatterPlot(mydata, x = "nox", y = "no2", type = "year", method = "hexbin")
+scatterPlot(mydata, x = "nox", y = "no2", type = "year", method =
+"hexbin")
+
+## example box and whisker plot
+scatterPlot(mydata, x = "weekday", y = "nox", type = "season")
+
 }
 
 

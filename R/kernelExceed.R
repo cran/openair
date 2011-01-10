@@ -52,15 +52,6 @@ kernelExceed <- function(polar,
         x <- subdata[ , x] 
         y <- subdata[ , y]
 
-        ## pearson correlation
-
-        if (type %in% names(subdata)) {
-            cor.dat <- na.omit(subdata[, c(pollutant, type)])
-            Pcor <-  cor(cor.dat[, pollutant], cor.dat[, type], method = "pearson")
-        } else {
-            Pcor <- NA
-        }
-
         xy <- xy.coords(x, y, "xlab", "ylab")
         xlab <-  xy$xlab
         ylab <- xy$ylab
@@ -78,15 +69,15 @@ kernelExceed <- function(polar,
 
         grid <- expand.grid(x = xm, y = ym)
 
-        results <- data.frame(u = grid$x, v = grid$y, z = as.vector(dens), cond = subdata$cond[1],
-                              freq = nrow(subdata) / 24, Pcor = Pcor)
+        results <- data.frame(u = grid$x, v = grid$y, z = as.vector(dens), 
+                              freq = nrow(subdata) / 24)
 
         results
     }
 
 #############################################################################
 
-    results.grid <-  ddply(subdata, .(cond), prepare.grid)
+    results.grid <-  ddply(subdata, type, prepare.grid)
 
     ## adjust to get number of exceedance days
     total.sum <-  sum(unique(results.grid$freq)) ## by each condition
@@ -111,7 +102,8 @@ kernelExceed <- function(polar,
     scales <- list()
     if (X == "wd")  scales <- list(x = list(at = seq(0, 360, 90)))
 
-    levelplot(z ~ u * v | cond, results.grid,
+     myform <- formula(paste("z ~ u * v |", type))
+    levelplot(myform, results.grid,
               as.table = TRUE,
               strip = strip,
               region = TRUE,
@@ -143,9 +135,7 @@ kernelExceed <- function(polar,
                   if (by[1] == "day" | by[1] == "dayhour") len <- "days" else len <- "hours"
                   panel.text(0.03 * max(results.grid$u, na.rm = TRUE), 0.95 * max(results.grid$v,
                                                        na.rm = TRUE),
-                             paste(round(results.grid[subscripts[1],
-                                                      "freq"]), len, ", Cor =",
-                                   format(results.grid[subscripts[1], "Pcor"], digits = 2)), pos = 4,
+                             paste(round(results.grid[subscripts[1], "freq"]), len), pos = 4,
                              cex = 0.7, ...)
 
               })

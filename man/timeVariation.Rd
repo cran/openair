@@ -1,7 +1,7 @@
 \name{timeVariation}
 \alias{timeVariation}
 %- Also NEED an '\alias' for EACH other topic documented here.
-\title{Diurnal and day of week variation}
+\title{Diurnal, day of the week and monthly variation}
 \description{
   Plots the diurnal and day of the week variation for different variables,
   typically pollutant concentrations. Three separate plots are produced.
@@ -12,9 +12,10 @@ pollutant = "nox",
 local.time = FALSE,
 normalise = FALSE,
 ylab = pollutant,
-xlab = NULL,
+xlab = c("hour", "hour", "month", "weekday"),
 name.pol = pollutant,
 type = "default",
+group = NULL,
 ci = TRUE,
 cols = "hue",
 main = "",
@@ -55,23 +56,24 @@ alpha = 0.4,...)
   \item{ylab}{Name of y-axis variable. By default will use the name of
     \code{pollutant}.}
 
-   \item{xlab}{x-axis label.}
+   \item{xlab}{x-axis label; one for each sub-plot.}
 
   \item{name.pol}{Names to be given to the pollutant(s). This is useful
     if you want to give a fuller description of the variables, maybe
     also including subscripts etc.}
 
-  \item{type}{Can either be \code{default} or \code{site}. If
-    \code{site} is chosen then the data frame must contain a field named
-    \code{site}. The \code{openair} manual shows how the \code{site}
-    field can be used in a very flexible way. It is also possible to
-    choose \code{type} as another variable in the data frame. For
-    example, \code{type = "o3"} will plot four windRoses for different
-    levels of ozone, split into four quantiles (approximately equal
-    numbers of counts in each of the four splits). This offers great
-    flexibility for understanding the variation of different variables
-    dependent on another. See function \code{cutData} for further
-    details.}
+  \item{type}{Setting \code{type} determines how the data should be
+    split and then plotted in panels. See \code{cutData} for examples of
+    different in-build types. It is also possible to choose \code{type}
+    as another variable in the data frame. For example, \code{type =
+    "o3"} will plot four panels; one for approximately each
+    quantile. This offers great flexibility for understanding the
+    variation of different variables dependent on another. Only one
+    \code{type} is allowed in \code{timeVariation}.}
+
+  \item{group}{This sets the grouping variable to be used. For example,
+  if a data frame had a column \code{site} setting \code{group = "site"}
+  will plot all sites together in each panel. See examples below.}
 
   \item{ci}{Should confidence intervals be shown? The default is
     \code{TRUE}. Setting this to \code{FALSE} can be useful if multiple
@@ -130,14 +132,29 @@ defined (see manual for more details).}
   In addition, \code{timeVariation} will work well with other variables if
   available. Examples include meteorological and traffic flow data.
 
-  The option \code{type = "site"} provides great flexibility. For
-  example, looking a variations across multiple sites, by different time
-  periods. The latter is particularly useful to see if diurnal
-  variations etc. vary over time. See the full documentation for details
-  of use.
+}
 
-  Results are returned as a list - both the numerical and individual
-  plots. See examples below for details.
+\value{ As well as generating the plot itself, \code{timeVariation} also
+  returns an object of class ``openair''. The object includes three main
+  components: \code{call}, the command used to generate the plot;
+  \code{data}, the data used to make the four components of 
+  the plot (or subplots); and \code{plot}, the associated subplots. 
+  If retained, e.g. using \code{output <- timeVariation(mydata, "nox")}, 
+  this output can be used to recover the data, reproduce or rework the 
+  original plot or undertake further analysis.
+
+  An openair output can be manipulated using a number of generic
+  operations, including \code{print}, \code{plot} and
+  \code{summarise}. See \code{\link{openair.generics}} for further
+  details.
+  
+  The four components of timeVariation are: \code{day.hour}, 
+  \code{hour}, \code{day} and \code{month}. Associated data.frames can 
+  be extracted directly using the \code{$data} operator, e.g. as 
+  \code{output$data$day.hour}, \code{output$data$hour}, 
+  \code{output$data$day} and \code{output$data$month}, respectively for 
+  \code{output <- timeVariation(mydata, "nox")}
+  
 }
 
 %\references{ ~put references to the literature/web site here ~ }
@@ -164,26 +181,33 @@ timeVariation(mydata, pollutant = c("nox", "co"), normalise = TRUE)
 
 timeVariation(mydata, pollutant = "nox", type = "gmtbst")
 
+## In this case it is better to group the results for clarity:
+timeVariation(mydata, pollutant = "nox", group = "gmtbst")
+
 # By contrast, a variable such as wind speed shows a clear shift when
 #  expressed in local time. These two plots can help show whether the
 #  variation is dominated by man-made influences or natural processes
 
-\dontrun{timeVariation(mydata, pollutant = "ws", type = "gmtbst")}
+\dontrun{timeVariation(mydata, pollutant = "ws", group = "gmtbst")}
 
-## sub plots can be extracted, in which case set key = TRUE
-## plots are retruned in a list e.g. to get the diurnal plot of NO2:
-results <- timeVariation(mydata, pollutant = "no2", key = TRUE)
-results[[6]] ## plots diurnal plot on its own
+## It is also possible to plot several variables and set type. For
+## example, consider the NOx and NO2 split by levels of O3:
 
-## results[[5]] is the weekday and hour plot
-## results[[7]] is the weekday plot
-## results[[8]] is the monthly plot
+\dontrun{timeVariation(mydata, pollutant = c("nox", "no2"), type = "o3", normalise = TRUE)}
+
+## sub plots can be extracted from the openair object
+results <- timeVariation(mydata, pollutant = "no2")
+plot(results, subset = "day.hour") # top weekday and plot
+
+## plot(results, subset="hour") is the diurnal plot
+## plot(results, subset="day") is the weekday plot
+## plot(results, subset="month") is the monthly plot
 
 ## numerical results (mean, lower/upper uncertainties)
-## results[[1]] are the weekday and hour results
-## results[[2]] are the diurnal results
-## results[[3]] are the weekday results
-## results[[4]] are the monthly results
+## results$data$day.hour are the weekday and hour results
+## results$data$hour are the diurnal results
+## results$data$day are the weekday results
+## results$data$month are the monthly results
 
 }
 \keyword{methods}

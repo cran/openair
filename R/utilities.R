@@ -53,7 +53,7 @@ find.time.interval <- function(dates) {
     id <- which.max(table(diff(as.numeric(dates[order(dates)]))))
     seconds <- as.numeric(names(id))
 
-    if (class(dates)[1] == "POSIXt") seconds <- paste(seconds, "sec")
+    if ("POSIXt" %in% class(dates)) seconds <- paste(seconds, "sec")
 
     if (class(dates)[1] == "Date") {
         seconds <- 3600 * 24

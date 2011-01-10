@@ -68,11 +68,16 @@ pollutant(s). Sometimes it is useful to have columns of site
 data. This can be done using the \code{reshape} function --- see
 examples below.
 
-The function imports two measures of PM10 where
+The situation for particle measurements is not straightforward given the
+variety of methods used to measure particle mass and changes in their use
+over time. The \code{importKCL} function imports two measures of PM10 where
 available. \code{PM10_raw} are TEOM measurements with a 1.3 factor
 applied to take account of volatile losses. The \code{PM10} data is a
 current best estimate of a gravimetric equivalent measure as described
-below.
+below. NOTE! many sites have several instruments that measure PM10 or
+PM2.5. In the case of FDMS measurements, these are given as separate
+site codes (see below). For example "MY1" will be TEOM with VCM applied
+and "MY7" is the FDMS data.
 
 For the assessment of the EU Limit Values, PM10 needs to be measured
 using the reference method or one shown to be equivalent to the
@@ -106,9 +111,9 @@ correction factors have been applied. For measurements from TEOM
 analysers the 1.3 factor has been applied up to 1st January 2004, then
 the VCM method has been used to convert to reference equivalent.
 
-The meteolrogical are meant to represent 'typical' conditions in London,
-  but users may prefer to use their own data. The data provide a an
-  estimate of general meteorological conditions across Greater
+The meteorological data are meant to represent 'typical' conditions in
+  London, but users may prefer to use their own data. The data provide a
+  an estimate of general meteorological conditions across Greater
   London. For meteorological species (wd, ws, rain, solar) each data
   point is formed by averaging measurements from a subset of LAQN
   monitoring sites that have been identified as having minimal
