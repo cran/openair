@@ -11,7 +11,7 @@ polarAnnulus(polar,
     local.time = FALSE, period = "hour", type = "default",
     limits = c(0, 100), cols = "default", width = "normal",
     exclude.missing = TRUE, date.pad = FALSE, 
-    force.positive = TRUE, k = 15, main = "", 
+    force.positive = TRUE, k = 15, normalise = FALSE, main = "", 
     key.header = "", key.footer = pollutant, 
     key.position = "right", key = NULL, 
     auto.text = TRUE, ...)
@@ -24,9 +24,16 @@ polarAnnulus(polar,
   a pollutant. Can also contain \code{date} if plots by time period are
   required.}
 
-\item{pollutant}{Mandatory. A pollutant or other variable name
-  corresponding to a variable in a data frame should be supplied
-  e.g. \code{pollutant = "nox"} }
+\item{pollutant}{Mandatory. A pollutant name corresponding to a
+    variable in a data frame should be supplied e.g. \code{pollutant =
+    "nox"}. There can also be more than one pollutant specified
+    e.g. \code{pollutant = c("nox", "no2")}. The main use of using two
+    or more pollutants is for model evaluation where two species would
+    be expected to have similar concentrations. This saves the user
+    stacking the data and it is possible to work with columns of data
+    directly. A typical use would be \code{pollutant = c("obs", "mod")}
+    to compare two columns "obs" (the observations) and "mod" (modelled
+    values).}
 
 \item{resolution}{Two plot resolutions can be set: \code{"normal"} and
   \code{"fine"} (the default).}
@@ -114,6 +121,13 @@ polarAnnulus(polar,
   data the smoothing with the default values may become too noisy and
   affected more by outliers. Choosing a lower value of \code{k} (say 10)
   may help produce a better plot.}
+
+ \item{normalise}{If \code{TRUE} concentrations are normalised by
+  dividing by their mean value. This is done \emph{after} fitting the
+  smooth surface. This option is particularly useful if one is
+  interested in the patterns of concentrations for several pollutants on
+  different scales e.g. NOx and CO. Often useful if more than one
+  \code{pollutant} is chosen. }
 
 \item{main}{Title of plot.}
 

@@ -88,7 +88,7 @@ calcFno2 <- function(input,
 
         results <- rbind(input, res)
 
-        scatterPlot(results, x = "date", y = "no2", type = "variable", group = TRUE)
+        scatterPlot(results, x = "date", y = "no2", group = "variable", ...)
 
     }
 

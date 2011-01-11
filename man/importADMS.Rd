@@ -45,9 +45,9 @@ mydata <- importADMS(file = file.choose(),
   returns both "date" and the associated ADMS data columns as part of openair data frame. }
 
   \item{keep.units}{ Option to retain ADMS data units. Default, \code{TRUE}, 
-  retains units as character vector in data frame comment if defined in \code{file}. 
+  retains units (if recoverable) as character vector in data frame comment if defined in \code{file}. 
   Alternative, \code{FALSE}, discards units. (NOTE: currently, only \code{.bgd} and \code{.pst} 
-  files assign units. So, this option is ignored when importing \code{.met} and \code{.mop} 
+  files assign units. So, this option is ignored when importing \code{.met} or \code{.mop} 
   files.) }
 
   \item{simplify.names}{ Option to simplify data names in accordance with common \code{openair} 

@@ -9,8 +9,8 @@
 ## NOTE - will only return numeric data apart from site name
 
 timeAverage <- function(mydata, period = "day", data.thresh = 0,
-                         statistic = "mean", percentile = NA, start.date = NA) {
-   
+                        statistic = "mean", percentile = NA, start.date = NA) {
+    
 
     if (!is.na(percentile)) {
         percentile <- percentile / 100
@@ -43,8 +43,10 @@ timeAverage <- function(mydata, period = "day", data.thresh = 0,
         }
 
         if ("wd" %in% names(mydata)) {
-            mydata$u <- sin(2 * pi * mydata$wd / 360)
-            mydata$v <- cos(2 * pi * mydata$wd / 360)
+            if (is.numeric(mydata$wd)) {
+                mydata$u <- sin(2 * pi * mydata$wd / 360)
+                mydata$v <- cos(2 * pi * mydata$wd / 360)
+            }
         }
 
         ## cut into sections dependent on period
@@ -93,19 +95,22 @@ timeAverage <- function(mydata, period = "day", data.thresh = 0,
         }
 
         if ("wd" %in% names(mydata)) {
-            ## mean wd
+            if (is.numeric(mydata$wd)) {
+                ## mean wd
             dailymet <- within(dailymet, wd <- as.vector(atan2(u, v) * 360 / 2 / pi))
 
-            ## correct for negative wind directions
-            ids <- which(dailymet$wd < 0)  ## ids where wd < 0
-            dailymet$wd[ids] <- dailymet$wd[ids] + 360
+                ## correct for negative wind directions
+                ids <- which(dailymet$wd < 0)  ## ids where wd < 0
+                dailymet$wd[ids] <- dailymet$wd[ids] + 360
 
-            dailymet <- subset(dailymet, select = c(-u, -v))
+                dailymet <- subset(dailymet, select = c(-u, -v))
         }
+            }
 
-        if ("site" %in% names(mydata)) dailymet$site <- mydata$site[1]
+            if ("site" %in% names(mydata)) dailymet$site <- mydata$site[1]
 
-        dailymet
+            dailymet
+     
     }
 
     ## split if several sites

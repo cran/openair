@@ -12,7 +12,7 @@ MannKendall(mydata,
 pollutant = "nox",
 deseason = FALSE,
 type = "default",
-period = "monthly",
+period = "month",
 statistic = "mean",
 percentile = NA,
 data.thresh = 0,
@@ -110,13 +110,24 @@ accounting for autocorrelation increases the uncertainty of the trend
 estimate - sometimes by a large amount.}
 
 \item{slope.percent}{Should the slope and the slope uncertainties be
-  expressed as a percentage? The default is \code{FALSE} and the slope
-  is expressed as an average units/year change e.g. ppb. Percentage
-  changes can often be confusing and should be clearly defined. Here the
-  percentage change is expressed as 100 * (C.end/C.start - 1) / (Year.end
-  - Year.start). Where C.start is the start concentration at Year.start
-  and C.end is the end concentration at Year.end. Fractions of years are
-  considered as necessary.}
+  expressed as a percentage change per year? The default is \code{FALSE}
+  and the slope is expressed as an average units/year change
+  e.g. ppb. Percentage changes can often be confusing and should be
+  clearly defined. Here the percentage change is expressed as 100 *
+  (C.end/C.start - 1) / (end.year - start.year). Where C.start is the
+  concentration at the start date and C.end is the concentration at the
+  end date.
+
+  For \code{period = "annual"} (end.year - start.year) will be the total
+  number of years - 1. For example, given a concentration in year 1 of
+  100 units and a percentage reduction of 5\%/yr, after 5 years there
+  will be 75 units but the actual time span will be 6 years i.e. year 1
+  is used as a reference year. Things are slightly different for monthly
+  values e.g. \code{period = "month"}, which will use the total number
+  of months as a basis of the time span and is therefore able to deal
+  with partial years. There can be slight differences in the \%/yr trend
+  estimate therefore, depending on whether monthly or annual values are
+  considered.}
 
  \item{date.breaks}{Number of major x-axis intervals to use. The
     function will try and choose a sensible number of dates/times as
@@ -171,9 +182,10 @@ deseasonalise the data (using the option \code{deseason =
 TRUE}.Similarly, for data that increase, then decrease, or show sharp
 changes it may be better to use \code{\link{smoothTrend}}.
 
-Mann-Kendall code from Rand Wilxox
-\url{http://www-rcf.usc.edu/~rwilcox/} has been modified to take account
-of correlated data.
+Some of the code used in \code{MannKendall} is based on that from Rand
+Wilxox \url{http://www-rcf.usc.edu/~rwilcox/}. This mostly relates to
+the Sen-Theil slope estimates and uncertainties.  Further modifications
+have been made to take account of correlated data based on Kunsch (1989).
 
 The slope estimate and confidence intervals in the slope are plotted and
 numerical information presented.
@@ -197,7 +209,7 @@ water-quality data. Water Resources Research 18 (1), 107-121.
 Kunsch, H. R., 1989. The jackknife and the bootstrap for general stationary observations.
 Annals of Statistics 17 (3), 1217-1241.
 
-\dots see also several of the Air Qulaity Expert Group (AQEG) reports
+\dots see also several of the Air Quality Expert Group (AQEG) reports
 for the use of similar tests applied to UK/European air quality data,
 see \url{http://www.defra.gov.uk/ENVIRONMENT/airquality/panels/aqeg/}.
 

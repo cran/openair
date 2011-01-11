@@ -178,8 +178,6 @@ polarFreq(mydata)
 # wind frequencies by year
 polarFreq(mydata, type = "year")
 
-# drop the date strip at the top
-polarFreq(mydata, strip = FALSE)
 
 # mean SO2 by year, showing only bins with at least 2 points
 \dontrun{polarFreq(mydata, pollutant = "so2", type = "year", statistic = "mean", min.bin = 2)}

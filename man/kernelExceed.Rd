@@ -139,12 +139,7 @@ the number of days is an estimate. It is an estimate because conditioning
 breaks up individual days and the estimate is based on the proportion of
 data calculated for each level of \code{type}.
 
-Also shown is the Pearson correlation value for the association between
-\code{pollutant} and a numeric value of \code{type}. For example, if
-\code{pollutant = "pm10"} and \code{type = "so2"} then the Pearson
-correlation coefficient is that between PM10 and SO2. This helps to
-determine how good the relationship is between PM10 and SO2 for
-different levels of SO2.}
+}
 
 \author{David Carslaw }
 \note{This function automatically chooses the bandwidth for the kernel

@@ -1,35 +1,27 @@
 polarFreq <- function(polar,
-                       pollutant = "",
-                       statistic = "frequency",
-                       ws.int = 1,
-                       breaks = seq(0, 5000, 500),
-                       cols = "default",
-                       trans = TRUE,
-                       type = "default",
-                       min.bin = 1,
-                       border.col = "transparent",
-                       main = "",
-                       key.header = statistic,
-                       key.footer = pollutant,
-                       key.position = "right",
-                       key = NULL,
-                       auto.text = TRUE,...) {
-  
-   
+                      pollutant = "",
+                      statistic = "frequency",
+                      ws.int = 1,
+                      breaks = seq(0, 5000, 500),
+                      cols = "default",
+                      trans = TRUE,
+                      type = "default",
+                      min.bin = 1,
+                      border.col = "transparent",
+                      main = "",
+                      key.header = statistic,
+                      key.footer = pollutant,
+                      key.position = "right",
+                      key = NULL,
+                      auto.text = TRUE,...) {
+    
+    
 
     ## extract necessary data
-    if (pollutant == "") {
-        if (type == "site"){
-            vars <- c("ws", "wd", "date", "site")
-        } else {
-            vars <- c("ws", "wd", "date")
-        }
+    if (missing(pollutant)) {
+        vars <- c("date", "ws", "wd")
     } else {
-        if (type == "site") {
-            vars <- c("ws", "wd", "date", pollutant, "site")
-        } else {
-            vars <- c("ws", "wd", "date", pollutant)
-        }
+        vars <- c("date", "ws", "wd", pollutant)
     }
 
     ## data checks
@@ -104,7 +96,7 @@ polarFreq <- function(polar,
         weights[ids] <- NA
 
         ws.wd <- expand.grid(ws = as.numeric(levels(ws)), wd = as.numeric(levels(wd)))
-        weights <- cbind(ws.wd, weights, cond = polar$cond[1]) # add cond variable
+        weights <- cbind(ws.wd, weights) 
         weights
     }
 
@@ -120,25 +112,40 @@ polarFreq <- function(polar,
         lpolygon(c(x1, x2), c(y1, y2), col = colour, border = border.col, lwd = 0.5)
     }
 
-    results.grid <- ddply(polar, .(cond), prepare.grid)
+    results.grid <- ddply(polar, type, prepare.grid)
     results.grid <- na.omit(results.grid)
+
+    ## proper names of labelling ##############################################################################
+    pol.name <- sapply(levels(results.grid[ , type[1]]), function(x) quickText(x, auto.text))
+    strip <- strip.custom(factor.levels = pol.name)
+
+    if (length(type) == 1 ) {
+        
+        strip.left <- FALSE
+        
+    } else { ## two conditioning variables        
+        
+        pol.name <- sapply(levels(results.grid[ , type[2]]), function(x) quickText(x, auto.text))
+        strip.left <- strip.custom(factor.levels = pol.name)       
+    }
+    ## ########################################################################################################
 
     results.grid$weights <- results.grid$weights ^ (1 / coef)
 
-    nlev = 200
+    nlev <- 200
     ## handle missing breaks arguments
     if(missing(breaks)) {
 
-        breaks = unique(c(0, pretty(results.grid$weights, nlev)))
-        br = pretty((results.grid$weights ^ coef), n = 10)  ## breaks for scale
+        breaks <- unique(c(0, pretty(results.grid$weights, nlev)))
+        br <- pretty((results.grid$weights ^ coef), n = 10)  ## breaks for scale
 
     } else {
 
-        br = breaks
+        br <- breaks
 
     }
 
-    nlev2 = length(breaks)
+    nlev2 <- length(breaks)
 
     col <- openColours(cols, (nlev2 - 1))
 
@@ -148,66 +155,69 @@ polarFreq <- function(polar,
     results.grid$weights[results.grid$weights == "NaN"] <- 0
     results.grid$weights[which(is.na(results.grid$weights))] <- 0
 
-    #################
-    #scale key setup
-    #################
+    ##  scale key setup ################################################################################################
     legend <- list(col = col[1:length(breaks) - 1], at = breaks, 
-         labels = list(at = br^(1/coef), labels = br),
-         space = key.position, 
-         auto.text = auto.text, footer = key.footer, header = key.header, 
-         height = 1, width = 1.5, fit = "all")
+                   labels = list(at = br^(1/coef), labels = br),
+                   space = key.position, 
+                   auto.text = auto.text, footer = key.footer, header = key.header, 
+                   height = 1, width = 1.5, fit = "all")
     if (!is.null(key)) 
-         if (is.list(key)) 
-             legend[names(key)] <- key
-         else warning("In polarFreq(...):\n  non-list key not exported/applied\n  [see ?drawOpenKey for key structure/options]", 
-             call. = FALSE)
+        if (is.list(key)) 
+            legend[names(key)] <- key
+        else warning("In polarFreq(...):\n  non-list key not exported/applied\n  [see ?drawOpenKey for key structure/options]", 
+                     call. = FALSE)
     legend <- list(temp = list(fun = drawOpenKey, args = list(key = legend, 
-         draw = FALSE)))
+                                                  draw = FALSE)))
     names(legend)[1] <- if(is.null(key$space)) key.position else key$space
+    
+    temp <- paste(type, collapse = "+")
+    myform <- formula(paste("ws ~ wd | ", temp, sep = ""))
+    
+    plt <- xyplot(myform,
+                  xlim = c(-max.ws - 4.0, max.ws + 4.0),
+                  ylim = c(-max.ws - 4.0, max.ws + 4.0),
+                  data = results.grid,
+                  main = quickText(main, auto.text),
+                  par.strip.text = list(cex = 0.8),
+                  type = "n",
+                  strip = strip,
+                  strip.left = strip.left,
+                  xlab = "",
+                  ylab = "",
+                  as.table = TRUE,
+                  aspect = 1,
+                  scales = list(draw = FALSE),...,
 
-    plt <- xyplot(ws ~ wd | cond,
-           xlim = c(-max.ws - 4.0, max.ws + 4.0),
-           ylim = c(-max.ws - 4.0, max.ws + 4.0),
-           data = results.grid,
-           main = quickText(main, auto.text),
-           ## strip = strip,
-           type = "n",
-           xlab = "",
-           ylab = "",
-           as.table = TRUE,
-           aspect = 1,
-           scales = list(draw = FALSE),...,
+                  panel = function(x, y, subscripts,...) {
+                      panel.xyplot(x, y,...)
 
-           panel = function(x, y, subscripts,...) {
-               panel.xyplot(x, y,...)
+                      subdata <- results.grid[subscripts,]
 
-               subdata <- results.grid[subscripts,]
-
-               for (i in 1:nrow(subdata)) {
-                   colour <- col[as.numeric(subdata$div[i])]
-                   if (subdata$weights[i] == 0) colour <- "transparent"
-                   poly(subdata$wd[i], subdata$ws[i], colour)
-               }
+                      for (i in 1:nrow(subdata)) {
+                          colour <- col[as.numeric(subdata$div[i])]
+                          if (subdata$weights[i] == 0) colour <- "transparent"
+                          poly(subdata$wd[i], subdata$ws[i], colour)
+                      }
 
                                         #annotate
-               angles <- seq(0, 2 * pi, length = 360)
-               sapply(seq(5, 25, 5), function(x)
-                      llines((3 + x + ws.int) * sin(angles),
-                             (3 + x + ws.int) * cos(angles),
-                             col = "grey", lty = 5))
+                      angles <- seq(0, 2 * pi, length = 360)
+                      sapply(seq(5, 25, 5), function(x)
+                             llines((3 + x + ws.int) * sin(angles),
+                                    (3 + x + ws.int) * cos(angles),
+                                    col = "grey", lty = 5))
 
-               ltext(seq(3 + ws.int, 28 + ws.int, length = 6) * sin(pi/4),
-                     seq(3 + ws.int, 28 + ws.int, length = 6) * cos(pi/4),
-                     seq(0, 25, 5), cex = 0.7, font = 1)
+                      ltext(seq(3 + ws.int, 28 + ws.int, length = 6) * sin(pi/4),
+                            seq(3 + ws.int, 28 + ws.int, length = 6) * cos(pi/4),
+                            seq(0, 25, 5), cex = 0.7, font = 1)
 
-           },
-           legend = legend 
-           )
+                  },
+                  legend = legend 
+                  )
 
-    #################
-    #output
-    #################
-    plot(plt)
+#################
+                                        #output
+#################
+    if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip, strip.left = strip.left))
     newdata <- results.grid
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"

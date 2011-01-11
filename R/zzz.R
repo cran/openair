@@ -60,16 +60,3 @@ if(open.test==0){
   message("\ttype citation(\"openair\") for how to cite openair")
      
 }
-
-#openair.news <- function(){
-#  message("\nrecent updates to openair include:")
-#  message("\nopenair namespace introduced")
-#  message("\nNEW function calendarPlot introduced")
-#  message("\ttype '?calendarPlot' for details")
-#  message("\nEXTRA functionality added to polarPlot")
-#  message("\tplot surface uncertainity estimation")
-#  message("\ttype '?polarPlot' for details")
-#  message("\n")
-#}  
-
-

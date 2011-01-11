@@ -20,7 +20,16 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE) {
     }
 
     ## add type to names if not in pre-defined list
-    if (type %in% conds == FALSE) Names <- c(Names, type)
+    if (any(type %in% conds == FALSE)) {
+        ids <- which(type %in% conds == FALSE)
+        Names <- c(Names, type[ids])
+    }
+
+    ## if type already present in data frame
+    if (any(type %in% names(mydata))) {
+        ids <- which(type %in% names(mydata))
+        Names <- unique(c(Names, type[ids]))
+    }
 
     ## just select data needed
     mydata <- mydata[, Names]
@@ -32,71 +41,74 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE) {
         }
     }
 
-        ## sometimes ratios are considered which can results in infinite values
-        ## make sure all infinite values are set to NA
-        mydata[] <- lapply(mydata, function(x){replace(x, x == Inf | x == -Inf, NA)})
+    ## sometimes ratios are considered which can results in infinite values
+    ## make sure all infinite values are set to NA
+    mydata[] <- lapply(mydata, function(x){replace(x, x == Inf | x == -Inf, NA)})
 
-        ## round wd to make processing obvious
-        ## data already rounded to nearest 10 degress will not be affected
-        ## data not rounded will be rounded to nearest 10 degrees
-        ## assumes 10 is average of 5-15 etc
+    if ("ws" %in% Names) {
+        
+        ## check for negative wind speeds
+        if (any(sign(mydata$ws[!is.na(mydata$ws)]) == -1)) {
 
-        if ("wd" %in% Names) {
-            ## force to be numeric
-            ## mydata$wd <- as.numeric(mydata$wd)
-
-                                        # #check for wd <0 or > 360
-            if (any(sign(mydata$wd[!is.na(mydata$wd)]) == -1 | mydata$wd[!is.na(mydata$wd)] > 360)) {
-
-                warning("Wind direction < 0 or > 360; removing these data")
-                mydata$wd[mydata$wd < 0] <- NA
-                mydata$wd[mydata$wd > 360] <- NA
-            }
-
-            if (remove.calm) {
-                mydata$wd[mydata$wd == 0] <- NA
-
-                ## round wd for use in functions - except windRose/pollutionRose
-                mydata$wd <- 10 * round(mydata$wd / 10)
-                mydata$wd[mydata$wd == 0] <- 360   # angles <5 should be in 360 bin 
-            } else { ## only used for windRose
-                mydata$wd[mydata$wd == 0] <- -999
-                mydata$wd[mydata$ws == 0] <- -999 ## some times met data wrong, need both here!
-                mydata$ws[mydata$wd == -999] <- 0
-            }
-       
+            warning("Wind speed <0; removing negative data")
+            mydata$ws[mydata$ws < 0] <- NA
         }
-
-        if ("ws" %in% Names) {
-            ## force to be numeric
-            ## mydata$ws <- as.numeric(mydata$ws)
-            ## check for negative wind speeds
-            if (any(sign(mydata$ws[!is.na(mydata$ws)]) == -1)) {
-
-                warning("Wind speed <0; removing negative data")
-                mydata$ws[mydata$ws < 0] <- NA
-            }
-        }
-
-        ## make sure date is ordered in time if present
-        if ("date" %in% Names) {
-
-            ## if date in format dd/mm/yyyy hh:mm (basic check)
-            if (length(grep("/", as.character(mydata$date[1]))) > 0) {
-
-                mydata$date <- as.POSIXct(strptime(mydata$date, "%d/%m/%Y %H:%M"), "GMT")
-
-            }
-
-            mydata <- mydata[order(mydata$date), ]
-
-            ## make sure date is the first field
-            mydata <- cbind(subset(mydata, select = date), subset(mydata,select = -date))
-        }
-
-        ## return data frame
-        mydata
     }
+
+    ## round wd to make processing obvious
+    ## data already rounded to nearest 10 degress will not be affected
+    ## data not rounded will be rounded to nearest 10 degrees
+    ## assumes 10 is average of 5-15 etc
+
+    if ("wd" %in% Names) {
+        
+        ## check for wd <0 or > 360
+        if (any(sign(mydata$wd[!is.na(mydata$wd)]) == -1 | mydata$wd[!is.na(mydata$wd)] > 360)) {
+
+            warning("Wind direction < 0 or > 360; removing these data")
+            mydata$wd[mydata$wd < 0] <- NA
+            mydata$wd[mydata$wd > 360] <- NA
+        }
+
+        if (remove.calm) {
+            if ("ws" %in% names(mydata)) {
+                mydata$wd[mydata$ws == 0]  <- NA ## set wd to NA where there are calms
+                mydata$ws[mydata$ws == 0] <- NA ## remove calm ws
+            }
+            mydata$wd[mydata$wd == 0] <- 360 ## set any legitimate wd to 360
+            
+            ## round wd for use in functions - except windRose/pollutionRose
+            mydata$wd <- 10 * ceiling(mydata$wd / 10 - 0.5)
+            mydata$wd[mydata$wd == 0] <- 360   # angles <5 should be in 360 bin
+
+        } else { ## only used for windRose/pollutionRose
+
+            mydata$wd[mydata$ws == 0] <- -999 ## set wd to flag where there are calms
+            mydata$wd[mydata$wd == 0] <- 360
+            
+        }
+    }
+    
+
+    ## make sure date is ordered in time if present
+    if ("date" %in% Names) {
+
+        ## if date in format dd/mm/yyyy hh:mm (basic check)
+        if (length(grep("/", as.character(mydata$date[1]))) > 0) {
+
+            mydata$date <- as.POSIXct(strptime(mydata$date, "%d/%m/%Y %H:%M"), "GMT")
+
+        }
+
+        mydata <- mydata[order(mydata$date), ]
+
+        ## make sure date is the first field
+        mydata <- cbind(subset(mydata, select = date), subset(mydata,select = -date))
+    }
+
+    ## return data frame
+    mydata
+}
 
 
 

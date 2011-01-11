@@ -5,16 +5,8 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4) 
     ## If another added, then amend checkPrep
     makeCond <- function(x, type = "default") {
         ## adds a column "cond"
-
-        
         conds <- c("default", "year", "hour", "month", "season", "weekday", "wd", "site", "weekend", "monthyear",
                    "bstgmt", "gmtbst")
-
-        ## if conditioning type already built in, is present in data frame and is a factor
-        if (type %in% conds & type %in% names(x)) {
-           
-            if (is.factor(x[ , type])) return(x)
-        }
 
         if (type %in% conds == FALSE) { ## generic, user-defined
             ## split by four quantiles unless it is a factor, in which case keep as is
@@ -80,7 +72,7 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4) 
                 x[ , type][ids] <- "summer (JJA)"
                 ids <- which(as.numeric(format(x$date, "%m")) %in% 9:11)
                 x[ , type][ids] <- "autumn (SON)"
-                x[ , type] <- ordered(x[ , type], levels = c("spring (MAM)", "summer (JJA)", "autumn (SON)", "winter (DJF)"))
+                x[ , type] <- ordered(x[ , type], levels =c("spring (MAM)", "summer (JJA)", "autumn (SON)", "winter (DJF)"))
             }
             if (hemisphere == "southern") {
                 x[ , type] <- "summer (DJF)" ## define all as winter first, then assign others
@@ -90,7 +82,7 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4) 
                 x[ , type][ids] <- "winter (JJA)"
                 ids <- which(as.numeric(format(x$date, "%m")) %in% 9:11)
                 x[ , type][ids] <- "spring (SON)"
-                x[ , type] <- ordered(x[ , type], levels = c("spring (SON)", "summer (DJF)", "autumn (MAM)", "winter (JJA)"))
+                x[ , type] <- ordered(x[ , type], levels =c("spring (SON)", "summer (DJF)", "autumn (MAM)", "winter (JJA)"))
                 
             }
             

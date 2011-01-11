@@ -23,8 +23,12 @@ polarPlot <- function(polar,
                       auto.text = TRUE, ...) {
     
     
-
+    ## initial checks ##########################################################################################
+    if (length(type) > 2) {stop("Maximum number of types is 2.")}
+    
     if (uncertainty) type <- "default" ## can't have conditioning here
+
+    if (uncertainty & length(pollutant) > 1) stop("Can only have one pollutant when uncertainty = TRUE")
 
     ## extract variables of interest
     vars <- c("ws", "wd", "date", pollutant)
@@ -33,16 +37,27 @@ polarPlot <- function(polar,
 
     ## if more than one pollutant, need to stack the data and set type = "variable"
     ## this case is most relevent for model-measurement compasrions where data are in columns
+    ## Can also do more than one pollutant and a single type that is not "default", in which
+    ## case pollutant becomes a conditioning variable
     if (length(pollutant) > 1) {
+        
+        if (length(type) > 1) {
+            warning(paste("Only type = '", type[1], "' will be used", sep = ""))
+            type <- type[1]
+        }
+        ## use pollutants as conditioning variables
         polar <- melt(polar, measure.vars = pollutant)
         ## now set pollutant to "value"
         pollutant <- "value"
-        type <- "variable"       
+        type <- c(type, "variable")
     }
+
+    ## ##########################################################################################################
     
     polar <- na.omit(polar)
     ## cutData depending on type
     polar <- cutData(polar, type)
+    
 
     ## if upper ws not set, set it to the max to display all information
     max.ws <- ceiling(max(polar$ws, na.rm = TRUE))
@@ -88,8 +103,7 @@ polarPlot <- function(polar,
             pred <- predict.gam(Mgam, input.data)
             pred <- pred ^ (1 / n)
             pred <- as.vector(pred)
-            results <- data.frame(u = input.data$u, v = input.data$v,
-                                  z = pred, cond = polar$cond[1])
+            results <- data.frame(u = input.data$u, v = input.data$v, z = pred)
 
         } else {
 
@@ -111,7 +125,7 @@ polarPlot <- function(polar,
             n <- length(pred)
             results <-  data.frame(u = rep(input.data$u, 3), v = rep(input.data$v, 3),
                                    z = c(pred, Lower, Upper),
-                                   cond = rep(c("prediction", "lower uncertainty",
+                                   default = rep(c("prediction", "lower uncertainty",
                                    "upper uncertainty"), each = n))
         }
 
@@ -134,29 +148,41 @@ polarPlot <- function(polar,
             results
         }
 
-        if (exclude.missing) results <- ddply(results, .(cond), exclude)
+        if (exclude.missing) results <- exclude(results) 
 
         results
     }
 
-#############################################################################
+    ## ########################################################################################################
 
-    results.grid <- ddply(polar, .(cond), prepare.grid)
+    results.grid <- ddply(polar, type, prepare.grid)
 
     ## remove wind speeds > upper to make a circle
     results.grid$z[(results.grid$u ^ 2 + results.grid$v ^ 2) ^ 0.5 > upper] <- NA
     
-    ## proper names of labelling
-    pol.name <- sapply(unique(results.grid$cond), function(x) quickText(x, auto.text))
+    ## proper names of labelling ##############################################################################
+    pol.name <- sapply(levels(results.grid[ , type[1]]), function(x) quickText(x, auto.text))
     strip <- strip.custom(factor.levels = pol.name)
 
+    if (length(type) == 1 ) {
+        
+        strip.left <- FALSE
+        
+    } else { ## two conditioning variables        
+        
+        pol.name <- sapply(levels(results.grid[ , type[2]]), function(x) quickText(x, auto.text))
+        strip.left <- strip.custom(factor.levels = pol.name)       
+    }
+    ## ########################################################################################################
+    
+
     skip <- FALSE
-    if (type == "default") strip <- FALSE ## remove strip
+    if (length(type) == 1 & type[1] == "default") strip <- FALSE ## remove strip
     if (uncertainty) strip <- TRUE
 
     ## normalise by divining by mean conditioning value if needed
     if (normalise){
-        results.grid <- ddply(results.grid, .(cond), transform, z = z / mean(z, na.rm = TRUE))
+        results.grid <- ddply(results.grid, type, transform, z = z / mean(z, na.rm = TRUE))
         if (missing(key.footer)) key.footer <- "normalised \nlevel"
     }
 
@@ -177,9 +203,8 @@ polarPlot <- function(polar,
     if (uncertainty) layout <- c(3, 1)
     layout = if (uncertainty) c(3, 1) else NULL
 
-#################
-                                        #scale key setup
-#################
+    ## scale key setup ######################################################################################
+
     legend <- list(col = col, at = col.scale, space = key.position, 
                    auto.text = auto.text, footer = key.footer, header = key.header, 
                    height = 1, width = 1.5, fit = "all")
@@ -188,15 +213,18 @@ polarPlot <- function(polar,
             legend[names(key)] <- key
         else warning("In polarPlot(...):\n  non-list key not exported/applied\n  [see ?drawOpenKey for key structure/options]", 
                      call. = FALSE)
-    legend <- list(temp = list(fun = drawOpenKey, args = list(key = legend, 
-                                                  draw = FALSE)))
+    legend <- list(temp = list(fun = drawOpenKey, args = list(key = legend, draw = FALSE)))
     names(legend)[1] <- if(is.null(key$space)) key.position else key$space
+########################################################################################################
 
+    temp <- paste(type, collapse = "+")
+    myform <- formula(paste("z ~ u * v | ", temp, sep = ""))
 
-    plt <- levelplot(z ~ u * v | cond, results.grid, axes = FALSE,
+    plt <- levelplot(myform, results.grid, axes = FALSE,
                      as.table = TRUE,
                      layout = layout,
                      strip = strip,
+                     strip.left = strip.left,
                      col.regions = col,
                      region = TRUE,
                      aspect = 1,
@@ -239,13 +267,12 @@ polarPlot <- function(polar,
                          ltext(upper * 1.07, 0, "E", cex = 0.7)
                      })
 
-#################
-                                        #output
-#################
-    plot(plt)
+
+    ## output ##############################################################################################
+    
+    if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip, strip.left = strip.left))
+    
     newdata <- results.grid
-    names(newdata)[3] <- pollutant 
-    newdata <- newdata[c("cond", "u", "v", pollutant)]
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
     invisible(output)  

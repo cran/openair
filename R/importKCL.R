@@ -35,14 +35,15 @@ importKCL <- function(site = "my1", year = 2009, pollutant = "all", met = FALSE,
         }
     }
 
-    ## change units to mass units
+    ## change units to mass units, use values in ugm3Conversion table
     if (units == "mass") {
-        if ("nox" %in% names(thedata)) thedata$nox <- thedata$nox * 1.92
-        if ("no2" %in% names(thedata)) thedata$no2 <- thedata$no2 * 1.92
+        if ("nox" %in% names(thedata)) thedata$nox <- thedata$nox * 1.91
+        if ("no2" %in% names(thedata)) thedata$no2 <- thedata$no2 * 1.91
         if ("o3" %in% names(thedata)) thedata$o3 <- thedata$o3 * 2.00
-        if ("so2" %in% names(thedata)) thedata$so2 <- thedata$so2 * 2.677
+        if ("so2" %in% names(thedata)) thedata$so2 <- thedata$so2 * 2.66
         if ("co" %in% names(thedata)) thedata$co <- thedata$co * 1.16
         if ("pm10_raw" %in% names(thedata)) thedata$pm10_raw <- thedata$pm10_raw* 1.30
+       
         unitMessage <- "NOTE - mass units are used \nug/m3 for NOx, NO2, SO2, O3; mg/m3 for CO\nPM10_raw is raw data multiplied by 1.3\n"        
     }
 

@@ -22,6 +22,7 @@ layout = c(1, 1),
 cols = "brewer1",
 main = "",
 ylab = pollutant,
+plot.type = "l",
 lty = 1:length(pollutant),
 lwd = 1,
 pch = NA,
@@ -124,6 +125,10 @@ here.}
 
   \item{ylab}{Name of y-axis variable. By default will use the name of
     \code{pollutant}(s).}
+
+  \item{plot.type}{The \code{lattice} plot type, which is a line
+  (\code{plot.type = "l"}) by default. Another useful option is
+  \code{plot.type = "h"}, which draws vertical lines.}
 
   \item{lty}{The line type used for plotting. Default is to provide
     different line types for different pollutant. If one requires a

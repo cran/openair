@@ -8,7 +8,7 @@
   this function directly.  Widely used by many \code{openair} functions
   usually through the option \code{type}.}
 
-\usage{mydata<- cutData(x, type = "default")}
+\usage{mydata<- cutData(x, type = "default", hemisphere = "northern", n.levels = 4)}
 
 
 %- maybe also 'usage' for other objects documented here.
@@ -25,6 +25,11 @@
 column name is supplied \code{cutData} will split the data into four
 quantiles. Factors levels will be used to split the data without any
 adjustment.}
+
+\item{hemisphere}{Can be \code{"northern"} or \code{"southern"}. used to
+  split data into seasons.}
+
+\item{n.levels}{Number of quantiles to split numeric data into.}  
 
 
 }
@@ -50,6 +55,10 @@ adjustment.}
  "weekend" splits the data by weekday and weekend.
 
  "weekday" splits the data by day of the week - ordered to start Monday.
+
+ "season" splits data up by season. In the northern hemisphere winter =
+ December, January, February; spring = March, April, May etc. These
+ defintions will change of \code{hemisphere = "southern"}.
 
  "gmtbst" or "bstgmt" will split the data by hours that are in GMT
  i.e. mostly winter months) and hours in British summertime. Each of the

@@ -12,6 +12,7 @@ polarAnnulus <- function(polar,
                           date.pad = FALSE,
                           force.positive = TRUE,
                           k = 15,
+                         normalise = FALSE,
                           main = "",
                           key.header = "",
                           key.footer = pollutant,
@@ -22,10 +23,21 @@ polarAnnulus <- function(polar,
 
     ## extract variables of interest
     vars <- c("wd", "date", pollutant)
-    if (type == "site") vars <- c("date", pollutant, "ws", "wd", "site")
+
+    if (any(c("hour", "weekday", "season", "trend") %in% type)) stop ("Cannot have same type and period.")
+    if (length(type) > 2) stop("Cannot have more than two types.")
 
     ## check data
     polar <- checkPrep(polar, vars, type)
+
+    ## if more than one pollutant, need to stack the data and set type = "variable"
+    ## this case is most relevent for model-measurement compasrions where data are in columns
+    if (length(pollutant) > 1) {
+        polar <- melt(polar, measure.vars = pollutant)
+        ## now set pollutant to "value"
+        pollutant <- "value"
+        type <- "variable"       
+    }
 
     if (period == "trend" && missing(k)) k <- 20 ## less smoothing for the trend component
 
@@ -214,17 +226,34 @@ polarAnnulus <- function(polar,
 
         ## match the ids with predictions
         new.data$z[ids] <- sapply(seq_along(ids), function(x) pred[id.time[x], id.wd[x]])
-        new.data$cond <- polar$cond[1]
         new.data
     }
 
     ## more compact way?  Need to test
-    ## results.grid <- ddply(polar, .(cond), prepare.grid)
+     results.grid <- ddply(polar, type, prepare.grid)
 
-    results.grid <- split(polar, polar$cond)
-    results.grid <- lapply(results.grid, function(x) prepare.grid(x))
-    results.grid <- do.call(rbind, results.grid)
+    ## normalise by divining by mean conditioning value if needed
+    if (normalise){
+        results.grid <- ddply(results.grid, type, transform, z = z / mean(z, na.rm = TRUE))
+        if (missing(key.footer)) key.footer <- "normalised \nlevel"
+    }
 
+    ## proper names of labelling ##############################################################################
+    pol.name <- sapply(levels(results.grid[ , type[1]]), function(x) quickText(x, auto.text))
+    strip <- strip.custom(factor.levels = pol.name)
+
+    if (length(type) == 1 ) {
+       
+        strip.left <- FALSE
+        
+    } else { ## two conditioning variables        
+        
+        pol.name <- sapply(levels(results.grid[ , type[2]]), function(x) quickText(x, auto.text))
+        strip.left <- strip.custom(factor.levels = pol.name)       
+    }
+    ## ########################################################################################################
+
+    
     ## auto-scaling
     nlev = 200  #preferred number of intervals
     ## handle missing breaks arguments
@@ -236,11 +265,10 @@ polarAnnulus <- function(polar,
     col <- openColours(cols, (nlev2 - 1))
     col.scale = breaks
 
-    strip <- TRUE
-    if (type == "default") strip = FALSE ## remove strip
+   
 
     #################
-    #scale key setup
+    ## scale key setup
     #################
     legend <- list(col = col, at = col.scale, space = key.position, 
          auto.text = auto.text, footer = key.footer, header = key.header, 
@@ -254,7 +282,10 @@ polarAnnulus <- function(polar,
          draw = FALSE)))
     names(legend)[1] <- if(is.null(key$space)) key.position else key$space
 
-    plt <- levelplot(z ~ u * v | cond, results.grid, axes = FALSE,
+    temp <- paste(type, collapse = "+")
+    myform <- formula(paste("z ~ u * v | ", temp, sep = ""))
+    
+    plt <- levelplot(myform, results.grid, axes = FALSE,
               as.table = TRUE,
               aspect = 1,
               xlab = "",
@@ -262,6 +293,7 @@ polarAnnulus <- function(polar,
               main = quickText(main, auto.text),
               colorkey = FALSE, legend = legend,
               at = col.scale, col.regions = col,
+              par.strip.text = list(cex = 0.8),
               scales = list(draw = FALSE),
               strip = strip,
 
@@ -350,17 +382,17 @@ polarAnnulus <- function(polar,
                   }
 
                   ## text for directions
-                  ltext(-upper -d - 1.5, 0, "W")
-                  ltext(0, -upper - d - 1.5, "S")
-                  ltext(0, upper + d + 1.5, "N")
-                  ltext(upper + d + 1.5, 0, "E")
+                  ltext(-upper -d - 1.5, 0, "W", cex = 0.7)
+                  ltext(0, -upper - d - 1.5, "S", cex = 0.7)
+                  ltext(0, upper + d + 1.5, "N", cex = 0.7)
+                  ltext(upper + d + 1.5, 0, "E", cex = 0.7)
 
               })
 
     #################
     #output
     #################
-    plot(plt)
+    if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip, strip.left = strip.left))
     newdata <- results.grid
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"

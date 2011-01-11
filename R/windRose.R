@@ -41,16 +41,10 @@ windRose <- function (polar, ws.int = 2, angle = 30, type = "default", cols = "d
     polar <- checkPrep(polar, vars, type, remove.calm = FALSE)
     polar <- na.omit(polar)
 
-    if (is.null(pollutant)) {
-        polar$.z.poll <- polar$ws
-    }
-    else {
-        names(polar)[names(polar) == pollutant] <- ".z.poll"
-    }
-    
-    if (type == "ws")  type <- "ws.1"
-    
-    
+    if (is.null(pollutant))   polar$.z.poll <- polar$ws else  names(polar)[names(polar) == pollutant] <- ".z.poll"
+        
+    ## if (type == "ws")  type <- "ws.1"
+       
     polar$wd <- angle * ceiling(polar$wd/angle - 0.5)
     polar$wd[polar$wd == 0] <- 360
     
@@ -76,7 +70,6 @@ windRose <- function (polar, ws.int = 2, angle = 30, type = "default", cols = "d
         weights <- prop.table(table(polar$wd, polar$.z.poll))
         weights <- as.data.frame.matrix(weights)
         weights <- data.frame(t(apply(weights, 1, cumsum)))
-        weights$cond <- polar$cond[1]
         weights$wd <- as.numeric(row.names(weights))
         weights <- subset(weights, wd > 0)
         weights$calm <- calm
@@ -100,8 +93,7 @@ windRose <- function (polar, ws.int = 2, angle = 30, type = "default", cols = "d
             lpolygon(c(x1, x2, x4, x3), c(y1, y2, y4, y3), col = colour, 
                      border = NA)
         }
-    }
-    else {
+    } else {
         poly <- function(wd, len1, len2, width, colour, x.off = 0, 
                          y.off = 0) {
             len1 <- len1 + off.set
@@ -119,11 +111,27 @@ windRose <- function (polar, ws.int = 2, angle = 30, type = "default", cols = "d
     }
     
     polar <- cutData(polar, type)
-    results.grid <- ddply(polar, .(cond), prepare.grid)
+    results.grid <- ddply(polar, type, prepare.grid)
+
+    ## proper names of labelling ##############################################################################
+    pol.name <- sapply(levels(results.grid[ , type[1]]), function(x) quickText(x, auto.text))
+    strip <- strip.custom(factor.levels = pol.name)
+
+    if (length(type) == 1 ) {
+        
+        strip.left <- FALSE
+        
+    } else { ## two conditioning variables        
+        
+        pol.name <- sapply(levels(results.grid[ , type[2]]), function(x) quickText(x, auto.text))
+        strip.left <- strip.custom(factor.levels = pol.name)       
+    }
+    ## ########################################################################################################
+    
     col <- openColours(cols, length(theLabels))
-    max.freq <- max(results.grid[, 1:length(theLabels)], na.rm = TRUE)
-    off.set <- max.freq/10
-    box.widths <- seq(0.002^0.25, 0.016^0.25, length.out = length(theLabels))^4
+    max.freq <- max(results.grid[, (length(type) + 1) : (length(theLabels) + length(type))], na.rm = TRUE)
+    off.set <- max.freq / 10
+    box.widths <- seq(0.002 ^ 0.25, 0.016 ^ 0.25, length.out = length(theLabels)) ^ 4
 
     legend <- list(col = col, space = key.position, auto.text = auto.text, 
                    labels = theLabels, footer = key.footer, header = key.header,
@@ -137,15 +145,21 @@ windRose <- function (polar, ws.int = 2, angle = 30, type = "default", cols = "d
     
     names(legend)[1] <- if(is.null(key$space)) key.position else key$space
 
-    plt <- xyplot(.z.poll1 ~ wd | cond,
+    temp <- paste(type, collapse = "+")
+    myform <- formula(paste(".z.poll1 ~ wd | ", temp, sep = ""))
+
+    plt <- xyplot(myform,
                   xlim = c(-max.freq - off.set, max.freq + off.set),
                   ylim = c(-max.freq - off.set, max.freq + off.set),
                   data = results.grid,
                   type = "n",
+                  strip = strip,
+                  strip.left = strip.left,
                   xlab = "", ylab = "",
                   main = quickText(main, auto.text),
                   as.table = TRUE,
                   aspect = 1,
+                  par.strip.text = list(cex = 0.8),
                   scales = list(draw = FALSE),
 
                   panel = function(x, y, subscripts, ...) {
@@ -180,16 +194,15 @@ windRose <- function (polar, ws.int = 2, angle = 30, type = "default", cols = "d
                                                  sep = ""), adj = c(1, 0), cex = 0.7, col = "forestgreen")
                   }, legend = legend)
 
-    #################
-    #output
-    #################
-    plot(plt)
+   ## output ###########################################################################################################
+    
+    if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip, strip.left = strip.left))
     newdata <- results.grid
-    if(is.null(pollutant))
-        theLabels <- paste("ws", theLabels, sep=".") else
-        theLabels <- paste(pollutant, theLabels, sep=".")
-    names(newdata)[1:length(theLabels)] <- theLabels
-    newdata <- newdata[c("cond", "wd", "calm", theLabels)]
+ #   if(is.null(pollutant))
+  #      theLabels <- paste("ws", theLabels, sep=".") else
+  #      theLabels <- paste(pollutant, theLabels, sep=".")
+ #   names(newdata)[1:length(theLabels)] <- theLabels
+  #  newdata <- newdata[c(type, "wd", "calm", theLabels)]
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
     invisible(output)  
