@@ -21,6 +21,7 @@ trendLevel(mydata,
     pollutant = "nox", 
     x = "month", y = "hour", type = "year", 
     xlab = x, ylab = y, typelab = NULL, 
+    rotate.axis = c(90, 0), n.levels = c(10, 10, 4),
     limits = c(0, 100), cols = "default", auto.text = TRUE, 
     key.header = "use.stat.name", key.footer = pollutant, 
     key.position = "right", key = NULL,
@@ -50,6 +51,16 @@ trendLevel(mydata,
   \item{xlab, ylab, typelab}{ The x-axis, y-axis and type conditioning labels. All labels are passed 
   via \code{quickText} to handle formatting if enabled (\code{auto.text = TRUE}). By default \code{trendLevel} 
   uses x and y names as xlab and ylab, respectively, but does not attach a label to type cases.}
+
+  \item{rotate.axis}{ The rotation to be applied to \code{trendLevel} \code{x} and \code{y} axes. The default, 
+  \code{c(90, 0)}, rotates the x axis by 90 degrees but does not rotate the y axis. (Note: If only one value is 
+  supplied, this is applied to both axes; if more than two values are supplied, only the first two are used.) }
+
+  \item{n.levels}{ The number of levels to split \code{x}, \code{y} and \code{type} data into if it is 
+  numeric. The default, \code{c(10, 10, 4)}, cuts numeric \code{x} and \code{y} data into ten levels and 
+  numeric \code{type} data into four levels. (Notes: This option is ignored for date conditioning and factors. 
+  If less than three values are supplied, three values are determined by recursion; if more than three values 
+  are supplied, only the first three are used.) }
 
   \item{limits}{ The colour scale range to use when generating the \code{trendLevel} plot. }
 

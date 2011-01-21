@@ -112,8 +112,20 @@ MannKendall <- function(mydata,
     }
 
     split.data <- ddply(mydata, type,  process.cond)
+    
+    skip <- FALSE
+    layout <- NULL
 
-    ## proper names of labelling ##############################################################################
+    if (length(type) == 1 & type[1] == "default") strip <- FALSE ## remove strip
+    
+    if (length(type) == 1 & type[1] == "wd") {
+        ## re-order to make sensible layout
+        split.data$wd <- ordered(split.data$wd, levels = c("NW", "N", "NE", "W", "E", "SW", "S", "SE"))
+        skip <-  c(FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE)
+        layout = if (type == "wd") c(3, 3) else NULL
+    }
+
+       ## proper names of labelling ##############################################################################
     pol.name <- sapply(levels(split.data[ , type[1]]), function(x) quickText(x, auto.text))
     strip <- strip.custom(factor.levels = pol.name)
 
@@ -127,16 +139,7 @@ MannKendall <- function(mydata,
         strip.left <- strip.custom(factor.levels = pol.name)       
     }
     ## ########################################################################################################
-    
-    skip <- FALSE
-    layout <- NULL
-
-    if (length(type) == 1 & type[1] == "default") strip <- FALSE ## remove strip
-    
-    if (length(type) == 1 & type[1] == "wd") {
-        skip <-  c(FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE)
-        layout = if (type == "wd") c(3, 3) else NULL
-    }
+ 
     
 
 #### calculate slopes etc ###############################################################################

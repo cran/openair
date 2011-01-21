@@ -24,7 +24,8 @@ calendarPlot <- function(mydata,
 
     ##international keyboard
     ##first letter and ordered Sun to Sat
-    weekday.abb <- substr(make.weekday.abbs(), 1, 1)[c(7, 1:6)]
+  #  weekday.abb <- substr(make.weekday.abbs(), 1, 1)[c(7, 1:6)]
+    weekday.abb <- substr(format(ISOdate(2000, 1, 2:8), "%A"), 1, 1)[c(7, 1:6)]
 
 
     ## extract variables of interest

@@ -13,7 +13,9 @@ trendLevel <- function(mydata,
     x = "month", y = "hour",
     type = "year",
     xlab = x, ylab = y,
-    typelab = NULL, 
+    typelab = NULL,
+    rotate.axis = c(90, 0),
+    n.levels = c(10, 10, 4), 
     limits = c(0, 100),  
     cols = "default", 
     auto.text = TRUE,
@@ -139,6 +141,24 @@ trendLevel <- function(mydata,
         , call.=FALSE)
     }
 
+    #################################
+    #number vector handling
+    #################################
+    #used for rotate.axis and n.levels
+    ls.check.fun <- function(vector, vector.name, len){
+        if(!is.numeric(vector)){
+            warning(paste("\ttrendLevel ignored unrecognised '", vector.name, "' option.",
+                "\n\t[check ?trendLevel for details]", sep=""), call.=FALSE)
+            #use current default
+            vector <- eval(formals(trendLevel)[[vector.name]]) 
+        }
+        if(length(vector)<len) vector <- rep(vector,len)[1:len]
+        #insert default if not given
+        ifelse(is.na(vector), eval(formals(trendLevel)[[vector.name]]), vector)
+    }
+    rotate.axis <- ls.check.fun(rotate.axis, "rotate.axis", 2)
+    n.levels <- ls.check.fun(n.levels, "n.levels", 3)
+
     #########################
     #statistic handling
     #########################
@@ -221,8 +241,10 @@ trendLevel <- function(mydata,
     #so need: 
     value <- mydata[,pollutant]
     #different n.levels for axis and type
-    newdata <- cutData(mydata, c(x,y), n.levels=10) 
-    newdata <- cutData(newdata, type, n.levels=4) 
+    #is.axis applied for x and y
+    newdata <- cutData(mydata, x, n.levels=n.levels[1], is.axis=TRUE)
+    newdata <- cutData(newdata, y, n.levels=n.levels[2], is.axis=TRUE)
+    newdata <- cutData(newdata, type, n.levels=n.levels[3]) 
     newdata <- newdata[c(x,y,type)]
 
     ############################
@@ -282,6 +304,8 @@ trendLevel <- function(mydata,
                   }
     xlab <- quickText(xlab, auto.text) 
     ylab <- quickText(ylab, auto.text)
+    scales <- list(x = list(rot = rotate.axis[1]),
+                   y = list(rot = rotate.axis[2])) 
 
     ##ie ignores formals setting because it is looking in ...
     if (missing(limits)) {
@@ -311,6 +335,7 @@ trendLevel <- function(mydata,
     names(legend)[1] <- key.position
     colorkey <- FALSE   
 
+    #stop overlapping labels
     yscale.lp <- function(...){
         ans <- yscale.components.default(...)
         ans$left$labels$check.overlap <- TRUE 
@@ -325,10 +350,14 @@ trendLevel <- function(mydata,
     ##############################
     #plot
     ##############################
+    #note: (like other openair functions)
+    #      this will now fall over with lattice error if the user passes any of 
+    #      the preset options below as part of call
     plt <- levelplot(myform, data = newdata,
                as.table = TRUE, xlab=xlab, ylab =ylab,
                legend = legend, colorkey = colorkey, 
                at = breaks, col.regions=col.regions,
+               scales = scales,
                yscale.components = yscale.lp,
                xscale.components = xscale.lp,
                par.strip.text = list(cex = 0.8),

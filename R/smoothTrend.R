@@ -106,11 +106,22 @@ smoothTrend <- function(mydata,
         
         results
     }
+        
+    split.data <- ddply(mydata, c(type, "variable"),  process.cond)    
     
+    skip <- FALSE
+    layout <- NULL
     
-    split.data <- ddply(mydata, c(type, "variable"),  process.cond)
+    if (length(type) == 1 & type[1] == "default") strip <- FALSE ## remove strip
     
-    ## proper names of labelling ##############################################################################
+    if (length(type) == 1 & type[1] == "wd") {
+        ## re-order to make sensible layout
+        split.data$wd <- ordered(split.data$wd, levels = c("NW", "N", "NE", "W", "E", "SW", "S", "SE"))
+        skip <-  c(FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE)
+        layout = if (type == "wd") c(3, 3) else NULL
+    }
+
+        ## proper names of labelling ##############################################################################
     pol.name <- sapply(levels(split.data[ , type[1]]), function(x) quickText(x, auto.text))
     strip <- strip.custom(factor.levels = pol.name)
 
@@ -124,16 +135,7 @@ smoothTrend <- function(mydata,
         strip.left <- strip.custom(factor.levels = pol.name)       
     }
     ## ########################################################################################################
-    
-    skip <- FALSE
-    layout <- NULL
-    
-    if (length(type) == 1 & type[1] == "default") strip <- FALSE ## remove strip
-    
-    if (length(type) == 1 & type[1] == "wd") {
-        skip <-  c(FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE)
-        layout = if (type == "wd") c(3, 3) else NULL
-    }
+
 
     ## colours according to number of percentiles
     npol <- max(length(percentile), length(pollutant)) ## number of pollutants

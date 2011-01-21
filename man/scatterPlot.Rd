@@ -21,6 +21,7 @@ percentile = NA,
 type = "default",
 layout = NULL,
 smooth = TRUE,
+spline = FALSE,
 linear = FALSE,
 ci = TRUE,
 mod.line = FALSE,
@@ -73,9 +74,9 @@ auto.text = TRUE,
   "year". For much increased flexibility a number can precede these
   options followed by a space. For example, a timeAverage of 2 months
   would be \code{period = "2 month"}. See function \code{timeAverage} for
-  further details on this. This option ise useful as one method by which
+  further details on this. This option se useful as one method by which
   the number of points plotted is reduced i.e. by choosing a longer
-  averging time.}
+  averaging time.}
 
 \item{data.thresh}{The data capture threshold to use (\%) when
   aggregating the data using \code{avg.time}. A value of zero means that
@@ -98,19 +99,25 @@ auto.text = TRUE,
     \code{avg.time}. The default is 95. Not used if \code{avg.time =
       "default"}.}
 
- \item{type}{The type of analysis to be done. The default is will
-    produce a single plot using the entire data. Other types include
-    "hour" (for hour of the day), "weekday" (for day of the week) and
-    "month" (for month of the year), "year" for a scatter plot for each
-    year. It is also possible to choose \code{type} as another variable
-    in the data frame. For example, \code{type = "o3"} will plot four
-    windRoses for different levels of ozone, split into four quantiles
-    (approximately equal numbers of counts in each of the four
-    splits). This offers great flexibility for understanding the
-    variation of different variables dependent on another. See function
-    \code{cutData} for further details. Type can be up length two
-    e.g. \code{type = c("season", "weekday")} will produce a 2x2 plot
-    showing \code{x} and \code{y} split be season and day of the week.}
+ \item{type}{\code{type} determines how the data are split
+    i.e. conditioned, and then plotted. The default is will produce a
+    single plot using the entire data. Type can be one of the built-in
+    types as detailed in \code{cutData} e.g. "season", "year", "weekday"
+    and so on. For example, \code{type = "season"} will produce four
+    plots --- one for each season.
+
+    It is also possible to choose \code{type} as another variable in the
+    data frame. If that variable is numeric, then the data will be split
+    into four quantiles (if possible) and labelled accordingly. If type
+    is an existing character or factor variable, then those
+    categories/levels will be used directly. This offers great
+    flexibility for understanding the variation of different variables
+    and how they depend on one another.
+
+    Type can be up length two e.g. \code{type = c("season", "weekday")}
+    will produce a 2x2 plot split by season and day of the week. Note,
+    when two types are provided the first forms the columns and the
+    second the rows.}
 
 
   \item{layout}{Determines how the panels are laid out. By default,
@@ -121,6 +128,11 @@ auto.text = TRUE,
 
  \item{smooth}{A smooth line is fitted to the data if \code{TRUE};
    optionally with 95\% confidence intervals shown.}
+
+ \item{spline}{A smooth spline is fitted to the data if
+ \code{TRUE}. This is particularly useful when there are fewer data
+ points or when a connection line between a sequence of points is
+ required.}
 
   \item{linear}{A linear model is fitted to the data if \code{TRUE};
  optionally with 95\% confidence intervals shown. The equation of the

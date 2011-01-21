@@ -5,32 +5,6 @@
 ## with some updates and modification by Karl Ropkins
 ###############################################################################
 
-## make month and weekday names and abbs using local conventions
-## This must be run locally 
-
-## make months locally
-make.month.names <- function(){
-    month.names <- format(ISOdate(2000, 1:12, 1), "%B")
-}
-make.month.abbs <- function(){
-    month.abbs <- format(ISOdate(2000, 1:12, 1), "%b")
-}
-
-## make weekdays locally then, order Monday to Sunday for time.variation
-make.weekday.names <- function(){
-    weekday.names <- ISOdate(2000, 1, 1:14)
-    weekday.names <- unique(format(weekday.names, "%A"))[order(unique(as.numeric(format(weekday.names, "%w"))))][c(2:7, 1)]
-}
-make.weekday.abbs <- function(){
-    weekday.abbs <- ISOdate(2000, 1, 1:14)
-    weekday.abbs <- unique(format(weekday.abbs, "%a"))[order(unique(as.numeric(format(weekday.abbs, "%w"))))][c(2:7, 1)]
-}
-
-weekday.names <- make.weekday.names()
-weekday.abbs <- make.weekday.abbs()
-month.names <- make.month.names()
-month.abbs <- make.month.abbs()
-
 startYear <- function(dat) as.numeric(format(min(dat[order(dat)]), "%Y"))
 endYear <- function(dat) as.numeric(format(max(dat[order(dat)]), "%Y"))
 startMonth <- function(dat) as.numeric(format(min(dat[order(dat)]), "%m"))
@@ -237,7 +211,7 @@ one more label than date")
 selectByDate <- function(mydata, start = "1/1/2008", end = "31/12/2008", year = 2008,
                            month = 1, hour = 1, day = "weekday") {
 
-    weekday.names <- make.weekday.names()
+    weekday.names <- format(ISOdate(2000, 1, 3:9), "%A")
 
     if (!missing(start) & !missing(end)) {
         start <- as.POSIXct(strptime(start, format = "%d/%m/%Y"), "GMT")
@@ -330,7 +304,7 @@ useOuterStrips <-function (x, strip = strip.default, strip.left = strip.custom(h
 panel.smooth.spline <-
     function(x, y,
              w = NULL, df, spar = NULL, cv = FALSE,
-             lwd = plot.line$lwd, lty = plot.line$lty,col, col.line = plot.line$col,
+             lwd = lwd, lty = plot.line$lty,col, col.line = plot.line$col,
              type, horizontal = FALSE, all.knots = TRUE,... )
 {
     x <- as.numeric(x)

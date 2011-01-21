@@ -8,7 +8,7 @@
   this function directly.  Widely used by many \code{openair} functions
   usually through the option \code{type}.}
 
-\usage{mydata<- cutData(x, type = "default", hemisphere = "northern", n.levels = 4)}
+\usage{mydata<- cutData(x, type = "default", hemisphere = "northern", n.levels = 4, is.axis = FALSE)}
 
 
 %- maybe also 'usage' for other objects documented here.
@@ -26,11 +26,14 @@ column name is supplied \code{cutData} will split the data into four
 quantiles. Factors levels will be used to split the data without any
 adjustment.}
 
-\item{hemisphere}{Can be \code{"northern"} or \code{"southern"}. used to
+\item{hemisphere}{Can be \code{"northern"} or \code{"southern"}, used to
   split data into seasons.}
 
 \item{n.levels}{Number of quantiles to split numeric data into.}  
 
+
+\item{is.axis}{A logical (\code{TRUE}/\code{FALSE}), used to request 
+  shortened cut labels for axes.}  
 
 }
 

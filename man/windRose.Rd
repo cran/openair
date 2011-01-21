@@ -54,10 +54,26 @@ ans <- pollutionRose(...)
   angles are 45 and 10. Note that the width of the wind speed interval
   may need adjusting using \code{width}.}
 
-  \item{type}{Default is \code{default}, which will plot all data on one
-  windRose. Other useful options are \code{year}, \code{month} and \code{hour} for
-  one windRose for each year or each month respectfully. Many more
-  types are shown in the function \code{cutData}. }
+\item{type}{\code{type} determines how the data are split
+    i.e. conditioned, and then plotted. The default is will produce a
+    single plot using the entire data. Type can be one of the built-in
+    types as detailed in \code{cutData} e.g. "season", "year", "weekday"
+    and so on. For example, \code{type = "season"} will produce four
+    plots --- one for each season.
+
+    It is also possible to choose \code{type} as another variable in the
+    data frame. If that variable is numeric, then the data will be split
+    into four quantiles (if possible) and labelled accordingly. If type
+    is an existing character or factor variable, then those
+    categories/levels will be used directly. This offers great
+    flexibility for understanding the variation of different variables
+    and how they depend on one another.
+
+    Type can be up length two e.g. \code{type = c("season", "weekday")}
+    will produce a 2x2 plot split by season and day of the week. Note,
+    when two types are provided the first forms the columns and the
+    second the rows.}
+
 
   \item{cols}{Colours to be used for plotting. Options include
   \code{default}, \code{increment}, \code{heat}, \code{jet}, \code{hue}
