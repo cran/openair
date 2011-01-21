@@ -55,16 +55,25 @@ polarAnnulus(polar,
   year, "weekday" to plot day of the week variation and "hour" to plot
   the diurnal variation.}
 
-\item{type}{The \code{type} can either be \code{"default"} or
-  \code{"site"}. The former will produce a single plot and the latter
-  produces the same number of plots as there are sites. It is also
-  possible to choose \code{type} as another variable in the data
-  frame. For example, \code{type = "o3"} will plot four windRoses for
-  different levels of ozone, split into four quantiles (approximately
-  equal numbers of counts in each of the four splits). This offers great
-  flexibility for understanding the variation of different variables
-  dependent on another. See function \code{cutData} for more details on
-  how data can be split.}
+\item{type}{\code{type} determines how the data are split
+    i.e. conditioned, and then plotted. The default is will produce a
+    single plot using the entire data. Type can be one of the built-in
+    types as detailed in \code{cutData} e.g. "season", "year", "weekday"
+    and so on. For example, \code{type = "season"} will produce four
+    plots --- one for each season.
+
+    It is also possible to choose \code{type} as another variable in the
+    data frame. If that variable is numeric, then the data will be split
+    into four quantiles (if possible) and labelled accordingly. If type
+    is an existing character or factor variable, then those
+    categories/levels will be used directly. This offers great
+    flexibility for understanding the variation of different variables
+    and how they depend on one another.
+
+    Type can be up length two e.g. \code{type = c("season", "weekday")}
+    will produce a 2x2 plot split by season and day of the week. Note,
+    when two types are provided the first forms the columns and the
+    second the rows.}
 
 \item{limits}{The function does its best to choose sensible limits
   automatically. However, there are circumstances when the user will
@@ -96,14 +105,14 @@ polarAnnulus(polar,
   begins and ends at the beginning or end of year.}
 
 \item{force.positive}{The default is \code{TRUE}. Sometimes if
-  smoothing data with streep gradients it is possible for predicted
+  smoothing data with steep gradients it is possible for predicted
   values to be negative. \code{force.positive = TRUE} ensures that
   predictions remain postive. This is useful for several reasons. First,
   with lots of missing data more interpolation is needed and this can
-  result in artefacts because the predictions are too far from the
+  result in artifacts because the predictions are too far from the
   original data. Second, if it is known beforehand that the data are all
   postive, then this option carries that assumption through to the
-  prediction. The only likley time where setting \code{force.positive =
+  prediction. The only likely time where setting \code{force.positive =
     FALSE} would be if background concentrations were first subtracted
   resulting in data that is legitimately negative. For the vast majority
   of situations it is expected that the user will not need to alter the
@@ -187,7 +196,7 @@ linearly with the length of the time series i.e. a certain amount of
 smoothing per unit interval in time. This is a deliberate choice because
 should one be interested in a subset (in time) of data, more detail will
 be provided for the subset compared with the full data set. This allows
-users to investigate specific periods in morte detail. Full flexibility
+users to investigate specific periods in more detail. Full flexibility
 is given through the smoothing parameter \code{k}.  }
 
 %\references{ ~put references to the literature/web site here ~ }

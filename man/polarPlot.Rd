@@ -40,19 +40,26 @@ main = "", key.header = "", key.footer = pollutant,
     to compare two columns "obs" (the observations) and "mod" (modelled
     values).}
 
-  \item{type}{The type of analysis to be done. The default is will
-    produce a single plot using the entire data. Other types include
-    "hour" (for hour of the day), "weekday" (for day of the week) and
-    "month" (for month of the year), "year" for a polar plot for each
-    year. It is also possible to choose \code{type} as another variable
-    in the data frame. A common example would be polar plots for several
-    sites. This would require a column "site" containing the site name
-    and the option \code{type = "site"} set. Another example is
-    \code{type = "o3"} will plot four windRoses for different levels of
-    ozone, split into four quantiles (approximately equal numbers of
-    counts in each of the four splits). This offers great flexibility
-    for understanding the variation of different variables dependent on
-    another. See function \code{cutData} for further details.}
+  \item{type}{\code{type} determines how the data are split
+    i.e. conditioned, and then plotted. The default is will produce a
+    single plot using the entire data. Type can be one of the built-in
+    types as detailed in \code{cutData} e.g. "season", "year", "weekday"
+    and so on. For example, \code{type = "season"} will produce four
+    plots --- one for each season.
+
+    It is also possible to choose \code{type} as another variable in the
+    data frame. If that variable is numeric, then the data will be split
+    into four quantiles (if possible) and labelled accordingly. If type
+    is an existing character or factor variable, then those
+    categories/levels will be used directly. This offers great
+    flexibility for understanding the variation of different variables
+    and how they depend on one another.
+
+    Type can be up length two e.g. \code{type = c("season", "weekday")}
+    will produce a 2x2 plot split by season and day of the week. Note,
+    when two types are provided the first forms the columns and the
+    second the rows.}
+
 
   \item{resolution}{Two plot resolutions can be set: "normal" (the
     default) and "fine", for a smoother plot. It should be noted

@@ -62,14 +62,22 @@ alpha = 0.4,...)
     if you want to give a fuller description of the variables, maybe
     also including subscripts etc.}
 
-  \item{type}{Setting \code{type} determines how the data should be
-    split and then plotted in panels. See \code{cutData} for examples of
-    different in-build types. It is also possible to choose \code{type}
-    as another variable in the data frame. For example, \code{type =
-    "o3"} will plot four panels; one for approximately each
-    quantile. This offers great flexibility for understanding the
-    variation of different variables dependent on another. Only one
-    \code{type} is allowed in \code{timeVariation}.}
+  \item{type}{\code{type} determines how the data are split
+    i.e. conditioned, and then plotted. The default is will produce a
+    single plot using the entire data. Type can be one of the built-in
+    types as detailed in \code{cutData} e.g. "season", "year", "weekday"
+    and so on. For example, \code{type = "season"} will produce four
+    plots --- one for each season.
+
+    It is also possible to choose \code{type} as another variable in the
+    data frame. If that variable is numeric, then the data will be split
+    into four quantiles (if possible) and labelled accordingly. If type
+    is an existing character or factor variable, then those
+    categories/levels will be used directly. This offers great
+    flexibility for understanding the variation of different variables
+    and how they depend on one another.
+
+   Only one \code{type} is allowed in\code{timeVariation}.}
 
   \item{group}{This sets the grouping variable to be used. For example,
   if a data frame had a column \code{site} setting \code{group = "site"}
@@ -95,7 +103,7 @@ defined (see manual for more details).}
  \item{key.columns}{Number of columns to be used in the key. With many
   pollutants a single column can make to key too wide. The user can thus
   choose to use several columns by setting \code{columns} to be less
-  thna the number of pollutants.}
+  than the number of pollutants.}
 
   \item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE}
     titles and axis labels will automatically try and format pollutant

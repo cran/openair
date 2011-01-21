@@ -99,16 +99,23 @@ field and at least one variable to plot.}
   chunk. For irregular data, set to \code{FALSE}. Note, this should not
   be set for \code{type} other than \code{default}.}
 
-  \item{type}{The type of analysis to be done. The default is will
-produce a single plot using the entire data. There is an option "site",
-which requires a slightly different format. If "site" is used a data
-frame with headings \code{date}, a pollutant and \code{site} is
-required. It is also possible to choose \code{type} as another variable
-in the data frame. For example, \code{type = "o3"} will plot four
-quantiles of levels of ozone. This offers great flexibility for
-understanding the variation of different variables dependent on
-another. See function \code{cutData} for more details on the flexibility
-here.}
+  \item{type}{\code{type} determines how the data are split
+    i.e. conditioned, and then plotted. The default is will produce a
+    single plot using the entire data. Type can be one of the built-in
+    types as detailed in \code{cutData} e.g. "season", "year", "weekday"
+    and so on. For example, \code{type = "season"} will produce four
+    plots --- one for each season.
+
+    It is also possible to choose \code{type} as another variable in the
+    data frame. If that variable is numeric, then the data will be split
+    into four quantiles (if possible) and labelled accordingly. If type
+    is an existing character or factor variable, then those
+    categories/levels will be used directly. This offers great
+    flexibility for understanding the variation of different variables
+    and how they depend on one another.
+
+    Only one \code{type} is currently allowed in \code{timePlot}.}
+
 
   \item{layout}{Determines how the panels are laid out. By default,
     plots will be shown in one column with the number of rows equal to the

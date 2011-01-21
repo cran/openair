@@ -10,6 +10,7 @@ scatterPlot <- function(mydata,
                         type = "default",
                         layout = NULL,
                         smooth = TRUE,
+                        spline = FALSE,
                         linear = FALSE,
                         ci = TRUE,
                         mod.line = FALSE,
@@ -229,26 +230,14 @@ scatterPlot <- function(mydata,
         y = list(log = nlog.y, relation = y.relation))
     }
 
-    ## proper names of labelling ##############################################################################
-    pol.name <- sapply(levels(mydata[ , group]), function(x) quickText(x, auto.text))
-    stripName <- sapply(levels(mydata[ , type[1]]), function(x) quickText(x, auto.text))
-
-    if (strip) strip <- strip.custom(factor.levels = stripName)
-
-    if (length(type) == 1 ) {
-        
-        strip.left <- FALSE
-        
-    } else { ## two conditioning variables        
-        stripName <- sapply(unique(mydata[ , type[2]]), function(x) quickText(x, auto.text))
-        strip.left <- strip.custom(factor.levels =  stripName)
-    }
-    ## ########################################################################################################
     
     ## if logs are chosen, ensure data >0 for line fitting etc
     if (log.x)  mydata <- mydata[mydata[ , x] > 0, ]
     if (log.y)  mydata <- mydata[mydata[ , y] > 0, ]
 
+    pol.name <- sapply(levels(mydata[ , group]), function(x) quickText(x, auto.text))
+    stripName <- sapply(levels(mydata[ , type[1]]), function(x) quickText(x, auto.text))
+    
     if (!continuous) { ## non-continuous key
         if (missing(key.columns)) if (npol < 5) key.columns <- npol else key.columns <- 4
         
@@ -266,9 +255,26 @@ scatterPlot <- function(mydata,
     ## special wd layout
     skip <- FALSE
     if (length(type) == 1 & type[1] == "wd" ) {
+        ## re-order to make sensible layout
+        mydata$wd <- ordered(mydata$wd, levels = c("NW", "N", "NE", "W", "E", "SW", "S", "SE"))
         layout <- c(3, 3)
         skip <- c(FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE)
     }
+
+        ## proper names of labelling ##############################################################################
+   
+    if (strip) strip <- strip.custom(factor.levels = stripName)
+
+    if (length(type) == 1 ) {
+        
+        strip.left <- FALSE
+        
+    } else { ## two conditioning variables        
+        stripName <- sapply(unique(mydata[ , type[2]]), function(x) quickText(x, auto.text))
+        strip.left <- strip.custom(factor.levels =  stripName)
+    }
+    ## ########################################################################################################
+
 
     ## no strip needed for single panel
     if (length(type) == 1 & type[1]  == "default") strip <- FALSE
@@ -282,6 +288,7 @@ scatterPlot <- function(mydata,
                       type = c("p", "g"),
                       as.table = TRUE,
                       pch = pch,
+                      lwd = lwd,
                       main = quickText(main),
                       ylab = quickText(ylab, auto.text),
                       xlab = quickText(xlab, auto.text),
@@ -318,10 +325,11 @@ scatterPlot <- function(mydata,
                           if (!continuous) panel.xyplot(x, y, col.symbol = myColors[group.number],
                                                         as.table = TRUE,...)
                           
-                          if (linear & npol == 1) panel.linear(x, y, col = "black",myColors[group.number],
+                          if (linear & npol == 1) panel.linear(x, y, col = "black", myColors[group.number],
                                        lwd = 1, lty = 5, x.nam = x.nam, y.nam = y.nam, se = ci,  ...)
                           if (smooth) panel.gam(x, y, col = "grey20", col.se = "black",
                                                 lty = 1, lwd = 1, se = ci, ...)
+                          if (spline) panel.smooth.spline(x, y, col = myColors[group.number], lwd = lwd, ...)
                           if (mod.line) {
                               panel.abline(a = c(0, 0.5), lty = 5)
                               panel.abline(a = c(0, 2), lty = 5)

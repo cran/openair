@@ -146,7 +146,7 @@ linearRelation <- function(mydata,
         results$slope <- results$slope * adj
         results$seslope <- results$seslope * adj
 
-        results$weekday <- ordered(results$weekday, levels = make.weekday.abbs())
+        results$weekday <- ordered(results$weekday, levels = format(ISOdate(2000, 1, 3:9), "%A"))
         if (missing(ylim)) ylim <- rng(results)
 
         plt <- xyplot(slope ~ weekday | cond, data = results,
@@ -177,7 +177,7 @@ linearRelation <- function(mydata,
         results$slope <- results$slope * adj
         results$seslope <- results$seslope * adj
         results <- subset(results, rsquare >= rsq.thresh & N >= n)
-        results$weekday <- ordered(results$weekday, levels = make.weekday.names())
+        results$weekday <- ordered(results$weekday, levels = format(ISOdate(2000, 1, 3:9), "%A"))
 
         eq <- formula(slope ~ hour | weekday)
         if (condition) eq <- formula(slope ~ hour | weekday * cond)

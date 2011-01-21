@@ -107,7 +107,7 @@ timePlot <- function(mydata,
                             data.thresh = data.thresh, percentile = percentile)
              
             pollutant <-  paste("percentile.", percentile,  sep = "")
-       #     vars <- names(mydata) ## new variables to use
+       
             if (missing(group)) group <- TRUE        
 
         } else {
@@ -236,7 +236,11 @@ timePlot <- function(mydata,
     ## special layout if type = "wd"
     layout = if (type == "wd") c(3, 3) else layout
     skip <- FALSE
-    if (type == "wd") skip <-  c(FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE)
+    if (type == "wd") {
+        ## re-order to make sensible layout
+        mydata$wd <- ordered(mydata$wd, levels = c("NW", "N", "NE", "W", "E", "SW", "S", "SE"))
+        skip <-  c(FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE)
+    }
 
     plt <- xyplot(myform,  data = mydata, groups = variable,
            as.table = TRUE,
