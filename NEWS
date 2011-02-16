@@ -1,0 +1,6 @@
+0.4-7 [2011-02-16]
+
+*     Added new function \code{conditionalQuantile} for model
+      evaluation purposes.
+*     Fixed \code{importAURN} to account for a change in web domain
+      address at AEA.

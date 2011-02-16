@@ -13,7 +13,7 @@ trendLevel <- function(mydata,
     x = "month", y = "hour",
     type = "year",
     xlab = x, ylab = y,
-    typelab = NULL,
+    main = "",
     rotate.axis = c(90, 0),
     n.levels = c(10, 10, 4), 
     limits = c(0, 100),  
@@ -60,24 +60,21 @@ trendLevel <- function(mydata,
     ##suggest added a 'son of make.axis that could be tagged on the 
     ##to provide these features
     #the strucutre is openair to duplicate passes to levelplot again
-    #if struture is kept need to add main back in 
-    #maybe drop typelab
+    ############
+    #reinstate check.valid for key.position and key$space
+    #to stop key.position "blackhole"
+    ##e.g. trendLevel(mydata, key.pos ="anything but left, right, top or bottom typed exactly like this!")
+    #
 
     #update notes 
     ##############
-    #   
+    #main returned, typelab removed 24 Jan 2011   
 
 
     ###############################
     #setup
     ###############################
     
-    ###############################
-    #TO DO
-    ###############################
-    #check we still need check.valid
-    #possibly only using it in one place now
-    #
 
     ##check.valid function
     check.valid <- function(a, x, y){
@@ -238,21 +235,22 @@ trendLevel <- function(mydata,
     ############################
     #get pollutant value
     #NOTE: this can same as one of x, y, type
-    #so need: 
-    value <- mydata[,pollutant]
+    #so need a temp case 
+    mydata$..z.xx <- mydata[,pollutant]
     #different n.levels for axis and type
     #is.axis applied for x and y
-    newdata <- cutData(mydata, x, n.levels=n.levels[1], is.axis=TRUE)
-    newdata <- cutData(newdata, y, n.levels=n.levels[2], is.axis=TRUE)
-    newdata <- cutData(newdata, type, n.levels=n.levels[3]) 
-    newdata <- newdata[c(x,y,type)]
+    newdata <- cutData(mydata, x, n.levels=n.levels[1], is.axis=TRUE, ...)
+    newdata <- cutData(newdata, y, n.levels=n.levels[2], is.axis=TRUE, ...)
+    newdata <- cutData(newdata, type, n.levels=n.levels[3], ...) 
+    newdata <- newdata[c("..z.xx", x,y,type)]
+
 
     ############################
     #calculate statistic
     ############################
     #temp function
     temp <- function(...){
-                tapply(value, newdata[c(x,y,type)],
+                tapply(newdata$..z.xx, newdata[c(x,y,type)],
                     stat.fun, ...)
             }
     if(is.null(stat.args)) {
@@ -281,11 +279,15 @@ trendLevel <- function(mydata,
     ##############################
     #drop unused type cases
     ##############################
+    #previous code removed as part
+    #requested simplification
     ##############################
     #TO DO
     ##############################
-    ##############################
-    #can we use this with 1-2 type settings
+    #reimplement if requested
+    #note: 
+    #if reinstalled not now have 
+    #1-2 type settings
     ##############################
 
     ##############################
@@ -304,6 +306,7 @@ trendLevel <- function(mydata,
                   }
     xlab <- quickText(xlab, auto.text) 
     ylab <- quickText(ylab, auto.text)
+    main <- quickText(main, auto.text)
     scales <- list(x = list(rot = rotate.axis[1]),
                    y = list(rot = rotate.axis[2])) 
 
@@ -332,7 +335,7 @@ trendLevel <- function(mydata,
              call. = FALSE)
     legend <- list(temp = list(fun = drawOpenKey, args = list(key = legend, 
          draw = FALSE)))
-    names(legend)[1] <- key.position
+    names(legend)[1] <- legend$temp$args$key$space #safer than key.position
     colorkey <- FALSE   
 
     #stop overlapping labels
@@ -354,7 +357,7 @@ trendLevel <- function(mydata,
     #      this will now fall over with lattice error if the user passes any of 
     #      the preset options below as part of call
     plt <- levelplot(myform, data = newdata,
-               as.table = TRUE, xlab=xlab, ylab =ylab,
+               as.table = TRUE, xlab=xlab, ylab =ylab, main = main,
                legend = legend, colorkey = colorkey, 
                at = breaks, col.regions=col.regions,
                scales = scales,

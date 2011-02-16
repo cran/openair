@@ -20,7 +20,7 @@ kernelExceed <- function(polar,
     polar <- subset(polar, wd > 0)
     
     ## cut data depending on type
-    polar <- cutData(polar, type)
+    polar <- cutData(polar, type, ...)
 
     if (by[1] == "day" | by[1] == "dayhour") {
         ## identify days where pm10 > limit

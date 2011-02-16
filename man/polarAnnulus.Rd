@@ -159,7 +159,10 @@ polarAnnulus(polar,
   pollutant names and units properly e.g.  by subscripting the
   \sQuote{2} in NO2.}
 
-\item{\dots}{Other graphical parameters.}}
+\item{\dots}{Other graphical parameters passed onto
+    \code{lattice:xyplot} and \code{cutData}. For example, in the case
+    of \code{cutData} the option \code{hemisphere = "southern"}.}
+}
 
 \value{
   As well as generating the plot itself, \code{polarAnnulus} also returns an object of class 
@@ -170,7 +173,7 @@ polarAnnulus(polar,
   or rework the original plot or undertake further analysis.  
 
   An openair output can be manipulated using a number of generic operations, including 
-  \code{print}, \code{plot} and \code{summarise}. See \code{\link{openair.generics}} 
+  \code{print}, \code{plot} and \code{summary}. See \code{\link{openair.generics}} 
   for further details.   
   
 }

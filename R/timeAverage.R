@@ -8,7 +8,7 @@
 ## start.date helps to get data frame into nice time sequence
 ## NOTE - will only return numeric data apart from site name
 
-timeAverage <- function(mydata, period = "day", data.thresh = 0,
+timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
                         statistic = "mean", percentile = NA, start.date = NA) {
     
 
@@ -50,7 +50,7 @@ timeAverage <- function(mydata, period = "day", data.thresh = 0,
         }
 
         ## cut into sections dependent on period
-        mydata$cuts <- cut(mydata$date, period)
+        mydata$cuts <- cut(mydata$date, avg.time)
         
         if (data.thresh > 0) {
 

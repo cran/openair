@@ -47,7 +47,7 @@ smoothTrend <- function(mydata,
     date.format <- dateBreaks(mydata$date)$format
 
     ## cutData depending on type
-    mydata <- cutData(mydata, type)
+    mydata <- cutData(mydata, type, ...)
 
     ## reshape data
     ## in the case of mutiple percentiles, these are assinged and treated like multiple pollutants
@@ -61,7 +61,7 @@ smoothTrend <- function(mydata,
         mydata <- melt(subset(mydata, select = -variable), measure.vars = paste("percentile.", percentile, sep = ""))
         
     } else {
-        mydata <- ddply(mydata, c(type, "variable"), timeAverage, period = "month", statistic = statistic,
+        mydata <- ddply(mydata, c(type, "variable"), timeAverage, avg.time = "month", statistic = statistic,
                         percentile = percentile, data.thresh = data.thresh)               
     }
     

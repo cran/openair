@@ -25,7 +25,6 @@ export(
        cutData,
        drawOpenKey,
        openColours,
-       prepareModel,
        quickText,
        selectByDate,
        splitByDate,
@@ -60,9 +59,13 @@ export(
        kernelExceed, 
               
        ##wind roses:
-       windRose, pollutionRose
+       windRose, pollutionRose,
 
        #terminator pollutionRose
+
+       ## modStats
+       modStats,
+       conditionalQuantile
 
        )
 

@@ -28,6 +28,8 @@ scatterPlot <- function(mydata,
                         log.y = FALSE,
                         y.relation = "same",
                         x.relation = "same",
+                        ref.x = NULL,
+                        ref.y = NULL,
                         nbin = 256,
                         continuous = FALSE,
                         trans = TRUE,
@@ -88,7 +90,7 @@ scatterPlot <- function(mydata,
     
     ## average the data if necessary (default does nothing)
     ## note - need to average before cutting data up etc
-    if (avg.time != "default") mydata <- timeAverage(mydata, period = avg.time,
+    if (avg.time != "default") mydata <- timeAverage(mydata, avg.time = avg.time,
         data.thresh = data.thresh, statistic = statistic, percentile = percentile)
     
     ## the following makes sure all variables are present, which depends on 'group' and 'type'
@@ -107,36 +109,41 @@ scatterPlot <- function(mydata,
         vars <- c(x, y)
     }
 
-    ## if group is present, need to add that list of variables
+    ## if group is present, need to add that list of variables unless it is a pre-defined date-based one
     if (!missing(group)){
         
-        if (group %in%  dateTypes| !missing(avg.time)) {
-            vars <- unique(c(vars, "date"))
+        if (group %in%  dateTypes | !missing(avg.time) | any(type %in% dateTypes)) {
+            if (group %in%  dateTypes) {
+                vars <- unique(c(vars, "date")) ## don't need group because it is defined by date
+            } else {
+                vars <- unique(c(vars, "date", group))
+            }
+            
         } else {
             vars <- unique(c(vars, group))
         }
     }   
 
     if (!missing(group)) if (group %in% type) stop ("Can't have 'group' also in 'type'.")
-
-
     
     ## sometimes x can be a factor like "year"
-    boxPlot <- FALSE
+ #   boxPlot <- FALSE
 
     ## make a new factor column UNLESS it has already been converted from numeric
-    if (x %in% dateTypes & class(mydata[ , x])[1] == "numeric") mydata <- cutData(mydata, x)
+#    if (x %in% dateTypes & class(mydata[ , x])[1] == "numeric") mydata <- cutData(mydata, x)
 
     ## if there are more than one x values per factor, plot a box and whisker plot instead
-    if (type %in% names(mydata)) {
-        if (any(table(mydata[ , x], mydata[ , type]) > 1) & is.factor(mydata[ , x])) boxPlot <- TRUE
-    } else {
-        if (any(table(mydata[ , x]) > 1) & is.factor(mydata[ , x])) boxPlot <- TRUE
-    }
+#    if (any(type %in% names(mydata))) {
+        
+ #       print(table(mydata[ , x], mydata[ , type]))
+ #       if (any(table(mydata[ , x], mydata[ , type]) > 1) & is.factor(mydata[ , x])) boxPlot <- TRUE
+ #   } else {
+ #       if (any(table(mydata[ , x]) > 1) & is.factor(mydata[ , x])) boxPlot <- TRUE
+ #   }
 
     ## data checks
     mydata <- checkPrep(mydata, vars, type)
-    
+   
     ## remove missing data
     mydata <- na.omit(mydata)
 
@@ -192,12 +199,12 @@ scatterPlot <- function(mydata,
         
     } else {
         
-        mydata <- cutData(mydata, type)
+        mydata <- cutData(mydata, type, ...)
         if (missing(group)) {
             
             if ((!"group" %in% type) & (!"group" %in% c(x, y))) mydata$group <- factor("group") ## don't overwrite a
         } else {  ## means that group is there
-            mydata <- cutData(mydata, group)                    
+            mydata <- cutData(mydata, group, ...)                    
         }
         
         legend <- NULL
@@ -270,7 +277,7 @@ scatterPlot <- function(mydata,
         strip.left <- FALSE
         
     } else { ## two conditioning variables        
-        stripName <- sapply(unique(mydata[ , type[2]]), function(x) quickText(x, auto.text))
+        stripName <- sapply(levels(mydata[ , type[2]]), function(x) quickText(x, auto.text))
         strip.left <- strip.custom(factor.levels =  stripName)
     }
     ## ########################################################################################################
@@ -314,11 +321,11 @@ scatterPlot <- function(mydata,
                       }
                       
 
-                      if (boxPlot){
+                    #  if (boxPlot){
 
-                          panel.bwplot(x, y, horizontal = FALSE, pch = "|", notch = TRUE)
+                     #     panel.bwplot(x, y, horizontal = FALSE, pch = "|", notch = TRUE)
                           
-                      } else {
+                   #   } else {
 
                           if (continuous) panel.xyplot(x, y, col.symbol = thecol[subscripts],
                                                        as.table = TRUE, ...)
@@ -335,7 +342,13 @@ scatterPlot <- function(mydata,
                               panel.abline(a = c(0, 2), lty = 5)
                               panel.abline(a = c(0, 1), lty = 1)
                           }
-                      }
+                   
+                      ## add reference lines
+                          panel.abline(v = ref.x, lty = 5)                
+                          panel.abline(h = ref.y, lty = 5)
+                                    
+                      
+                   #   }
                   })
     }
 
@@ -351,7 +364,7 @@ scatterPlot <- function(mydata,
                           colorkey = TRUE,
                           aspect = 1,
                           colramp = function(n) {openColours("default", n)},
-                          trans = function(x) log(x), inv = function(x) exp(x),
+                          trans = function(x) log(x), inv = function(x) exp(x),...,
                           panel = function(x,...) {
                               panel.grid(-1, -1)
                               panel.hexbinplot(x,...)
@@ -360,6 +373,9 @@ scatterPlot <- function(mydata,
                                   panel.abline(a = c(0, 2), lty = 5)
                                   panel.abline(a = c(0, 1), lty = 1)
                               }
+                              ## add reference lines
+                          panel.abline(v = ref.x, lty = 5)                
+                          panel.abline(h = ref.y, lty = 5)
                           })
     }
 
@@ -427,6 +443,9 @@ scatterPlot <- function(mydata,
                                         panel.abline(a = c(0, 2), lty = 5)
                                         panel.abline(a = c(0, 1), lty = 1)
                                     }
+                                    ## add reference lines
+                          panel.abline(v = ref.x, lty = 5)                
+                          panel.abline(h = ref.y, lty = 5)
                                 })
     }
                                         #   if (method == "scatter") print(plt)

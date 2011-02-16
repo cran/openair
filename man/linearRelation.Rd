@@ -91,7 +91,7 @@ strip with the date range on at the top of the plot is to set
   or rework the original plot or undertake further analysis.  
 
   An openair output can be manipulated using a number of generic operations, including 
-  \code{print}, \code{plot} and \code{summarise}. See \code{\link{openair.generics}} 
+  \code{print}, \code{plot} and \code{summary}. See \code{\link{openair.generics}} 
   for further details.   
   
 }
