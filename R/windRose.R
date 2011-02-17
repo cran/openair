@@ -19,7 +19,8 @@ pollutionRose <- function(polar,
 windRose <- function (polar, ws.int = 2, angle = 30, type = "default", cols = "default", 
                       main = "", grid.line = 5, width = 1, auto.text = TRUE, breaks = 4, 
                       paddle = TRUE, key.header = NULL, key.footer = "(m/s)", key.position = "bottom", 
-                      key = NULL, dig.lab = 5, pollutant = NULL, 
+                      key = NULL, dig.lab = 5, 
+                      pollutant = NULL, 
                       ...) 
 {
     if (360/angle != round(360/angle)) {
@@ -110,7 +111,7 @@ windRose <- function (polar, ws.int = 2, angle = 30, type = "default", cols = "d
         }
     }
     
-    polar <- cutData(polar, type)
+    polar <- cutData(polar, type, ...)
     results.grid <- ddply(polar, type, prepare.grid)
 
     ## proper names of labelling ##############################################################################
@@ -192,7 +193,7 @@ windRose <- function (polar, ws.int = 2, angle = 30, type = "default", cols = "d
                       ltext(max.freq, -max.freq, label = paste("calm = ", 
                                                  sprintf("%.1f", 100 * subdata$calm[1]), "%", 
                                                  sep = ""), adj = c(1, 0), cex = 0.7, col = "forestgreen")
-                  }, legend = legend)
+                  }, legend = legend, ...)
 
    ## output ###########################################################################################################
     

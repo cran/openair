@@ -10,7 +10,7 @@ rates.  }
 
 \usage{
 timeAverage(mydata,
-period = "day",
+avg.time = "day",
 data.thresh = 0,
 statistic = "mean",
 percentile = NA,
@@ -24,11 +24,11 @@ start.date = NA)
 \item{mydata}{A data frame containing a \code{date} field . Can be class
 \code{POSIXct} or \code{Date}.}
 
-\item{period}{This defines the time period to average to. Can be "sec",
+\item{avg.time}{This defines the time period to average to. Can be "sec",
   "min", "hour", "day", "DSTday", "week", "month", "quarter" or
   "year". For much increased flexibility a number can precede these
   options followed by a space. For example, a timeAverage of 2 months
-  would be \code{period = "2 month"}. See \code{cut.POSIXt} for
+  would be \code{avg.time = "2 month"}. See \code{cut.POSIXt} for
   further details on this.}
 
 \item{data.thresh}{The data capture threshold to use (\%). A value of
@@ -98,14 +98,14 @@ and setting different averaging periods easily helps with interpretation.
 
 \examples{
 ## daily average values
-daily <- timeAverage(mydata, period = "day")
+daily <- timeAverage(mydata, avg.time = "day")
 
 ## daily average values ensuring at least 75 \% data capture
 ## i.e. at least 18 valid hours
-daily <- timeAverage(mydata, period = "day", data.thresh = 75)
+daily <- timeAverage(mydata, avg.time = "day", data.thresh = 75)
 
 ## 2-weekly averages
-fortnight <- timeAverage(mydata, period = "2 week")
+fortnight <- timeAverage(mydata, avg.time = "2 week")
 
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

@@ -3,7 +3,10 @@ importAURN <- function(site = "my1", year = 2009, pollutant = "all", hc = FALSE)
     site <- toupper(site)
 
     ## RData files to import
-    files <- lapply(site, function (x) paste("http://www.airquality.co.uk/R_data/", x, "_", year, ".RData", sep = ""))
+    ## doamin changed, Feb 2011!
+    files <- lapply(site, function (x) paste("http://uk-air.defra.gov.uk/openair/R_data/", x, "_", year, ".RData",
+                                             sep = ""))    
+ #   files <- lapply(site, function (x) paste("http://www.airquality.co.uk/R_data/", x, "_", year, ".RData", sep = ""))
     files <- do.call(c, files)
 
     loadData <- function(x) {

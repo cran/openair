@@ -54,7 +54,7 @@ polarAnnulus <- function(polar,
 
     ## remove NAs
     polar <- na.omit(polar)
-    polar <- cutData(polar, type)
+    polar <- cutData(polar, type, ...)
 
     ## convert to local time
     if (local.time) polar$date <- as.POSIXct(format(polar$date, tz = "Europe/London"))

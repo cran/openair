@@ -26,7 +26,7 @@ polarFreq <- function(polar,
 
     ## data checks
     polar <- checkPrep(polar, vars, type)
-    polar <- cutData(polar, type)
+    polar <- cutData(polar, type, ...)
 
     ## if pollutant chosen but no statistic - use mean, issue warning
     if (!missing(pollutant) & missing(statistic)) {

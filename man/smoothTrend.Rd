@@ -143,7 +143,9 @@ auto.text = TRUE,...)
     pollutant names and units properly e.g.  by subscripting the
     \sQuote{2} in NO2.}
 
-  \item{\dots}{Other graphical parameters e.g. pch = 16 for filled circles.}
+  \item{\dots}{Other graphical parameters e.g. pch = 16 for filled
+    circles and to \code{cutData}.  For example, in the case
+    of \code{cutData} the option \code{hemisphere = "southern"} }
 }
 
 \value{

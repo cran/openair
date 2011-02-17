@@ -39,6 +39,8 @@ log.x = FALSE,
 log.y = FALSE,
 y.relation = "same",
 x.relation = "same",
+ref.x = NULL,
+ref.y = NULL,
 nbin = 256,
 continuous = FALSE,
 trans = TRUE,
@@ -53,8 +55,7 @@ auto.text = TRUE,
   \item{x}{Name of the x-variable to plot. Note that x can be a date
   field or a factor. For example, \code{x} can be one of the
   \code{openair} built in types such as \code{"year"} or
-  \code{"season"}. If \code{x} is a factor a box and whisker plot is
-  produced.}
+  \code{"season"}. }
 
   \item{y}{Name of the numeric y-variable to plot.}
 
@@ -195,7 +196,11 @@ auto.text = TRUE,
 \item{x.relation}{This determines how the y-axis scale is
   plotted. "same" ensures all panels use the same scale and "free" will
   use panel-specfic scales. The latter is a useful setting when plotting
-  data with very different values.} 
+  data with very different values.}
+
+\item{ref.x}{Add a vertical dashed reference line at this value.}
+
+\item{ref.y}{Add a horizontal dashed reference line at this value.} 
 
  \item{nbin}{Number of bins used for kernel density output using method
    \code{"density"}.}
@@ -216,7 +221,9 @@ auto.text = TRUE,
     titles and axis labels will automatically try and format pollutant
     names and units properly e.g.  by subscripting the `2' in NO2.}
 
-  \item{\dots}{Other graphical parameters.}
+  \item{\dots}{Other graphical parameters passed onto
+    \code{lattice:xyplot} and \code{cutData}. For example, in the case
+    of \code{cutData} the option \code{hemisphere = "southern"}.}
 }
 
 \value{As well as generating the plot itself, \code{scatterPlot} also
@@ -230,7 +237,7 @@ auto.text = TRUE,
 
   An openair output can be manipulated using a number of generic
   operations, including \code{print}, \code{plot} and
-  \code{summarise}. See \code{\link{openair.generics}} for further
+  \code{summary}. See \code{\link{openair.generics}} for further
   details.
   
 }
@@ -326,8 +333,6 @@ scatterPlot(mydata, x = "nox", y = "no2", method = "hexbin")
 scatterPlot(mydata, x = "nox", y = "no2", type = "year", method =
 "hexbin")
 
-## example box and whisker plot
-scatterPlot(mydata, x = "weekday", y = "nox", type = "season")
 
 }
 

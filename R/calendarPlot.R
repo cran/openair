@@ -123,7 +123,7 @@ calendarPlot <- function(mydata,
     
     ## type not yet used, set to month
     type <- "month"
-    mydata <- cutData(mydata, type = type)
+    mydata <- cutData(mydata, type = type, ...)
     baseData <- mydata
 
     mydata <- ddply(mydata, type, function(x) prepare.grid(x, pollutant))

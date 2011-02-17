@@ -94,7 +94,7 @@ timePlot <- function(mydata,
 
     if (date.pad) mydata <- date.pad(mydata, type)
 
-    mydata <- cutData(mydata, type)
+    mydata <- cutData(mydata, type, ...)
  
 
     ## average the data if necessary (default does nothing)
@@ -103,7 +103,7 @@ timePlot <- function(mydata,
         
         if (length(percentile) > 1) {
 
-             mydata <- ddply(mydata, type, calcPercentile, pollutant = pollutant, period = avg.time,
+             mydata <- ddply(mydata, type, calcPercentile, pollutant = pollutant, avg.time = avg.time,
                             data.thresh = data.thresh, percentile = percentile)
              
             pollutant <-  paste("percentile.", percentile,  sep = "")
@@ -112,7 +112,7 @@ timePlot <- function(mydata,
 
         } else {
           
-             mydata <- ddply(mydata, type, timeAverage, period = avg.time, statistic = statistic,
+             mydata <- ddply(mydata, type, timeAverage, avg.time = avg.time, statistic = statistic,
                         percentile = percentile, data.thresh = data.thresh)    
         }
         

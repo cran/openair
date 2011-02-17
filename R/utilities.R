@@ -134,23 +134,7 @@ convert.date <- function(mydata, format = "%d/%m/%Y %H:%M") {
 }
 
 
-#############################################################################################
-## for processing model output. Given a data frame with two variables (and date + maybe others)
-## this function will reshape the data suitable for use in many openair functions
 
-prepareModel <- function(mydata, measured = "obs", modelled = "mod", pollutant = "nox") {
-    ##library(reshape)
-    if (missing(mydata)) stop("No data frame was supplied!")
-
-    ## make sure there is not a field called site
-    if ("site" %in% names(mydata))  mydata <- subset(mydata, select = -site)
-    mydata <- melt(mydata, measure.vars = c(measured, modelled))
-
-    ## change name to "site"
-    names(mydata)[names(mydata) == "variable"] <- "site"
-    names(mydata)[names(mydata) == "value"] <- pollutant
-    mydata
-}
 #############################################################################################
 ## splits data frame into date chunks. Allows users to supply simple dates and labels
 ## useful for type = "site", interventions

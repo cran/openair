@@ -16,7 +16,7 @@ windRose(polar,
     width = 1, auto.text = TRUE, breaks = 4, paddle = TRUE,
     key.header = NULL, key.footer = "(m/s)",
     key.position = "bottom", key = NULL, dig.lab = 5,
-    pollutant = NULL,
+    pollutant = NULL, 
     ...)
 
 ans <- windRose(...)
@@ -121,10 +121,9 @@ ans <- pollutionRose(...)
   instead of wind speed. The \code{windRose} default NULL is equivalent 
   to \code{pollutant = "ws"}.}  
 
-  \item{...}{For \code{pollutionRose} other parameters that are 
-  passed on to \code{windRose}. For \code{windRose} other parameters 
-  that are passed on to \code{drawOpenKey} and 
-  \code{lattice:xyplot}. }
+  \item{...}{For \code{pollutionRose} other parameters that are passed
+  on to \code{windRose}. For \code{windRose} other parameters that are
+  passed on to \code{drawOpenKey}, \code{lattice:xyplot} and \code{cutData}. }
 
 }
 

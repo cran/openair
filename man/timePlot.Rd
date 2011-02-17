@@ -195,7 +195,9 @@ field and at least one variable to plot.}
     titles and axis labels will automatically try and format pollutant
     names and units properly e.g.  by subscripting the `2' in NO2.}
 
-  \item{\dots}{Other graphical parameters.}
+  \item{\dots}{Other graphical parameters passed onto
+    \code{lattice:xyplot} and \code{cutData}. For example, in the case
+    of \code{cutData} the option \code{hemisphere = "southern"}.}
 }
 
 \value{
@@ -207,7 +209,7 @@ field and at least one variable to plot.}
   or rework the original plot or undertake further analysis.  
 
   An openair output can be manipulated using a number of generic operations, including 
-  \code{print}, \code{plot} and \code{summarise}. See \code{\link{openair.generics}} 
+  \code{print}, \code{plot} and \code{summary}. See \code{\link{openair.generics}} 
   for further details.   
   
 }

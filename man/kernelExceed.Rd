@@ -94,7 +94,10 @@ auto.text = TRUE, ...)
     pollutant names and units properly e.g.  by subscripting the `2' in
     NO2.}
 
-  \item{\dots}{Other graphical parameters.}  }
+  \item{\dots}{Other graphical parameters passed onto
+    \code{lattice:xyplot} and \code{cutData}. For example, in the case
+    of \code{cutData} the option \code{hemisphere = "southern"} }
+}
 
 \value{To be completed.}
 

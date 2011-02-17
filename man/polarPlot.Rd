@@ -174,7 +174,9 @@ main = "", key.header = "", key.footer = pollutant,
     pollutant names and units properly e.g.  by subscripting the `2' in
     NO2.}
 
-  \item{\dots}{Other graphical parameters.}  }
+  \item{\dots}{Other graphical parameters passed onto
+    \code{lattice:xyplot} and \code{cutData}. For example, in the case
+    of \code{cutData} the option \code{hemisphere = "southern"}.}  }
 
 \value{ As well as generating the plot itself, \code{polarPlot} also
   returns an object of class ``openair''. The object includes three main
@@ -187,11 +189,11 @@ main = "", key.header = "", key.footer = pollutant,
 
   An openair output can be manipulated using a number of generic
   operations, including \code{print}, \code{plot} and
-  \code{summarise}. See \code{\link{openair.generics}} for further
+  \code{summary}. See \code{\link{openair.generics}} for further
   details.
   
   \code{polarPlot} surface data can also be extracted directly using the
-  \code{$data} operator, e.g.  \code{object$data} for \code{output <-
+  \code{results}, e.g.  \code{results(object)} for \code{output <-
   polarPlot(mydata, "nox")}. This returns a data frame with four set
   columns: \code{cond}, conditioning based on \code{type}; \code{u} and
   \code{v}, the translational vectors based on \code{ws} and \code{wd};
