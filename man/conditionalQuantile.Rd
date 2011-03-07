@@ -83,12 +83,42 @@ auto.text = TRUE, ...)
 
 %\value{}
 
-\details{The \code{conditionalQuantile} function is a useful approach
-  for comparing continuous observations and predictions i.e. forecasts.
+\details{ Conditional quantiles are a very useful way of considering
+  model performance against observations for continuous measurements
+  (Wilks, 2005). The conditional quantile plot splits the data into
+  evenly spaced bins. For each predicted value bin e.g. from 0 to 10~ppb
+  the \emph{corresponding} values of the observations are identified and
+  the median, 25/75th and 10/90 percentile (quantile) calculated for
+  that bin. The data are plotted to show how these values vary across
+  all bins. For a time series of observations and predictions that agree
+  precisely the median value of the predictions will equal that for the
+  observations for each bin.
+
+The conditional quantile plot differs from the quantile-quantile plot
+(Q-Q plot) that is often used to compare observations and predictions. A
+Q-Q~plot separately considers the distributions of observations and
+predictions, whereas the conditional quantile uses the corresponding
+observations for a particular interval in the predictions. Take as an
+example two time series, the first a series of real observations and the
+second a lagged time series of the same observations representing the
+predictions. These two time series will have identical (or very nearly
+identical) distributions (e.g. same median, minimum and maximum). A Q-Q
+plot would show a straight line showing perfect agreement, whereas the
+conditional quantile will not. This is because in any interval of the
+predictions the corresponding observations now have different values.
+
+Plotting the data in this way shows how well predictions agree with
+observations and can help reveal many useful characteristics of how well
+model predictions agree with observations --- across the full
+distribution of values. A single plot can therefore convey a
+considerable amount of information concerning model performance. The
+\code{conditionalQuantile} function in openair allows conditional
+quantiles to be considered in a flexible way e.g. by considering how
+they vary by season.
 
   The function requires a data frame consisting of a column of
-  observations and a column of predictions. The observations are split up
-  into \code{bins} according to values of the predictions. The median
+  observations and a column of predictions. The observations are split
+  up into \code{bins} according to values of the predictions. The median
   prediction line together with the 25/75th and 10/90th quantile values
   are plotted together with a line showing a "perfect" model. Also shown
   is a histogram of predicted values.

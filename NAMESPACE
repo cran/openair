@@ -23,6 +23,7 @@ export(
 
        ##general utils:
        cutData,
+       cutDaylight,
        drawOpenKey,
        openColours,
        quickText,

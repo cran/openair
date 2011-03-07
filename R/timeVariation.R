@@ -16,11 +16,7 @@ timeVariation <- function(mydata,
                           auto.text = TRUE,
                           alpha = 0.4, ...)   {
 
-    ## these are pre-defined type that need a field "date"
-    dateTypes <- c("year", "hour", "month", "season", "weekday", "weekend", "monthyear",
-                   "gmtbst", "bstgmt")
-
-
+   
     vars <- c("date", pollutant)
     
     if (!missing(group) & length(pollutant) > 1) {

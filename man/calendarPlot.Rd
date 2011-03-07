@@ -13,7 +13,7 @@ calendarPlot(mydata,
     pollutant = "nox", year = 2003, type = "default", 
     annotate = "date", statistic = "mean", 
     cols = "heat", limits = c(0, 100),
-    main = quickText((paste(pollutant, "in", year))),
+    main = paste(pollutant, "in", year),
     key.header = "", key.footer = "", 
     key.position = "right", key = NULL,
     auto.text = TRUE, ...)  

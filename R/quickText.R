@@ -5,6 +5,9 @@ quickText <- function(text, auto.text = TRUE){
 	###return if auto.text false
 	if(!auto.text) {return(ans <- text)}
 
+        ###return if already expression
+        if(is.expression(text)) {return(ans <- text)}
+ 
 #setup string to evaluate
 	ans <- paste("expression(paste('", text, " ", sep = "")
 

@@ -10,6 +10,10 @@ endYear <- function(dat) as.numeric(format(max(dat[order(dat)]), "%Y"))
 startMonth <- function(dat) as.numeric(format(min(dat[order(dat)]), "%m"))
 endMonth <- function(dat) as.numeric(format(max(dat[order(dat)]), "%m"))
 
+## these are pre-defined type that need a field "date"; used by cutData
+dateTypes <- c("year", "hour", "month", "season", "weekday", "weekend", "monthyear",
+                   "gmtbst", "bstgmt", "daylight")
+
 ###############################################################################
 
 ## function to find averaging period of data, returns "xx sec"
@@ -193,7 +197,7 @@ one more label than date")
 
 ## function to make it easy to use d/m/y format for subsetting by date
 selectByDate <- function(mydata, start = "1/1/2008", end = "31/12/2008", year = 2008,
-                           month = 1, hour = 1, day = "weekday") {
+                           month = 1, day = "weekday", hour = 1) {
 
     weekday.names <- format(ISOdate(2000, 1, 3:9), "%A")
 

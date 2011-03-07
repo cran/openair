@@ -14,14 +14,12 @@
 
 
 \usage{
-mydata <- importADMS(file = file.choose(),
-                file.type="unknown", 
-                drop.case = TRUE, drop.input.dates = TRUE, 
-                keep.units = TRUE, simplify.names = TRUE, 
-                test.file.structure = TRUE, 
-                drop.delim = TRUE, add.prefixes = TRUE,
-                names = NULL,
-                ...)
+importADMS(file = file.choose(), file.type="unknown",
+drop.case = TRUE, drop.input.dates = TRUE,
+keep.units = TRUE, simplify.names = TRUE,
+test.file.structure = TRUE,
+ drop.delim = TRUE, add.prefixes = TRUE,
+names = NULL, ...)
  }
 
 \arguments{

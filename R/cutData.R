@@ -1,3 +1,11 @@
+#######################
+#file contains 
+#scripts for:
+#######################
+#function: cutData
+#function: cutDaylight
+#
+
 cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, is.axis = FALSE, ...) {
 
     ## function to cutData depending on choice of variable
@@ -179,8 +187,8 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
 ###########################################################################################
 #cutDaylight function
 
-cutDaylight <- function(mydata, local.hour.offset = 0,
-                  latitude = 0, longitude = 0, ... 
+cutDaylight <- function(x, local.hour.offset = 0,
+                  latitude = 51.522393, longitude = -0.154700, ... 
                   ){
 
 ##long, hour.off
@@ -204,7 +212,7 @@ cutDaylight <- function(mydata, local.hour.offset = 0,
 #solar.noon.lst, etc are factions of day 
 #seconds into that day = p.time * 86400 
 #so for example sunset time is
-#as.POSIXct(sunset.time.lst * 86400, origin = format(mydata$date, "%Y-%m-%d"))
+#as.POSIXct(sunset.time.lst * 86400, origin = format(x$date, "%Y-%m-%d"))
 #(assuming you do not run into next day!)
 ######################
 #currently unsure about extremes 
@@ -217,7 +225,7 @@ cutDaylight <- function(mydata, local.hour.offset = 0,
 #local hour offset could be a lookup table linked to tz
 #
 
-if(!"POSIXt" %in% class(mydata$date))
+if(!"POSIXt" %in% class(x$date))
    stop("required field 'date' missing or not POSIXt\n", call. = FALSE)
 
 ###################
@@ -229,7 +237,7 @@ degrees <- function(x) x * (180 / pi)
 ###############
 #get local time
 ###############
-temp <- mydata$date 
+temp <- x$date 
 
 #################
 #make julian.refs
@@ -329,7 +337,7 @@ daylight <- factor(daylight, levels=c(TRUE, FALSE), labels=c("daylight", "nightt
 ###############################
 #output 
 ###############################
-mydata <- cbind(mydata, daylight = daylight)
+x <- cbind(x, daylight = daylight)
 
 }
 

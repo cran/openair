@@ -19,7 +19,6 @@ windRose(polar,
     pollutant = NULL, 
     ...)
 
-ans <- windRose(...)
 
 pollutionRose(polar, 
     pollutant = "nox",
@@ -28,7 +27,6 @@ pollutionRose(polar,
     key.position = "right",
     ...)
 
-ans <- pollutionRose(...)
 
 }
 

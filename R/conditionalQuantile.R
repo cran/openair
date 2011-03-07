@@ -15,10 +15,6 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
 
     vars <- c(mod, obs)
 
-    ## these are pre-defined type that need a field "date"
-    dateTypes <- c("year", "hour", "month", "season", "weekday", "weekend", "monthyear",
-                   "gmtbst", "bstgmt")
-
     if (any(type %in%  dateTypes)) vars <- c("date", vars)
 
     ## check the data
