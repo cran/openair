@@ -6,7 +6,7 @@
   Utility function to prepare input data for use in openair functions
 }
 \usage{
-mydata <- splitByDate(mydata, dates = "1/1/2003", labels = c("before", "after"))
+splitByDate(mydata, dates = "1/1/2003", labels = c("before", "after"))
 }
 
 

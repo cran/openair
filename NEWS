@@ -1,6 +1,30 @@
-0.4-7 [2011-02-16]
+Changes in openair 0.4-10 [2011-03-07]
+=====================================
 
-*     Added new function \code{conditionalQuantile} for model
+*	Fixed calendarPlot main/quickText handling.
+*	Fixed calendarPlot first day of month error.
+*	Fixed summaryPlot site ordering when more than one site.
+
+Changes in openair 0.4-9 [2011-03-04]
+=====================================
+
+*	Added new options to scatterPlot (plot.type, lwd, and lty)
+         making it possible to add points and/or lines
+	 
+
+Changes in openair 0.4-8 [2011-02-24]
+=====================================
+
+*	Added new cutData type option 'daylight', enabled using new function
+	cutDaylight.
+
+
+Changes in openair 0.4-7 [2011-02-16]
+=====================================
+
+*     Added new function conditionalQuantile for model
       evaluation purposes.
-*     Fixed \code{importAURN} to account for a change in web domain
+*     Fixed importAURN to account for a change in web domain
       address at AEA.
+
+

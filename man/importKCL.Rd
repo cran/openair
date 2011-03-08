@@ -8,8 +8,8 @@
   King's College London that provides air quality data files as R data
   objects. }
 
-\usage{thedata <- importKCL(site = "my1", year = 2009, pollutant =
-"all", met = FALSE, units = "mass")}
+\usage{importKCL(site = "my1", year = 2009, pollutant = "all", met =
+FALSE, units = "mass")}
 
 %- maybe also 'usages' for other objects documented here.
 \arguments{

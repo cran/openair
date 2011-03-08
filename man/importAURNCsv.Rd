@@ -9,7 +9,7 @@ Archive data files previously downloaded in
 The function uses \code{read.table} (in \code{utils}) and \code{rbind} (in \code{reshape}).
 }
 \usage{
-mydata <- importAURNCsv(file = file.choose(),
+importAURNCsv(file = file.choose(),
 		header.at = 5, data.at = 7,
 		na.strings = c("No data", "", "NA"),
 		date.name = "Date", date.break = "-",

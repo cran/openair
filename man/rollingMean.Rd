@@ -6,7 +6,7 @@
   Calculate rollingMean values taking account of data capture thresholds
 }
 \usage{
-mydata <- rollingMean(mydata, pollutant = "o3", hours = 8, new.name = "rolling",
+rollingMean(mydata, pollutant = "o3", hours = 8, new.name = "rolling",
                      data.capture = 75)
 }
 

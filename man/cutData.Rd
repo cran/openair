@@ -1,5 +1,6 @@
 \name{cutData}
 \alias{cutData}
+\alias{cutDaylight}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Function to split data in different ways for conditioning}
 
@@ -8,7 +9,15 @@
   this function directly.  Widely used by many \code{openair} functions
   usually through the option \code{type}.}
 
-\usage{mydata<- cutData(x, type = "default", hemisphere = "northern", n.levels = 4, is.axis = FALSE)}
+\usage{
+cutData(x, type = "default", hemisphere = "northern", 
+                 n.levels = 4, is.axis = FALSE, ...)
+
+cutDaylight(x, local.hour.offset = 0,
+                 latitude = 51.522393, longitude = -0.154700, 
+                 ...)
+
+}
 
 
 %- maybe also 'usage' for other objects documented here.
@@ -18,8 +27,8 @@
 
 \item{type}{A string giving the way in which the data frame should be
   split. Pre-defined values are: "default", "year", "hour", "month",
-  "season", "weekday", "ws", "site", "weekend", "monthyear", "gmtbst" or
-  "bstgmt".
+  "season", "weekday", "ws", "site", "weekend", "monthyear", "daylight", 
+  "gmtbst" or "bstgmt".
 
 \code{type} can also be the name of a numeric or factor. If a numeric
 column name is supplied \code{cutData} will split the data into four
@@ -33,7 +42,21 @@ adjustment.}
 
 
 \item{is.axis}{A logical (\code{TRUE}/\code{FALSE}), used to request 
-  shortened cut labels for axes.}  
+  shortened cut labels for axes.}
+
+\item{local.hour.offset, latitude, longitude}{Parameters used by \code{cutDaylight} 
+  to estimate if the measurement was collected during daylight or nighttime hours. 
+  \code{local.hour.offset} gives the measurement timezone and \code{latitude} 
+  and \code{longitude} give the measurement location. NOTE: The default settings 
+  for these three parameters are the London Marylebone Road AURN site associated 
+  with the \code{mydata} example data set. See \code{\dots} and Details below for 
+  further information.}  
+
+\item{\dots}{All additional parameters are passed on to next function(s). For 
+  example, with \code{cutData} all additional parameters are passed on to 
+  \code{cutDaylight} allowing direct access to \code{cutDaylight} via either 
+  \code{cutData} or any \code{openair} using \code{cutData} for \code{type} 
+  conditioning.}   
 
 }
 
@@ -63,6 +86,19 @@ adjustment.}
  December, January, February; spring = March, April, May etc. These
  defintions will change of \code{hemisphere = "southern"}.
 
+ "daylight" splits the data relative to estimated sunrise and sunset to give 
+ either daylight or nighttime. The cut is made by \code{cutDaylight} but more 
+ conveniently accessed via \code{cutData}, e.g. \code{cutData(mydata, type = "daylight",
+ latitude=my.latitude, longitude=my.longitude)}. The daylight estimation, which is 
+ valid for dates between 1901 and 2099, is made using the measurement location, date, 
+ time and astronomical algorithms to estimate the relative positions of the 
+ Sun and the measurement location on the Earth's surface, and is based on NOAA methods 
+ (\url{http://www.esrl.noaa.gov/gmd/grad/solcalc/}). The \code{local.hour.offset} is 
+ zero if you are working in UTC/GMT, otherwise see 
+ \url{http://www.srrb.noaa.gov/highlights/sunrise/timezone.html} for local time zones 
+ corrections. Measurement location should be set using \code{latitude} (+ to North; 
+ - to South) and \code{longitude} (+ to East; - to West).
+  
  "gmtbst" or "bstgmt" will split the data by hours that are in GMT
  i.e. mostly winter months) and hours in British summertime. Each of the
  two periods will be in \emph{local time}. The main purpose of this
@@ -93,7 +129,8 @@ adjustment.}
 \code{type}.}
 
 %\references{ ~put references to the literature/web site here ~ }
-\author{David Carslaw}
+\author{David Carslaw (cutData) and Karl Ropkins (cutDaylight)
+}
 
 \examples{
 ## split data by day of the week

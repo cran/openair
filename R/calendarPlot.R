@@ -16,7 +16,7 @@ calendarPlot <- function(mydata,
                           statistic = "mean",
                           cols = "heat",
                           limits = c(0, 100),
-                          main = quickText((paste(pollutant, "in", year))),
+                          main = paste(pollutant, "in", year),
                           key.header = "", key.footer = "",
                           key.position = "right", key = NULL, 
                           auto.text = TRUE,
@@ -26,7 +26,6 @@ calendarPlot <- function(mydata,
     ##first letter and ordered Sun to Sat
   #  weekday.abb <- substr(make.weekday.abbs(), 1, 1)[c(7, 1:6)]
     weekday.abb <- substr(format(ISOdate(2000, 1, 2:8), "%A"), 1, 1)[c(7, 1:6)]
-
 
     ## extract variables of interest
     if (annotate == "date") vars <- c("date", pollutant)
@@ -38,7 +37,7 @@ calendarPlot <- function(mydata,
     if (nrow(mydata) == 0 ) stop("No data to plot - check year chosen")
     mydata <- checkPrep(mydata, vars, "default")
 
-    main <- main
+    main <- quickText(main, auto.text)
 
     ## themes for calendarPlot
     def.theme  <- list(strip.background = list(col = "#ffe5cc"),
@@ -68,7 +67,7 @@ calendarPlot <- function(mydata,
         lastDay <- as.numeric(format(mydata$date[length(mydata$date)], "%d"))
 
         ## number of blank cells at beginning to get calendar format
-        pad.start <- as.numeric(format(mydata$date[1], "%w"))
+        pad.start <- as.numeric(format(mydata$date[1], "%w")) + 1
 
         ## need to do in reverse to plot easily
         conc <- rev(mydata[, pollutant])

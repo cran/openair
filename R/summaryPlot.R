@@ -61,9 +61,10 @@ summaryPlot <- function(mydata,
             mydata <- subset(mydata, select = c("date", "site", pollutant))
             names(mydata) <- c("date", "variable", "value")
 
-            site.names <- levels(mydata$variable)
-
+            site.names <- as.character(unique(mydata$variable))
+          
             mydata <- reshape(mydata, idvar = "date", timevar = "variable", direction = "wide")
+           
             names(mydata)[2 : ncol(mydata)] <-   site.names
 
             warning(paste("More than one site detected, using", pollutant))

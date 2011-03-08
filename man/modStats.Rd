@@ -8,8 +8,7 @@
   with flexible conditioning
 }
 \usage{
-results <- modStats(mydata,  mod = "mod", obs = "obs", type = "default",
-  ...)
+modStats(mydata,  mod = "mod", obs = "obs", type = "default", ...)
 }
 
 

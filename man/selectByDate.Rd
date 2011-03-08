@@ -7,7 +7,7 @@
   before sending to a function
 }
 \usage{
-mydata <- selectByDate(mydata, start = "1/1/2008", end = "31/12/2008",
+selectByDate(mydata, start = "1/1/2008", end = "31/12/2008",
 year = 2008, month = 1, day = "weekday", hour = 1)
 }
 

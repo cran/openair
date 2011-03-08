@@ -31,6 +31,8 @@ ylab = y,
 xlab = x,
 pch = 1,
 lwd = 1,
+lty = 1,
+plot.type = "p", 
 key = TRUE,
 key.title = group,
 key.columns = 1,
@@ -168,7 +170,14 @@ auto.text = TRUE,
     single symbol for all pollutants, the set \code{pch = 1}, for
     example.}
 
-  \item{lwd}{Not used yet.}
+  \item{lwd}{Width of line if used e.g. if \code{plot.type = "l"} or
+    \code{plot.type = "b"}.}
+
+  \item{lty}{Type of line if used e.g. if \code{plot.type = "l"} or
+    \code{plot.type = "b"}.}
+
+   \item{plot.type}{\code{lattice} plot type. Can be "p" (points --- default),
+   "l" (lines) or "b" (lines and points).}
 
   \item{key}{Should a key be drawn? The default is \code{TRUE}.}
 
@@ -300,7 +309,7 @@ FALSE)
 # plot daily averages and choose a filled plot symbol (pch = 16)
 # select only 2004
 \dontrun{dat2004 <- selectByDate(mydata, year = 2004)
-scatterPlot(dat2004, x = "nox", y = "no2", type = "co", continuous =
+scatterPlot(dat2004, x = "nox", y = "no2", group = "co", continuous =
  TRUE, avg.time = "day", pch = 16)}
 
 # show linear fit, by year

@@ -157,7 +157,7 @@ estimate - sometimes by a large amount.}
   \code{print}, \code{plot} and \code{summary}. See \code{\link{openair.generics}} 
   for further details.
 
-  The \code{data} component of the \code{MannKendall} output includes to subsets: 
+  The \code{data} component of the \code{MannKendall} output includes two subsets: 
   \code{main.data}, the monthly data \code{res2} the trend
   statistics. For \code{output <- MannKendall(mydata, "nox")}, these can be extracted as 
   \code{object$data$main.data} and \code{object$data$res2}, respectively. 
@@ -189,7 +189,7 @@ TRUE}.Similarly, for data that increase, then decrease, or show sharp
 changes it may be better to use \code{\link{smoothTrend}}.
 
 Some of the code used in \code{MannKendall} is based on that from Rand
-Wilxox \url{http://www-rcf.usc.edu/~rwilcox/}. This mostly relates to
+Wilcox \url{http://www-rcf.usc.edu/~rwilcox/}. This mostly relates to
 the Sen-Theil slope estimates and uncertainties.  Further modifications
 have been made to take account of correlated data based on Kunsch (1989).
 
@@ -206,7 +206,7 @@ reason for doing so is to gain a better estimate of trend uncertainty.
 
 Helsel, D., Hirsch, R., 2002. Statistical methods in water resources. US
 Geological Survey.  \url{http://pubs.usgs.gov/twri/twri4a3/}. Note that
-this is a very good resource statistics as applied to environmental
+this is a very good resource for statistics as applied to environmental
 data.
 
 Hirsch, R. M., Slack, J. R., Smith, R. A., 1982. Techniques of trend analysis for monthly

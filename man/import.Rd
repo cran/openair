@@ -7,18 +7,18 @@ for use with the openair package. The function uses \code{read.table} (in
 \code{utils}).  }
 
 \usage{ 
-mydata <- import(file = file.choose(), file.type="csv", 
-                 header.at = 1, data.at = 2, 
-                 eof.report = NULL, na.strings = c("", "NA"), quote="\"", 
-                 date.name = "date", date.break = "/", date.order = "dmy", 
-                 time.name = "date", time.break = ":", time.order = "hm", 
-                 time.format ="GMT", cipher = NULL,
-                 is.ws = NULL, is.wd = NULL, is.site = NULL,
-                 misc.info = NULL, 
-                 bad.24 = FALSE, 
-                 correct.time = NULL,
-                 previous = FALSE, 
-                 output = "final")
+import(file = file.choose(), file.type="csv",
+header.at = 1, data.at = 2,
+eof.report = NULL, na.strings = c("", "NA"), quote="\"", 
+date.name = "date", date.break = "/", date.order = "dmy", 
+time.name = "date", time.break = ":", time.order = "hm", 
+time.format ="GMT", cipher = NULL,
+is.ws = NULL, is.wd = NULL, is.site = NULL,
+misc.info = NULL, 
+bad.24 = FALSE, 
+correct.time = NULL,
+previous = FALSE, 
+output = "final")
 }
 
 \arguments{
