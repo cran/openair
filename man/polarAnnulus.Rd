@@ -6,7 +6,7 @@
   Typically plots the concentration of a pollutant by wind direction and as a function of time as an annulus. The function is good for visualising how concentrations of pollutants vary by wind direction and a time period e.g. by month, day of week.
 }
 \usage{
-polarAnnulus(polar,
+polarAnnulus(mydata,
     pollutant = "nox", resolution = "fine",
     local.time = FALSE, period = "hour", type = "default",
     limits = c(0, 100), cols = "default", width = "normal",
@@ -20,7 +20,7 @@ polarAnnulus(polar,
 
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-\item{polar}{A data frame minimally containing \code{ws}, \code{wd} and
+\item{mydata}{A data frame minimally containing \code{ws}, \code{wd} and
   a pollutant. Can also contain \code{date} if plots by time period are
   required.}
 
@@ -70,10 +70,19 @@ polarAnnulus(polar,
     flexibility for understanding the variation of different variables
     and how they depend on one another.
 
-    Type can be up length two e.g. \code{type = c("season", "weekday")}
-    will produce a 2x2 plot split by season and day of the week. Note,
-    when two types are provided the first forms the columns and the
-    second the rows.}
+    Type can be up length two e.g. \code{type = c("season", "site")}
+    will produce a 2x2 plot split by season and site. The use of two
+    types is mostly meant for situations where there are several
+    sites. Note, when two types are provided the first forms the columns
+    and the second the rows.
+
+    Also note that for the \code{polarAnnulus} function some type/period
+    combinations are forbidden or make little sense. For example,
+    \code{type = "season"} and \code{period = "trend"} (which would
+    result in a plot with too many gaps in it for sensible smoothing),
+    or \code{type = "weekday"} and \code{period = "weekday"}.
+
+  }
 
 \item{limits}{The function does its best to choose sensible limits
   automatically. However, there are circumstances when the user will

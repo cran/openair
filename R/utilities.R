@@ -196,49 +196,49 @@ one more label than date")
 #############################################################################################
 
 ## function to make it easy to use d/m/y format for subsetting by date
-selectByDate <- function(mydata, start = "1/1/2008", end = "31/12/2008", year = 2008,
-                           month = 1, day = "weekday", hour = 1) {
+selectByDate <- function (mydata, start = "1/1/2008", end = "31/12/2008", year = 2008, 
+    month = 1, day = "weekday", hour = 1, use.local.tz = TRUE)
 
+{
+     ## extract variables of interest
+    vars <- names(mydata)
+    ## useful to check to see if local time zones are used, which would affect by hour extraction
+    mydata <- checkPrep(mydata, vars, type = "default")
+    
     weekday.names <- format(ISOdate(2000, 1, 3:9), "%A")
-
+    my.tz <- if(use.local.tz)
+        format(mydata$date, "%Z")[1] else "GMT"
     if (!missing(start) & !missing(end)) {
-        start <- as.POSIXct(strptime(start, format = "%d/%m/%Y"), "GMT")
-        end <- as.POSIXct(strptime(end, format = "%d/%m/%Y"), "GMT") + (23 * 3600)
+        start <- as.POSIXct(strptime(start, format = "%d/%m/%Y"), my.tz)
+        end <- as.POSIXct(strptime(end, format = "%d/%m/%Y"), my.tz) + (23 * 3600)
         mydata <- subset(mydata, date >= start & date <= end)
     }
-
     if (!missing(year)) {
-        mydata <- mydata[as.numeric(format(mydata$date, "%Y")) %in% year, ]
-
+        mydata <- mydata[as.numeric(format(mydata$date, "%Y")) %in%  year, ]
     }
-
     if (!missing(month)) {
         if (is.numeric(month)) {
-
             mydata <- mydata[as.numeric(format(mydata$date, "%m")) %in% month, ]
-        } else {
-            mydata <- subset(mydata, substr(tolower(format(date, "%B")), 1, 3) %in%
-                             substr(tolower(month), 1, 3))
+        }
+        else {
+            mydata <- subset(mydata, substr(tolower(format(date, 
+                "%B")), 1, 3) %in% substr(tolower(month), 1, 3))
         }
     }
-
     if (!missing(hour)) {
         mydata <- mydata[as.numeric(format(mydata$date, "%H")) %in% hour, ]
-
     }
-
     if (!missing(day)) {
         days <- day
-        if (day == "weekday") days <- weekday.names[1:5]
-        if (day == "weekend") days <- weekday.names[6:7]
-        mydata <- subset(mydata, substr(tolower(format(date, "%A")), 1, 3) %in%
-                         substr(tolower(days), 1, 3))
+        if (day == "weekday") 
+            days <- weekday.names[1:5]
+        if (day == "weekend") 
+            days <- weekday.names[6:7]
+        mydata <- subset(mydata, substr(tolower(format(date, 
+            "%A")), 1, 3) %in% substr(tolower(days), 1, 3))
     }
-
     mydata
 }
-
-
 
 
 

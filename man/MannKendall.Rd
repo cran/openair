@@ -21,6 +21,8 @@ alpha = 0.05,
 dec.place = 2,
 ylab = pollutant,
 xlab = "year",
+y.relation = "same",
+cols = NULL,
 main = "",
 auto.text = TRUE,
 autocor = FALSE,
@@ -99,7 +101,15 @@ value of the trend, choose alpha = 0.01 etc.}
 
 \item{ylab}{y-axis label.}
 
- \item{xlab}{x-axis label.}
+\item{xlab}{x-axis label.}
+
+ \item{y.relation}{This determines how the y-axis scale is
+  plotted. "same" ensures all panels use the same scale and "free" will
+  use panel-specfic scales. The latter is a useful setting when plotting
+  data with very different values.}
+
+  \item{cols}{Predefined colour scheme, currently only enabled for 
+  \code{"greyscale"}.}
 
   \item{main}{Title of plot, if required.}
 

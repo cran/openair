@@ -16,6 +16,7 @@ smoothTrend <- function(mydata,
                         lwd = 1,
                         pch = 1,
                         cex = 0.6,
+                        y.relation = "same",
                         key.columns = length(percentile),
                         main = "",
                         ci = TRUE,
@@ -23,6 +24,12 @@ smoothTrend <- function(mydata,
                         date.breaks = 7,
                         auto.text = TRUE,...)  {
 
+    #greyscale handling
+    if (length(cols) == 1 && cols == "greyscale") {
+        #strip only
+        current.strip <- trellis.par.get("strip.background")
+        trellis.par.set(list(strip.background = list(col = "white")))
+    }
     
     vars <- c("date", pollutant)
 
@@ -112,7 +119,6 @@ smoothTrend <- function(mydata,
     skip <- FALSE
     layout <- NULL
     
-    if (length(type) == 1 & type[1] == "default") strip <- FALSE ## remove strip
     
     if (length(type) == 1 & type[1] == "wd") {
         ## re-order to make sensible layout
@@ -135,13 +141,14 @@ smoothTrend <- function(mydata,
         strip.left <- strip.custom(factor.levels = pol.name)       
     }
     ## ########################################################################################################
-
+    if (length(type) == 1 & type[1] == "default") strip <- FALSE ## remove strip
 
     ## colours according to number of percentiles
     npol <- max(length(percentile), length(pollutant)) ## number of pollutants
 
     ## set up colours
-    myColors <- openColours(cols, npol)
+    myColors <- if (length(cols) == 1 && cols == "greyscale")
+                    openColours(cols, npol+1)[-1] else openColours(cols, npol)
 
     ## information for key
     npol <- unique(split.data$variable)
@@ -176,7 +183,8 @@ smoothTrend <- function(mydata,
                   xlab = quickText(xlab, auto.text),
                   ylab = quickText(ylab, auto.text),
                   main = quickText(main, auto.text),
-                  scales = list(x = list(at = date.at, format = date.format)),
+                  scales = list(x = list(at = date.at, format = date.format),
+                  y = list(relation = y.relation, rot = 0)),
                   panel = panel.superpose,
                   ...,
 
@@ -207,6 +215,9 @@ smoothTrend <- function(mydata,
     newdata <- split.data
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
+    #reset if greyscale
+    if (length(cols) == 1 && cols == "greyscale") 
+        trellis.par.set("strip.background", current.strip)
     invisible(output)  
 
 }

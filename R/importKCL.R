@@ -63,6 +63,8 @@ importKCL <- function(site = "my1", year = 2009, pollutant = "all", met = FALSE,
         thedata <- merge(thedata, met, by = "date")
     }
 
+    ## make sure it is in GMT
+    attr(thedata$date, "tzone") <- "GMT"
     thedata <- thedata[order(thedata$site, thedata$date), ]
 
     cat(unitMessage)

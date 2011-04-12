@@ -231,9 +231,9 @@ summary.openair <- function(object, subset = "all", ...)
 #
 
 head.openair <- function(x, subset = "all", ...)
-    openairApply(x, fun=head, subset=subset, ..., fun.name="tail")
+    openairApply(x, fun=head, subset=subset, ..., fun.name="head")
 tail.openair <- function(x, subset = "all", ...)
-    openairApply(x, fun=tail, subset=subset, ..., fun.name="head")
+    openairApply(x, fun=tail, subset=subset, ..., fun.name="tail")
 
 
 

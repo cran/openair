@@ -1,5 +1,5 @@
 
-polarAnnulus <- function(polar,
+polarAnnulus <- function(mydata,
                           pollutant = "nox",
                           resolution = "fine",
                           local.time = FALSE,
@@ -24,16 +24,23 @@ polarAnnulus <- function(polar,
     ## extract variables of interest
     vars <- c("wd", "date", pollutant)
 
-    if (any(c("hour", "weekday", "season", "trend") %in% type)) stop ("Cannot have same type and period.")
+    if (period == "trend" & "season" %in% type) stop ("Cannot have same type as 'season' and period as 'trend'.")
     if (length(type) > 2) stop("Cannot have more than two types.")
 
+    #greyscale handling
+    if (length(cols) == 1 && cols == "greyscale") {
+        #strip only
+        current.strip <- trellis.par.get("strip.background")
+        trellis.par.set(list(strip.background = list(col = "white")))
+    }
+
     ## check data
-    polar <- checkPrep(polar, vars, type)
+    mydata <- checkPrep(mydata, vars, type)
 
     ## if more than one pollutant, need to stack the data and set type = "variable"
     ## this case is most relevent for model-measurement compasrions where data are in columns
     if (length(pollutant) > 1) {
-        polar <- melt(polar, measure.vars = pollutant)
+        mydata <- melt(mydata, measure.vars = pollutant)
         ## now set pollutant to "value"
         pollutant <- "value"
         type <- "variable"       
@@ -48,16 +55,16 @@ polarAnnulus <- function(polar,
     if (width == "fat") upper <- 5
 
     ## add extra wds - reduces discontinuity at 0/360
-    zero.wd <- subset(polar, wd == 360)
+    zero.wd <- subset(mydata, wd == 360)
     zero.wd$wd <- 0
-    polar <- rbind(polar, zero.wd)
+    mydata <- rbind(mydata, zero.wd)
 
     ## remove NAs
-    polar <- na.omit(polar)
-    polar <- cutData(polar, type, ...)
+    mydata <- na.omit(mydata)
+    mydata <- cutData(mydata, type, ...)
 
     ## convert to local time
-    if (local.time) polar$date <- as.POSIXct(format(polar$date, tz = "Europe/London"))
+    if (local.time) mydata$date <- as.POSIXct(format(mydata$date, tz = "Europe/London"))
 
     ## for resolution of grid plotting (default = 0.2; fine = 0.1)
     if (resolution == "normal") int <- 0.2
@@ -66,13 +73,13 @@ polarAnnulus <- function(polar,
 
     len.int <- 20 / int + 1 ## number of x and y points to make up surfacexb
 
-    prepare.grid <- function(polar) {
+    prepare.grid <- function(mydata) {
 
         ## for padding to beginning of first year, end of last year
         if (date.pad) {
 
-            min.year <- as.numeric(format(min(polar$date, na.rm = TRUE), "%Y"))
-            max.year <- as.numeric(format(max(polar$date, na.rm = TRUE), "%Y"))
+            min.year <- as.numeric(format(min(mydata$date, na.rm = TRUE), "%Y"))
+            max.year <- as.numeric(format(max(mydata$date, na.rm = TRUE), "%Y"))
 
             all.dates <- data.frame(date = seq(ISOdate(min.year, 1, 1, 0, 0, 0, tz = "GMT"),
                                     ISOdate(max.year, 12, 31, 23, 0, 0, tz = "GMT"),
@@ -82,7 +89,7 @@ polarAnnulus <- function(polar,
         }
 
         ## if period = trend but less than 1 year of data then force season
-       # if (polar$date[nrow(polar)] - polar$date[1] < 366 & period == "trend") period = "season"
+       # if (mydata$date[nrow(mydata)] - mydata$date[1] < 366 & period == "trend") period = "season"
 
         ## different date components, others available
         if (period == "trend")
@@ -96,14 +103,14 @@ polarAnnulus <- function(polar,
                 max.trend <- max(trend2, na.rm = TRUE)
 
                 ## actual data
-                day <- as.numeric(format(polar$date, "%j"))
-                year <- as.numeric(format(polar$date, "%Y"))
+                day <- as.numeric(format(mydata$date, "%j"))
+                year <- as.numeric(format(mydata$date, "%Y"))
                 trend <- year + day / 366
 
             } else {
 
-                year <- as.numeric(format(polar$date, "%Y"))
-                day <- as.numeric(format(polar$date, "%j"))
+                year <- as.numeric(format(mydata$date, "%Y"))
+                day <- as.numeric(format(mydata$date, "%j"))
                 trend <- year + day / 366
                 min.trend <- min(trend, na.rm = TRUE)
                 max.trend <- max(trend, na.rm = TRUE)
@@ -112,8 +119,8 @@ polarAnnulus <- function(polar,
 
         if (period == "weekday")
         {
-            hour <- as.numeric(format(polar$date, "%H"))
-            weekday <- as.numeric(format(polar$date, "%w"))
+            hour <- as.numeric(format(mydata$date, "%H"))
+            weekday <- as.numeric(format(mydata$date, "%w"))
             trend <- weekday + hour / 23
             min.trend = 0
             max.trend = 7
@@ -121,7 +128,7 @@ polarAnnulus <- function(polar,
 
         if (period == "season")
         {
-            week <- as.numeric(format(polar$date, "%W"))
+            week <- as.numeric(format(mydata$date, "%W"))
             trend <- week
             min.trend = 0
             max.trend = 53
@@ -129,7 +136,7 @@ polarAnnulus <- function(polar,
 
         if (period == "hour")
         {
-            hour <- as.numeric(format(polar$date, "%H"))
+            hour <- as.numeric(format(mydata$date, "%H"))
             trend <- hour
             min.trend = 0
             max.trend = 23
@@ -137,7 +144,7 @@ polarAnnulus <- function(polar,
 
         trend <- 10 * (trend - min.trend) / (max.trend - min.trend)
 
-        polar <- cbind(polar, trend)
+        mydata <- cbind(mydata, trend)
 
         time.seq <- seq(0, 10, length = 24)
 
@@ -146,13 +153,13 @@ polarAnnulus <- function(polar,
 
 
         ## identify which ws and wd bins the data belong
-        ## wd.cut <- cut(polar$wd, seq(0, 360, 10))
-        wd.cut <- cut(polar$wd, seq(0, 360, length = 38), include.lowest = TRUE)
+        ## wd.cut <- cut(mydata$wd, seq(0, 360, 10))
+        wd.cut <- cut(mydata$wd, seq(0, 360, length = 38), include.lowest = TRUE)
 
         ## divide-up the data for the annulus
-        time.cut <- cut(polar$trend, seq(0, 10, length = 25), include.lowest = TRUE)
+        time.cut <- cut(mydata$trend, seq(0, 10, length = 25), include.lowest = TRUE)
 
-        binned <- tapply(polar[, pollutant], list(time.cut, wd.cut), mean, na.rm = TRUE)
+        binned <- tapply(mydata[, pollutant], list(time.cut, wd.cut), mean, na.rm = TRUE)
         binned <- as.vector(binned)
 
         ## data to predict over
@@ -184,7 +191,7 @@ polarAnnulus <- function(polar,
             wsp <- rep(x, res)
             wdp <- rep(y, rep(res, res))
 
-            ind <- exclude.too.far(wsp, wdp, polar$trend, polar$wd, dist = 0.03)
+            ind <- exclude.too.far(wsp, wdp, mydata$trend, mydata$wd, dist = 0.03)
 
             input.data$pred[ind] <- NA
             pred <- input.data$pred
@@ -230,7 +237,7 @@ polarAnnulus <- function(polar,
     }
 
     ## more compact way?  Need to test
-     results.grid <- ddply(polar, type, prepare.grid)
+     results.grid <- ddply(mydata, type, prepare.grid)
 
     ## normalise by divining by mean conditioning value if needed
     if (normalise){
@@ -251,7 +258,9 @@ polarAnnulus <- function(polar,
         pol.name <- sapply(levels(results.grid[ , type[2]]), function(x) quickText(x, auto.text))
         strip.left <- strip.custom(factor.levels = pol.name)       
     }
-    ## ########################################################################################################
+    if (length(type) == 1 & type[1] == "default") strip <- FALSE ## remove strip
+    
+########################################################################################################
 
     
     ## auto-scaling
@@ -353,8 +362,8 @@ polarAnnulus <- function(polar,
                           date.start <- min(all.dates$date)
                           date.end <- max(all.dates$date)
                       } else {
-                          date.start <- polar$date[1]
-                          date.end <- polar$date[nrow(polar)]
+                          date.start <- mydata$date[1]
+                          date.end <- mydata$date[nrow(mydata)]
                       }
 
                       label.axis(0, format(date.start, "%b-%Y"), format(date.end, "%b-%Y"), 2)
@@ -396,6 +405,11 @@ polarAnnulus <- function(polar,
     newdata <- results.grid
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
+
+    #reset if greyscale
+    if (length(cols) == 1 && cols == "greyscale") 
+        trellis.par.set("strip.background", current.strip)
+
     invisible(output)  
 
 }

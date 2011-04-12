@@ -50,5 +50,8 @@ importAURN <- function(site = "my1", year = 2009, pollutant = "all", hc = FALSE)
     if (timeDiff < 180) {
     warning("You have selected some data that is less than 6-months old.\n This most recent data is not yet ratified and may be changed\n during the QA/QC process. For complete information about the \nratification status of a data set, please use the online tool at:\n http://www.airquality.co.uk/data_and_statistics.php?action=da_1&go=Go")}
 
+     ## make sure it is in GMT
+    attr(thedata$date, "tzone") <- "GMT"
+    
     thedata
 }

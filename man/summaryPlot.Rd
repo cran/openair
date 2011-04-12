@@ -22,6 +22,7 @@ col.trend = "darkgoldenrod2",
 col.data = "lightblue",
 col.mis = rgb(0.65, 0.04, 0.07),
 col.hist = "forestgreen",
+cols = NULL,
 main = "",
 date.breaks = 7,
 auto.text = TRUE,
@@ -78,6 +79,9 @@ ylab = NULL,
 \item{col.mis}{Colour to be used to show missing data.}
 
 \item{col.hist}{Colour for the histogram or density plot.}
+
+\item{cols}{Predefined colour scheme, currently only enabled for 
+  \code{"greyscale"}.}
 
 \item{main}{The title of the plot, if required.}
 

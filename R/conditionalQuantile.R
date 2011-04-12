@@ -13,6 +13,24 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
     
     if (length(type) > 2) stop("Only two types can be used with this function")
 
+    #greyscale handling
+    if (length(col) == 1 && col == "greyscale") {
+        #strip
+        current.strip <- trellis.par.get("strip.background")
+        trellis.par.set(list(strip.background = list(col = "white")))
+        #other local colours
+        ideal.col <- "black"
+        col.1 <- grey(0.75)
+        col.2 <- grey(0.5)
+        col.5 <- grey(0.25)
+
+    } else {
+        ideal.col <- "#0080ff"
+        col.1 <- col[1]
+        col.2 <- col[2]
+        col.5 <- col[5]
+    }
+
     vars <- c(mod, obs)
 
     if (any(type %in%  dateTypes)) vars <- c("date", vars)
@@ -114,7 +132,7 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
                       aspect = 1,
                       strip = strip,
                       strip.left = strip.left,
-                      key = list(lines = list(col = c(col[c(1, 2, 5)], "#0080ff"),
+                      key = list(lines = list(col = c(col.1, col.2, col.5, ideal.col),
                                  lwd = c(15, 15, 2, 1)), 
                       lines.title = 1, title = "", text = list(lab = c("25/75th percentile",
                                                                "10/90th percentile",
@@ -128,10 +146,10 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
                           
                           poly.na(results$x[subscripts], results$q3[subscripts],
                                   results$x[subscripts],
-                                  results$q4[subscripts], col = col[2])
+                                  results$q4[subscripts], col = col.2)
                           poly.na(results$x[subscripts], results$q1[subscripts],
                                   results$x[subscripts],
-                                  results$q2[subscripts], col = col[1])
+                                  results$q2[subscripts], col = col.1)
 
                           ## match type and get limits for obs
                           theType <- results[subscripts[1], type]                          
@@ -149,9 +167,9 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
                           
                           panel.lines(c(theSubset$min, theSubset$max), c(theSubset$min,
                                                                          theSubset$max),
-                                      col = "#0080ff", lwd = 1)
+                                      col = ideal.col, lwd = 1)
                           panel.lines(results$x[subscripts], results$med[subscripts],
-                                      col = col[5], lwd = 2)
+                                      col = col.5, lwd = 2)
                                     
                       })
     
@@ -167,12 +185,17 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
                        par.strip.text = list(cex = 0.8),
                        ylab = "sample size")
     
-
-    
     thePlot <- doubleYScale(scatter, histo, add.ylab2 = TRUE)
     thePlot <- update(thePlot, par.settings = simpleTheme(col = c("black", "black")))
 
     if (length(type) == 1) plot(thePlot) else plot(useOuterStrips(thePlot, strip = strip,
               strip.left = strip.left))
+
+    #reset if greyscale
+    if (length(col) == 1 && col == "greyscale") 
+        trellis.par.set("strip.background", current.strip)
+
+    invisible(trellis.last.object())
+
 }
 

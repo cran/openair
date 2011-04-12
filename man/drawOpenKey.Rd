@@ -55,7 +55,7 @@ drawOpenKey(key,
 
    
    \code{header} a character vector of extra text to be added above the key, or a list describing 
-   some characteristics of the \code{header}. This list may inlude components \code{header}, the 
+   some characteristics of the \code{header}. This list may include components \code{header}, the 
    character vector of header labels, \code{tweaks}, a list of local controls, e.g. 'gap' and 
    'balance' for spacing relative to scale and footer, respectively, \code{auto.text}, 
    \code{TRUE/FALSE} option to apply \code{quickText}, and \code{slot}, a numeric vector setting

@@ -75,6 +75,12 @@ trendLevel <- function(mydata,
     #setup
     ###############################
     
+    #greyscale handling
+    if (length(cols) == 1 && cols == "greyscale") {
+        #strip only
+        current.strip <- trellis.par.get("strip.background")
+        trellis.par.set(list(strip.background = list(col = "white")))
+    }
 
     ##check.valid function
     check.valid <- function(a, x, y){
@@ -378,6 +384,9 @@ trendLevel <- function(mydata,
     #openair output
     ##############################
     plot(plt)
+    #reset if greyscale
+    if (length(cols) == 1 && cols == "greyscale") 
+        trellis.par.set("strip.background", current.strip)
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
     invisible(output)   

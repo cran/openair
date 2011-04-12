@@ -72,7 +72,7 @@ calcFno2 <- function(input,
     ## plot results ##################################################################
     plot.fno2 <- function(results,...) {
 
-        theplot <- scatterPlot(results, x = "date", y = "fno2", ylab = "f-NO2 (%)") 
+        theplot <- scatterPlot(results, x = "date", y = "fno2", ylab = "f-NO2 (%)", ...) 
         print(theplot)
     }
 
@@ -93,6 +93,7 @@ calcFno2 <- function(input,
     }
 
     ## start of code#################################################################
+
      ## if cl or temp are missing, fill in with default values
 
     ## check to see if cloud and temperature are present; if not, set default values
