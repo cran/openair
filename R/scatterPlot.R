@@ -41,10 +41,21 @@ scatterPlot <- function(mydata,
     ## Author: David Carslaw 27 Jan. 10
     ## method = scatter/hexbin/kernel
     
-    
     x.nam <- x ## names of pollutants for linear model equation
     y.nam <- y
     thekey <- key
+
+                                        #greyscale handling
+    if (length(cols) == 1 && cols == "greyscale") {
+                                        #strip
+        current.strip <- trellis.par.get("strip.background")
+        trellis.par.set(list(strip.background = list(col = "white")))
+                                        #other local colours
+        method.col <- "greyscale"
+    } else {
+        method.col <- "default"
+    }
+
 
 ### For Log scaling (adapted from lattice book) ###############################################
     if(log.x) nlog.x <- 10 else nlog.x <- FALSE
@@ -188,7 +199,8 @@ scatterPlot <- function(mydata,
         mydata <- cutData(mydata, type, ...)
         if (missing(group)) {
             
-            if ((!"group" %in% type) & (!"group" %in% c(x, y))) mydata$group <- factor("group") ## don't overwrite a
+            if ((!"group" %in% type) & (!"group" %in% c(x, y))) mydata$group <- factor("group")
+            ## don't overwrite a
         } else {  ## means that group is there
             mydata <- cutData(mydata, group, ...)                    
         }
@@ -329,7 +341,8 @@ scatterPlot <- function(mydata,
 
                       if (continuous) panel.xyplot(x, y, col.symbol = thecol[subscripts],
                                                    as.table = TRUE, ...)
-                      if (!continuous) panel.xyplot(x, y, type = plot.type, col.symbol = myColors[group.number],
+                      if (!continuous) panel.xyplot(x, y, type = plot.type,
+                                                    col.symbol = myColors[group.number],
                                                     col.line = myColors[group.number], lty = lty, lwd = lwd,
                                                     as.table = TRUE,...)
                       
@@ -347,8 +360,8 @@ scatterPlot <- function(mydata,
                       ## add reference lines
                       panel.abline(v = ref.x, lty = 5)                
                       panel.abline(h = ref.y, lty = 5)
-                                           
-                                      
+                      
+                      
                   })
     }
 
@@ -363,7 +376,7 @@ scatterPlot <- function(mydata,
                           par.strip.text = list(cex = 0.8),
                           colorkey = TRUE,
                           aspect = 1,
-                          colramp = function(n) {openColours("default", n)},
+                          colramp = function(n) {openColours(method.col, n)},  #was "default"
                           trans = function(x) log(x), inv = function(x) exp(x),...,
                           panel = function(x,...) {
                               panel.grid(-1, -1)
@@ -380,6 +393,8 @@ scatterPlot <- function(mydata,
     }
 
     ## kernel density
+    
+    
     if (method == "density") {
         prepare.grid <- function(subdata) {
             x <- subdata[, x]
@@ -400,13 +415,13 @@ scatterPlot <- function(mydata,
 
             grid <- expand.grid(x = xm, y = ym)
 
-            results <- data.frame(x = grid$x, y = grid$y, z = as.vector(dens), cond = subdata$site[1])
+            results <- data.frame(x = grid$x, y = grid$y, z = as.vector(dens))#, cond = subdata$site[1])
             results
         }
 
 #############################################################################
 
-        results.grid <-  ddply(mydata, .(site), prepare.grid)
+        results.grid <-  ddply(mydata, type, prepare.grid)
 
         ## auto-scaling
         nlev <- 200  ## preferred number of intervals
@@ -414,39 +429,43 @@ scatterPlot <- function(mydata,
 
         nlev2 <- length(breaks)
 
-        col <- openColours("default", (nlev2 - 1))
+        col <- openColours(method.col, (nlev2 - 1)) #was "default"??
         col <- c("transparent", col) ## add white at bottom
         col.scale <- breaks
 
-        pltdensity <- levelplot(z ~ x * y | cond, results.grid,
-                                as.table = TRUE,
-                                ylab = quickText(ylab, auto.text),
-                                xlab = quickText(xlab, auto.text),
-                                strip = strip,
-                                col.regions = col,
-                                region = TRUE,
-                                layout = layout,
-                                at = col.scale,
-                                colorkey = FALSE,
-                                ...,
+        ## basic function for lattice call + defaults    
+        temp <- paste(type, collapse = "+")
+        myform <- formula(paste("z ~ x * y", "|", temp, sep = ""))
 
-                                panel = function(x, y, z, subscripts,...) {
-                                    panel.grid(-1, -1)
-                                    panel.levelplot(x, y, z,
-                                                    subscripts,
-                                                    at = col.scale,
-                                                    pretty = TRUE,
-                                                    col.regions = col,
-                                                    labels = FALSE)
-                                    if (mod.line) {
-                                        panel.abline(a = c(0, 0.5), lty = 5)
-                                        panel.abline(a = c(0, 2), lty = 5)
-                                        panel.abline(a = c(0, 1), lty = 1)
-                                    }
-                                    ## add reference lines
-                                    panel.abline(v = ref.x, lty = 5)                
-                                    panel.abline(h = ref.y, lty = 5)
-                                })
+        plt <- levelplot(myform, results.grid,
+                         as.table = TRUE,
+                         ylab = quickText(ylab, auto.text),
+                         xlab = quickText(xlab, auto.text),
+                         strip = strip,
+                         col.regions = col,
+                         region = TRUE,
+                         layout = layout,
+                         at = col.scale,
+                         colorkey = FALSE,
+                         ...,
+
+                         panel = function(x, y, z, subscripts,...) {
+                             panel.grid(-1, -1)
+                             panel.levelplot(x, y, z,
+                                             subscripts,
+                                             at = col.scale,
+                                             pretty = TRUE,
+                                             col.regions = col,
+                                             labels = FALSE)
+                             if (mod.line) {
+                                 panel.abline(a = c(0, 0.5), lty = 5)
+                                 panel.abline(a = c(0, 2), lty = 5)
+                                 panel.abline(a = c(0, 1), lty = 1)
+                             }
+                             ## add reference lines
+                             panel.abline(v = ref.x, lty = 5)                
+                             panel.abline(h = ref.y, lty = 5)
+                         })
     }
                                         #   if (method == "scatter") print(plt)
                                         #   if (method == "hexbin") print(plthexbin)
@@ -461,8 +480,12 @@ scatterPlot <- function(mydata,
     newdata <- mydata
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
-    invisible(output)      
 
+                                        #reset if greyscale
+    if (length(cols) == 1 && cols == "greyscale") 
+        trellis.par.set("strip.background", current.strip)
+
+    invisible(output)      
 
 }
 

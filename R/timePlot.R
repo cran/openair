@@ -35,7 +35,7 @@ timePlot <- function(mydata,
     ## note that in teh case of type "site", each site is thought of as a "pollutant"
 
     ## Author: David Carslaw 11 Sep. 09
-    ## CHANGES:
+    ## CHANGES: 
     
 
 ### EXPERIMENTAL LOG SCALING###############################################
@@ -65,6 +65,14 @@ timePlot <- function(mydata,
 ###################################################################################
 
     vars <- c("date", pollutant)
+
+    #greyscale handling
+    if (length(cols) == 1 && cols == "greyscale") {
+        #strip only
+        current.strip <- trellis.par.get("strip.background")
+        trellis.par.set(list(strip.background = list(col = "white")))
+    }
+
 
 ##### warning messages and other checks ################################################################
 
@@ -156,7 +164,8 @@ timePlot <- function(mydata,
     if (missing(ylab)) ylab <-  paste(pollutant, collapse = ", ")
 
     ## set up colours
-    myColors <- openColours(cols, npol)
+    myColors <- if (length(cols) == 1 && cols == "greyscale")
+                    openColours(cols, npol+1)[-1] else openColours(cols, npol) 
 
     ## basic function for lattice call + defaults
      myform <- formula(paste("value ~ date |", type))
@@ -250,7 +259,7 @@ timePlot <- function(mydata,
            lwd = lwd,
            pch = pch,
            xlim = xlim,
-           main = quickText(main),
+           main = quickText(main, auto.text),
            par.strip.text = list(cex = 0.8),
            ylab = quickText(ylab, auto.text),
            scales = scales,
@@ -290,6 +299,9 @@ timePlot <- function(mydata,
     newdata <- mydata
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
+    #reset if greyscale
+    if (length(cols) == 1 && cols == "greyscale") 
+        trellis.par.set("strip.background", current.strip)
     invisible(output)  
 
 }

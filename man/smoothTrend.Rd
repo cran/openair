@@ -23,6 +23,7 @@ lty = 1,
 lwd = 1,
 pch = 1,
 cex = 0.6,
+y.relation = "same",
 key.columns = length(percentile),
 main = "",
 ci = TRUE,
@@ -116,7 +117,12 @@ auto.text = TRUE,...)
 
    \item{cex}{Plot symbol size, can be a vector of sizes if the option
     \code{statistic = "percentile"} is used e.g. \code{cex = c(1, 2,
-    4)}.}
+      4)}.}
+
+  \item{y.relation}{This determines how the y-axis scale is
+  plotted. "same" ensures all panels use the same scale and "free" will
+  use panel-specfic scales. The latter is a useful setting when plotting
+  data with very different values.}
 
 
    \item{key.columns}{Number of columns used if a key is drawn when using

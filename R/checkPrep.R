@@ -45,7 +45,7 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE) {
     ## make sure all infinite values are set to NA
     mydata[] <- lapply(mydata, function(x){replace(x, x == Inf | x == -Inf, NA)})
 
-    if ("ws" %in% Names) {
+    if ("ws" %in% Names & is.numeric(mydata$ws)) {
         
         ## check for negative wind speeds
         if (any(sign(mydata$ws[!is.na(mydata$ws)]) == -1)) {
@@ -60,7 +60,7 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE) {
     ## data not rounded will be rounded to nearest 10 degrees
     ## assumes 10 is average of 5-15 etc
 
-    if ("wd" %in% Names) {
+    if ("wd" %in% Names & is.numeric(mydata$wd)) {
         
         ## check for wd <0 or > 360
         if (any(sign(mydata$wd[!is.na(mydata$wd)]) == -1 | mydata$wd[!is.na(mydata$wd)] > 360)) {
@@ -103,7 +103,16 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE) {
         mydata <- mydata[order(mydata$date), ]
 
         ## make sure date is the first field
-        mydata <- cbind(subset(mydata, select = date), subset(mydata,select = -date))
+        if (names(mydata)[1] != "date") {
+            mydata <- cbind(subset(mydata, select = date), subset(mydata,select = -date))
+        }
+
+        ## daylight saving time can cause terrible problems - best avoided!!
+        if (length(unique(format(mydata$date, "%Z"))) > 1) {
+            warning("Detected data with Daylight Saving Time, converting to UTC/GMT")
+            attr(mydata$date, "tzone") <- "GMT"
+           
+        }
     }
 
     ## return data frame

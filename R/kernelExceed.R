@@ -18,6 +18,13 @@ kernelExceed <- function(polar,
     vars <- c(y, x, "date", pollutant)
     polar <- checkPrep(polar, vars, type, remove.calm = FALSE)
     polar <- subset(polar, wd > 0)
+
+    #greyscale handling
+    if (length(cols) == 1 && cols == "greyscale") {
+        #strip only
+        current.strip <- trellis.par.get("strip.background")
+        trellis.par.set(list(strip.background = list(col = "white")))
+    }
     
     ## cut data depending on type
     polar <- cutData(polar, type, ...)
@@ -103,7 +110,7 @@ kernelExceed <- function(polar,
     if (X == "wd")  scales <- list(x = list(at = seq(0, 360, 90)))
 
      myform <- formula(paste("z ~ u * v |", type))
-    levelplot(myform, results.grid,
+    ans <- levelplot(myform, results.grid,
               as.table = TRUE,
               strip = strip,
               region = TRUE,
@@ -139,6 +146,9 @@ kernelExceed <- function(polar,
                              cex = 0.7, ...)
 
               })
-    
+    #reset if greyscale
+    if (length(cols) == 1 && cols == "greyscale") 
+        trellis.par.set("strip.background", current.strip)
+    ans    
 }
 

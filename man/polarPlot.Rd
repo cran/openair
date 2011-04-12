@@ -11,7 +11,7 @@
   carried out using \code{mgcv}.  }
 
 \usage{
-polarPlot(polar, 
+polarPlot(mydata, 
     pollutant = "nox", type = "default",
     resolution = "normal", limits = NA, 
     exclude.missing = TRUE, uncertainty = FALSE, 
@@ -25,7 +25,7 @@ main = "", key.header = "", key.footer = pollutant,
 %- maybe also 'usage' for other objects documented here.
 
 \arguments{
-  \item{polar}{A data frame minimally containing \code{ws},
+  \item{mydata}{A data frame minimally containing \code{ws},
     \code{wd} and a pollutant. Can also contain \code{date} if plots by
     time period are required.}
 

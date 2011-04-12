@@ -1,3 +1,44 @@
+Changes in openair 0.4-15 [2011-04-12]
+=====================================
+*	Preparation for CRAN release
+*	removed some restrictions on type/period combinations in polarAnnulus
+
+Changes in openair 0.4-14 [2011-04-05]
+=====================================
+*	Added preliminary greyscale method to openColours and linked in 
+      strip background and other text and line colour control for 
+      standard openair plots.
+
+Changes in openair 0.4-13 [2011-03-31]
+=====================================
+*	Removed ad-hoc sites from importKCL, added site classification
+	to the help file and ensured GMT is exported.
+
+Changes in openair 0.4-12 [2011-03-22]
+=====================================
+
+*	Added y.relation option to smoothTrend and MannKendall to
+         allow flexible y-scales.
+*	NEW FUNCTION 'percentileRose' for flexible plotting of
+         percentiles by wind direction
+*	 NEW FUNCTION 'selectRunning' for selecting run lengths of a numeric
+         variable above a certain threshold.
+*	Modified plot layout in polarPlot to maximise plotting area
+*	Initial fixes to functions affected by time zone settings
+*	polarFreq now has consistent annotation cf. windRose and
+         percentileRose; new option grid.line to control radial axes.
+*	 Fixed couple of minor auto.text bugs in summaryPlot and
+         timePlot
+*	 Removed dependency of date for polar functions where
+         time-based types are not required.
+
+
+Changes in openair 0.4-11 [2011-03-18]
+=====================================
+
+*	More consistent use of strips in default plot (remove them)
+*	Add percentage units to windRose and pollutionRose on radial scale
+
 Changes in openair 0.4-10 [2011-03-07]
 =====================================
 

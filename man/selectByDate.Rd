@@ -8,7 +8,7 @@
 }
 \usage{
 selectByDate(mydata, start = "1/1/2008", end = "31/12/2008",
-year = 2008, month = 1, day = "weekday", hour = 1)
+year = 2008, month = 1, day = "weekday", hour = 1, use.local.tz = TRUE)
 }
 
 
@@ -38,6 +38,10 @@ year = 2008, month = 1, day = "weekday", hour = 1)
 \item{hour}{An hour or hours to select from 0-23 e.g. \code{hour = 0:12} to
   select hours 0 to 12 inclusive.}
 
+\item{use.local.tz}{Used when \code{start} and \code{end} dates are
+  supplied. The default is to use any time zone information supplied and
+  if not, assume GMT/UTC.}
+
 }
 
 \details{This function makes it much easier to select periods of interest
@@ -55,7 +59,7 @@ complex dates
 
 %\references{ ~put references to the literature/web site here ~ }
 \author{David Carslaw}
-\note{Times are assumed to be in GMT.}
+%\note{Times are assumed to be in GMT.}
 
 
 \examples{

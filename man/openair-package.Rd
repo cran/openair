@@ -20,8 +20,8 @@ time the development will carried out on R-Forge
   \tabular{ll}{
     Package: \tab openair\cr
     Type: \tab Package\cr
-    Version: \tab 0.3-7\cr
-    Date: \tab 2010-09-07\cr
+    Version: \tab 0.4-15\cr
+    Date: \tab 2011-04-12\cr
     License: \tab GPL\cr
     LazyLoad: \tab yes\cr }
 
@@ -32,6 +32,12 @@ available analysis techniques that most users of air quality data and
 model output would not normally have access to. The functions consist of
 those developed by the authors and a growing number from other
 researchers.
+
+The package has a number of requirements for input data and these are
+discussed in the manual (available on the openair website). The key
+requirements are that a date or date-time field must have the name
+`date' (and can be \code{Date} or \code{POSIXct} format), that wind
+speed is represented as `ws' and that wind direction is `wd'.
 
 Most functions work in a very straightforward way, but offer many
 options for finer control and perhaps more in-depth analysis.
@@ -49,6 +55,12 @@ install.packages(c("zoo", "reshape", "plyr", "RColorBrewer", "proto"))
 If there are problems with the automatic download of these packages, see
 \url{http://www.openair-project.org} for more details.
 
+NOTE: openair assumes that data are not expressed in local time where
+'Daylight Saving Time' is used. All functions check that this is the
+case and issue a warning if TRUE. It is recommended that data are
+expressed in UTC/GMT to avoid potential problems with R and openair
+functions.
+
 To check to see if \code{openair} has been correctly installed, try some
 of the examples below. In case of any problems, contact David Carslaw
 \url{mailto: david.carslaw@kcl.ac.uk} or Karl Ropkins \url{mailto:
@@ -64,7 +76,7 @@ Maintainer: David Carslaw <david.carslaw@kcl.ac.uk>
 \references{
 Most reference details are given under the specific functions.
 
-Carslaw, D.C. and K. Ropkins (2010). Open-source tools for analysing air
+Carslaw, D.C. and K. Ropkins (2011). Open-source tools for analysing air
 pollution data. King's College London and the University of Leeds.  }
 \keyword{methods}
 

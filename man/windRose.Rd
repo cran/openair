@@ -10,7 +10,7 @@ same plot structure but substitutes other measurements, most commonly a
 pollutant time series, for wind speed. }
 
 \usage{
-windRose(polar,
+windRose(mydata,
     ws.int = 2, angle = 30, type = "default", 
     cols = "default", main = "", grid.line = 5,
     width = 1, auto.text = TRUE, breaks = 4, paddle = TRUE,
@@ -20,7 +20,7 @@ windRose(polar,
     ...)
 
 
-pollutionRose(polar, 
+pollutionRose(mydata, 
     pollutant = "nox",
     key.footer = pollutant,
     breaks = 6, paddle = FALSE,
@@ -32,7 +32,7 @@ pollutionRose(polar,
 
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{polar}{A data frame containing fields \code{ws} and \code{wd}}
+  \item{mydata}{A data frame containing fields \code{ws} and \code{wd}}
 
   \item{ws.int}{The Wind speed interval. Default is 2 m/s but for low met
   masts with low mean wind speeds a value of 1 or 0.5 m/s may be

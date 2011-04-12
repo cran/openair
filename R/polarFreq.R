@@ -1,7 +1,8 @@
-polarFreq <- function(polar,
+polarFreq <- function(mydata,
                       pollutant = "",
                       statistic = "frequency",
                       ws.int = 1,
+                      grid.line = 5, 
                       breaks = seq(0, 5000, 500),
                       cols = "default",
                       trans = TRUE,
@@ -18,15 +19,21 @@ polarFreq <- function(polar,
     
 
     ## extract necessary data
-    if (missing(pollutant)) {
-        vars <- c("date", "ws", "wd")
-    } else {
-        vars <- c("date", "ws", "wd", pollutant)
+    vars <- c("wd", "ws")
+    if (any(type %in%  dateTypes)) vars <- c(vars, "date")
+
+    #greyscale handling
+    if (length(cols) == 1 && cols == "greyscale") {
+        #strip only
+        current.strip <- trellis.par.get("strip.background")
+        trellis.par.set(list(strip.background = list(col = "white")))
     }
+    
+    if (!missing(pollutant)) vars <- c(vars, pollutant)
 
     ## data checks
-    polar <- checkPrep(polar, vars, type)
-    polar <- cutData(polar, type, ...)
+    mydata <- checkPrep(mydata, vars, type)
+    mydata <- cutData(mydata, type, ...)
 
     ## if pollutant chosen but no statistic - use mean, issue warning
     if (!missing(pollutant) & missing(statistic)) {
@@ -45,43 +52,43 @@ polarFreq <- function(polar,
     if (trans) coef <- 2 else coef <- 1
 
     ## remove all NAs
-    polar <- na.omit(polar)
+    mydata <- na.omit(mydata)
 
-    max.ws <- max(ceiling(polar$ws), na.rm = TRUE)
+    max.ws <- max(ceiling(mydata$ws), na.rm = TRUE)
 
-    prepare.grid <- function(polar)
+    prepare.grid <- function(mydata)
     {
-        wd <- factor(polar$wd)
-        ws <- factor(ws.int * ceiling(polar$ws / ws.int))
+        wd <- factor(mydata$wd)
+        ws <- factor(ws.int * ceiling(mydata$ws / ws.int))
 
         if (statistic == "frequency")     ## case with only ws and wd
         {
-            weights <- tapply(polar$ws, list(wd, ws), function(x) length(na.omit(x)))}
+            weights <- tapply(mydata$ws, list(wd, ws), function(x) length(na.omit(x)))}
 
         if (statistic == "mean")
         {
-            weights <- tapply(polar[, pollutant],
+            weights <- tapply(mydata[, pollutant],
                               list(wd, ws), function(x) mean(x, na.rm = TRUE))}
 
         if (statistic == "median")
         {
-            weights <- tapply(polar[, pollutant],
+            weights <- tapply(mydata[, pollutant],
                               list(wd, ws), function(x) median(x, na.rm = TRUE))}
 
         if (statistic == "max")
         {
-            weights <- tapply(polar[, pollutant],
+            weights <- tapply(mydata[, pollutant],
                               list(wd, ws), function(x) max(x, na.rm = TRUE))}
 
         if (statistic == "stdev")
         {
-            weights <- tapply(polar[, pollutant],
+            weights <- tapply(mydata[, pollutant],
                               list(wd, ws), function(x) sd(x, na.rm = TRUE))}
 
         if (statistic == "weighted.mean")
         {
-            weights <- tapply(polar[, pollutant], list(wd, ws),
-                              function(x) (mean(x) * length(x) / nrow(polar)))
+            weights <- tapply(mydata[, pollutant], list(wd, ws),
+                              function(x) (mean(x) * length(x) / nrow(mydata)))
 
             ## note sum for matrix
             weights <- 100 * weights / sum(sum(weights, na.rm = TRUE))
@@ -90,7 +97,7 @@ polarFreq <- function(polar,
         weights <- as.vector(t(weights))
 
         ## frequency - remove points with freq < min.bin
-        bin.len <- tapply(polar$ws, list(wd, ws), function(x) length(na.omit(x)))
+        bin.len <- tapply(mydata$ws, list(wd, ws), function(x) length(na.omit(x)))
         binned.len <- as.vector(t(bin.len))
         ids <- which(binned.len < min.bin)
         weights[ids] <- NA
@@ -112,7 +119,7 @@ polarFreq <- function(polar,
         lpolygon(c(x1, x2), c(y1, y2), col = colour, border = border.col, lwd = 0.5)
     }
 
-    results.grid <- ddply(polar, type, prepare.grid)
+    results.grid <- ddply(mydata, type, prepare.grid)
     results.grid <- na.omit(results.grid)
 
     ## proper names of labelling ##############################################################################
@@ -128,7 +135,8 @@ polarFreq <- function(polar,
         pol.name <- sapply(levels(results.grid[ , type[2]]), function(x) quickText(x, auto.text))
         strip.left <- strip.custom(factor.levels = pol.name)       
     }
-    ## ########################################################################################################
+    if (length(type) == 1 & type[1] == "default") strip <- FALSE ## remove strip
+########################################################################################################
 
     results.grid$weights <- results.grid$weights ^ (1 / coef)
 
@@ -172,7 +180,7 @@ polarFreq <- function(polar,
     
     temp <- paste(type, collapse = "+")
     myform <- formula(paste("ws ~ wd | ", temp, sep = ""))
-    
+   
     plt <- xyplot(myform,
                   xlim = c(-max.ws - 4.0, max.ws + 4.0),
                   ylim = c(-max.ws - 4.0, max.ws + 4.0),
@@ -199,16 +207,27 @@ polarFreq <- function(polar,
                           poly(subdata$wd[i], subdata$ws[i], colour)
                       }
 
-                                        #annotate
+                      ## annotate
                       angles <- seq(0, 2 * pi, length = 360)
-                      sapply(seq(5, 25, 5), function(x)
+                      sapply(seq(0, 20 * grid.line, by = grid.line), function(x)
                              llines((3 + x + ws.int) * sin(angles),
                                     (3 + x + ws.int) * cos(angles),
                                     col = "grey", lty = 5))
 
-                      ltext(seq(3 + ws.int, 28 + ws.int, length = 6) * sin(pi/4),
-                            seq(3 + ws.int, 28 + ws.int, length = 6) * cos(pi/4),
-                            seq(0, 25, 5), cex = 0.7, font = 1)
+                      ## radial labels
+                      sapply(seq(0, 20 * grid.line, by = grid.line), function(x)
+                             ltext((3 + x + ws.int) * sin(pi / 4), (3 + x + ws.int) * cos(pi / 4),
+                                   x, cex = 0.7))                                                 
+
+                       larrows(-max.ws - 4, 0,  -4, 0, code = 1, length = 0.1)
+                      larrows(max.ws + 4, 0,  4, 0, code = 1, length = 0.1)
+                      larrows(0, -max.ws - 4, 0, -4, code = 1, length = 0.1)
+                      larrows(0, max.ws + 4, 0, 4, code = 1, length = 0.1)
+
+                      ltext((-max.ws - 4) * 0.95, 0.07 * (max.ws +4), "W", cex = 0.7)
+                      ltext(0.07 * (max.ws + 4), (-max.ws - 4)  * 0.95, "S", cex = 0.7)
+                      ltext(0.07 * (max.ws + 4), (max.ws + 4) * 0.95, "N", cex = 0.7)
+                      ltext((max.ws + 4) * 0.95, 0.07 * (max.ws + 4), "E", cex = 0.7)
 
                   },
                   legend = legend 
@@ -221,6 +240,11 @@ polarFreq <- function(polar,
     newdata <- results.grid
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
+
+    #reset if greyscale
+    if (length(cols) == 1 && cols == "greyscale") 
+        trellis.par.set("strip.background", current.strip)
+
     invisible(output)  
 
 

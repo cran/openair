@@ -10,10 +10,25 @@ linearRelation <- function(mydata,
                             ylab = paste("slope from ", y, " = m.", x, " + c", sep = ""),
                             xlab = NULL,
                             auto.text = TRUE,
+                            cols = NULL,
                             main = "",
                             span = 0.3,...) {
   
     adj <- 1 ## factors for ratios (oxidant is a percentage)
+
+    #greyscale handling
+    if (length(cols) == 1 && cols == "greyscale") {
+        #strip
+        current.strip <- trellis.par.get("strip.background")
+        trellis.par.set(list(strip.background = list(col = "white")))
+        #other local colours
+        data.col <- "darkgrey"
+        line.col <- "black"
+    } else {
+        data.col <- "#3366FF"
+        line.col <- "red"
+    }
+
 
     ## prepare data
     if ("ox" %in% tolower(c(x, y))) {
@@ -77,9 +92,9 @@ linearRelation <- function(mydata,
                       panel = function(x, y, subscripts, ...) {
                           panel.grid(-1, 0)
                           panel.abline(v = c(0, 6, 12, 18, 23), col = "grey85")
-                          panel.xyplot(x, y, col = "#3366FF", pch = 16,...)
+                          panel.xyplot(x, y, col = data.col, pch = 16,...)
                           panel.segments(x, y - results$seslope[subscripts], x,
-                                         y + results$seslope[subscripts], col = "#3366FF",
+                                         y + results$seslope[subscripts], col = data.col,
                                          lwd = 2)
                       })
     }
@@ -128,10 +143,10 @@ linearRelation <- function(mydata,
                       panel = function(x, y, subscripts, ...) {
                           panel.grid(-1, 0)
                           panel.abline(v = yrs, col = "grey85")
-                          panel.xyplot(x, y, col = "#3366FF",...)
+                          panel.xyplot(x, y, col = data.col,...)
                           panel.segments(x, y - results$seslope[subscripts], x,
-                                         y + results$seslope[subscripts], col = "#3366FF")
-                          panel.loess(x, y, col = "red", lwd = 2, span = span)
+                                         y + results$seslope[subscripts], col = data.col)
+                          panel.loess(x, y, col = line.col, lwd = 2, span = span)
                       })
     }
 ################################################################################################
@@ -158,9 +173,9 @@ linearRelation <- function(mydata,
                       panel = function(x, y, subscripts, ...) {
                           panel.grid(-1, 0)
                           panel.abline(v = 1:7, col = "grey85")
-                          panel.xyplot(x, y, col = "#3366FF", pch = 16,...)
+                          panel.xyplot(x, y, col = data.col, pch = 16,...)
                           panel.segments(x, y - results$seslope[subscripts], x,
-                                         y + results$seslope[subscripts], col = "#3366FF",
+                                         y + results$seslope[subscripts], col = data.col,
                                          lwd = 2)
                       })
     }
@@ -194,9 +209,9 @@ linearRelation <- function(mydata,
                       panel = function(x, y, subscripts, ...) {
                           panel.grid(-1, 0)
                           panel.abline(v = c(0, 6, 12, 18, 23), col = "grey85")
-                          panel.xyplot(x, y, col = "#3366FF", pch = 16,...)
+                          panel.xyplot(x, y, col = data.col, pch = 16,...)
                           panel.segments(x, y - results$seslope[subscripts], x,
-                                         y + results$seslope[subscripts], col = "#3366FF",
+                                         y + results$seslope[subscripts], col = data.col,
                                          lwd = 2)
                       })
     }
@@ -210,6 +225,11 @@ linearRelation <- function(mydata,
     newdata <- results
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
+
+    #reset if greyscale
+    if (length(cols) == 1 && cols == "greyscale") 
+        trellis.par.set("strip.background", current.strip)
+
     invisible(output)  
 
 }

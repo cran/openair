@@ -22,6 +22,7 @@ ylim = c(0, 20),
 ylab = paste("slope from ", y, " = m.", x, " + c", sep = ""),
 xlab = NULL,
 auto.text = TRUE,
+cols = NULL,
 main = "",
 span = 0.3,...)  }
 
@@ -72,6 +73,9 @@ pollutants.}
   \item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE}
   titles and axis labels will automatically try and format pollutant
   names and units properly e.g.  by subscripting the \sQuote{2} in NO2.}
+
+  \item{cols}{Predefined colour scheme, currently only enabled for 
+  \code{"greyscale"}.}
 
 \item{main}{Title of plot.}
 

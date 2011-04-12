@@ -12,6 +12,7 @@ summaryPlot <- function(mydata,
                       col.data = "lightblue",
                       col.mis = rgb(0.65, 0.04, 0.07),
                       col.hist = "forestgreen",
+                      cols = NULL,
                       main = "",
                       date.breaks = 7,
                       auto.text = TRUE,
@@ -19,6 +20,20 @@ summaryPlot <- function(mydata,
                       ylab = NULL, 
                       ...) {
 
+    #greyscale handling
+    if (length(cols) == 1 && cols == "greyscale") {
+        #strip
+        current.strip <- trellis.par.get("strip.background")
+        trellis.par.set(list(strip.background = list(col = "white")))
+        #other local colours
+        col.trend <- "lightgrey"
+        col.data <- "lightgrey"
+        col.mis <- grey(0.15)
+        col.hist <- "grey"
+        col.stat <- "black"
+    } else {
+        col.stat <- "darkgreen"
+    }
     
 
     ## if date in format dd/mm/yyyy hh:mm (basic check)
@@ -226,7 +241,7 @@ summaryPlot <- function(mydata,
 
                        ltext(max.x, 2, paste("95th percentile =", stats[7]), cex = 0.6, pos = 2)
 
-                       ltext(seq.year, 5 , paste(data.cap, "%"), cex = 0.6, col = "darkgreen", pos = 4)
+                       ltext(seq.year, 5 , paste(data.cap, "%"), cex = 0.6, col = col.stat, pos = 4)
                    })
 
     print(plt1, position = c(0, 0, 0.7, 1), more = TRUE)
@@ -291,7 +306,12 @@ summaryPlot <- function(mydata,
 
     print(plt2, position = c(0.7, 0, 1, 0.975))
 
+    #reset if greyscale
+    if (length(cols) == 1 && cols == "greyscale") 
+        trellis.par.set("strip.background", current.strip)
+
     ## use grid to add an overall title
-    grid.text(quickText(main, TRUE), 0.5, 0.975, gp = gpar(fontsize = 14))
+    grid.text(quickText(main, auto.text), 0.5, 0.975, gp = gpar(fontsize = 14))
+
 }
 
