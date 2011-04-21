@@ -7,7 +7,7 @@
 }
 \usage{
 rollingMean(mydata, pollutant = "o3", hours = 8, new.name = "rolling",
-                     data.capture = 75)
+                     data.thresh = 75)
 }
 
 
@@ -25,10 +25,10 @@ rollingMean(mydata, pollutant = "o3", hours = 8, new.name = "rolling",
   not supplied it will create a name based on the name of the pollutant
   and the averaging period used.}
 
-  \item{data.capture}{The data capture threshold in \%. No values are
+  \item{data.thresh}{The data capture threshold in \%. No values are
     calculated if data capture over the period of interest is less than
     this value. For example, with \code{hours = 8} and
-    \code{data.capture = 75} at least 6 hours are required to calculate
+    \code{data.thresh = 75} at least 6 hours are required to calculate
     the mean, else \code{NA} is returned.}
 }
 
@@ -48,7 +48,7 @@ rollingMean(mydata, pollutant = "o3", hours = 8, new.name = "rolling",
 \examples{
 ## rolling 8-hour mean for ozone
 mydata <- rollingMean(mydata, pollutant = "o3", hours = 8, new.name =
-"rollingo3", data.capture = 75)
+"rollingo3", data.thresh = 75)
 
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

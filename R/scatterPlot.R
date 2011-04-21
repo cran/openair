@@ -45,12 +45,12 @@ scatterPlot <- function(mydata,
     y.nam <- y
     thekey <- key
 
-                                        #greyscale handling
+    ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
-                                        #strip
+        ## strip
         current.strip <- trellis.par.get("strip.background")
         trellis.par.set(list(strip.background = list(col = "white")))
-                                        #other local colours
+        ## other local colours
         method.col <- "greyscale"
     } else {
         method.col <- "default"
@@ -280,9 +280,16 @@ scatterPlot <- function(mydata,
     skip <- FALSE
     if (length(type) == 1 & type[1] == "wd" ) {
         ## re-order to make sensible layout
-        mydata$wd <- ordered(mydata$wd, levels = c("NW", "N", "NE", "W", "E", "SW", "S", "SE"))
-        layout <- c(3, 3)
-        skip <- c(FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE)
+        wds <-  c("NW", "N", "NE", "W", "E", "SW", "S", "SE")
+        mydata$wd <- ordered(mydata$wd, levels = wds)
+
+        ## see if wd is actually there or not
+        wd.ok <- sapply(wds, function (x) {if (x %in% unique(mydata$wd)) FALSE else TRUE })
+        skip <- c(wd.ok[1:4], TRUE, wd.ok[5:8])
+        
+        mydata$wd <- factor(mydata$wd)  ## remove empty factor levels
+        
+        layout = if (type == "wd") c(3, 3) else NULL
     }
 
     ## proper names of labelling ##############################################################################

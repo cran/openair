@@ -33,6 +33,10 @@ polarFreq <- function(mydata,
 
     ## data checks
     mydata <- checkPrep(mydata, vars, type)
+
+     ## remove all NAs
+    mydata <- na.omit(mydata)
+    
     mydata <- cutData(mydata, type, ...)
 
     ## if pollutant chosen but no statistic - use mean, issue warning
@@ -50,9 +54,6 @@ polarFreq <- function(mydata,
 
     ## apply square root transform?
     if (trans) coef <- 2 else coef <- 1
-
-    ## remove all NAs
-    mydata <- na.omit(mydata)
 
     max.ws <- max(ceiling(mydata$ws), na.rm = TRUE)
 

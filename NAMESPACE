@@ -68,6 +68,7 @@ export(
 
        ## modStats
        modStats,
+       aqStats,
        conditionalQuantile
 
        )
