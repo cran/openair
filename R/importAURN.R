@@ -1,33 +1,52 @@
 
 importAURN <- function(site = "my1", year = 2009, pollutant = "all", hc = FALSE) {
     site <- toupper(site)
+ 
 
-    ## RData files to import
-    ## doamin changed, Feb 2011!
-    files <- lapply(site, function (x) paste("http://uk-air.defra.gov.uk/openair/R_data/", x, "_", year, ".RData",
-                                             sep = ""))    
- #   files <- lapply(site, function (x) paste("http://www.airquality.co.uk/R_data/", x, "_", year, ".RData", sep = ""))
+    files <- lapply(site, function (x) paste(x, "_", year, sep = ""))    
+ 
     files <- do.call(c, files)
+   
 
     loadData <- function(x) {
-        tryCatch({load(url(x), envir=.GlobalEnv)}, error = function(ex) {cat(x, "does not exist - ignoring that one.\n")})
-    }
+        tryCatch({
+             fileName <- paste("http://uk-air.defra.gov.uk/openair/R_data/", x, ".RData", sep = "")
+             load(url(fileName), envir = .GlobalEnv)          
+             x
+             },
+                  error = function(ex) {cat(x, "does not exist - ignoring that one.\n")})
+         
+     }
 
     thedata <- lapply(files, loadData)
-    closeAllConnections()
+   
     theObjs <- unlist(thedata)
     ## note unlist will drop NULLs from non-existant sites/years
     mylist <- lapply(theObjs, get)
 
     thedata <- do.call(rbind.fill, mylist)
+    if (is.null(thedata)) stop("No data to import - check site codes and year.", call. = FALSE)
+    
     thedata$site <- factor(thedata$site, levels = unique(thedata$site))
-
+    
     ## change names
     names(thedata) <- tolower(names(thedata))
 
     ## change nox as no2
     id <- which(names(thedata) %in% "noxasno2")
     if (length(id) == 1) names(thedata)[id] <- "nox"
+
+    ## set class to integer for post-processing convenience
+    if ("nox" %in% names(thedata)) class(thedata$nox) <- "integer"
+    if ("no" %in% names(thedata)) class(thedata$no) <- "integer"
+    if ("no2" %in% names(thedata)) class(thedata$no2) <- "integer"
+    if ("o3" %in% names(thedata)) class(thedata$o3) <- "integer"
+    if ("so2" %in% names(thedata)) class(thedata$so2) <- "integer"
+    if ("pm10" %in% names(thedata)) class(thedata$pm10) <- "integer"
+    if ("pm2.5" %in% names(thedata)) class(thedata$pm2.5) <- "integer"
+    if ("v10" %in% names(thedata)) class(thedata$v10) <- "integer"
+    if ("v2.5" %in% names(thedata)) class(thedata$v2.5) <- "integer"
+
 
     ## should hydrocarbons be imported?
     if (hc) {

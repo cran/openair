@@ -3,7 +3,7 @@
 open.info <- system.file("Meta", "package.rds", package = "openair") 
 if (!nzchar(open.info)) 
     stop("'openair' is incorrectly installed. Please reinstall.", domain = NA)
-open.info <- .readRDS(open.info)
+open.info <- readRDS(open.info)
 
 all.pcks <- c(names(open.info$Depends),names(open.info$Imports))
    all.pcks <- unique(all.pcks)

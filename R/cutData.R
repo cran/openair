@@ -21,8 +21,8 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
         ## adds a column "cond"
 
         
-        conds <- c("default", "year", "hour", "month", "season", "weekday", "wd", "site", "weekend", "monthyear",
-                   "bstgmt", "gmtbst", "daylight")
+        conds <- c("default", "year", "hour", "month", "season", "weekday", "wd", "site",
+                   "weekend", "monthyear", "bstgmt", "gmtbst", "daylight")
 
         ## if conditioning type already built in, is present in data frame and is a factor
         if (type %in% conds & type %in% names(x)) {
@@ -45,12 +45,15 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
 
             } else {
 
-
-                temp.levels <- levels(cut(x[, type], unique(quantile(x[, type], probs = seq(0, 1, length = n.levels + 1),
+                temp.levels <- levels(cut(x[, type], unique(quantile(x[, type],
+                                                                     probs = seq(0, 1, length =
+                                                                     n.levels + 1),
                                                                      na.rm = TRUE)), include.lowest = TRUE))
 
-                x[ , type] <- cut(x[, type], unique(quantile(x[, type], probs = seq(0, 1, length = n.levels + 1),
-                                                             na.rm = TRUE)), include.lowest = TRUE, labels = FALSE)
+                x[ , type] <- cut(x[, type], unique(quantile(x[, type],
+                                                             probs = seq(0, 1, length = n.levels + 1),
+                                                             na.rm = TRUE)), include.lowest = TRUE,
+                                  labels = FALSE)
 
                 x[ , type] <- as.factor(x[ , type])
                 temp.levels <- gsub("[(]|[)]|[[]|[]]", "", temp.levels)
@@ -81,10 +84,18 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
         if (type == "hour") x[ , type] <- factor(format(x$date, "%H"))
 
         if (type == "month") {
-             temp <- if(is.axis) "%b" else "%B"
+            ## need to generate month abbrevs on the fly for different languages
+             temp <- if (is.axis) "%b" else "%B"
              x[ , type] <- format(x$date, temp)
-             x[ , type] <- ordered(x[ , type], levels = format(seq(as.Date("2000-01-01"),
-                                   as.Date("2000-12-31"), "month"), temp))
+
+             ## month names
+             month.abbs <- format(seq(as.Date("2000-01-01"), as.Date("2000-12-31"), "month"), temp)
+
+             ## might only be partial year...
+             ids <- which(month.abbs %in% unique(x$month))
+             the.months <- month.abbs[ids]
+            
+             x[ , type] <- ordered(x[ , type], levels = the.months)
         } 
 
         if (type == "monthyear") {
@@ -94,7 +105,9 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
 
         if (type == "season") {
             
-            if (!hemisphere %in% c("northern", "southern")) {stop("hemisphere must be 'northern' or 'southern'")}
+            if (!hemisphere %in% c("northern", "southern")) {
+                stop("hemisphere must be 'northern' or 'southern'")}
+            
             if (hemisphere == "northern") {
                 x[ , type] <- "winter (DJF)" ## define all as winter first, then assign others
                 ids <- which(as.numeric(format(x$date, "%m")) %in% 3:5)
@@ -103,7 +116,13 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
                 x[ , type][ids] <- "summer (JJA)"
                 ids <- which(as.numeric(format(x$date, "%m")) %in% 9:11)
                 x[ , type][ids] <- "autumn (SON)"
-                x[ , type] <- ordered(x[ , type], levels = c("spring (MAM)", "summer (JJA)", "autumn (SON)", "winter (DJF)"))
+
+                seasons <- c("spring (MAM)", "summer (JJA)", "autumn (SON)", "winter (DJF)")
+
+                ## might only be partial year...
+                ids <- which(seasons %in% unique(x$season))
+                the.season <- seasons[ids]
+                x[ , type] <- ordered(x[ , type], levels = the.season)
             }
             if (hemisphere == "southern") {
                 x[ , type] <- "summer (DJF)" ## define all as winter first, then assign others
@@ -113,7 +132,14 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
                 x[ , type][ids] <- "winter (JJA)"
                 ids <- which(as.numeric(format(x$date, "%m")) %in% 9:11)
                 x[ , type][ids] <- "spring (SON)"
-                x[ , type] <- ordered(x[ , type], levels = c("spring (SON)", "summer (DJF)", "autumn (MAM)", "winter (JJA)"))
+
+                seasons <- c("spring (SON)", "summer (DJF)", "autumn (MAM)", "winter (JJA)")
+                
+                ## might only be partial year...
+                ids <- which(seasons %in% unique(x$season))
+                the.season <- seasons[ids]
+                x[ , type] <- ordered(x[ , type], levels = c("spring (SON)", "summer (DJF)",
+                                                  "autumn (MAM)", "winter (JJA)"))
                 
             }
             
@@ -133,7 +159,12 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
 
         if (type == "weekday") {
             x[ , type] <- format(x$date, "%A")
-            x[ , type] <- ordered(x[ , type], levels = format(ISOdate(2000, 1, 3:9), "%A"))
+            weekday.names <-  format(ISOdate(2000, 1, 3:9), "%A")
+
+            ## might only be certain days available...
+            ids <- which(weekday.names %in% unique(x$weekday))
+            the.days <- weekday.names[ids]
+            x[ , type] <- ordered(x[ , type], levels = the.days)
         }
 
         if (type == "wd") {
@@ -325,9 +356,9 @@ sunlight.duration.minutes <- 8 * ha.sunrise.deg
 #################################
 #need to confirm dusk/dawn handing
 
-daylight <- ifelse(sunlight.duration.minutes==0, FALSE,
-                 ifelse(sunlight.duration.minutes==1440, TRUE,
-                     ifelse(sunrise.time.lst<sunset.time.lst,
+daylight <- ifelse(sunlight.duration.minutes == 0, FALSE,
+                 ifelse(sunlight.duration.minutes == 1440, TRUE,
+                     ifelse(sunrise.time.lst < sunset.time.lst,
                           ifelse(p.day < sunset.time.lst & p.day > sunrise.time.lst, TRUE, FALSE),
                           ifelse(p.day <= sunrise.time.lst & p.day >= sunset.time.lst, FALSE, TRUE)
              )))

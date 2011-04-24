@@ -8,7 +8,7 @@ importKCL <- function(site = "my1", year = 2009, pollutant = "all", met = FALSE,
     ## rows with these site codes
     ## this preserves order of site names
     load(url(paste("http://www.londonair.org.uk/r_data/", "sites", ".RData", sep = "")))
-    closeAllConnections()
+    
     id <- sapply(site, function(x) which(sites$SiteCode %in% toupper(x)))
     site.name <- sites$SiteName[id]
 
@@ -18,7 +18,7 @@ importKCL <- function(site = "my1", year = 2009, pollutant = "all", met = FALSE,
 
     thedata <- suppressWarnings(lapply(files, function(file) tryCatch({get(load(url(file)))}, error = function(ex) {cat(file, "does not exist - ignoring that one.\n")})))
     thedata <- do.call(rbind.fill, thedata)
-    closeAllConnections()
+   
     
     thedata$code <- thedata$site
     

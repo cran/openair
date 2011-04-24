@@ -1,3 +1,20 @@
+Changes in openair 0.4-17 [2011-04-21]
+=====================================
+*	use readRDS and not .readRDS (caused failure on R Dev)
+*	openair now depends on >=R2.13.0
+*	NEW FUNCTION sqStats to calculate common and pollutant-specfic
+	air quality statsitics by year and site.
+*	Changed option data.capture in rollingMean to data.thresh to
+	be consistent with other functions.
+
+Changes in openair 0.4-16 [2011-04-13]
+=====================================
+*	Fixed bugs in cutData when a partial year was used with type
+  	= "month". Also affected type = "season" and "weekday". The
+  	plots were labelled in the wrong order.
+*	Ensure that missing wind sectors are skipped in type = "wd"
+	for smoothTrend, MannKendall, timePlot and scatterPlot
+
 Changes in openair 0.4-15 [2011-04-12]
 =====================================
 *	Preparation for CRAN release

@@ -24,9 +24,9 @@ smoothTrend <- function(mydata,
                         date.breaks = 7,
                         auto.text = TRUE,...)  {
 
-    #greyscale handling
+    ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
-        #strip only
+        ## strip only
         current.strip <- trellis.par.get("strip.background")
         trellis.par.set(list(strip.background = list(col = "white")))
     }
@@ -38,7 +38,8 @@ smoothTrend <- function(mydata,
     if (!missing(percentile)) statistic <- "percentile"
 
     if (length(pollutant) > 1 & length(percentile) > 1) {
-        warning(paste("You cannot choose multiple percentiles and pollutants, using percentile =", percentile[1]))
+        warning(paste("You cannot choose multiple percentiles and pollutants, using percentile =",
+                      percentile[1]))
         percentile <- percentile[1]
     }
     
@@ -65,7 +66,8 @@ smoothTrend <- function(mydata,
         mydata <- ddply(mydata, c(type, "variable"), calcPercentile, pollutant = "value", period = "month",
                         percentile = percentile, data.thresh = data.thresh)
         
-        mydata <- melt(subset(mydata, select = -variable), measure.vars = paste("percentile.", percentile, sep = ""))
+        mydata <- melt(subset(mydata, select = -variable), measure.vars = paste("percentile.",
+                                                           percentile, sep = ""))
         
     } else {
         mydata <- ddply(mydata, c(type, "variable"), timeAverage, avg.time = "month", statistic = statistic,
@@ -113,7 +115,7 @@ smoothTrend <- function(mydata,
         
         results
     }
-        
+    
     split.data <- ddply(mydata, c(type, "variable"),  process.cond)    
     
     skip <- FALSE
@@ -122,12 +124,19 @@ smoothTrend <- function(mydata,
     
     if (length(type) == 1 & type[1] == "wd") {
         ## re-order to make sensible layout
-        split.data$wd <- ordered(split.data$wd, levels = c("NW", "N", "NE", "W", "E", "SW", "S", "SE"))
-        skip <-  c(FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE)
+        wds <-  c("NW", "N", "NE", "W", "E", "SW", "S", "SE")
+        split.data$wd <- ordered(split.data$wd, levels = wds)
+
+        ## see if wd is actually there or not
+        wd.ok <- sapply(wds, function (x) {if (x %in% unique(split.data$wd)) FALSE else TRUE })
+        skip <- c(wd.ok[1:4], TRUE, wd.ok[5:8])
+        
+        split.data$wd <- factor(split.data$wd)  ## remove empty factor levels
+        
         layout = if (type == "wd") c(3, 3) else NULL
     }
 
-        ## proper names of labelling ##############################################################################
+    ## proper names of labelling ##############################################################################
     pol.name <- sapply(levels(split.data[ , type[1]]), function(x) quickText(x, auto.text))
     strip <- strip.custom(factor.levels = pol.name)
 
@@ -148,7 +157,7 @@ smoothTrend <- function(mydata,
 
     ## set up colours
     myColors <- if (length(cols) == 1 && cols == "greyscale")
-                    openColours(cols, npol+1)[-1] else openColours(cols, npol)
+        openColours(cols, npol+1)[-1] else openColours(cols, npol)
 
     ## information for key
     npol <- unique(split.data$variable)
@@ -200,7 +209,8 @@ smoothTrend <- function(mydata,
 
                       }
                       panel.xyplot(x, y, type = "b", lwd = lwd, lty = lty, pch = pch,
-                                   col.line = myColors[group.number], col.symbol = myColors[group.number], ...)
+                                   col.line = myColors[group.number],
+                                   col.symbol = myColors[group.number], ...)
 
                       panel.gam(x, y, col =  myColors[group.number], col.se =  "black",
                                 simulate = simulate, n.sim = n,
@@ -209,13 +219,13 @@ smoothTrend <- function(mydata,
                   })
 
 #################
-                                        #output
+    ## output
 #################
     if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip, strip.left = strip.left))
     newdata <- split.data
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
-    #reset if greyscale
+    ## reset if greyscale
     if (length(cols) == 1 && cols == "greyscale") 
         trellis.par.set("strip.background", current.strip)
     invisible(output)  

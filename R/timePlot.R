@@ -246,9 +246,17 @@ timePlot <- function(mydata,
     layout = if (type == "wd") c(3, 3) else layout
     skip <- FALSE
     if (type == "wd") {
-        ## re-order to make sensible layout
-        mydata$wd <- ordered(mydata$wd, levels = c("NW", "N", "NE", "W", "E", "SW", "S", "SE"))
-        skip <-  c(FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE)
+         ## re-order to make sensible layout
+        wds <-  c("NW", "N", "NE", "W", "E", "SW", "S", "SE")
+        mydata$wd <- ordered(mydata$wd, levels = wds)
+
+        ## see if wd is actually there or not
+        wd.ok <- sapply(wds, function (x) {if (x %in% unique(mydata$wd)) FALSE else TRUE })
+        skip <- c(wd.ok[1:4], TRUE, wd.ok[5:8])
+           
+        mydata$wd <- factor(mydata$wd)  ## remove empty factor levels
+    
+        layout = if (type == "wd") c(3, 3) else NULL
     }
 
     plt <- xyplot(myform,  data = mydata, groups = variable,

@@ -138,8 +138,15 @@ MannKendall <- function(mydata,
     
     if (length(type) == 1 & type[1] == "wd") {
         ## re-order to make sensible layout
-        split.data$wd <- ordered(split.data$wd, levels = c("NW", "N", "NE", "W", "E", "SW", "S", "SE"))
-        skip <-  c(FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE)
+        wds <-  c("NW", "N", "NE", "W", "E", "SW", "S", "SE")
+        split.data$wd <- ordered(split.data$wd, levels = wds)
+
+        ## see if wd is actually there or not
+        wd.ok <- sapply(wds, function (x) {if (x %in% unique(split.data$wd)) FALSE else TRUE })
+        skip <- c(wd.ok[1:4], TRUE, wd.ok[5:8])
+           
+        split.data$wd <- factor(split.data$wd)  ## remove empty factor levels
+    
         layout = if (type == "wd") c(3, 3) else NULL
     }
 
