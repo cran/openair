@@ -6,20 +6,20 @@
 \description{ Function for
   plotting pollutant concentration in polar coordinates showing
   concentration by wind speed and direction. Mean concentrations are
-  calculated for wind speed-direction \sQuote{bins} (0-1, 1-2 m/s,... and
+  calculated for wind speed-direction \sQuote{bins} (e.g. 0-1, 1-2 m/s,... and
   0-10, 10-20 degrees etc.).  To aid interpretation, gam smoothing is
   carried out using \code{mgcv}.  }
 
 \usage{
 polarPlot(mydata, 
-    pollutant = "nox", type = "default",
+    pollutant = "nox", type = "default", statistic = "mean",
     resolution = "normal", limits = NA, 
     exclude.missing = TRUE, uncertainty = FALSE, 
     cols = "default", min.bin = 1, upper = NA, 
     ws.int = 5, angle.scale = 45, units = "(m/s)", 
     force.positive = TRUE, k = 100, normalise = FALSE,
 main = "", key.header = "", key.footer = pollutant, 
-    key.position = "right", key = NULL, 
+    key.position = "right", key = TRUE, 
     auto.text = TRUE, ...)  
 }
 %- maybe also 'usage' for other objects documented here.
@@ -60,11 +60,23 @@ main = "", key.header = "", key.footer = pollutant,
     when two types are provided the first forms the columns and the
     second the rows.}
 
+  \item{statistic}{The statistic that should be applied to each wind
+speed/direction bin. Can be "mean" (default), "median", "max" (maximum),
+"frequency". "stdev" (standard deviation) or "weighted.mean". Because of
+the smoothing involved, the colour scale for some of these statistics is
+only to provide an indication of overall pattern and should not be
+interpreted in concentration units e.g. for \code{statistic =
+"weighted.mean"} where the bin mean is multiplied by the bin frequency
+and divided by the total frequency. In many cases using \code{polarFreq}
+will be better. Setting \code{statistic = "weighted.mean"} can be useful
+because it provides an indication of the concentration * frequency of
+occurrence and will highlight the wind speed/direction conditions that
+dominate the overall mean.}
 
   \item{resolution}{Two plot resolutions can be set: "normal" (the
-    default) and "fine", for a smoother plot. It should be noted
-    that plots with a "fine" resolution can take longer to render
-    and the default option should be sufficient or most circumstances.}
+    default) and "fine", for a smoother plot. It should be noted that
+    plots with a "fine" resolution can take longer to render and the
+    default option should be sufficient or most circumstances.}
 
   \item{limits}{The function does its best to choose sensible limits
     automatically. However, there are circumstances when the user will

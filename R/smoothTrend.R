@@ -4,6 +4,7 @@ smoothTrend <- function(mydata,
                         deseason = FALSE,
                         type = "default",
                         statistic = "mean",
+                        avg.time = "month",
                         percentile = NA,
                         data.thresh = 0,
                         simulate = FALSE,
@@ -30,10 +31,10 @@ smoothTrend <- function(mydata,
         current.strip <- trellis.par.get("strip.background")
         trellis.par.set(list(strip.background = list(col = "white")))
     }
-    
+
     vars <- c("date", pollutant)
 
-    mydata <- checkPrep(mydata, vars, type)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
 
     if (!missing(percentile)) statistic <- "percentile"
 
@@ -42,8 +43,9 @@ smoothTrend <- function(mydata,
                       percentile[1]))
         percentile <- percentile[1]
     }
-    
-    
+
+    if (!avg.time %in% c("year", "month")) stop("Averaging period must be 'month' or 'year'.")
+
     ## for overall data and graph plotting
     start.year <- startYear(mydata$date)
     end.year <-  endYear(mydata$date)
@@ -57,25 +59,33 @@ smoothTrend <- function(mydata,
     ## cutData depending on type
     mydata <- cutData(mydata, type, ...)
 
-    ## reshape data
+    ## reshape data, make sure there is not a variable called 'variable'
+    if ("variable" %in% names(mydata)) {
+        mydata <- rename(mydata, c(variable = "theVar"))
+        type <- "theVar"
+    }
     ## in the case of mutiple percentiles, these are assinged and treated like multiple pollutants
     mydata <- melt(mydata, measure.vars = pollutant)
 
     if (length(percentile) > 1) {
-        
-        mydata <- ddply(mydata, c(type, "variable"), calcPercentile, pollutant = "value", period = "month",
-                        percentile = percentile, data.thresh = data.thresh)
-        
+
+        mydata <- ddply(mydata, c(type, "variable"), calcPercentile, pollutant = "value",
+                        avg.time = avg.time, percentile = percentile, data.thresh = data.thresh)
+
         mydata <- melt(subset(mydata, select = -variable), measure.vars = paste("percentile.",
                                                            percentile, sep = ""))
-        
+
     } else {
-        mydata <- ddply(mydata, c(type, "variable"), timeAverage, avg.time = "month", statistic = statistic,
-                        percentile = percentile, data.thresh = data.thresh)               
+        mydata <- ddply(mydata, c(type, "variable"), timeAverage, avg.time = avg.time,
+                        statistic = statistic, percentile = percentile,
+                        data.thresh = data.thresh)
     }
-    
+
 
     process.cond <- function(mydata) {
+
+        ## return if nothing to analyse
+        if (all(is.na(mydata$value))) return()
 
         ## sometimes data have long trailing NAs, so start and end at
         ## first and last data
@@ -88,7 +98,7 @@ smoothTrend <- function(mydata,
         end.year <-  endYear(mydata$date)
         start.month <- startMonth(mydata$date)
         end.month <-  endMonth(mydata$date)
-        
+
         ## can't deseason less than 2 years of data
         if (nrow(mydata) < 24) deseason <- FALSE
 
@@ -104,24 +114,24 @@ smoothTrend <- function(mydata,
 
             deseas <- ssd$time.series[, "trend"] + ssd$time.series[, "remainder"]
             deseas <- as.vector(deseas)
-            
-            results <- data.frame(date = mydata$date, conc = as.vector(deseas)) 
+
+            results <- data.frame(date = mydata$date, conc = as.vector(deseas))
 
         } else {
 
             results <- data.frame(date = mydata$date, conc = mydata[, "value"])
-            
+
         }
-        
+
         results
     }
-    
-    split.data <- ddply(mydata, c(type, "variable"),  process.cond)    
-    
+
+    split.data <- ddply(mydata, c(type, "variable"),  process.cond)
+
     skip <- FALSE
     layout <- NULL
-    
-    
+
+
     if (length(type) == 1 & type[1] == "wd") {
         ## re-order to make sensible layout
         wds <-  c("NW", "N", "NE", "W", "E", "SW", "S", "SE")
@@ -130,24 +140,24 @@ smoothTrend <- function(mydata,
         ## see if wd is actually there or not
         wd.ok <- sapply(wds, function (x) {if (x %in% unique(split.data$wd)) FALSE else TRUE })
         skip <- c(wd.ok[1:4], TRUE, wd.ok[5:8])
-        
+
         split.data$wd <- factor(split.data$wd)  ## remove empty factor levels
-        
+
         layout = if (type == "wd") c(3, 3) else NULL
     }
 
     ## proper names of labelling ##############################################################################
-    pol.name <- sapply(levels(split.data[ , type[1]]), function(x) quickText(x, auto.text))
+    pol.name <- sapply(levels(factor(split.data[ , type[1]])), function(x) quickText(x, auto.text))
     strip <- strip.custom(factor.levels = pol.name)
 
     if (length(type) == 1 ) {
-        
+
         strip.left <- FALSE
-        
-    } else { ## two conditioning variables        
-        
-        pol.name <- sapply(levels(split.data[ , type[2]]), function(x) quickText(x, auto.text))
-        strip.left <- strip.custom(factor.levels = pol.name)       
+
+    } else { ## two conditioning variables
+
+        pol.name <- sapply(levels(factor(split.data[ , type[2]])), function(x) quickText(x, auto.text))
+        strip.left <- strip.custom(factor.levels = pol.name)
     }
     ## ########################################################################################################
     if (length(type) == 1 & type[1] == "default") strip <- FALSE ## remove strip
@@ -168,15 +178,15 @@ smoothTrend <- function(mydata,
         key <- list(lines = list(col = myColors[1 : length(npol)], lty = lty, lwd = lwd,
                     pch = pch, type = "b", cex = cex),
                     text = list(lab = key.lab),  space = "bottom", columns = key.columns)
-        if (missing(ylab)) ylab <-  paste(pollutant, collapse = ", ") 
-        
+        if (missing(ylab)) ylab <-  paste(pollutant, collapse = ", ")
+
     } else {
         key <- NULL ## either there is a key or there is not
     }
 
     temp <- paste(type, collapse = "+")
     myform <- formula(paste("conc ~ date| ", temp, sep = ""))
-    
+
     plt <- xyplot(myform, data = split.data, groups = variable,
                   as.table = TRUE,
                   strip = strip,
@@ -226,9 +236,9 @@ smoothTrend <- function(mydata,
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
     ## reset if greyscale
-    if (length(cols) == 1 && cols == "greyscale") 
+    if (length(cols) == 1 && cols == "greyscale")
         trellis.par.set("strip.background", current.strip)
-    invisible(output)  
+    invisible(output)
 
 }
 

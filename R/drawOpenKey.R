@@ -1,5 +1,3 @@
-drawOpenKey <- function (key, draw = FALSE, vp = NULL) {
-
 ########################################
 #drawOpenKey v0.2
 ########################################
@@ -22,6 +20,8 @@ drawOpenKey <- function (key, draw = FALSE, vp = NULL) {
 #of Deepayan Sarkar are also gratefully 
 #acknowledged
 ########################################
+
+drawOpenKey <- function (key, draw = FALSE, vp = NULL) {
 
     ################
     #quick end if key obviously not right
@@ -81,13 +81,11 @@ drawOpenKey <- function (key, draw = FALSE, vp = NULL) {
     #COULD default to one?
     ###############
     temp <- c("right", "left", "top", "bottom")
-    key$space <- pmatch(key$space, temp)
-    if (is.na(key$space)) {
-        stop(" In drawOpenKey(...):", "\n\tspace argument in key not recognised", 
-            "\n\tplease use one or abbreviation of:\n\t\"", paste(temp, 
+    if (!key$space %in% temp) {
+        stop(" In drawOpenKey(...):", "\n\tkey.position (space) argument in key not recognised", 
+            "\n\tplease use one of:\n\t\"", paste(temp, 
                 sep = "", collapse = "\", \""), "\"", call. = FALSE)
     }
-    key$space <- temp[key$space]
 
     ###############
     #original sk key handling

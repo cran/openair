@@ -2,6 +2,7 @@
 polarPlot <- function(mydata,
                       pollutant = "nox",
                       type = "default",
+                      statistic = "mean",
                       resolution = "normal",
                       limits = NA,
                       exclude.missing = TRUE,
@@ -19,20 +20,27 @@ polarPlot <- function(mydata,
                       key.header = "",
                       key.footer = pollutant,
                       key.position = "right",
-                      key = NULL,
+                      key = TRUE,
                       auto.text = TRUE, ...) {
-    
-    
+
+
     ## initial checks ##########################################################################################
     if (length(type) > 2) {stop("Maximum number of types is 2.")}
-    
+
     if (uncertainty) type <- "default" ## can't have conditioning here
 
     if (uncertainty & length(pollutant) > 1) stop("Can only have one pollutant when uncertainty = TRUE")
 
-    #greyscale handling
+    if (!statistic %in% c("mean", "median", "frequency", "max", "stdev", "weighted.mean")) {
+        stop (paste("statistic '", statistic, "' not recognised", sep = ""))
+    }
+
+    if (missing(key.header)) key.header <- statistic
+    if (key.header == "weighted.mean") key.header <- c("weighted", "mean")
+
+    ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
-        #strip only
+        ## strip only
         current.strip <- trellis.par.get("strip.background")
         trellis.par.set(list(strip.background = list(col = "white")))
     }
@@ -40,16 +48,16 @@ polarPlot <- function(mydata,
     ## extract variables of interest
 
     vars <- c("wd", "ws", pollutant)
-    if (any(type %in%  dateTypes)) vars <- c(vars, "date")    
+    if (any(type %in%  dateTypes)) vars <- c(vars, "date")
 
-    mydata <- checkPrep(mydata, vars, type)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
 
     ## if more than one pollutant, need to stack the data and set type = "variable"
     ## this case is most relevent for model-measurement compasrions where data are in columns
     ## Can also do more than one pollutant and a single type that is not "default", in which
     ## case pollutant becomes a conditioning variable
     if (length(pollutant) > 1) {
-        
+
         if (length(type) > 1) {
             warning(paste("Only type = '", type[1], "' will be used", sep = ""))
             type <- type[1]
@@ -62,11 +70,11 @@ polarPlot <- function(mydata,
     }
 
     ## ##########################################################################################################
-    
+
     mydata <- na.omit(mydata)
     ## cutData depending on type
     mydata <- cutData(mydata, type, ...)
-    
+
 
     ## if upper ws not set, set it to the max to display all information
     max.ws <- ceiling(max(mydata$ws, na.rm = TRUE))
@@ -92,15 +100,29 @@ polarPlot <- function(mydata,
     prepare.grid <- function(mydata) {
         ## identify which ws and wd bins the data belong
         wd <- cut(mydata$wd, breaks = seq(0, 360, 10), include.lowest = TRUE)
-        ws <- cut(mydata$ws, breaks = seq(0, max.ws, length = 31))
+        ws <- cut(mydata$ws, breaks = seq(0, max.ws, length = 31), include.lowest = TRUE)
 
-        ## this automatically deals with missing data
-        binned <- tapply(mydata[, pollutant], list(wd, ws), mean, na.rm = TRUE)
+        binned <- switch(statistic,
+                         frequency = tapply(mydata[ , pollutant], list(wd, ws), function(x)
+                         length(na.omit(x))),
+                         mean =  tapply(mydata[, pollutant], list(wd, ws), function(x)
+                         mean(x, na.rm = TRUE)),
+                         median = tapply(mydata[, pollutant], list(wd, ws), function(x)
+                         median(x, na.rm = TRUE)),
+                         max = tapply(mydata[, pollutant], list(wd, ws), function(x)
+                         max(x, na.rm = TRUE)),
+                         stdev = tapply(mydata[, pollutant], list(wd, ws), function(x)
+                         sd(x, na.rm = TRUE)),
+                         weighted.mean = tapply(mydata[, pollutant], list(wd, ws),
+                         function(x) (mean(x) * length(x) / nrow(mydata)))
+                         )
+
         binned <- as.vector(t(binned))
 
         ## frequency - remove points with freq < min.bin
         bin.len <- tapply(mydata[, pollutant], list(ws, wd), length)
         binned.len <- as.vector(bin.len)
+
         ids <- which(binned.len < min.bin)
         binned[ids] <- NA
 ######################Smoothing#################################################
@@ -121,7 +143,7 @@ polarPlot <- function(mydata,
             pred <- predict.gam(Mgam, input.data, se = TRUE)
             uncer <- 2 * as.vector(pred[[2]]) ## for approx 95% CI
             pred <- as.vector(pred[[1]]) ^ (1 / n)
-            
+
 
             ## do not weight for central prediction
             Mgam <- gam(binned ^ n ~ s(u, v, k = k))
@@ -130,7 +152,7 @@ polarPlot <- function(mydata,
             Lower <- (pred - uncer) ^ (1 / n)
             Upper <- (pred + uncer) ^ (1 / n)
             pred <- pred ^ (1 / n)
-            
+
             n <- length(pred)
             results <-  data.frame(u = rep(input.data$u, 3), v = rep(input.data$v, 3),
                                    z = c(pred, Lower, Upper),
@@ -157,7 +179,7 @@ polarPlot <- function(mydata,
             results
         }
 
-        if (exclude.missing) results <- exclude(results) 
+        if (exclude.missing) results <- exclude(results)
 
         results
     }
@@ -168,22 +190,22 @@ polarPlot <- function(mydata,
 
     ## remove wind speeds > upper to make a circle
     results.grid$z[(results.grid$u ^ 2 + results.grid$v ^ 2) ^ 0.5 > upper] <- NA
-    
+
     ## proper names of labelling ##############################################################################
     pol.name <- sapply(levels(results.grid[ , type[1]]), function(x) quickText(x, auto.text))
     strip <- strip.custom(factor.levels = pol.name)
 
     if (length(type) == 1 ) {
-        
+
         strip.left <- FALSE
-        
-    } else { ## two conditioning variables        
-        
+
+    } else { ## two conditioning variables
+
         pol.name <- sapply(levels(results.grid[ , type[2]]), function(x) quickText(x, auto.text))
-        strip.left <- strip.custom(factor.levels = pol.name)       
+        strip.left <- strip.custom(factor.levels = pol.name)
     }
     ## ########################################################################################################
-    
+
 
     skip <- FALSE
     if (length(type) == 1 & type[1] == "default") strip <- FALSE ## remove strip
@@ -214,16 +236,11 @@ polarPlot <- function(mydata,
 
     ## scale key setup ######################################################################################
 
-    legend <- list(col = col, at = col.scale, space = key.position, 
-                   auto.text = auto.text, footer = key.footer, header = key.header, 
+    legend <- list(col = col, at = col.scale, space = key.position,
+                   auto.text = auto.text, footer = key.footer, header = key.header,
                    height = 1, width = 1.5, fit = "all")
-    if (!is.null(key)) 
-        if (is.list(key)) 
-            legend[names(key)] <- key
-        else warning("In polarPlot(...):\n  non-list key not exported/applied\n  [see ?drawOpenKey for key structure/options]", 
-                     call. = FALSE)
-    legend <- list(temp = list(fun = drawOpenKey, args = list(key = legend, draw = FALSE)))
-    names(legend)[1] <- if(is.null(key$space)) key.position else key$space
+    legend <- makeOpenKeyLegend(key, legend, "polarPlot")
+
 ########################################################################################################
 
     temp <- paste(type, collapse = "+")
@@ -245,7 +262,7 @@ polarPlot <- function(mydata,
                      scales = list(draw = FALSE),
                      xlim = c(-upper * 1, upper * 1),
                      ylim = c(-upper * 1, upper * 1),
-                     colorkey = FALSE, legend = legend, 
+                     colorkey = FALSE, legend = legend,
                      ...,
 
                      panel = function(x, y, z,subscripts,...) {
@@ -279,18 +296,18 @@ polarPlot <- function(mydata,
 
 
     ## output ##############################################################################################
-    
+
     if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip, strip.left = strip.left))
-    
+
     newdata <- results.grid
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
 
-    #reset if greyscale
-    if (length(cols) == 1 && cols == "greyscale") 
+    ## reset if greyscale
+    if (length(cols) == 1 && cols == "greyscale")
         trellis.par.set("strip.background", current.strip)
 
-    invisible(output)  
+    invisible(output)
 
 }
 

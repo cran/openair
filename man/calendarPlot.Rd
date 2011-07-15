@@ -15,7 +15,7 @@ calendarPlot(mydata,
     cols = "heat", limits = c(0, 100),
     main = paste(pollutant, "in", year),
     key.header = "", key.footer = "", 
-    key.position = "right", key = NULL,
+    key.position = "right", key = TRUE,
     auto.text = TRUE, ...)  
 }
 %- maybe also 'usage' for other objects documented here.

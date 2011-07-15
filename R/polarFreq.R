@@ -2,41 +2,47 @@ polarFreq <- function(mydata,
                       pollutant = "",
                       statistic = "frequency",
                       ws.int = 1,
-                      grid.line = 5, 
+                      grid.line = 5,
                       breaks = seq(0, 5000, 500),
                       cols = "default",
                       trans = TRUE,
                       type = "default",
                       min.bin = 1,
+                      ws.upper = NA,
+                      offset = 10,
                       border.col = "transparent",
                       main = "",
                       key.header = statistic,
                       key.footer = pollutant,
                       key.position = "right",
-                      key = NULL,
+                      key = TRUE,
                       auto.text = TRUE,...) {
-    
-    
+
+
 
     ## extract necessary data
     vars <- c("wd", "ws")
     if (any(type %in%  dateTypes)) vars <- c(vars, "date")
 
-    #greyscale handling
+    ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
-        #strip only
+        ## strip only
         current.strip <- trellis.par.get("strip.background")
         trellis.par.set(list(strip.background = list(col = "white")))
     }
-    
+
     if (!missing(pollutant)) vars <- c(vars, pollutant)
 
     ## data checks
-    mydata <- checkPrep(mydata, vars, type)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
 
-     ## remove all NAs
+    ## to make first interval easier to work with, set ws = 0 + e
+    ids <- which(mydata$ws == 0)
+     mydata$ws[ids] <-  mydata$ws[ids] + 0.0001
+
+    ## remove all NAs
     mydata <- na.omit(mydata)
-    
+
     mydata <- cutData(mydata, type, ...)
 
     ## if pollutant chosen but no statistic - use mean, issue warning
@@ -52,10 +58,21 @@ polarFreq <- function(mydata,
 
     if (!missing(breaks)) trans <- FALSE  ## over-ride transform if breaks supplied
 
+    if (missing(key.header)) key.header <- statistic
+    if (key.header == "weighted.mean") key.header <- c("contribution", "(%)")
+
     ## apply square root transform?
     if (trans) coef <- 2 else coef <- 1
 
-    max.ws <- max(ceiling(mydata$ws), na.rm = TRUE)
+    ## set the upper wind speed
+    if (is.na(ws.upper)) {
+        max.ws <- max(mydata$ws, na.rm = TRUE)
+    } else {
+        max.ws <- ws.upper
+    }
+
+    ## offset for "hollow" middle
+    offset <- (max.ws * offset) / 5 / 10
 
     prepare.grid <- function(mydata)
     {
@@ -93,6 +110,7 @@ polarFreq <- function(mydata,
 
             ## note sum for matrix
             weights <- 100 * weights / sum(sum(weights, na.rm = TRUE))
+
         }
 
         weights <- as.vector(t(weights))
@@ -104,19 +122,21 @@ polarFreq <- function(mydata,
         weights[ids] <- NA
 
         ws.wd <- expand.grid(ws = as.numeric(levels(ws)), wd = as.numeric(levels(wd)))
-        weights <- cbind(ws.wd, weights) 
+
+        weights <- cbind(ws.wd, weights)
         weights
     }
 
 
     poly <- function(dir, speed, colour)
     {
-        ## offset by 3 so that centre is not compressed
+
+        ## offset by 3 * ws.int so that centre is not compressed
         angle <- seq(dir - 5, dir + 5, length = 10)
-        x1 <- (speed + 3) * sin(pi * angle/180)
-        y1 <- (speed + 3) * cos(pi * angle/180)
-        x2 <- rev((speed + ws.int + 3) * sin(pi * angle/180))
-        y2 <- rev((speed + ws.int + 3) * cos(pi * angle/180))
+        x1 <- (speed + offset - ws.int) * sin(pi * angle / 180)
+        y1 <- (speed + offset - ws.int) * cos(pi * angle / 180)
+        x2 <- rev((speed + offset) * sin(pi * angle / 180))
+        y2 <- rev((speed + offset) * cos(pi * angle / 180))
         lpolygon(c(x1, x2), c(y1, y2), col = colour, border = border.col, lwd = 0.5)
     }
 
@@ -128,13 +148,13 @@ polarFreq <- function(mydata,
     strip <- strip.custom(factor.levels = pol.name)
 
     if (length(type) == 1 ) {
-        
+
         strip.left <- FALSE
-        
-    } else { ## two conditioning variables        
-        
+
+    } else { ## two conditioning variables
+
         pol.name <- sapply(levels(results.grid[ , type[2]]), function(x) quickText(x, auto.text))
-        strip.left <- strip.custom(factor.levels = pol.name)       
+        strip.left <- strip.custom(factor.levels = pol.name)
     }
     if (length(type) == 1 & type[1] == "default") strip <- FALSE ## remove strip
 ########################################################################################################
@@ -146,7 +166,7 @@ polarFreq <- function(mydata,
     if(missing(breaks)) {
 
         breaks <- unique(c(0, pretty(results.grid$weights, nlev)))
-        br <- pretty((results.grid$weights ^ coef), n = 10)  ## breaks for scale
+        br <- pretty((c(0, results.grid$weights) ^ coef), n = 10)  ## breaks for scale
 
     } else {
 
@@ -164,27 +184,23 @@ polarFreq <- function(mydata,
     results.grid$weights[results.grid$weights == "NaN"] <- 0
     results.grid$weights[which(is.na(results.grid$weights))] <- 0
 
+
     ##  scale key setup ################################################################################################
-    legend <- list(col = col[1:length(breaks) - 1], at = breaks, 
+    legend <- list(col = col[1:length(breaks) - 1], at = breaks,
                    labels = list(at = br^(1/coef), labels = br),
-                   space = key.position, 
-                   auto.text = auto.text, footer = key.footer, header = key.header, 
+                   space = key.position,
+                   auto.text = auto.text, footer = key.footer, header = key.header,
                    height = 1, width = 1.5, fit = "all")
-    if (!is.null(key)) 
-        if (is.list(key)) 
-            legend[names(key)] <- key
-        else warning("In polarFreq(...):\n  non-list key not exported/applied\n  [see ?drawOpenKey for key structure/options]", 
-                     call. = FALSE)
-    legend <- list(temp = list(fun = drawOpenKey, args = list(key = legend, 
-                                                  draw = FALSE)))
-    names(legend)[1] <- if(is.null(key$space)) key.position else key$space
-    
+    legend <- makeOpenKeyLegend(key, legend, "polarFreq")
+
     temp <- paste(type, collapse = "+")
     myform <- formula(paste("ws ~ wd | ", temp, sep = ""))
-   
+
+    span <- ws.int * floor (max.ws / ws.int) + ws.int + offset
+
     plt <- xyplot(myform,
-                  xlim = c(-max.ws - 4.0, max.ws + 4.0),
-                  ylim = c(-max.ws - 4.0, max.ws + 4.0),
+                  xlim = 1.03 * c(-span, span),
+                  ylim = 1.03 * c(-span, span),
                   data = results.grid,
                   main = quickText(main, auto.text),
                   par.strip.text = list(cex = 0.8),
@@ -200,7 +216,7 @@ polarFreq <- function(mydata,
                   panel = function(x, y, subscripts,...) {
                       panel.xyplot(x, y,...)
 
-                      subdata <- results.grid[subscripts,]
+                      subdata <- results.grid[subscripts, ]
 
                       for (i in 1:nrow(subdata)) {
                           colour <- col[as.numeric(subdata$div[i])]
@@ -209,44 +225,46 @@ polarFreq <- function(mydata,
                       }
 
                       ## annotate
-                      angles <- seq(0, 2 * pi, length = 360)
-                      sapply(seq(0, 20 * grid.line, by = grid.line), function(x)
-                             llines((3 + x + ws.int) * sin(angles),
-                                    (3 + x + ws.int) * cos(angles),
-                                    col = "grey", lty = 5))
+                      if (ws.int < max.ws) { ## don't annotate if only 1 interval
+                          angles <- seq(0, 2 * pi, length = 360)
+                          sapply(seq(0, 20 * grid.line, by = grid.line), function(x)
+                                 llines((offset + x) * sin(angles),
+                                        (offset + x) * cos(angles),
+                                        col = "grey", lty = 5))
 
-                      ## radial labels
-                      sapply(seq(0, 20 * grid.line, by = grid.line), function(x)
-                             ltext((3 + x + ws.int) * sin(pi / 4), (3 + x + ws.int) * cos(pi / 4),
-                                   x, cex = 0.7))                                                 
+                          ## radial labels
+                          sapply(seq(0, 20 * grid.line, by = grid.line), function(x)
+                                 ltext((offset + x) * sin(pi / 4), (offset + x) * cos(pi / 4),
+                                       x, cex = 0.7))
+                      }
 
-                       larrows(-max.ws - 4, 0,  -4, 0, code = 1, length = 0.1)
-                      larrows(max.ws + 4, 0,  4, 0, code = 1, length = 0.1)
-                      larrows(0, -max.ws - 4, 0, -4, code = 1, length = 0.1)
-                      larrows(0, max.ws + 4, 0, 4, code = 1, length = 0.1)
+                      larrows(-span, 0,  -offset, 0, code = 1, length = 0.1)
+                      larrows(span, 0,  offset, 0, code = 1, length = 0.1)
+                      larrows(0, -span, 0, -offset, code = 1, length = 0.1)
+                      larrows(0, span, 0, offset, code = 1, length = 0.1)
 
-                      ltext((-max.ws - 4) * 0.95, 0.07 * (max.ws +4), "W", cex = 0.7)
-                      ltext(0.07 * (max.ws + 4), (-max.ws - 4)  * 0.95, "S", cex = 0.7)
-                      ltext(0.07 * (max.ws + 4), (max.ws + 4) * 0.95, "N", cex = 0.7)
-                      ltext((max.ws + 4) * 0.95, 0.07 * (max.ws + 4), "E", cex = 0.7)
+                      ltext(-span * 0.95, 0.07 * span, "W", cex = 0.7)
+                      ltext(0.07 * span, -span  * 0.95, "S", cex = 0.7)
+                      ltext(0.07 * span, span * 0.95, "N", cex = 0.7)
+                      ltext(span * 0.95, 0.07 * span, "E", cex = 0.7)
 
                   },
-                  legend = legend 
+                  legend = legend
                   )
 
 #################
-                                        #output
+    ## output
 #################
     if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip, strip.left = strip.left))
     newdata <- results.grid
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
 
-    #reset if greyscale
-    if (length(cols) == 1 && cols == "greyscale") 
+    ## reset if greyscale
+    if (length(cols) == 1 && cols == "greyscale")
         trellis.par.set("strip.background", current.strip)
 
-    invisible(output)  
+    invisible(output)
 
 
 }

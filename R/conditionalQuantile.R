@@ -10,7 +10,7 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
                                 auto.text = TRUE, ...) {
     ## partly based on from Wilks (2005) and package verification, with many modifications
     require(latticeExtra)
-    
+
     if (length(type) > 2) stop("Only two types can be used with this function")
 
     #greyscale handling
@@ -36,27 +36,29 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
     if (any(type %in%  dateTypes)) vars <- c("date", vars)
 
     ## check the data
-    mydata <- checkPrep(mydata, vars, type)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- na.omit(mydata)
+    mydata <- cutData(mydata, type)
 
-    mydata <- cutData(mydata, type) 
 
     procData <- function(mydata){
         mydata <- mydata[ , sapply(mydata, class) %in% c("numeric", "integer"), drop = FALSE]
+
         obs <- mydata[ , obs]
         pred <- mydata[ , mod]
         min.d <- min(mydata)
         max.d <- max(mydata)
         bins <- seq(floor(min.d), ceiling(max.d), length = bins)
-               
+
         lo <- min(bins)
         hi <- max(bins)
         b <- bins[-length(bins)]
         labs <- b + 0.5 * diff(bins)
-        obs.cut <- cut(obs, breaks = bins, include.lowest = TRUE, 
+        obs.cut <- cut(obs, breaks = bins, include.lowest = TRUE,
                        labels = labs)
         obs.cut[is.na(obs.cut)] <- labs[1]
         obs.cut <- as.numeric(as.character(obs.cut))
-        frcst.cut <- cut(pred, breaks = bins, include.lowest = TRUE, 
+        frcst.cut <- cut(pred, breaks = bins, include.lowest = TRUE,
                          labels = labs)
         frcst.cut[is.na(frcst.cut)] <- labs[1]
         frcst.cut <- as.numeric(as.character(frcst.cut))
@@ -82,8 +84,7 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
         results
     }
 
-    
-    mydata <- na.omit(mydata[ , c(mod, obs, type)])
+
     lo <- min(mydata[ , c(mod, obs)])
     hi <- max(mydata[ , c(mod, obs)])
     all.results <- dlply(mydata, type, procData)
@@ -97,14 +98,14 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
     strip <- strip.custom(factor.levels = pol.name)
 
     if (length(type) == 1 ) {
-        
+
         strip.left <- FALSE
         if (type == "default") strip <- FALSE
-        
-    } else { ## two conditioning variables        
-        
+
+    } else { ## two conditioning variables
+
         pol.name <- sapply(levels(results[ , type[2]]), function(x) quickText(x, auto.text))
-        strip.left <- strip.custom(factor.levels = pol.name)       
+        strip.left <- strip.custom(factor.levels = pol.name)
     }
 #######################################################################################
 
@@ -122,10 +123,10 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
     myform <- formula(paste("x ~ med | ", temp, sep = ""))
     if (!missing(xlab)) xlab <- xlab
     if (!missing(ylab)) ylab <- ylab
-    
+
     scatter <- xyplot(myform, data = results,
                       xlim = c(lo, hi),
-                      ylim = c(lo, hi), 
+                      ylim = c(lo, hi),
                       ylab = ylab,
                       xlab = xlab,
                       as.table = TRUE,
@@ -133,7 +134,7 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
                       strip = strip,
                       strip.left = strip.left,
                       key = list(lines = list(col = c(col.1, col.2, col.5, ideal.col),
-                                 lwd = c(15, 15, 2, 1)), 
+                                 lwd = c(15, 15, 2, 1)),
                       lines.title = 1, title = "", text = list(lab = c("25/75th percentile",
                                                                "10/90th percentile",
                                                                "median",
@@ -143,7 +144,7 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
                       par.strip.text = list(cex = 0.8), ...,
                       panel = function(x, subscripts,  ...){
                           panel.grid (-1, -1, col = "grey95")
-                          
+
                           poly.na(results$x[subscripts], results$q3[subscripts],
                                   results$x[subscripts],
                                   results$q4[subscripts], col = col.2)
@@ -152,30 +153,30 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
                                   results$q2[subscripts], col = col.1)
 
                           ## match type and get limits for obs
-                          theType <- results[subscripts[1], type]                          
-                          
+                          theType <- results[subscripts[1], type]
+
                           if (length(type) == 1) {
                               theSubset <- subset(obs.results, get(type) == theType)
                           } else {
-                              
+
                               theSubset <- obs.results[obs.results[type[1]] ==
                                                        as.character(theType[, 1]) &
                                                        obs.results[type[2]] ==
                                                        as.character(theType[, 2]) , ]
-                              
+
                           }
-                          
+
                           panel.lines(c(theSubset$min, theSubset$max), c(theSubset$min,
                                                                          theSubset$max),
                                       col = ideal.col, lwd = 1)
                           panel.lines(results$x[subscripts], results$med[subscripts],
                                       col = col.5, lwd = 2)
-                                    
+
                       })
-    
+
     temp <- paste(type, collapse = "+")
     myform <- formula(paste(" ~ frcst.cut | ", temp, sep = ""))
-    bins <- seq(floor(lo), ceiling(hi), length = bins) 
+    bins <- seq(floor(lo), ceiling(hi), length = bins)
 
     histo <- histogram(myform, data = hist.results, breaks = bins, type = "count",
                        as.table = TRUE,
@@ -184,7 +185,7 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
                        col = "black", alpha = 0.1, border = NA,
                        par.strip.text = list(cex = 0.8),
                        ylab = "sample size")
-    
+
     thePlot <- doubleYScale(scatter, histo, add.ylab2 = TRUE)
     thePlot <- update(thePlot, par.settings = simpleTheme(col = c("black", "black")))
 
@@ -192,7 +193,7 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
               strip.left = strip.left))
 
     #reset if greyscale
-    if (length(col) == 1 && col == "greyscale") 
+    if (length(col) == 1 && col == "greyscale")
         trellis.par.set("strip.background", current.strip)
 
     invisible(trellis.last.object())

@@ -1,7 +1,7 @@
 
 modStats <- function(mydata,  mod = "mod", obs = "obs", type = "default", ...) {
     ## function to calculate model evaluation statistics
-    ## the default is to use the entire data set. 
+    ## the default is to use the entire data set.
     ## Requires a field "date" and optional conditioning variables representing measured and modelled values
 
      ## extract variables of interest
@@ -10,7 +10,7 @@ modStats <- function(mydata,  mod = "mod", obs = "obs", type = "default", ...) {
     if (any(type %in%  dateTypes)) vars <- c("date", vars)
 
     ## check the data
-    mydata <- checkPrep(mydata, vars, type)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
 
     mydata <- cutData(mydata, type, ...)
 
@@ -32,7 +32,7 @@ modStats <- function(mydata,  mod = "mod", obs = "obs", type = "default", ...) {
     ## mean bias
     MB <- function(x, mod = "mod", obs = "obs") {
         x <- na.omit(x[ , c(mod, obs)])
-        res <- mean(x[, mod] - x[, obs]) 
+        res <- mean(x[, mod] - x[, obs])
         data.frame(MB = res)
     }
 
@@ -79,16 +79,16 @@ modStats <- function(mydata,  mod = "mod", obs = "obs", type = "default", ...) {
     res.NMB <- ddply(mydata, type, NMB, mod, obs)
     res.NMGE <- ddply(mydata, type, NMGE, mod, obs)
     res.RMSE <- ddply(mydata, type, RMSE, mod, obs)
-    res.r <- ddply(mydata, type, r, mod, obs) 
+    res.r <- ddply(mydata, type, r, mod, obs)
 
     ## merge them all into one data frame
     results <- list(res.n, res.FAC, res.MB, res.MGE, res.NMB, res.NMGE, res.RMSE, res.r)
     results <- Reduce(function(x, y, by = type) merge(x, y, by = type, all = TRUE), results)
-  
+
     results <- sortDataFrame(results, key = type)
-    
+
     results
-    
+
 }
 
 sortDataFrame <- function(x, key, ...) {
@@ -102,6 +102,6 @@ sortDataFrame <- function(x, key, ...) {
         x[order(rn, ...), , drop = FALSE]
     } else {
         x[do.call("order", c(x[key], ...)), , drop = FALSE]
-    } 
+    }
 }
 

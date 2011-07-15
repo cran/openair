@@ -7,7 +7,7 @@
   flexible time aggregation.
 }
 \usage{
-calcPercentile(mydata, pollutant = "o3", period = "month", percentile = 50,
+calcPercentile(mydata, pollutant = "o3", avg.time = "month", percentile = 50,
                             data.thresh = 0, start = NA)
 }
 
@@ -19,7 +19,7 @@ calcPercentile(mydata, pollutant = "o3", period = "month", percentile = 50,
 
   \item{pollutant}{Name of variable to process. Mandatory.}
 
-  \item{period}{Averaging period to use. See \code{timeAverage} for details.}
+  \item{avg.time}{Averaging period to use. See \code{timeAverage} for details.}
 
   \item{percentile}{A vector of percentile values. For example
   \code{percentile = 50} for median values, \code{percentile = c(5, 50,
@@ -52,13 +52,13 @@ calcPercentile(mydata, pollutant = "o3", period = "month", percentile = 50,
 
 # 95th percentile monthly o3 concentrations
 percentiles <- calcPercentile(mydata, pollutant ="o3",
-period = "month", percentile = 95)
+avg.time = "month", percentile = 95)
 
 head(percentiles)
 
 # 5, 50, 95th percentile monthly o3 concentrations
 percentiles <- calcPercentile(mydata, pollutant ="o3",
-period = "month", percentile = c(5, 50, 95))
+avg.time = "month", percentile = c(5, 50, 95))
 
 head(percentiles)
 }

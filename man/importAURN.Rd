@@ -285,6 +285,8 @@ help with selection.
   test version. NOTE - Information is required on the site codes for
   easy use.}
 
+\seealso{\code{\link{importKCL}}, \code{\link{importADMS}}, \code{\link{importSAQN}}}
+
 \examples{
 
 ## import all pollutants from Marylebone Rd from 1990:2009
@@ -303,12 +305,9 @@ pollutant = c("nox", "no2", "o3"))}
 ## reshape the data so that each column represents a pollutant/site
 \dontrun{thedata <- importAURN(site = c("nott", "kc1"), year = 2008,
 pollutant = "o3")
-thedata <- reshape(thedata, idvar = "date", timevar = "code", direction
-= "wide")
-## thedata now has columns o3.MY1 and o3.KC1
-## can also get rid of columns, in this case site:
-thedata <- reshape(thedata, idvar = "date", timevar = "code", direction
-= "wide", drop = "site")
+thedata <- melt(thedata, measure.vars = "o3")
+thedata <- dcast(thedata, ... ~ variable + site + code)
+## thedata now has columns  o3_Nottingham Centre_NOTT o3_London N. Kensington_KC1
 ## now can export as a csv file:
 write.csv(thedata, file = "~/temp/thedata.csv")
 
