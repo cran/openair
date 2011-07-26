@@ -24,7 +24,7 @@ trendLevel(mydata,
     rotate.axis = c(90, 0), n.levels = c(10, 10, 4),
     limits = c(0, 100), cols = "default", auto.text = TRUE, 
     key.header = "use.stat.name", key.footer = pollutant, 
-    key.position = "right", key = NULL,
+    key.position = "right", key = TRUE,
     statistic = c("mean", "max", "frequency"), stat.args = NULL, 
     stat.safe.mode = TRUE, drop.unused.types = TRUE,
     ...)		

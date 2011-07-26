@@ -3,34 +3,34 @@ trendLevelHour <- function(mydata, ...) {
 }
 
 trendLevelWd <- function(mydata,
-   pollutant = "nox", 
+   pollutant = "nox",
    y = "wd", ylab = "wind direction (degrees)", ...) {
    trendLevel(mydata, y = y, ylab = ylab, ...)
 }
 
-trendLevel <- function(mydata, 
+trendLevel <- function(mydata,
     pollutant = "nox",
     x = "month", y = "hour",
     type = "year",
     xlab = x, ylab = y,
     main = "",
     rotate.axis = c(90, 0),
-    n.levels = c(10, 10, 4), 
-    limits = c(0, 100),  
-    cols = "default", 
+    n.levels = c(10, 10, 4),
+    limits = c(0, 100),
+    cols = "default",
     auto.text = TRUE,
     key.header = "use.stat.name",
     key.footer = pollutant,
     key.position = "right",
-    key = NULL,
+    key = TRUE,
     statistic = c("mean", "max", "frequency"),
     stat.args = NULL,
     stat.safe.mode = TRUE,
     drop.unused.types = TRUE,
     ##plot.nas = FALSE,
-    ...) 
+    ...)
 {
- 
+
     #Generic levelplot function for summarising large data sets
     #kr v.05
     #based on previous trend.level.hour and trend.level.wd functions by dcc
@@ -45,19 +45,19 @@ trendLevel <- function(mydata,
     ##trendLevel(mydata, y = "wd", ylab = "wind direction (degrees)")
     #extra control
     ##trendLevel(mydata, x="hour", y="wd", type="month")
-    #extra conditioning 
+    #extra conditioning
     #by another pollutant/measurement
     ##trendLevel(mydata, y="pm10")
-    #statistic will accept function 
+    #statistic will accept function
     ##with right stat.args and stat.safe.mode
     ##statistic is try protected for local error messaging
 
-    #suggestions 
+    #suggestions
     ############
     #the xlim amd ylim handling have been removed
-    #also the labelling is a less clean  
+    #also the labelling is a less clean
     ##these all came from make.axis which was replaced by cutData
-    ##suggest added a 'son of make.axis that could be tagged on the 
+    ##suggest added a 'son of make.axis that could be tagged on the
     ##to provide these features
     #the strucutre is openair to duplicate passes to levelplot again
     ############
@@ -66,15 +66,15 @@ trendLevel <- function(mydata,
     ##e.g. trendLevel(mydata, key.pos ="anything but left, right, top or bottom typed exactly like this!")
     #
 
-    #update notes 
+    #update notes
     ##############
-    #main returned, typelab removed 24 Jan 2011   
+    #main returned, typelab removed 24 Jan 2011
 
 
     ###############################
     #setup
     ###############################
-    
+
     #greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
         #strip only
@@ -89,7 +89,7 @@ trendLevel <- function(mydata,
           stop(paste("\ttrendLevel does not allow 'NULL' ", a, " option.",
              "\n\t[suggest one of following: ", paste(y, collapse=", "),"]", sep="")
           , call.=FALSE)
-       } 
+       }
        out <- y[pmatch(x, y)] #match to options
        if(is.na(out)){
           stop(paste("\ttrendLevel could not evaluate ", a, " term '", x,
@@ -110,13 +110,13 @@ trendLevel <- function(mydata,
             "\n\t[ignoring all but first]", sep=""), call.=FALSE)
         x <- x[1]
         xlab <- xlab[1]
-    } 
+    }
     if(length(y)>1){
         warning(paste("\ttrendLevel does not allow multiple 'y' values.",
             "\n\t[ignoring all but first]", sep=""), call.=FALSE)
         y <- y[1]
         ylab <- ylab[1]
-    } 
+    }
     if(length(type)>2){
         ###########################
         #TO DO
@@ -130,7 +130,7 @@ trendLevel <- function(mydata,
         ###################################
         #type labels
         #check them
-    } 
+    }
 
     ###################################
     #check x, y and type do not match
@@ -153,7 +153,7 @@ trendLevel <- function(mydata,
             warning(paste("\ttrendLevel ignored unrecognised '", vector.name, "' option.",
                 "\n\t[check ?trendLevel for details]", sep=""), call.=FALSE)
             #use current default
-            vector <- eval(formals(trendLevel)[[vector.name]]) 
+            vector <- eval(formals(trendLevel)[[vector.name]])
         }
         if(length(vector)<len) vector <- rep(vector,len)[1:len]
         #insert default if not given
@@ -171,7 +171,7 @@ trendLevel <- function(mydata,
             #hardcoded statistic options
             ##########################
             #update both here and in formals
-            statistic <- check.valid("statistic", statistic, 
+            statistic <- check.valid("statistic", statistic,
                                     eval(formals(trendLevel)$statistic))
             if(statistic=="mean") {
                 stat.fun <- mean
@@ -192,28 +192,28 @@ trendLevel <- function(mydata,
             stat.name <- statistic
         ####1
         } else {
-            ########################    
-            #user defined function handling 
             ########################
-            #default unnameed stats to 'level'         
+            #user defined function handling
+            ########################
+            #default unnameed stats to 'level'
             stat.name <- substitute(statistic)
-            if(length(stat.name)!=1) stat.name <- "level" 
+            if(length(stat.name)!=1) stat.name <- "level"
             if(stat.safe.mode){
                 stat.fun <- function(x, ...) {
                     if(all(is.na(x))) { NA } else { statistic(x, ...)[1] }
                 }
             } else {
-                stat.fun <- function(x, ...) { statistic(x, ...)[1] } 
-            }       
-        }     
+                stat.fun <- function(x, ...) { statistic(x, ...)[1] }
+            }
+        }
     } else {
         ########################
         #early end for bad stats
         ########################
         #unknown stat option
         stop(paste("\ttrendLevel could not apply statistic option '", substitute(statistic),
-           "'.\n\t[suggest valid function or character vector]", 
-           "\n\t[currect character vectors options: '", 
+           "'.\n\t[suggest valid function or character vector]",
+           "\n\t[currect character vectors options: '",
            paste(eval(formals(trendLevel)$statistic), collapse="', '"),"']", sep="")
         , call.=FALSE)
     }
@@ -230,24 +230,24 @@ trendLevel <- function(mydata,
     #checkPrep
     ############################
     #keep date if about
-    temp <- if("date" %in% names(mydata)) 
-                c("date", pollutant) else 
+    temp <- if("date" %in% names(mydata))
+                c("date", pollutant) else
                     pollutant
     #all of x, y, temp need to be handled as type here
-    mydata <- checkPrep(mydata, temp, type=c(x,y,type))
+    mydata <- checkPrep(mydata, temp, type=c(x,y,type), remove.calm = FALSE)
 
     ############################
-    #cutData2
+    #cutData
     ############################
     #get pollutant value
-    #NOTE: this can same as one of x, y, type
-    #so need a temp case 
+    #NOTE: this can be same as one of x, y, type
+    #so need a temp case
     mydata$..z.xx <- mydata[,pollutant]
     #different n.levels for axis and type
     #is.axis applied for x and y
     newdata <- cutData(mydata, x, n.levels=n.levels[1], is.axis=TRUE, ...)
     newdata <- cutData(newdata, y, n.levels=n.levels[2], is.axis=TRUE, ...)
-    newdata <- cutData(newdata, type, n.levels=n.levels[3], ...) 
+    newdata <- cutData(newdata, type, n.levels=n.levels[3], ...)
     newdata <- newdata[c("..z.xx", x,y,type)]
 
 
@@ -261,14 +261,14 @@ trendLevel <- function(mydata,
             }
     if(is.null(stat.args)) {
         newdata <- try(temp(), silent=TRUE)
-    } else { 
+    } else {
         newdata <- try(do.call(temp, stat.args), silent=TRUE)
     }
 
     ######################
     #error handling for stat
     ######################
-    if(is(newdata)[1]=="try-error"){      
+    if(is(newdata)[1]=="try-error"){
         stop(paste("\ttrendLevel could not complete supplied statistic operation '", stat.name,
             "'.\n\t[R error below]", "\n\t", temp[1], sep="")
         , call.=FALSE)
@@ -277,10 +277,10 @@ trendLevel <- function(mydata,
     ##############################
     #restructure new data for plot
     ##############################
-    newdata <- data.frame(expand.grid(dimnames(newdata)), 
+    newdata <- data.frame(expand.grid(dimnames(newdata)),
                    matrix(unlist(newdata), byrow = TRUE))
     pollutant <- paste(pollutant, stat.name, sep=".")
-    names(newdata)[ncol(newdata)] <- pollutant 
+    names(newdata)[ncol(newdata)] <- pollutant
 
     ##############################
     #drop unused type cases
@@ -291,8 +291,8 @@ trendLevel <- function(mydata,
     #TO DO
     ##############################
     #reimplement if requested
-    #note: 
-    #if reinstalled not now have 
+    #note:
+    #if reinstalled not now have
     #1-2 type settings
     ##############################
 
@@ -310,44 +310,40 @@ trendLevel <- function(mydata,
                       temp <- sapply(unique(newdata[ , type[2]]), function(x) quickText(x, auto.text))
                       strip.custom(factor.levels = temp)
                   }
-    xlab <- quickText(xlab, auto.text) 
+    xlab <- quickText(xlab, auto.text)
     ylab <- quickText(ylab, auto.text)
     main <- quickText(main, auto.text)
     scales <- list(x = list(rot = rotate.axis[1]),
-                   y = list(rot = rotate.axis[2])) 
+                   y = list(rot = rotate.axis[2]))
 
     ##ie ignores formals setting because it is looking in ...
     if (missing(limits)) {
-        breaks = seq(min(newdata[,pollutant], na.rm = TRUE), quantile(newdata[,pollutant], 
+        breaks = seq(min(newdata[,pollutant], na.rm = TRUE), quantile(newdata[,pollutant],
             probs = 0.95, na.rm = TRUE), length = 101)
         if(max(breaks, na.rm=TRUE) < max(newdata[,pollutant], na.rm = TRUE)){
-            breaks = seq(min(newdata[,pollutant], na.rm = TRUE), quantile(newdata[,pollutant], 
+            breaks = seq(min(newdata[,pollutant], na.rm = TRUE), quantile(newdata[,pollutant],
                 probs = 0.95, na.rm = TRUE), length = 100)
             breaks = c(breaks, max(newdata[,pollutant], na.rm = TRUE))
         }
     } else {
         breaks = seq(limits[1], limits[2], length = 101)
     }
-    nlev2 = length(breaks) 
+    nlev2 = length(breaks)
     col.regions <- openColours(cols, (nlev2 - 1))
 
-    legend <- list(col = col.regions, at = breaks, space = key.position, 
-         auto.text = auto.text, footer = key.footer, header = key.header, 
-         height = 1, width = 1.5, fit = "all")
-    if (!is.null(key)) 
-         if (is.list(key)) 
-             legend[names(key)] <- key
-         else warning("In trendLevel(...):\n  non-list key not exported/applied\n  [see ?drawOpenKey for key structure/options]", 
-             call. = FALSE)
-    legend <- list(temp = list(fun = drawOpenKey, args = list(key = legend, 
-         draw = FALSE)))
-    names(legend)[1] <- legend$temp$args$key$space #safer than key.position
-    colorkey <- FALSE   
+    ##key, colorkey and legend handling
+    #default list
+    legend <- list(col = col.regions, at = breaks, space = key.position,
+                  auto.text = auto.text, footer = key.footer, header = key.header,
+                  height = 1, width = 1.5, fit = "all")
+    legend <- makeOpenKeyLegend(key, legend, "trendLevel")
+    #turn off colorkey
+    colorkey <- FALSE
 
     #stop overlapping labels
     yscale.lp <- function(...){
         ans <- yscale.components.default(...)
-        ans$left$labels$check.overlap <- TRUE 
+        ans$left$labels$check.overlap <- TRUE
         ans
     }
     xscale.lp <- function(...){
@@ -355,16 +351,16 @@ trendLevel <- function(mydata,
         ans$bottom$labels$check.overlap <- TRUE
         ans
     }
-   
+
     ##############################
     #plot
     ##############################
     #note: (like other openair functions)
-    #      this will now fall over with lattice error if the user passes any of 
+    #      this will now fall over with lattice error if the user passes any of
     #      the preset options below as part of call
     plt <- levelplot(myform, data = newdata,
                as.table = TRUE, xlab=xlab, ylab =ylab, main = main,
-               legend = legend, colorkey = colorkey, 
+               legend = legend, colorkey = colorkey,
                at = breaks, col.regions=col.regions,
                scales = scales,
                yscale.components = yscale.lp,
@@ -377,7 +373,7 @@ trendLevel <- function(mydata,
     #update for two levels
     ##############################
     #uses iseOuterStrips in latticeExtra
-    if(length(type) > 1) 
+    if(length(type) > 1)
         plt <- useOuterStrips(plt, strip = strip, strip.left = strip.left)
 
     ##############################
@@ -385,11 +381,11 @@ trendLevel <- function(mydata,
     ##############################
     plot(plt)
     #reset if greyscale
-    if (length(cols) == 1 && cols == "greyscale") 
+    if (length(cols) == 1 && cols == "greyscale")
         trellis.par.set("strip.background", current.strip)
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
-    invisible(output)   
-       
+    invisible(output)
+
 }
 

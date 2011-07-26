@@ -1,3 +1,76 @@
+Changes in openair 0.4-23 [2011-07-15]
+=====================================
+*	NEW FUNCTION TaylorDiagram for model evaluation.
+
+Changes in openair 0.4-22 [2011-06-03]
+=====================================
+*	NOTE - use reshape2 in place of reshape for speed and reliability
+* 	allow more than one pollutant with percentileRose
+* 	fixed title bug with scatterPlot - not shown for some methods
+* 	modifed key handling on plots using drawOpenKey, so
+  	key = NULL or FALSE now removes colour key.
+* 	added method = "level" to scatterPlot for binning data with
+	optional smoothing, plus other code clean-ups
+* 	fix bug in conditionalQuantile that labelled plots wrongly
+	when site(s) has missing data
+*	added ref.x and ref.y to timePlot to allow refernce lines to
+	be added
+* 	do not remove calm wind speed conditions in any functions
+	where this is unecessary
+
+Changes in openair 0.4-21 [2011-06-03]
+=====================================
+* 	fixed bug in polarAnnulus that resulsted in a failure to
+	annotate the plot properly with period = "trend" and less than 1 year
+	of data; improved smoothing default options used
+* 	new 'statistic' option to pollutionRose to show contribution
+	to counts and contribution to the mean. The latter is useful for
+	displaying those wind directions that make most contribution to teh
+	overall mean. Panel mean is also now shown.
+* 	small change to final example of re-shaping data in importKCL
+* 	timeAverage can now expand data to shorter time periods
+	e.g. hourly to 15-minute. This makes it more flexible to combine data
+	sets with differeing averging times. For example, daily mean particle
+	data can be expanded to 1-hour means and combined with an hourly
+	meteorological data set.
+* 	Fix treatment of calms in checkPrep, which affected cases with
+	zero wind speeds in timeAverage
+*	Fix to vector averaging in timeAverage (did not include wind
+	speed in calculations). For most data this will make very little
+	difference, but will be more important for low wind speeds and/or
+	variable wind directions.
+* 	allow type = 'variable' in smoothTrend
+* 	Add avg.time to smoothTrend for "month" or "year" averages
+
+Changes in openair 0.4-20 [2011-05-31]
+=====================================
+* 	Do not remove calms in timeAverage
+* 	NEW FUNCTION importSAQN to import data from the Scottish Air
+	Quality Network
+
+Changes in openair 0.4-19 [2011-05-19]
+=====================================
+* 	improved import date.name/time.name handling of spaces
+* 	Improved scaling for polarFreq
+* 	scatterPlot type = "wd" labels aligned
+* 	Added option "statistic" to polarPlot, which can now consider
+	"mean", "median", "max" (maximum), "frequency". "stdev"
+	(standard deviation) or "weighted.mean" in a similar way to polarFreq
+* 	Fixed bad.24 and international tz bugs in import
+* 	updated import/import.2
+
+Changes in openair 0.4-18 [2011-05-19]
+=====================================
+*	Better handling of missing data in smoothTrend/MannKendall;
+	particularly when there are mutiple sites
+*	Do not run checkPreo on selectByDate because it removes calms
+*	Fixed scaling bug in polarFreq when ws.int != 1
+*	use avg.time in calcPercentile instead of 'period' to ensure
+	consistency with other functions (timePlot would fail with
+	percentiles)
+*	return NA in aqStats when no data present; previously it tried
+	to calculate quanities, returning -Inf etc
+
 Changes in openair 0.4-17 [2011-04-21]
 =====================================
 *	use readRDS and not .readRDS (caused failure on R Dev)
@@ -22,8 +95,8 @@ Changes in openair 0.4-15 [2011-04-12]
 
 Changes in openair 0.4-14 [2011-04-05]
 =====================================
-*	Added preliminary greyscale method to openColours and linked in 
-      strip background and other text and line colour control for 
+*	Added preliminary greyscale method to openColours and linked in
+      strip background and other text and line colour control for
       standard openair plots.
 
 Changes in openair 0.4-13 [2011-03-31]
@@ -68,7 +141,7 @@ Changes in openair 0.4-9 [2011-03-04]
 
 *	Added new options to scatterPlot (plot.type, lwd, and lty)
          making it possible to add points and/or lines
-	 
+
 
 Changes in openair 0.4-8 [2011-02-24]
 =====================================

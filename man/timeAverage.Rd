@@ -3,8 +3,8 @@
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Function to calculate timeAverages for data frames}
 
-\description{Function to flexibly aggregate data frames by different
-timeAverages, calculating vector-averaged wind direction where
+\description{Function to flexibly aggregate or expand data frames by
+different time periods, calculating vector-averaged wind direction where
 appropriate. The averaged periods can also take account of data capture
 rates.  }
 
@@ -27,9 +27,17 @@ start.date = NA)
 \item{avg.time}{This defines the time period to average to. Can be "sec",
   "min", "hour", "day", "DSTday", "week", "month", "quarter" or
   "year". For much increased flexibility a number can precede these
-  options followed by a space. For example, a timeAverage of 2 months
+  options followed by a space. For example, a time average of 2 months
   would be \code{avg.time = "2 month"}. See \code{cut.POSIXt} for
-  further details on this.}
+  further details on this.
+
+Note that \code{avg.time} can be \emph{less} than the time interval of
+the original series, in which case the series is expanded to the new
+time interval. This is useful, for example, for calculating a 15-minute
+time series from an hourly one where an hourly value is repeated for
+each new 15-minute period. Note that when expanding data in this way it
+is necessary to ensure that the time interval of the original series is
+an exact multiple of \code{avg.time} e.g. hour to 10 minutes, day to hour.   }
 
 \item{data.thresh}{The data capture threshold to use (\%). A value of
   zero means that all available data will be used in a particular period
@@ -58,16 +66,17 @@ that the sequence is then "2009-11-29 12:00:00", "2009-11-29
 sequence.}
 }
 
-\details{This function calculates timeAverages for a data frame. It
+\details{This function calculates time averages for a data frame. It
   also treats wind direction correctly through vector-averaging. For
   example, the average of 350 degrees and 10 degrees is either 0 or 360
   - not 180. The calculations therefore average the wind components.
 
 \code{timeAverage} should be useful in many circumstances where it is
-necessary to work with different timeAverage data. For example, hourly
+necessary to work with different time average data. For example, hourly
 air pollution data and 15-minute meteorological data. To merge the two
 data sets \code{timeAverage} can be used to make the meteorological
-data 1-hour means first.
+data 1-hour means first. Alternatively, \code{timeAverage} can be used
+to expand the hourly data to 15 minute data - see example below.
 
 For the research community \code{timeAverage} should be useful for
 dealing with outputs from instruments where there are a range of time
@@ -83,7 +92,13 @@ and setting different averaging periods easily helps with interpretation.
   necessary because characters/factors cannot be sensibly averaged. If
   merging with a daily time series with dates in \code{Date} format, it
   will be necessary to convert the format of the output e.g. mydata$date
-  <- as.Date(mydata$date) before merging.}
+  <- as.Date(mydata$date) before merging.
+
+Also note that due to the vector averging of wind direction, any data
+with ws = 0 and a non-zero wind direction will yield a result with zero
+wind direction e.g. due to u * sin(2 * pi * theta / 360). In essence the
+function assumes there cannot be a valid wind direction when the wind
+speed is zero.}
 
 \value{Returns a data frame with date in class \code{POSIXct} and will
   remove any non-numeric columns except a column "site".}
@@ -106,6 +121,11 @@ daily <- timeAverage(mydata, avg.time = "day", data.thresh = 75)
 
 ## 2-weekly averages
 fortnight <- timeAverage(mydata, avg.time = "2 week")
+
+## make a 15-minute time series from an hourly one
+\dontrun{
+min15 <-  timeAverage(mydata, avg.time = "15 min")
+}
 
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

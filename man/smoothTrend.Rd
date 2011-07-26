@@ -11,6 +11,7 @@ pollutant = "nox",
 deseason = FALSE,
 type = "default",
 statistic = "mean",
+avg.time = "month",
 percentile = NA,
 data.thresh = 0,
 simulate = FALSE,
@@ -69,6 +70,9 @@ auto.text = TRUE,...)
    \item{statistic}{Statistic used for calculating monthly
    values. Default is \code{"mean"}, but can also be
    \code{"percentile"}. See \code{timeAverage} for more details.}
+
+\item{avg.time}{Either "month" (the default), or "year". Determines whether
+monthly mean or annual mean trends are plotted.}
 
  \item{percentile}{Percentile value(s) to use if \code{statistic =
  "percentile"} is chosen. Can be a vector of numbers
@@ -155,17 +159,17 @@ auto.text = TRUE,...)
 }
 
 \value{
-  As well as generating the plot itself, \code{smoothTrend} also returns an object of class 
-  ``openair''. The object includes three main components: \code{call}, the command used to 
-  generate the plot; \code{data}, the data frame of summarised information used to make the 
-  plot; and \code{plot}, the plot itself. If retained, e.g. using 
-  \code{output <- smoothTrend(mydata, "nox")}, this output can be used to recover the data, reproduce 
-  or rework the original plot or undertake further analysis.  
+  As well as generating the plot itself, \code{smoothTrend} also returns an object of class
+  ``openair''. The object includes three main components: \code{call}, the command used to
+  generate the plot; \code{data}, the data frame of summarised information used to make the
+  plot; and \code{plot}, the plot itself. If retained, e.g. using
+  \code{output <- smoothTrend(mydata, "nox")}, this output can be used to recover the data, reproduce
+  or rework the original plot or undertake further analysis.
 
-  An openair output can be manipulated using a number of generic operations, including 
-  \code{print}, \code{plot} and \code{summarise}. See \code{\link{openair.generics}} 
-  for further details.   
-  
+  An openair output can be manipulated using a number of generic operations, including
+  \code{print}, \code{plot} and \code{summarise}. See \code{\link{openair.generics}}
+  for further details.
+
 }
 
 

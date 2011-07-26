@@ -1,7 +1,7 @@
 .onLoad <- function (...) {
 
-open.info <- system.file("Meta", "package.rds", package = "openair") 
-if (!nzchar(open.info)) 
+open.info <- system.file("Meta", "package.rds", package = "openair")
+if (!nzchar(open.info))
     stop("'openair' is incorrectly installed. Please reinstall.", domain = NA)
 open.info <- readRDS(open.info)
 
@@ -13,17 +13,17 @@ ins.pcks <- .packages(all.available = TRUE)
 open.test <- 0
 
 #packages loaded as library
-req.pcks <- c("proto", "grid", "plyr", "reshape",  "lattice", "RColorBrewer")
+req.pcks <- c("proto", "grid", "plyr", "reshape2",  "lattice", "RColorBrewer")
     for (pck in req.pcks) {
         if(pck %in% ins.pcks) {
             suppressWarnings(require(pck, character.only = TRUE, quietly = TRUE, warn.conflicts = FALSE))
         } else {
             message(paste("\nWARNING unable to load required package '", pck, "'", sep = ""))
             message("\t'openair' may not run correctly without this")
-            message("\trecommend (re)installing")  
+            message("\trecommend (re)installing")
             open.test <- open.test + 1
         }
-    }    
+    }
 
 #rest loaded as namespaces in openair
 req.pcks <- all.pcks[!all.pcks %in% "proto"]
@@ -34,9 +34,9 @@ req.pcks <- all.pcks[!all.pcks %in% "proto"]
            message(paste("\nWARNING unable to namespace required package '", pck, "'", sep = ""))
            message("\t'openair' may not run correctly without this")
            message("\trecommend (re)installing")
-           open.test <- open.test + 1          
+           open.test <- open.test + 1
        }
-   }    
+   }
 
 message(paste("\nThis is openair version ", packageDescription("openair", field = "Version")), sep = "")
 
@@ -58,5 +58,5 @@ if(open.test==0){
  # message("\nPlease cite both R and openair if you find them useful.")
  # message("\ttype citation() for how to cite R")
   message("\ttype citation(\"openair\") for how to cite openair")
-     
+
 }

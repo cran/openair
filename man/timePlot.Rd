@@ -31,6 +31,8 @@ strip = TRUE,
 log = FALSE,
 smooth = FALSE,
 ci = TRUE,
+ref.x = NULL,
+ref.y = NULL,
 key.columns = 1,
 name.pol = pollutant,
 date.breaks = 7,
@@ -169,7 +171,11 @@ field and at least one variable to plot.}
    is \code{FALSE}.}
 
  \item{ci}{If a smooth fit line is applied, then \code{ci} determines
- whether the 95\% confidence intervals aer shown.}
+   whether the 95\% confidence intervals aer shown.}
+
+ \item{ref.x}{Add a vertical dashed reference line at this value.}
+
+\item{ref.y}{Add a horizontal dashed reference line at this value.}
 
   \item{key.columns}{Number of columns to be used in the key. With many
   pollutants a single column can make to key too wide. The user can thus
@@ -201,17 +207,17 @@ field and at least one variable to plot.}
 }
 
 \value{
-  As well as generating the plot itself, \code{timePlot} also returns an object of class 
-  ``openair''. The object includes three main components: \code{call}, the command used to 
-  generate the plot; \code{data}, the data frame of summarised information used to make the 
-  plot; and \code{plot}, the plot itself. If retained, e.g. using 
-  \code{output <- timePlot(mydata, "nox")}, this output can be used to recover the data, reproduce 
-  or rework the original plot or undertake further analysis.  
+  As well as generating the plot itself, \code{timePlot} also returns an object of class
+  ``openair''. The object includes three main components: \code{call}, the command used to
+  generate the plot; \code{data}, the data frame of summarised information used to make the
+  plot; and \code{plot}, the plot itself. If retained, e.g. using
+  \code{output <- timePlot(mydata, "nox")}, this output can be used to recover the data, reproduce
+  or rework the original plot or undertake further analysis.
 
-  An openair output can be manipulated using a number of generic operations, including 
-  \code{print}, \code{plot} and \code{summary}. See \code{\link{openair.generics}} 
-  for further details.   
-  
+  An openair output can be manipulated using a number of generic operations, including
+  \code{print}, \code{plot} and \code{summary}. See \code{\link{openair.generics}}
+  for further details.
+
 }
 
 

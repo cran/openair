@@ -15,7 +15,7 @@ fill = TRUE, lwd = 2,
 angle.scale = 45,
 main = "",  auto.text = TRUE,  key.header = NULL,
 key.footer = "percentile", key.position = "bottom",
-key = NULL,  ...)
+key = TRUE,  ...)
 }
 
 %- maybe also 'usage' for other objects documented here.
@@ -26,7 +26,8 @@ key = NULL,  ...)
 
 \item{pollutant}{Mandatory. A pollutant name corresponding to a
   variable in a data frame should be supplied e.g. \code{pollutant =
-    "nox"}. }
+    "nox"}. More than one pollutant can be supplied e.g. \code{pollutant =
+    c("no2", "o3")} provided there is only one \code{type}. }
 
 \item{type}{\code{type} determines how the data are split
   i.e. conditioned, and then plotted. The default is will produce a
@@ -84,11 +85,11 @@ key = NULL,  ...)
   \code{drawOpenKey} via \code{quickText}, applying the \code{auto.text}
   argument, to handle formatting. }
 
-\item{key.position}{Location where the scale key is to plotted. 
-  Allowed arguments currently include \code{"top"}, \code{"right"}, 
+\item{key.position}{Location where the scale key is to plotted.
+  Allowed arguments currently include \code{"top"}, \code{"right"},
   \code{"bottom"} and \code{"left"}.}
 
-\item{key}{Fine control of the scale key via \code{drawOpenKey}. See 
+\item{key}{Fine control of the scale key via \code{drawOpenKey}. See
   \code{drawOpenKey} for further details.}
 
 
@@ -109,7 +110,7 @@ key = NULL,  ...)
   operations, including \code{print}, \code{plot} and
   \code{summary}. See \code{\link{openair.generics}} for further
   details.
-  
+
 }
 
 

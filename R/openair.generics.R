@@ -262,7 +262,7 @@ plot.openair <- function(x, subset = "all", silent=TRUE, ...){
                   "\n\t[subset requested from openair object without data subsets]", 
                   call. = FALSE)
       }
-      return(plot(x$plot))
+      return(plot(x$plot, ...))
    }
 
 
@@ -300,11 +300,11 @@ plot.openair <- function(x, subset = "all", silent=TRUE, ...){
    #own plot style
    test <- x[[paste(temp,"plot", sep=".")]]
    if(!is.null(test))
-       return(test(x$plot[[temp]]))
+       return(test(x$plot[[temp]], ...))
    #ind plot handling
    test <- x$ind.plot
    if(!is.null(test))  
-       return(x$ind.plot(x$plot[[temp]]))
+       return(x$ind.plot(x$plot[[temp]], ...))
    #staight plot
    return(x$plot[[temp]])
 }

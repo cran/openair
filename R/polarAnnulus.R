@@ -1,24 +1,24 @@
 
 polarAnnulus <- function(mydata,
-                          pollutant = "nox",
-                          resolution = "fine",
-                          local.time = FALSE,
-                          period = "hour",
-                          type = "default",
-                          limits = c(0, 100),
-                          cols = "default",
-                          width = "normal",
-                          exclude.missing = TRUE,
-                          date.pad = FALSE,
-                          force.positive = TRUE,
-                          k = 15,
+                         pollutant = "nox",
+                         resolution = "fine",
+                         local.time = FALSE,
+                         period = "hour",
+                         type = "default",
+                         limits = c(0, 100),
+                         cols = "default",
+                         width = "normal",
+                         exclude.missing = TRUE,
+                         date.pad = FALSE,
+                         force.positive = TRUE,
+                         k = c(20, 10),
                          normalise = FALSE,
-                          main = "",
-                          key.header = "",
-                          key.footer = pollutant,
-                          key.position = "right",
-                          key = NULL,
-                          auto.text = TRUE,...) {
+                         main = "",
+                         key.header = "",
+                         key.footer = pollutant,
+                         key.position = "right",
+                         key = TRUE,
+                         auto.text = TRUE,...) {
 
 
     ## extract variables of interest
@@ -27,15 +27,15 @@ polarAnnulus <- function(mydata,
     if (period == "trend" & "season" %in% type) stop ("Cannot have same type as 'season' and period as 'trend'.")
     if (length(type) > 2) stop("Cannot have more than two types.")
 
-    #greyscale handling
+    ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
-        #strip only
+        ## strip only
         current.strip <- trellis.par.get("strip.background")
         trellis.par.set(list(strip.background = list(col = "white")))
     }
 
     ## check data
-    mydata <- checkPrep(mydata, vars, type)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
 
     ## if more than one pollutant, need to stack the data and set type = "variable"
     ## this case is most relevent for model-measurement compasrions where data are in columns
@@ -43,10 +43,9 @@ polarAnnulus <- function(mydata,
         mydata <- melt(mydata, measure.vars = pollutant)
         ## now set pollutant to "value"
         pollutant <- "value"
-        type <- "variable"       
+        type <- "variable"
     }
 
-    if (period == "trend" && missing(k)) k <- 20 ## less smoothing for the trend component
 
     d <- 10      ## d + upper = 1/2 width of annulus; do not need to adjust
 
@@ -64,7 +63,7 @@ polarAnnulus <- function(mydata,
     mydata <- cutData(mydata, type, ...)
 
     ## convert to local time
-    if (local.time) mydata$date <- as.POSIXct(format(mydata$date, tz = "Europe/London"))
+    if (local.time) attr(mydata$date, "tzone") <- "Europe/London"
 
     ## for resolution of grid plotting (default = 0.2; fine = 0.1)
     if (resolution == "normal") int <- 0.2
@@ -87,9 +86,6 @@ polarAnnulus <- function(mydata,
 
             all.dates <- data.frame(date = all.dates)
         }
-
-        ## if period = trend but less than 1 year of data then force season
-       # if (mydata$date[nrow(mydata)] - mydata$date[1] < 366 & period == "trend") period = "season"
 
         ## different date components, others available
         if (period == "trend")
@@ -122,24 +118,24 @@ polarAnnulus <- function(mydata,
             hour <- as.numeric(format(mydata$date, "%H"))
             weekday <- as.numeric(format(mydata$date, "%w"))
             trend <- weekday + hour / 23
-            min.trend = 0
-            max.trend = 7
+            min.trend <- 0
+            max.trend <- 7
         }
 
         if (period == "season")
         {
             week <- as.numeric(format(mydata$date, "%W"))
             trend <- week
-            min.trend = 0
-            max.trend = 53
+            min.trend <- 0
+            max.trend <- 53
         }
 
         if (period == "hour")
         {
             hour <- as.numeric(format(mydata$date, "%H"))
             trend <- hour
-            min.trend = 0
-            max.trend = 23
+            min.trend <- 0
+            max.trend <- 23
         }
 
         trend <- 10 * (trend - min.trend) / (max.trend - min.trend)
@@ -173,8 +169,10 @@ polarAnnulus <- function(mydata,
         ## run GAM to make a smooth surface
         if (force.positive) n <- 0.5 else n <- 1
 
+        input <- data.frame(binned, time.seq, wd)
+
         ## note use of cyclic smooth for the wind direction component
-        Mgam <- gam(binned ^ n ~ te(time.seq, wd, k = k, bs = c("tp", "cc")))
+        Mgam <- gam(binned ^ n ~ te(time.seq, wd, k = k, bs = c("tp", "cc")), data = input)
 
 
         pred <- predict.gam(Mgam, input.data)
@@ -233,11 +231,13 @@ polarAnnulus <- function(mydata,
 
         ## match the ids with predictions
         new.data$z[ids] <- sapply(seq_along(ids), function(x) pred[id.time[x], id.wd[x]])
+
         new.data
     }
 
     ## more compact way?  Need to test
-     results.grid <- ddply(mydata, type, prepare.grid)
+    results.grid <- ddply(mydata, type, prepare.grid)
+
 
     ## normalise by divining by mean conditioning value if needed
     if (normalise){
@@ -250,19 +250,19 @@ polarAnnulus <- function(mydata,
     strip <- strip.custom(factor.levels = pol.name)
 
     if (length(type) == 1 ) {
-       
+
         strip.left <- FALSE
-        
-    } else { ## two conditioning variables        
-        
+
+    } else { ## two conditioning variables
+
         pol.name <- sapply(levels(results.grid[ , type[2]]), function(x) quickText(x, auto.text))
-        strip.left <- strip.custom(factor.levels = pol.name)       
+        strip.left <- strip.custom(factor.levels = pol.name)
     }
     if (length(type) == 1 & type[1] == "default") strip <- FALSE ## remove strip
-    
+
 ########################################################################################################
 
-    
+
     ## auto-scaling
     nlev = 200  #preferred number of intervals
     ## handle missing breaks arguments
@@ -274,143 +274,147 @@ polarAnnulus <- function(mydata,
     col <- openColours(cols, (nlev2 - 1))
     col.scale = breaks
 
-   
-
-    #################
+#################
     ## scale key setup
-    #################
-    legend <- list(col = col, at = col.scale, space = key.position, 
-         auto.text = auto.text, footer = key.footer, header = key.header, 
-         height = 1, width = 1.5, fit = "all")
-    if (!is.null(key)) 
-         if (is.list(key)) 
-             legend[names(key)] <- key
-         else warning("In polarAnnulus(...):\n  non-list key not exported/applied\n  [see ?drawOpenKey for key structure/options]", 
-             call. = FALSE)
-    legend <- list(temp = list(fun = drawOpenKey, args = list(key = legend, 
-         draw = FALSE)))
-    names(legend)[1] <- if(is.null(key$space)) key.position else key$space
+#################
+    legend <- list(col = col, at = col.scale, space = key.position,
+                   auto.text = auto.text, footer = key.footer, header = key.header,
+                   height = 1, width = 1.5, fit = "all")
+    legend <- makeOpenKeyLegend(key, legend, "polarAnnulus")
 
     temp <- paste(type, collapse = "+")
     myform <- formula(paste("z ~ u * v | ", temp, sep = ""))
-    
+
     plt <- levelplot(myform, results.grid, axes = FALSE,
-              as.table = TRUE,
-              aspect = 1,
-              xlab = "",
-              ylab = "",
-              main = quickText(main, auto.text),
-              colorkey = FALSE, legend = legend,
-              at = col.scale, col.regions = col,
-              par.strip.text = list(cex = 0.8),
-              scales = list(draw = FALSE),
-              strip = strip,
+                     as.table = TRUE,
+                     aspect = 1,
+                     xlab = "",
+                     ylab = "",
+                     main = quickText(main, auto.text),
+                     colorkey = FALSE, legend = legend,
+                     at = col.scale, col.regions = col,
+                     par.strip.text = list(cex = 0.8),
+                     scales = list(draw = FALSE),
+                     strip = strip,
 
-              len <- upper + d + 3,
-              xlim = c(-len, len), ylim = c(-len, len),...,
+                     len <- upper + d + 3,
+                     xlim = c(-len, len), ylim = c(-len, len),...,
 
-              panel = function(x, y, z,subscripts,...) {
-                  panel.levelplot(x, y, z, subscripts, at = col.scale,
-                                  lwd = 1, col.regions = col, labels = FALSE)
+                     panel = function(x, y, z,subscripts,...) {
+                         panel.levelplot(x, y, z, subscripts, at = col.scale,
+                                         lwd = 1, col.regions = col, labels = FALSE)
 
-                  ## add axis line to central polarPlot
-                  llines(c(upper, upper + d), c(0, 0), col = "grey20")
-                  llines(c(0, 0), c(-upper, -upper - d), col = "grey20")
+                         ## add axis line to central polarPlot
+                         llines(c(upper, upper + d), c(0, 0), col = "grey20")
+                         llines(c(0, 0), c(-upper, -upper - d), col = "grey20")
 
-                  ## add axis line to central polarPlot
-                  llines(c(0, 0), c(upper, upper + d), col = "grey20")
-                  llines(c(-upper, -upper - d), c(0, 0), col = "grey20")
+                         ## add axis line to central polarPlot
+                         llines(c(0, 0), c(upper, upper + d), col = "grey20")
+                         llines(c(-upper, -upper - d), c(0, 0), col = "grey20")
 
-                  add.tick <- function(n, start = 0, end = 0) {
-                      ## start is an offset if time series does not begin in January
+                         add.tick <- function(n, start = 0, end = 0) {
+                             ## start is an offset if time series does not begin in January
 
-                      ## left
-                      lsegments(seq(-upper - start, -upper - d + end, length = n),
-                                rep(-.5, n),
-                                seq(-upper - start, -upper - d + end, length = n),
-                                rep(.5, n), col = "grey20")
-                      ## top
-                      lsegments(rep(-.5, n),
-                                seq(upper + start, upper + d - end, length = n),
-                                rep(.5, n),
-                                seq(upper + start, upper + d - end, length = n))
-                      ## right
-                      lsegments(seq(upper + start, upper + d - end, length = n),
-                                rep(-.5, n),
-                                seq(upper + start, upper + d - end, length = n),
-                                rep(.5, n), col = "grey20")
-                      ## bottom
-                      lsegments(rep(-.5, n),
-                                seq(-upper - start, -upper - d + end, length = n),
-                                rep(.5, n),
-                                seq(-upper - start, -upper - d + end, length = n))
-                  }
+                             ## left
+                             lsegments(seq(-upper - start, -upper - d + end, length = n),
+                                       rep(-.5, n),
+                                       seq(-upper - start, -upper - d + end, length = n),
+                                       rep(.5, n), col = "grey20")
+                             ## top
+                             lsegments(rep(-.5, n),
+                                       seq(upper + start, upper + d - end, length = n),
+                                       rep(.5, n),
+                                       seq(upper + start, upper + d - end, length = n))
+                             ## right
+                             lsegments(seq(upper + start, upper + d - end, length = n),
+                                       rep(-.5, n),
+                                       seq(upper + start, upper + d - end, length = n),
+                                       rep(.5, n), col = "grey20")
+                             ## bottom
+                             lsegments(rep(-.5, n),
+                                       seq(-upper - start, -upper - d + end, length = n),
+                                       rep(.5, n),
+                                       seq(-upper - start, -upper - d + end, length = n))
+                         }
 
-                  label.axis <- function(x, lab1, lab2, ticks)
-                  {
-                      ltext(x, upper, lab1, cex = 0.7, pos = 4)
-                      ltext(x, upper + d, lab2, cex = 0.7, pos = 4)
-                      ## at bottom
-                      ltext(-x, -upper, lab1, cex = 0.7, pos = 2)
-                      ltext(-x, -upper - d, lab2, cex = 0.7, pos = 2)
-                      add.tick(ticks)
-                  }
+                         label.axis <- function(x, lab1, lab2, ticks)
+                         {
+                             ltext(x, upper, lab1, cex = 0.7, pos = 4)
+                             ltext(x, upper + d, lab2, cex = 0.7, pos = 4)
+                             ## at bottom
+                             ltext(-x, -upper, lab1, cex = 0.7, pos = 2)
+                             ltext(-x, -upper - d, lab2, cex = 0.7, pos = 2)
+                             add.tick(ticks)
+                         }
 
-                  if (period == "trend")
-                  {
-                      if (date.pad) {
-                          date.start <- min(all.dates$date)
-                          date.end <- max(all.dates$date)
-                      } else {
-                          date.start <- mydata$date[1]
-                          date.end <- mydata$date[nrow(mydata)]
-                      }
+                         if (period == "trend")
+                         {
+                             if (date.pad) {
+                                 date.start <- min(all.dates$date)
+                                 date.end <- max(all.dates$date)
+                             } else {
+                                 date.start <- min(mydata$date)
+                                 date.end <- max(mydata$date)
+                             }
 
-                      label.axis(0, format(date.start, "%b-%Y"), format(date.end, "%b-%Y"), 2)
+                             label.axis(0, format(date.start, "%d-%b-%Y"), format(date.end, "%d-%b-%Y"), 2)
 
-                      ## add ticks at 1-Jan each year (could be missing dates)
-                      days <- seq(as.Date(date.start), as.Date(date.end), by = "day")
+                             ## add ticks at 1-Jan each year (could be missing dates)
+                             days <- seq(as.Date(date.start), as.Date(date.end), by = "day")
 
-                      ## find number of Januarys
-                      num.jans <- which(format(days, "%j") == "001")
-                      ticks <- length(num.jans)
-                      start <- 10 * (num.jans[1] - 1) / length(days)
-                      end <- 10 - 10 * (num.jans[ticks] - 1) / length(days)
-                      add.tick(ticks, start, end)
-                  }
+                             if (length(days) > 365) {
+                                 ## find number of Januarys
+                                 num.jans <- which(format(days, "%j") == "001")
+                                 ticks <- length(num.jans)
+                                 start <- 10 * (num.jans[1] - 1) / length(days)
+                                 end <- 10 - 10 * (num.jans[ticks] - 1) / length(days)
+                                 if (length(num.jans) > 0) add.tick(ticks, start, end)
 
-                  if (period == "season") label.axis(0, format(ISOdate(2000, 1, 1), "%B"), format(ISOdate(2000, 12, 1), "%B"), 13)
+                                 ## mark montly intervals (approx)
+                             } else {
+                                 ## find number of 01s
+                                 num.jans <- which(format(days, "%d") == "01")
+                                 ticks <- length(num.jans)
+                                 start <- 10 * (num.jans[1] - 1) / length(days)
+                                 end <- 10 - 10 * (num.jans[ticks] - 1) / length(days)
+                                 if (length(num.jans) > 0) add.tick(ticks, start, end)
 
-                  if (period == "hour")	label.axis(0, "0", "23", 7)
+                             }
+                         }
 
-                  if (period == "weekday") {
-                      local.weekdays <- format(ISOdate(2000, 1, 1:14), "%A")[order(format(ISOdate(2000, 1, 1:14), "%w"))]
-                      loc.sunday <- local.weekdays[1]
-                      loc.saturday <- local.weekdays[length(local.weekdays)]
-                      label.axis(0, loc.sunday, loc.saturday, 8)
-                  }
+                         if (period == "season") label.axis(0, format(ISOdate(2000, 1, 1), "%B"),
+                             format(ISOdate(2000, 12, 1), "%B"), 13)
 
-                  ## text for directions
-                  ltext(-upper -d - 1.5, 0, "W", cex = 0.7)
-                  ltext(0, -upper - d - 1.5, "S", cex = 0.7)
-                  ltext(0, upper + d + 1.5, "N", cex = 0.7)
-                  ltext(upper + d + 1.5, 0, "E", cex = 0.7)
+                         if (period == "hour")	label.axis(0, "0", "23", 7)
 
-              })
+                         if (period == "weekday") {
+                             local.weekdays <- format(ISOdate(2000, 1, 1:14), "%A")[order(format(ISOdate(2000, 1, 1:14), "%w"))]
+                             loc.sunday <- local.weekdays[1]
+                             loc.saturday <- local.weekdays[length(local.weekdays)]
+                             label.axis(0, loc.sunday, loc.saturday, 8)
+                         }
 
-    #################
-    #output
-    #################
+                         ## text for directions
+                         ltext(-upper -d - 1.5, 0, "W", cex = 0.7)
+                         ltext(0, -upper - d - 1.5, "S", cex = 0.7)
+                         ltext(0, upper + d + 1.5, "N", cex = 0.7)
+                         ltext(upper + d + 1.5, 0, "E", cex = 0.7)
+
+                     })
+
+#################
+                                        #output
+#################
     if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip, strip.left = strip.left))
     newdata <- results.grid
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
 
-    #reset if greyscale
-    if (length(cols) == 1 && cols == "greyscale") 
+                                        #reset if greyscale
+    if (length(cols) == 1 && cols == "greyscale")
         trellis.par.set("strip.background", current.strip)
 
-    invisible(output)  
+    invisible(output)
 
 }
 

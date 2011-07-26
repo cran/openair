@@ -23,9 +23,9 @@ timeVariation <- function(mydata,
         current.strip <- trellis.par.get("strip.background")
         trellis.par.set(list(strip.background = list(col = "white")))
     }
-   
+
     vars <- c("date", pollutant)
-    
+
     if (!missing(group) & length(pollutant) > 1) {
         stop("Can only have one pollutant with a grouping variable, or several pollutants and no grouping variable.")}
 
@@ -46,17 +46,17 @@ timeVariation <- function(mydata,
 
     ## if group is present, need to add that list of variables
     if (!missing(group)){
-        
+
         if (group %in%  dateTypes) {
             vars <- unique(c(vars, "date"))
         } else {
             vars <- unique(c(vars, group))
         }
-    }   
-    
+    }
+
     ## data checks
-    mydata <- checkPrep(mydata, vars, type)
-    if (!missing(group))  mydata <- cutData(mydata, group, ...) 
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
+    if (!missing(group))  mydata <- cutData(mydata, group, ...)
     mydata <- cutData(mydata, type, ...)
 
     mydata <- na.omit(mydata)
@@ -65,7 +65,7 @@ timeVariation <- function(mydata,
     overall.main <- quickText(main, auto.text)
     main <- ""
 
-    if (local.time) mydata$date <- as.POSIXct(format(mydata$date, tz = "Europe/London"))
+    if (local.time) attr(mydata$date, "tzone") <- "Europe/London"
 
     ## ylabs for more than one pollutant
     if (missing(ylab)) ylab <-  paste(pollutant, collapse = ", ")
@@ -75,19 +75,19 @@ timeVariation <- function(mydata,
 
     if (!missing(name.pol)) mylab <- sapply(seq_along(name.pol), function(x)
                                             quickText(name.pol[x], auto.text))
-    
+
     if (missing(group)) {
         mydata <- melt(mydata, measure.vars = pollutant)
         mydata$variable <- factor(mydata$variable)  ## drop unused factor levels
-        
+
     } else {
         names(mydata)[2:3] <- c("value", "variable")
         mydata$variable <- factor(mydata$variable)  ## drop unused factor levels
         mylab <-  sapply(levels(mydata[ , "variable"]), function(x) quickText(x, auto.text))
-    }   
-    
-   
-    
+    }
+
+
+
     divide.by.mean <- function(x) {
         Mean <- mean(x$Mean, na.rm = TRUE)
         x$Mean <- x$Mean / Mean
@@ -122,7 +122,7 @@ timeVariation <- function(mydata,
             inc <- 0.04 * abs(lims[2] - lims[1])
             lims <- c(lims[1] - inc, lims[2] + inc)
         } else {
-            lims <- range(c(x$value, x$value), na.rm = TRUE)
+            lims <- range(c(x$Mean, x$Mean), na.rm = TRUE)
             inc <- 0.04 * abs(lims[2] - lims[1])
             lims <- c(lims[1] - inc, lims[2] + inc)
         }
@@ -144,15 +144,15 @@ timeVariation <- function(mydata,
         main <- overall.main
     }
 
-    
+
 
     ## hour ############################################################################
 
     data.hour <- calc.wd(mydata, vars = "hour", pollutant, type)
     if (normalise) data.hour <-  ddply(data.hour, .(variable), divide.by.mean)
 
-    if (is.null(xlab[2]) | is.na(xlab[2])) xlab[2] <- "hour"   
-    
+    if (is.null(xlab[2]) | is.na(xlab[2])) xlab[2] <- "hour"
+
     ## proper names of labelling ##############################################################################
     if (type != "default") {
         stripName <- sapply(levels(mydata[ , type]), function(x) quickText(x, auto.text))
@@ -161,12 +161,12 @@ timeVariation <- function(mydata,
         strip <- FALSE
     }
     ## ########################################################################################################
-    
+
     temp <- paste(type, collapse = "+")
     myform <- formula(paste("Mean ~ hour | ", temp, sep = ""))
 
     if (missing(ylim)) ylim.hour <- rng(data.hour) else ylim.hour <- ylim
-    
+
     hour <- xyplot(myform,  data = data.hour, groups = variable,
                    as.table = TRUE,
                    main = main,
@@ -207,8 +207,8 @@ timeVariation <- function(mydata,
     temp <- paste(type, collapse = "+")
     myform <- formula(paste("Mean ~ weekday | ", temp, sep = ""))
 
-    if (missing(ylim)) ylim.weekday <- rng(data.weekday) else ylim.weekday <- ylim 
-    
+    if (missing(ylim)) ylim.weekday <- rng(data.weekday) else ylim.weekday <- ylim
+
     day <- xyplot(myform,  data = data.weekday, groups = variable,
                   as.table = TRUE,
                   par.settings = simpleTheme(col = myColors, pch = 16),
@@ -236,7 +236,7 @@ timeVariation <- function(mydata,
                   })
 
     ## month ############################################################################
-                  
+
     data.month <- calc.wd(mydata, vars = "month", pollutant, type)
     if (normalise) data.month <-  ddply(data.month, .(variable), divide.by.mean)
 
@@ -246,8 +246,8 @@ timeVariation <- function(mydata,
     temp <- paste(type, collapse = "+")
     myform <- formula(paste("Mean ~ month | ", temp, sep = ""))
 
-    if (missing(ylim)) ylim.month <-  rng(data.month) else ylim.month <- ylim 
-    
+    if (missing(ylim)) ylim.month <-  rng(data.month) else ylim.month <- ylim
+
     month <- xyplot(myform,  data = data.month, groups = variable,
                     as.table = TRUE,
                     ylab = quickText(ylab, auto.text),
@@ -257,7 +257,7 @@ timeVariation <- function(mydata,
                     key = key,
                     main = main,
                     strip = strip,
-                    par.strip.text = list(cex = 0.8), 
+                    par.strip.text = list(cex = 0.8),
                     par.settings = simpleTheme(col = myColors, pch = 16),
                     scales = list(x = list(at = 1:12, labels = substr(format(seq(as.Date("2000-01-01"),
                                                       as.Date("2000-12-31"), "month"), "%B"), 1, 1))),
@@ -279,7 +279,7 @@ timeVariation <- function(mydata,
 
     ## day and hour ############################################################################
     data.day.hour <- calc.wd(mydata, vars = "day.hour", pollutant, type)
-    
+
     if (normalise) data.day.hour <-  ddply(data.day.hour, .(variable), divide.by.mean)
 
     ids <- which(is.na(data.day.hour$Lower)) ## missing Lower ci, set to mean
@@ -289,22 +289,22 @@ timeVariation <- function(mydata,
 
     if (is.null(xlab[1]) | is.na(xlab[1])) xlab[1] <- "hour"
 
-    ## proper names of labelling ##############################################################################   
+    ## proper names of labelling ##############################################################################
 
     strip <- strip.custom(par.strip.text = list(cex = 0.8))
 
-    
-    if (type == "default") {     
+
+    if (type == "default") {
         strip.left <- FALSE
         layout <- c(7, 1)
-        
-    } else { ## two conditioning variables        
+
+    } else { ## two conditioning variables
         stripName <- sapply(levels(mydata[ , type]), function(x) quickText(x, auto.text))
         strip.left <- strip.custom(factor.levels =  stripName)
         layout <- NULL
     }
     ## ########################################################################################################
-    
+
     temp <- paste(type, collapse = "+")
     if (type == "default") {
         myform <- formula("Mean ~ hour | weekday")
@@ -312,8 +312,8 @@ timeVariation <- function(mydata,
         myform <- formula(paste("Mean ~ hour | weekday *", temp, sep = ""))
     }
 
-    if (missing(ylim)) ylim.day.hour <-  rng(data.day.hour) else ylim.day.hour <- ylim 
-    
+    if (missing(ylim)) ylim.day.hour <-  rng(data.day.hour) else ylim.day.hour <- ylim
+
     day.hour <- xyplot(myform ,  data = data.day.hour, groups = variable,
                        as.table = TRUE,
                        main = main,
@@ -324,7 +324,7 @@ timeVariation <- function(mydata,
                        layout = layout,
                        par.settings = simpleTheme(col = myColors),
                        scales = list(x = list(at = c(0, 6, 12, 18, 23))),
-                       key = key,                      
+                       key = key,
                        strip = strip,
                        strip.left = strip.left,
                        par.strip.text = list(cex = 0.8),
@@ -363,11 +363,11 @@ timeVariation <- function(mydata,
         ## use grid to add an overall title
         grid.text(overall.main, 0.5, 0.975, gp = gpar(fontsize = 14))
     }
-    ind.plot = function(x){
-        update(x, key = list(
+    ind.plot = function(x, ...){
+        plot(update(x, key = list(
                   rectangles = list(col = myColors[1:npol], border = NA),
                   text = list(lab = mylab), space = "top", columns = key.columns)
-               )
+               ), ...)
     }
 
     main.plot()
@@ -381,7 +381,7 @@ timeVariation <- function(mydata,
     class(output) <- "openair"
 
     #reset if greyscale
-    if (length(cols) == 1 && cols == "greyscale") 
+    if (length(cols) == 1 && cols == "greyscale")
         trellis.par.set("strip.background", current.strip)
 
     invisible(output)
@@ -390,24 +390,24 @@ timeVariation <- function(mydata,
 calc.wd <- function(mydata, vars = "day.hour", pollutant, type) {
 
     summary.values <- function(mydata, vars, FUN, type) {
-        
-        if (vars == "hour")  myform <- formula(paste("value ~ variable + hour +", type))           
-        
+
+        if (vars == "hour")  myform <- formula(paste("value ~ variable + hour +", type))
+
         if (vars == "day.hour")  myform <- formula(paste("value ~ variable + weekday + hour +", type))
-        
+
         if (vars == "weekday") myform <- formula(paste("value ~ variable + weekday +", type))
-        
-        if (vars == "month") myform <- formula(paste("value ~ variable + month +", type))                   
-        
+
+        if (vars == "month") myform <- formula(paste("value ~ variable + month +", type))
+
         mydata <- aggregate(myform, data = mydata, FUN)
-        mydata        
+        mydata
     }
 
     ## function to calculate statistics dealing with wd properly
     if (any(!pollutant %in% "wd")) {
         data1 <- subset(mydata, variable != "wd")
         data1 <-  summary.values(data1, vars, errorInMean, type)
-        data1 <- data.frame(subset(data1, select = -value), data1$value)                
+        data1 <- data.frame(subset(data1, select = -value), data1$value)
     }
 
     if ("wd" %in% pollutant) {

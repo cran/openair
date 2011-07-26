@@ -13,7 +13,7 @@ linearRelation <- function(mydata,
                             cols = NULL,
                             main = "",
                             span = 0.3,...) {
-  
+
     adj <- 1 ## factors for ratios (oxidant is a percentage)
 
     #greyscale handling
@@ -41,7 +41,7 @@ linearRelation <- function(mydata,
         vars <- c("date", x, y)
     }
 
-    mydata <- checkPrep(mydata, vars, "default")
+    mydata <- checkPrep(mydata, vars, "default", remove.calm = FALSE)
     mydata <- na.omit(mydata)
 
     if (!condition) {
@@ -227,9 +227,9 @@ linearRelation <- function(mydata,
     class(output) <- "openair"
 
     #reset if greyscale
-    if (length(cols) == 1 && cols == "greyscale") 
+    if (length(cols) == 1 && cols == "greyscale")
         trellis.par.set("strip.background", current.strip)
 
-    invisible(output)  
+    invisible(output)
 
 }

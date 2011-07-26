@@ -12,6 +12,7 @@
 scatterPlot(mydata,
 x = "nox",
 y = "no2",
+z = NA,
 method = "scatter",
 group = NULL,
 avg.time = "default",
@@ -20,7 +21,7 @@ statistic = "mean",
 percentile = NA,
 type = "default",
 layout = NULL,
-smooth = TRUE,
+smooth = FALSE,
 spline = FALSE,
 linear = FALSE,
 ci = TRUE,
@@ -32,19 +33,20 @@ xlab = x,
 pch = 1,
 lwd = 1,
 lty = 1,
-plot.type = "p", 
+plot.type = "p",
 key = TRUE,
 key.title = group,
 key.columns = 1,
 strip = TRUE,
 log.x = FALSE,
 log.y = FALSE,
+x.inc = 10,
+y.inc = 10,
 y.relation = "same",
 x.relation = "same",
 ref.x = NULL,
 ref.y = NULL,
-nbin = 256,
-continuous = FALSE,
+k = 100,
 trans = TRUE,
 auto.text = TRUE,
 ...)
@@ -59,11 +61,17 @@ auto.text = TRUE,
   \code{openair} built in types such as \code{"year"} or
   \code{"season"}. }
 
-  \item{y}{Name of the numeric y-variable to plot.}
+\item{y}{Name of the numeric y-variable to plot.}
+
+\item{z}{Name of the numeric z-variable to plot for \code{method =
+    "scatter"} or \code{method = "level"}. Note that for \code{method =
+    "scatter"} points will be coloured according to a continuous colour
+    scale, whereas for \code{method = "level"} the surface is coloured. }
 
   \item{method}{Methods include \code{"scatter"} (conventional scatter
   plot), \code{"hexbin"} (hexagonal binning using the \code{hexbin}
-  package) and \code{"density"} (2D kernel density estimates). }
+  package). \code{level} for a binned or smooth surface plot and \code{"density"}
+  (2D kernel density estimates). }
 
   \item{group}{The grouping variable to use, if any. Setting this to a
   variable in the data frame has the effect of plotting several series
@@ -130,7 +138,8 @@ auto.text = TRUE,
     layout is expressed as number of columns times number of rows.}
 
  \item{smooth}{A smooth line is fitted to the data if \code{TRUE};
-   optionally with 95\% confidence intervals shown.}
+   optionally with 95\% confidence intervals shown. For \code{method =
+   "level"} a smooth surface will be fitted to binned data.}
 
  \item{spline}{A smooth spline is fitted to the data if
  \code{TRUE}. This is particularly useful when there are fewer data
@@ -198,6 +207,12 @@ auto.text = TRUE,
    \code{FALSE}. If \code{TRUE} a well-formatted log10 scale is
    used. This can be useful for checking linearity once logged.}
 
+ \item{x.inc}{The x-interval to be used for binning data when
+   \code{method = "level"}.}
+
+ \item{y.inc}{The y-interval to be used for binning data when
+ \code{method = "level"}.}
+
 \item{y.relation}{This determines how the y-axis scale is
   plotted. "same" ensures all panels use the same scale and "free" will
   use panel-specfic scales. The latter is a useful setting when plotting
@@ -209,17 +224,11 @@ auto.text = TRUE,
 
 \item{ref.x}{Add a vertical dashed reference line at this value.}
 
-\item{ref.y}{Add a horizontal dashed reference line at this value.} 
+\item{ref.y}{Add a horizontal dashed reference line at this value.}
 
- \item{nbin}{Number of bins used for kernel density output using method
-   \code{"density"}.}
+ \item{k}{Smoothing parameter supplied to \code{gam} for fitting a
+ smooth surface when \code{method = "level"}.}
 
- \item{continuous}{When this option is \code{TRUE} a plot of x vs. y
- will be made, colour-coded by levels of \code{group}, provided
- \code{group} is a numeric variable. A continuous
- separate colour scale is shown. If \code{continuous = FALSE} and
- \code{group} is numeric then the plot of x vs. y is shown by different
- \emph{quantiles} of \code{group}. }
 
 \item{trans}{\code{trans} is used when \code{continuous = TRUE}. Often
   for a good colour scale with skewed data it is a good idea to
@@ -248,7 +257,7 @@ auto.text = TRUE,
   operations, including \code{print}, \code{plot} and
   \code{summary}. See \code{\link{openair.generics}} for further
   details.
-  
+
 }
 
 \details{ The \code{scatterPlot} is the basic function for plotting
@@ -256,16 +265,25 @@ auto.text = TRUE,
   enough to consider lots of conditioning variables and takes care of
   fitting smooth or linear relationships to the data.
 
-  There are three main ways of plotting the relationship between two
+  There are four main ways of plotting the relationship between two
   variables, which are set using the \code{method} option. The default
   \code{"scatter"} will plot a conventional scatterPlot. In cases
   where there are lots of data and over-plotting becomes a problem, then
   \code{method = "hexbin"} or  \code{method = "density"} can be
   useful. The former requires the \code{hexbin} package to be installed.
 
-  By default a smooth fit is shown as this can help show the overall
-  form of the data e.g. whether the relationship appears to be linear or
-  not. Also, a linear fit can be shown using \code{linear = TRUE} as an option.
+  There is also a \code{method = "level"} which will bin the \code{x}
+  and \code{y} data according to the intervals set for \code{x.inc} and
+  \code{y.inc} and colour the bins according to levels of a third
+  variable, \code{z}. Sometimes however, a far better
+  understanding of the relationship between three variables (\code{x},
+  \code{y} and \code{z}) is gained by fitting a smooth surface through
+  the data. See examples below.
+
+  A smooth fit is shown if \code{smooth = TRUE} which can help show the
+  overall form of the data e.g. whether the relationship appears to be
+  linear or not. Also, a linear fit can be shown using \code{linear =
+  TRUE} as an option.
 
   The user has fine control over the choice of colours and symbol type
   used.
@@ -295,6 +313,7 @@ auto.text = TRUE,
 data(mydata)
 
 # basic use, single pollutant
+
 scatterPlot(mydata, x = "nox", y = "no2")
 
 # scatterPlot by year
@@ -309,8 +328,7 @@ FALSE)
 # plot daily averages and choose a filled plot symbol (pch = 16)
 # select only 2004
 \dontrun{dat2004 <- selectByDate(mydata, year = 2004)
-scatterPlot(dat2004, x = "nox", y = "no2", group = "co", continuous =
- TRUE, avg.time = "day", pch = 16)}
+scatterPlot(dat2004, x = "nox", y = "no2", z = "co", avg.time = "day", pch = 16)}
 
 # show linear fit, by year
 \dontrun{scatterPlot(mydata, x = "nox", y = "no2", type = "year", smooth =
@@ -329,8 +347,7 @@ FALSE, linear = TRUE, avg.time = "day", log.x = TRUE, log.y = TRUE)}
 key = FALSE)}
 
 ## multiple types and grouping variable and continuous colour scale
-\dontrun{scatterPlot(mydata, x = "nox", y = "no2", type = c("season", "weekend"),
-group = "o3", continuous = TRUE)}
+\dontrun{scatterPlot(mydata, x = "nox", y = "no2", z = "o3", type = c("season", "weekend"))}
 
 # use hexagonal binning
 \dontrun{
@@ -342,7 +359,17 @@ scatterPlot(mydata, x = "nox", y = "no2", method = "hexbin")
 scatterPlot(mydata, x = "nox", y = "no2", type = "year", method =
 "hexbin")
 
+## bin data and plot it - can see how for high NO2, O3 is also high
+\dontrun{
+scatterPlot(mydata, x = "nox", y = "no2", z = "o3", method = "level", x.inc = 10, y.inc = 2)
+}
 
+## fit surface for clearer view of relationship - clear effect of
+## increased O3
+\dontrun{
+scatterPlot(mydata, x = "nox", y = "no2", z = "o3", method = "level",
+x.inc = 10, y.inc = 2, smooth = TRUE)
+}
 }
 
 

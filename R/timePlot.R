@@ -22,6 +22,8 @@ timePlot <- function(mydata,
                      log = FALSE,
                      smooth = FALSE,
                      ci = TRUE,
+                     ref.x = NULL,
+                     ref.y = NULL,
                      key.columns = 1,
                      name.pol = pollutant,
                      date.breaks = 7,
@@ -35,8 +37,8 @@ timePlot <- function(mydata,
     ## note that in teh case of type "site", each site is thought of as a "pollutant"
 
     ## Author: David Carslaw 11 Sep. 09
-    ## CHANGES: 
-    
+    ## CHANGES:
+
 
 ### EXPERIMENTAL LOG SCALING###############################################
     if(log) nlog <- 10 else nlog <- FALSE
@@ -66,9 +68,9 @@ timePlot <- function(mydata,
 
     vars <- c("date", pollutant)
 
-    #greyscale handling
+                                        #greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
-        #strip only
+                                        #strip only
         current.strip <- trellis.par.get("strip.background")
         trellis.par.set(list(strip.background = list(col = "white")))
     }
@@ -94,7 +96,7 @@ timePlot <- function(mydata,
 #######################################################################################################
 
     ## data checks
-    mydata <- checkPrep(mydata, vars, type)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
 
     ## pad out any missing date/times so that line don't extend between areas of missing data
 
@@ -103,38 +105,38 @@ timePlot <- function(mydata,
     if (date.pad) mydata <- date.pad(mydata, type)
 
     mydata <- cutData(mydata, type, ...)
- 
+
 
     ## average the data if necessary (default does nothing)
     if (avg.time != "default") {
         ## deal with mutiple percentile values
-        
+
         if (length(percentile) > 1) {
 
-             mydata <- ddply(mydata, type, calcPercentile, pollutant = pollutant, avg.time = avg.time,
+            mydata <- ddply(mydata, type, calcPercentile, pollutant = pollutant, avg.time = avg.time,
                             data.thresh = data.thresh, percentile = percentile)
-             
+
             pollutant <-  paste("percentile.", percentile,  sep = "")
-       
-            if (missing(group)) group <- TRUE        
+
+            if (missing(group)) group <- TRUE
 
         } else {
-          
-             mydata <- ddply(mydata, type, timeAverage, avg.time = avg.time, statistic = statistic,
-                        percentile = percentile, data.thresh = data.thresh)    
+
+            mydata <- ddply(mydata, type, timeAverage, avg.time = avg.time, statistic = statistic,
+                            percentile = percentile, data.thresh = data.thresh)
         }
-        
+
     }
-   
+
     mydata <- melt(mydata, id.var = c("date", type))
 
-  
+
     if (type != "default") {
-        
+
         group <- TRUE ## need to group pollutants if conditioning
         if (missing(layout)) layout <- NULL else layout <- layout
-    }   
-    
+    }
+
     ## number of pollutants (or sites for type = "site")
     npol <- length(unique(mydata$variable)) ## number of pollutants
 
@@ -159,17 +161,17 @@ timePlot <- function(mydata,
     if (!missing(name.pol)) {mylab <- sapply(seq_along(name.pol), function(x)
                                              quickText(name.pol[x], auto.text))
                          }
-    
+
     ## ylabs for more than one pollutant
     if (missing(ylab)) ylab <-  paste(pollutant, collapse = ", ")
 
     ## set up colours
     myColors <- if (length(cols) == 1 && cols == "greyscale")
-                    openColours(cols, npol+1)[-1] else openColours(cols, npol) 
+        openColours(cols, npol+1)[-1] else openColours(cols, npol)
 
     ## basic function for lattice call + defaults
-     myform <- formula(paste("value ~ date |", type))
-   
+    myform <- formula(paste("value ~ date |", type))
+
     strip <- TRUE
     strip.left <- FALSE
     dates <- dateBreaks(mydata$date, date.breaks)$major ## for date scale
@@ -177,14 +179,12 @@ timePlot <- function(mydata,
 
     scales <- list(x = list(at = dates, format = formats), y = list(log = nlog))
 
-    xlim <- range(mydata$date)
-
     ## layout changes depening on plot type
 
     if (!group) { ## sepate panels per pollutant
         strip <- FALSE
         myform <- formula("value ~ date | variable")
-        
+
         if (npol == 1) {
             strip.left <- FALSE
         } else {
@@ -211,7 +211,7 @@ timePlot <- function(mydata,
         scales <- list(x = list(at = dates, format = "%d-%b", relation = "sliced"), y = list(log = nlog))
 
         xlim <- dlply(mydata, .(year), function (x) range(x$date))
-        
+
 
     }
 
@@ -222,7 +222,7 @@ timePlot <- function(mydata,
 
     if (key) {
         ## type of key depends on whether points are plotted or not
-        if (any(!is.na(pch))) {   
+        if (any(!is.na(pch))) {
             key <- list(lines = list(col = myColors[1:npol], lty = lty, lwd = lwd),
                         points = list(pch = pch, col = myColors[1:npol]),
                         text = list(lab = mylab),  space = "bottom", columns = key.columns)
@@ -246,71 +246,75 @@ timePlot <- function(mydata,
     layout = if (type == "wd") c(3, 3) else layout
     skip <- FALSE
     if (type == "wd") {
-         ## re-order to make sensible layout
+        ## re-order to make sensible layout
         wds <-  c("NW", "N", "NE", "W", "E", "SW", "S", "SE")
         mydata$wd <- ordered(mydata$wd, levels = wds)
 
         ## see if wd is actually there or not
         wd.ok <- sapply(wds, function (x) {if (x %in% unique(mydata$wd)) FALSE else TRUE })
         skip <- c(wd.ok[1:4], TRUE, wd.ok[5:8])
-           
+
         mydata$wd <- factor(mydata$wd)  ## remove empty factor levels
-    
+
         layout = if (type == "wd") c(3, 3) else NULL
     }
 
     plt <- xyplot(myform,  data = mydata, groups = variable,
-           as.table = TRUE,
-           layout = layout,
-           skip = skip,
-           lty = lty,
-           lwd = lwd,
-           pch = pch,
-           xlim = xlim,
-           main = quickText(main, auto.text),
-           par.strip.text = list(cex = 0.8),
-           ylab = quickText(ylab, auto.text),
-           scales = scales,
-           key = key,
-           strip = strip,
-           strip.left = strip.left,
-           yscale.components = yscale.components.log10,
-           panel =  panel.superpose,...,
-           panel.groups = function(x, y, col.line, col.symbol, col, col.se, type, group.number, lty,
-           lwd, pch, subscripts,...) {
+                  as.table = TRUE,
+                  layout = layout,
+                  skip = skip,
+                  lty = lty,
+                  lwd = lwd,
+                  pch = pch,
+                  main = quickText(main, auto.text),
+                  par.strip.text = list(cex = 0.8),
+                  ylab = quickText(ylab, auto.text),
+                  scales = scales,
+                  key = key,
+                  strip = strip,
+                  strip.left = strip.left,
+                  yscale.components = yscale.components.log10,
+                  panel =  panel.superpose,...,
+                  panel.groups = function(x, y, col.line, col.symbol, col, col.se, type, group.number, lty,
+                  lwd, pch, subscripts,...) {
 
-               if (group.number == 1) {
-                   panel.grid(-1, 0)
-                   panel.abline(v = dates, col = "grey90")
+                      if (group.number == 1) {
+                          panel.grid(-1, 0)
+                          panel.abline(v = dates, col = "grey90")
 
-               }
-               if (!group & !stack) {
-                   panel.abline(v = dates, col = "grey90")
-                   panel.grid(-1, 0)
-               }
+                      }
+                      if (!group & !stack) {
+                          panel.abline(v = dates, col = "grey90")
+                          panel.grid(-1, 0)
+                      }
 
-               panel.xyplot(x, y, type = plot.type, lty = lty, lwd = lwd, col.line = myColors[group.number],...)
-               ## deal with points separately - useful if missing data where line does not join consequtive points
-               if (any(!is.na(pch))) {                   
-                   lpoints(x, y, type = "p", pch = pch, col.symbol = myColors[group.number],...)
-               }
-               if (smooth) panel.gam(x, y, col = myColors[group.number] , col.se =  myColors[group.number],
-                                     lty = 1, lwd = 1, se = ci, ...)
+                      panel.xyplot(x, y, type = plot.type, lty = lty, lwd = lwd,
+                                   col.line = myColors[group.number],...)
+                      ## deal with points separately - useful if missing data where line does not join consequtive points
+                      if (any(!is.na(pch))) {
+                          lpoints(x, y, type = "p", pch = pch, col.symbol = myColors[group.number],...)
+                      }
+                      if (smooth) panel.gam(x, y, col = myColors[group.number] , col.se =  myColors[group.number],
+                                            lty = 1, lwd = 1, se = ci, ...)
 
-           }
-           )
+                      ## add reference lines
+                      panel.abline(v = ref.x, lty = 5)
+                      panel.abline(h = ref.y, lty = 5)
 
-    #################
-    #output
-    #################
+                  }
+                  )
+
+#################
+                                        #output
+#################
     plot(plt)
     newdata <- mydata
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
-    #reset if greyscale
-    if (length(cols) == 1 && cols == "greyscale") 
+                                        #reset if greyscale
+    if (length(cols) == 1 && cols == "greyscale")
         trellis.par.set("strip.background", current.strip)
-    invisible(output)  
+    invisible(output)
 
 }
 

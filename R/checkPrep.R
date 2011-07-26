@@ -46,7 +46,7 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE) {
     mydata[] <- lapply(mydata, function(x){replace(x, x == Inf | x == -Inf, NA)})
 
     if ("ws" %in% Names & is.numeric(mydata$ws)) {
-        
+
         ## check for negative wind speeds
         if (any(sign(mydata$ws[!is.na(mydata$ws)]) == -1)) {
 
@@ -61,7 +61,7 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE) {
     ## assumes 10 is average of 5-15 etc
 
     if ("wd" %in% Names & is.numeric(mydata$wd)) {
-        
+
         ## check for wd <0 or > 360
         if (any(sign(mydata$wd[!is.na(mydata$wd)]) == -1 | mydata$wd[!is.na(mydata$wd)] > 360)) {
 
@@ -76,19 +76,15 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE) {
                 mydata$ws[mydata$ws == 0] <- NA ## remove calm ws
             }
             mydata$wd[mydata$wd == 0] <- 360 ## set any legitimate wd to 360
-            
+
             ## round wd for use in functions - except windRose/pollutionRose
             mydata$wd <- 10 * ceiling(mydata$wd / 10 - 0.5)
             mydata$wd[mydata$wd == 0] <- 360   # angles <5 should be in 360 bin
 
-        } else { ## only used for windRose/pollutionRose
-
-            mydata$wd[mydata$ws == 0] <- -999 ## set wd to flag where there are calms
-            mydata$wd[mydata$wd == 0] <- 360
-            
         }
+         mydata$wd[mydata$wd == 0] <- 360 ## set any legitimate wd to 360
     }
-    
+
 
     ## make sure date is ordered in time if present
     if ("date" %in% Names) {
@@ -111,7 +107,7 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE) {
         if (length(unique(format(mydata$date, "%Z"))) > 1) {
             warning("Detected data with Daylight Saving Time, converting to UTC/GMT")
             attr(mydata$date, "tzone") <- "GMT"
-           
+
         }
     }
 

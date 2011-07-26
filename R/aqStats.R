@@ -6,13 +6,13 @@ aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(
     if (!"site" %in% names(mydata)) mydata$site <- "site"
 
     vars <- c("date", pollutant, "site")
-    mydata <- checkPrep(mydata, vars, "default")
+    mydata <- checkPrep(mydata, vars, "default", remove.calm = FALSE)
 
     ## pre-defined lits of pollutants that need special treatment
     thePolls <- c("no2", "o3", "pm10", "co")
-    
-    calcStats <- function(mydata, pollutant, percentile, ...) { 
-        
+
+    calcStats <- function(mydata, pollutant, percentile, ...) {
+
         ## file any missing hours
         start.date <- as.POSIXct(dateTrunc(min(mydata$date), "year"))
         end.date <- as.POSIXct(dateCeil(max(mydata$date), "year") - 3600)
@@ -33,6 +33,7 @@ aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(
         }
 
         daysMoreThan <- function(mydata, threshold, ...) {
+            if (all(is.na(mydata[ , pollutant]))) return(NA)
             ## identify days where pm10 > limit
             daily <- timeAverage(mydata, "day", data.thresh)
             days <- length(which(daily[ , pollutant] > threshold))
@@ -40,10 +41,10 @@ aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(
         }
 
         ozoneRolling <- function(mydata, ...) {
-            ## first calculate rolling hourly means            
+            ## first calculate rolling hourly means
             mydata <- rollingMean(mydata, pollutant, hours = 8, new.name = "rolling",
-                                  data.thresh)            
-            daily <- timeAverage(mydata, avg.time = "day", statistic = "max", data.thresh)           
+                                  data.thresh)
+            daily <- timeAverage(mydata, avg.time = "day", statistic = "max", data.thresh)
             days <- length(which(daily[ , "rolling"] > 100))
             days
         }
@@ -61,12 +62,14 @@ aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(
         }
 
         maxDaily <- function(mydata, threshold = 50, ...) {
-            maxDaily <- timeAverage(mydata, "day", statistic = "mean", data.thresh)            
+            if (all(is.na(mydata[ , pollutant]))) return(NA)
+            maxDaily <- timeAverage(mydata, "day", statistic = "mean", data.thresh)
             maxDaily <- max(maxDaily[ , pollutant], na.rm = TRUE)
             maxDaily
         }
 
         rollMax <- function(mydata, hours = hours, ...) {
+            if (all(is.na(mydata[ , pollutant]))) return(NA)
             ## first calculate rolling hourly means
             mydata <- rollingMean(mydata, pollutant = pollutant, hours = hours, data.thresh,
                                   new.name = "rolling")
@@ -74,23 +77,51 @@ aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(
             rollMax
         }
 
-        
-        Mean <- ddply(mydata[ , c("year", pollutant)], .(year), numcolwise(mean), na.rm = TRUE)
+        Min.fun <- function(mydata, ...) {
+
+            if (all(is.na(mydata[ , pollutant]))) return(NA)
+            Min <- min(mydata[ , pollutant], na.rm = TRUE)
+            Min
+
+        }
+
+        Max.fun <- function(mydata, ...) {
+
+            if (all(is.na(mydata[ , pollutant]))) return(NA)
+            Max <- max(mydata[ , pollutant], na.rm = TRUE)
+            Max
+
+        }
+
+        Mean.fun <- function(mydata, ...) {
+
+            if (all(is.na(mydata[ , pollutant]))) return(NA)
+            Mean <- mean(mydata[ , pollutant], na.rm = TRUE)
+            Mean
+
+        }
+
+
+
+        Mean <- ddply(mydata[ , c("year", pollutant)], .(year), Mean.fun,
+                      pollutant, ...)
         names(Mean)[2] <- "mean"
 
-        Min <- ddply(mydata[ , c("year", pollutant)], .(year), numcolwise(min), na.rm = TRUE)
+        Min <- ddply(mydata[ , c("year", pollutant)], .(year), Min.fun,
+                     pollutant, ...)
         names(Min)[2] <- "minimum"
 
-        Max <- ddply(mydata[ , c("year", pollutant)], .(year), numcolwise(max), na.rm = TRUE)
+        Max <- ddply(mydata[ , c("year", pollutant)], .(year), Max.fun,
+                     pollutant, ...)
         names(Max)[2] <- "maximum"
 
         maxDaily <- ddply(mydata[ , c("date", "year", pollutant)], .(year), maxDaily, ...)
-        names(maxDaily)[2] <- "max.daily"        
+        names(maxDaily)[2] <- "max.daily"
 
         Median <- ddply(mydata[ , c("year", pollutant)], .(year), numcolwise(median),
                         na.rm = TRUE)
         names(Median)[2] <- "median"
-        
+
         dataCapture <- ddply(mydata[ , c("year", pollutant)], .(year), dataCapture,
                              pollutant, ...)
         names(dataCapture)[2] <- "data.capture"
@@ -103,15 +134,15 @@ aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(
                            rollMax, hours = 24, ...)
         names(rollMax24)[2] <- "max.rolling.24"
 
-        
+
         ## use openair function
         Percentile <- calcPercentile(mydata[ , c("date", pollutant)],
                                      pollutant = pollutant, data.thresh,
-                                     percentile = percentile, period = "year")
+                                     percentile = percentile, avg.time = "year")
         names(Percentile)[1] <- "year"
         Percentile$year <- format(Percentile$year, "%Y")
-        
-        
+
+
 
         if (tolower(pollutant) == "o3") {
             rollingO3 <- ddply(mydata[ , c("date", "year", pollutant)], .(year),
@@ -147,10 +178,10 @@ aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(
             days <- ddply(mydata[ , c("date", "year", pollutant)], .(year),
                           daysMoreThan, threshold = 50, ...)
             names(days)[2] <- "days.gt.50"
-            
+
             pm10.results <- list(dataCapture, Mean, Min, Max, Median, maxDaily, rollMax8, rollMax24,
                                  Percentile, days)
-            
+
             pm10.results <- Reduce(function(x, y, by = 'year') merge(x, y, by = 'year',
                                                   all = TRUE), pm10.results)
             pm10.results$pollutant <- "PM10"
@@ -158,7 +189,7 @@ aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(
         }
 
         if (tolower(pollutant) == "co") {
-            
+
             co.results <- list(dataCapture, Mean, Min, Max, Median, maxDaily, rollMax8, rollMax24,
                                Percentile)
             co.results <- Reduce(function(x, y, by = 'year') merge(x, y, by = 'year',
@@ -168,17 +199,17 @@ aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(
         }
 
         if (!any(tolower(pollutant) %in% thePolls)) {
-            
+
             results <- list(dataCapture, Mean, Min, Max, Median, maxDaily, rollMax8, rollMax24,
                             Percentile)
             results <- Reduce(function(x, y, by = 'year') merge(x, y, by = 'year',
                                              all = TRUE), results)
             results$pollutant <- pollutant
             results <- results
-            
+
         }
-        
-        
+
+
         results
     }
 
@@ -189,15 +220,15 @@ aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(
         ## dates should be unique; issue warning if not
         if (any(duplicated(mydata$date))) warning ("Duplicate dates detected - more than one site?",
                                                    call. = FALSE)
-        
-        
+
+
         results <- lapply(pollutant, function (x) calcStats(mydata = mydata, pollutant = x ,...))
 
-        
+
         results <- do.call (rbind.fill, results)
         results$year <- as.numeric(results$year)
         results
-    }   
+    }
 
     results <- ddply(mydata, .(site), bySite, pollutant = pollutant,
                      data.thresh = data.thresh,
@@ -211,16 +242,16 @@ aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(
     if (transpose) {
         if (length(unique(results$site)) > 1) {
             results <- melt(results, id.vars = c("site", "pollutant", "year"))
-            results <- cast(results, ... ~ site + pollutant)
+            results <- dcast(results, ... ~ site + pollutant)
         } else {
             ## only one site and don't need to add name
             results <- subset(results, select = -site)
             results <- melt(results, id.vars = c("pollutant", "year"))
-            results <- cast(results, ... ~ pollutant)
+            results <- dcast(results, ... ~ pollutant)
         }
         ## sort out names
         names(results) <- gsub("\\_", " ", names(results))
     }
     results
-    
+
 }
