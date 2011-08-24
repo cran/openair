@@ -92,6 +92,7 @@ ans <- gsub("ch4","' 'CH' [4] * '", ans)
 	ans <- gsub("degreesC", "' * degree * 'C' '", ans)
 	ans <- gsub("degrees", "' * degree *'", ans)
 
+
 #ug/m3, mg/m3, ng/m3 variants
 	ans <- gsub("ug/m3", "' * mu * 'g m' ^-3 *'", ans)
 	ans <- gsub("ug.m-3", "' * mu * 'g m' ^-3 *'", ans)
@@ -105,6 +106,7 @@ ans <- gsub("ch4","' 'CH' [4] * '", ans)
 	ans <- gsub("ng.m-3", "' * 'n' * 'g m' ^-3 *'", ans)
 	ans <- gsub("ng m-3", "' * 'n' * 'g m' ^-3 *'", ans)
 	ans <- gsub("ngm-3", "' * 'n' * 'g m' ^-3 *'", ans)
+
 
 #m/s variants
 	ans <- gsub("m/s", "' 'm s' ^-1 *'", ans)
@@ -131,6 +133,12 @@ ans <- gsub("ch4","' 'CH' [4] * '", ans)
 	ans <- paste(ans, "'))", sep = "")
 #ans <-substr(ans,21,21)
 
+
+#############
+#need to revisit below 
+#not right
+#############
+
 	if (substr(ans, 21, 21) == "*") {a <- ans
 		ans <- paste(substr(a, 1, 20), substr(a, 22, nchar(a)), sep = "")}
 
@@ -139,14 +147,22 @@ ans <- gsub("ch4","' 'CH' [4] * '", ans)
 		ans <- paste(substr(a, 1, (nchar(a) - 7)), substr(a, (nchar(a) - 5),
 						nchar(a)),sep="")}
 
+
 	ans <- gsub("''", "", ans)
 	ans <- gsub("' '", "", ans)
 	ans <- gsub("\\*  \\*", "~", ans)
+
+        ans <- gsub("^expression\\(paste\\( \\*", "expression(paste(", ans)
+        ans <- gsub("^expression\\(paste\\(\\*", "expression(paste(", ans)
+
+
+
 
 	if (substr(ans, (nchar(ans) - 2), (nchar(ans) - 2)) == "*")
 	{a <- ans
 		ans <- paste(substr(a, 1, (nchar(a) - 2)), " ' ' ",
 				substr(a, (nchar(a) - 1), nchar(a)), sep = "")}
+
 
 #output
 	if (inherits(try(eval(parse(text = ans)), TRUE), "try-error") == FALSE)

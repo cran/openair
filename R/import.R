@@ -1,4 +1,4 @@
-import <- function (file = file.choose(), file.type = "csv", header.at = 1, 
+import <- function (file = file.choose(), file.type = "csv", sep = NULL, header.at = 1, 
     data.at = 2, eof.report = NULL, na.strings = c("", "NA"), 
     quote = "\"", date.name = "date", date.break = "/", date.order = "dmy", 
     time.name = "date", time.break = ":", time.order = "hm",  
@@ -61,12 +61,12 @@ if(previous)
     ##################
     #file type
     ##################    
+    #overridden by sep if character
+    #
 
-    if (file.type == "txt") {
-        sep <- "\t"
-    }
-    else {
-        sep <- ","
+    if(!is.character(sep)){
+        sep <- if(file.type == "txt")
+                   "\t" else ","
     }
 
     ##################

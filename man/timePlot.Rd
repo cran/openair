@@ -11,7 +11,7 @@ timePlot(mydata,
 pollutant = "nox",
 group = FALSE,
 stack = FALSE,
-normalise = FALSE,
+normalise = NULL,
 avg.time = "default",
 data.thresh = 0,
 statistic = "mean",
@@ -60,9 +60,15 @@ field and at least one variable to plot.}
     plot.}
 
   \item{normalise}{Should variables be normalised? The default is
-    \code{FALSE}. If \code{TRUE} then the variable(s) are divided by
-    their mean values. This helps to compare the shape of the diurnal
-    trends for variables on very different scales.}
+    is not to normalise the data. \code{normalise} can take two values,
+    either \code{"mean"} or a string representing a date in UK format
+    e.g. "1/1/1998" (in the format dd/mm/YYYY). If \code{normalise =
+    "mean"} then each time series is divided by its mean value.  If a
+    date is chosen, then values at that date are set to 100 and the rest
+    of the data scaled accordingly. Choosing a date (say at the
+    beginning of a time series) is very useful for showing how trends
+    diverge over time. Setting \code{group = TRUE} is often useful too
+    to show all time series together in one panel.}
 
  \item{avg.time}{This defines the time period to average to. Can be "sec",
   "min", "hour", "day", "DSTday", "week", "month", "quarter" or
@@ -239,9 +245,7 @@ field and at least one variable to plot.}
   difficult with more than two variables. If there is in interest in
   plotting several variables together that have very different scales,
   then it can be useful to normalise the data first, which can be down be
-  setting \code{normalise = TRUE}. This option ensures that each variable
-  is divided by its mean and makes it easy to plot two or more variables
-  on the same plot - generally with \code{group = TRUE}.
+  setting the \code{normalise} option.
 
   The user has fine control over the choice of colours, line width and
   line types used. This is useful for example, to emphasise a particular
@@ -280,8 +284,8 @@ timePlot(mydata, pollutant = c("nox", "no2"), group = TRUE)
 
 # alternative by normalising concentrations and plotting on the same
   scale
-timePlot(mydata, pollutant = c("nox", "no2"), group = TRUE, normalise =
-  TRUE)
+timePlot(mydata, pollutant = c("nox", "co", "pm10", "so2"), group = TRUE, avg.time =
+  "year", normalise = "1/1/1998", lwd = 3, lty = 1)
 
 # examples of selecting by date
 

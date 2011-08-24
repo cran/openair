@@ -18,10 +18,17 @@ importAURNCsv <- function (file = file.choose(), header.at = 5, data.at = 7, na.
     names(site.1) <- make.names(initial.ans$names, unique = TRUE)
     site.1 <- site.1[!names(site.1) == date.name]
     site.1 <- site.1[!names(site.1) == time.name]
-    site.2 <- as.vector(sapply(site.1[!as.character(site.1) == 
-        "" & !as.character(site.1) == " "], function(x) {
-        grep(x, as.character(site.1), fixed = TRUE)
-    }))
+
+#revised site handler
+
+    site.2 <- as.character(site.1)
+    site.2 <- c(1:length(site.2))[gsub(" ", "", site.2) != ""]
+
+#    site.2 <- as.vector(sapply(site.1[!as.character(site.1) == 
+#        "" & !as.character(site.1) == " "], function(x) {
+#        grep(x, as.character(site.1), fixed = TRUE)
+#    }))
+
     if (length(site.2) > 1) {
         site.3 <- c(site.2[2:length(site.2)] - 1, ncol(site.1))
     }
@@ -29,6 +36,9 @@ importAURNCsv <- function (file = file.choose(), header.at = 5, data.at = 7, na.
         site.3 <- ncol(site.1)
     }
     site.names <- as.character(as.vector(site.1[site.2]))
+    #space at name start
+    site.names <- gsub("(^ +)|( +$)", "", site.names)
+
     initial.ans$data <- lapply(1:(length(site.2)), function(x) {
         ans <- initial.ans$data[site.2[x]:site.3[x]]
         ans.names <- names(ans)

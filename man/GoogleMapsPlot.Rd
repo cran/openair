@@ -15,13 +15,14 @@
 
 GoogleMapsPlot(mydata, 
     latitude = "latitude", longitude = "longitude", 
-    type = "default", xlim, ylim, pollutant = NULL, 
+    type = "default", xlim, ylim, pollutant = NULL, labels = NULL,
     cols = "default", limits = c(0, 100), cex = pollutant, 
-    pch = NULL, cex.range =c(1,10), xlab = longitude, 
+    pch = NULL, cex.range =c(2,10), xlab = longitude, 
     ylab = latitude, main = "", map = NULL, map.raster = TRUE, 
     map.cols = NULL, aspect = 1, as.table = TRUE, 
-    plot.type = "xy", key = NULL, key.position = "right", 
-    key.header = "", key.footer = pollutant, auto.text = TRUE, 
+    plot.type = "xy", plot.transparent = FALSE, key = NULL, 
+    key.position = "right", key.header = "", 
+    key.footer = pollutant, auto.text = TRUE, 
     ...
 )
 
@@ -58,6 +59,12 @@ panel.GoogleMapsRaster(map)
   \code{mydata} that is to be evaluated at the each measurement 
   point. Depending on settings, nominally \code{cols} and \code{cex}, 
   the evaluation can be by colour, size or both.}
+
+  \item{labels}{If supplied, either the name of \code{mydata} 
+  column/field containing the labels to be used or a list, containing 
+  that field name (as \code{labels}), and any other label properties, 
+  e.g. \code{cex}, \code{col}, etc, required for fine-tuning label 
+  appearance.}
 
   \item{cols}{The colour set to use to colour scaled data. Typically, 
   \code{cols} is passed to \code{openColours} for evaluation, but can 
@@ -126,6 +133,13 @@ panel.GoogleMapsRaster(map)
   can also be other pre-defined options (e.g. "level" for a levelplot)   
   or a user-defined panel of a similar structire to \code{panel...} functions in 
   \code{lattice}. }
+
+  \item{plot.transparent}{Data layer transparency control. When enabled, this 
+  forces colours used in the data layer to transparent, and can be a numeric 
+  setting the colour density, from invisible (0) to solid (1), or a logical 
+  (\code{TRUE} applying default 0.5). Note: User-defined colours (and some 
+  panel defaults when supplying specialist functions using e.g. 
+  \code{plot.type = panel...})  may sometimes supersede this option. }
 
   \item{key}{Fine control for the color scale key. By default (\code{key = NULL}) 
   the key is generated is a colour range exists, but can be forced 

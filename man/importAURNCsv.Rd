@@ -119,7 +119,7 @@ the data frame comment.  }
 
 \author{ Karl Ropkins }
 
-\section{Warning }{The \code{importAURN.csv()} function is currently released as a
+\section{Warning }{The \code{importAURNCsv()} function is currently released as a
   test version.}
 
 \seealso{Generic import function \code{\link{import}}, or direct (on-line) data import 

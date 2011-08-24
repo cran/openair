@@ -16,7 +16,7 @@ windRose(mydata,
     width = 1, auto.text = TRUE, breaks = 4, offset = 10,
     paddle = TRUE, key.header = NULL, key.footer = "(m/s)",
     key.position = "bottom", key = TRUE, dig.lab = 5,
-    statistic = "prop.count", pollutant = NULL,
+    statistic = "prop.count", pollutant = NULL, annotate = TRUE,
     ...)
 
 
@@ -130,6 +130,9 @@ pollutionRose(mydata,
   \item{pollutant}{Alternative data series to be sampled
   instead of wind speed. The \code{windRose} default NULL is equivalent
   to \code{pollutant = "ws"}.}
+
+ \item{annotate}{If \code{TRUE} then the percentage calm and mean values
+ are printed in each panel.}
 
   \item{...}{For \code{pollutionRose} other parameters that are passed
   on to \code{windRose}. For \code{windRose} other parameters that are

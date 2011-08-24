@@ -1,0 +1,120 @@
+\name{corPlot}
+\alias{corPlot}
+%- Also NEED an '\alias' for EACH other topic documented here.
+\title{corrgram plot with conditioning}
+\description{
+  Function to to draw and visualise correlation matrices using
+  lattice. The primary purpose is as a tool for exploratory data
+  analysis. Hierarchical clustering is used to group similar variables.
+}
+\usage{
+corPlot(mydata, type = "default", cluster = TRUE, cols = "default", r.thresh = 0.8,
+                         text.col = c("black", "black"),  main = "", auto.text = TRUE)
+}
+
+%- maybe also 'usage' for other objects documented here.
+\arguments{
+\item{mydata}{A data frame which should consist of some numeric columns.}
+
+ \item{type}{\code{type} determines how the data are split
+    i.e. conditioned, and then plotted. The default is will produce a
+    single plot using the entire data. Type can be one of the built-in
+    types as detailed in \code{cutData} e.g. "season", "year", "weekday"
+    and so on. For example, \code{type = "season"} will produce four
+    plots --- one for each season.
+
+    It is also possible to choose \code{type} as another variable in the
+    data frame. If that variable is numeric, then the data will be split
+    into four quantiles (if possible) and labelled accordingly. If type
+    is an existing character or factor variable, then those
+    categories/levels will be used directly. This offers great
+    flexibility for understanding the variation of different variables
+    and how they depend on one another.
+
+    }
+
+  \item{cluster}{Should the data be ordered according to cluster
+  analysis. If \code{TRUE} hierarchical clustering is applied to the
+  correlation matrices using \code{hclust} to group similar variables
+  together. With many variables clustering can greatly assist interpretation.}
+
+  \item{cols}{Colours to be used for plotting. Options include
+    "default", "increment", "heat", "spectral", "hue", "brewer1",
+    "greyscale" and user defined (see \code{openColours} for more
+    details). }
+
+  \item{r.thresh}{Values of greater than \code{r.thresh} will be shown
+    in bold type. This helps to highlight high correlations. }
+
+   \item{text.col}{The colour of the text used to show the correlation
+   values. The first value controls the colour of negative correlations
+   and the second positive. }
+
+  \item{main}{The plot title; default is no title.}
+
+  \item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If
+    \code{TRUE} titles and axis labels will automatically try and format
+    pollutant names and units properly e.g.  by subscripting the `2' in
+    NO2.}
+
+
+}
+
+%\value{to be added}
+
+\details{The \code{corPlot} function plots correlation matrices. The
+  implementation relies heavily on that shown in Sarkar (2007), with a
+  few extensions.
+
+Correlation matrices are a very effective way of understating
+relationships between many variables. The \code{corPlot} shows the
+correlation coded in three ways: by shape (ellipses), colour and the
+numeric value. The ellipses can be thought of as visual representations
+of scatter plot. With a perfect positive correlation a line at 45
+degrees positive slope is drawn. For zero correlation the shape becomes
+a circle. See examples below.
+
+With many different variables it can be difficult to see relationships
+between variables i.e. which variables tend to behave most like one
+another. For this reason hierarchical clustering is applied to the
+correlation matrices to group variables that are most similar to one
+another (if \code{cluster = TRUE}.)
+
+It is also possible to use the \code{openair} type option to condition
+the data in many flexible ways, although this may become difficult to
+visualise with too many panels.
+}
+
+
+\references{
+  Sarkar, D. (2007). Lattice Multivariate Data Visualization
+  with {R}. New York: Springer.
+
+Friendly, M. (2002). Corrgrams : Exploratory displays for correlation
+matrices. American Statistician, 2002(4), 1-16. doi:10.1198/000313002533
+}
+
+\author{David Carslaw --- but mostly based on code contained in Sarkar (2007)}
+
+\seealso{\code{taylor.diagram} from the \code{plotrix} package from
+  which some of the annotation code was used.}
+
+
+
+\examples{
+# load openair data if not loaded already
+data(mydata)
+## basic corrgram plot
+corPlot(mydata)
+## plot by season ... and so on
+corPlot(mydata, type = "season")
+\dontrun{
+## a more interesting are hydrocarbon measurements
+hc <- importAURN(site = "my1", year = 2005, hc = TRUE)
+## now it is possible to see the hydrocarbons that behave most
+## similarly to one another
+corPlot(hc)
+}
+}
+\keyword{methods}
+%\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
