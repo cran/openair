@@ -2,7 +2,7 @@ timePlot <- function(mydata,
                      pollutant = "nox",
                      group = FALSE,
                      stack = FALSE,
-                     normalise = FALSE,
+                     normalise = NULL,
                      avg.time = "default",
                      data.thresh = 0,
                      statistic = "mean",
@@ -68,9 +68,9 @@ timePlot <- function(mydata,
 
     vars <- c("date", pollutant)
 
-                                        #greyscale handling
+    ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
-                                        #strip only
+        ## strip only
         current.strip <- trellis.par.get("strip.background")
         trellis.par.set(list(strip.background = list(col = "white")))
     }
@@ -96,7 +96,7 @@ timePlot <- function(mydata,
 #######################################################################################################
 
     ## data checks
-    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
 
     ## pad out any missing date/times so that line don't extend between areas of missing data
 
@@ -150,9 +150,32 @@ timePlot <- function(mydata,
         x
     }
 
-    if (normalise) {
-        ylab <- "normalised level"
-        mydata <-  ddply(mydata, .(variable), divide.by.mean)
+    ## function to normalise data by a specfic date ##################################
+    norm.by.date <- function(x, thedate){
+        ## nearest date in time series
+        ## need to find first non-missing value
+        temp <- na.omit(x)
+        id <-  which(abs(temp$date - thedate) == min(abs(temp$date - thedate)))
+        id <- temp$date[id] ## the nearest date for non-missing data
+        x$value <- 100 * x$value / x$value[x$date == id]
+        x
+    }
+
+    if (!missing(normalise)) {
+        if (!missing(ylab)) ylab <- "normalised level"
+
+        if (normalise == "mean") {
+
+            mydata <-  ddply(mydata, .(variable), divide.by.mean)
+
+        } else {
+
+            ## scale value to 100 at specific date
+
+            thedate <- as.POSIXct(strptime(normalise, format = "%d/%m/%Y", tz = "GMT"))
+            mydata <- ddply(mydata, .(variable), norm.by.date, thedate = thedate)
+        }
+
     }
 
     mylab <- sapply(seq_along(pollutant), function(x) quickText(pollutant[x], auto.text))
@@ -167,15 +190,15 @@ timePlot <- function(mydata,
 
     ## set up colours
     myColors <- if (length(cols) == 1 && cols == "greyscale")
-        openColours(cols, npol+1)[-1] else openColours(cols, npol)
+        openColours(cols, npol + 1)[-1] else openColours(cols, npol)
 
     ## basic function for lattice call + defaults
     myform <- formula(paste("value ~ date |", type))
 
     strip <- TRUE
     strip.left <- FALSE
-    dates <- dateBreaks(mydata$date, date.breaks)$major ## for date scale
-    formats <- dateBreaks(mydata$date, date.breaks)$format
+    dates <- openair:::dateBreaks(mydata$date, date.breaks)$major ## for date scale
+    formats <- openair:::dateBreaks(mydata$date, date.breaks)$format
 
     scales <- list(x = list(at = dates, format = formats), y = list(log = nlog))
 
@@ -197,6 +220,8 @@ timePlot <- function(mydata,
 
         if (missing(lty)) lty <- 1 ## don't need different line types here
     }
+
+    if (type == "default") strip <- FALSE
 
     ## if stacking of plots by year is needed
     if (stack) {
@@ -294,7 +319,8 @@ timePlot <- function(mydata,
                       if (any(!is.na(pch))) {
                           lpoints(x, y, type = "p", pch = pch, col.symbol = myColors[group.number],...)
                       }
-                      if (smooth) panel.gam(x, y, col = myColors[group.number] , col.se =  myColors[group.number],
+                      if (smooth) panel.gam(x, y, col = myColors[group.number] ,
+                                            col.se =  myColors[group.number],
                                             lty = 1, lwd = 1, se = ci, ...)
 
                       ## add reference lines
@@ -305,13 +331,13 @@ timePlot <- function(mydata,
                   )
 
 #################
-                                        #output
+    ## output
 #################
     plot(plt)
     newdata <- mydata
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
-                                        #reset if greyscale
+    ## reset if greyscale
     if (length(cols) == 1 && cols == "greyscale")
         trellis.par.set("strip.background", current.strip)
     invisible(output)

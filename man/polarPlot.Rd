@@ -14,7 +14,7 @@
 polarPlot(mydata, 
     pollutant = "nox", type = "default", statistic = "mean",
     resolution = "normal", limits = NA, 
-    exclude.missing = TRUE, uncertainty = FALSE, 
+    exclude.missing = TRUE, layout = NULL, uncertainty = FALSE,
     cols = "default", min.bin = 1, upper = NA, 
     ws.int = 5, angle.scale = 45, units = "(m/s)", 
     force.positive = TRUE, k = 100, normalise = FALSE,
@@ -92,6 +92,11 @@ dominate the overall mean.}
     too far from the original data produces a plot where it is clear where
     the original data lie. If set to \code{FALSE} missing data will be
     interpolated.}
+
+  \item{layout}{If set, the \code{c(x, y)} layout for arranging plotted panels. 
+    In most cases openair will handle layouts sensibly based on the 
+    number of panels and plot window dimensions. However, this option 
+    allows the layout to be forced to other configurations if required.}
   
   \item{uncertainty}{Should the uncertainty in the calculated surface be
     shown? If \code{TRUE} three plots are produced on the same scale

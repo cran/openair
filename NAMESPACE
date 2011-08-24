@@ -46,6 +46,7 @@ export(
        ##specialist plot/functions:
 
        #misc
+       corPlot,
        calcFno2,
        calendarPlot,
        linearRelation,

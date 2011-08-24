@@ -23,7 +23,7 @@ windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
                       auto.text = TRUE, breaks = 4, offset = 10,
                       paddle = TRUE, key.header = NULL, key.footer = "(m/s)",
                       key.position = "bottom", key = TRUE, dig.lab = 5,
-                      statistic = "prop.count", pollutant = NULL,
+                      statistic = "prop.count", pollutant = NULL, annotate = TRUE,
                       ...)
 {
 
@@ -256,10 +256,11 @@ windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
                                 grid.line / 100) *
                             cos(pi / 4), paste(seq(grid.line, 100, by = grid.line),
                                                "%", sep = ""), cex = 0.7)
-                      ltext(max.freq, -max.freq,
+                      if (annotate) ltext(max.freq, -max.freq,
                             label = paste("mean = ", sprintf("%.1f", subdata$means[1]),
                             "\ncalm = ", sprintf("%.1f", 100 * subdata$calm[1]),
                             "%", sep = ""), adj = c(1, 0), cex = 0.7, col = calm.col)
+
                   }, legend = legend, ...)
 
     ## output ################################################################################

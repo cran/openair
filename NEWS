@@ -1,5 +1,12 @@
-Changes in openair 0.4-23 [2011-07-15]
+Changes in openair 0.5-0 [2011-08-04]
 =====================================
+*	NEW FUNCTION corPlot for correlation matrices
+*	add sep argument to import
+
+Changes in openair 0.4-23 [2011-08-03]
+=====================================
+*	enhance 'normalise' option in timePlot
+*	add annotate option to windRose/pollutionRose
 *	NEW FUNCTION TaylorDiagram for model evaluation.
 
 Changes in openair 0.4-22 [2011-06-03]

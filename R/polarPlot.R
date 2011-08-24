@@ -6,6 +6,7 @@ polarPlot <- function(mydata,
                       resolution = "normal",
                       limits = NA,
                       exclude.missing = TRUE,
+                      layout = NULL,
                       uncertainty = FALSE,
                       cols = "default",
                       min.bin = 1,
@@ -231,9 +232,8 @@ polarPlot <- function(mydata,
 
     col.scale = breaks
 
-    if (uncertainty) layout <- c(3, 1)
-    layout = if (uncertainty) c(3, 1) else NULL
-
+    if (uncertainty & is.null(layout)) layout <- c(3, 1)
+    
     ## scale key setup ######################################################################################
 
     legend <- list(col = col, at = col.scale, space = key.position,

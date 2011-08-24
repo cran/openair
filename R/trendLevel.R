@@ -355,19 +355,60 @@ trendLevel <- function(mydata,
     ##############################
     #plot
     ##############################
-    #note: (like other openair functions)
-    #      this will now fall over with lattice error if the user passes any of
-    #      the preset options below as part of call
-    plt <- levelplot(myform, data = newdata,
-               as.table = TRUE, xlab=xlab, ylab =ylab, main = main,
-               legend = legend, colorkey = colorkey,
-               at = breaks, col.regions=col.regions,
-               scales = scales,
-               yscale.components = yscale.lp,
-               xscale.components = xscale.lp,
-               par.strip.text = list(cex = 0.8),
-               strip=strip, strip.left=strip.left,
-               ...)
+    #note: The following listUpdate steps are used to stop this falling 
+    #      over with a lattice error if the user passes any of
+    #      the locally defined options below as part of call.
+    #      If they do reset it is obviously Caveat emptor... 
+
+    user.list <- list(...)
+
+    #example of special case handling
+    #layout for wd
+    if (length(type) == 1 & type[1] == "wd" & !"layout" %in% names(user.list)) {
+        ## re-order to make sensible layout
+        ## starting point code as of ManKendall
+        wds <-  c("NW", "N", "NE", "W", "E", "SW", "S", "SE")
+        newdata$wd <- ordered(newdata$wd, levels = wds)
+        wd.ok <- sapply(wds, function (x) {if (x %in% unique(newdata$wd)) FALSE else TRUE })
+        skip <- c(wd.ok[1:4], TRUE, wd.ok[5:8])
+        newdata$wd <- factor(newdata$wd) 
+        user.list$layout <- c(3, 3)
+        if(!"skip" %in% names(user.list))
+            user.list$skip <- skip
+    }
+
+    temp.list <- list(x = myform, data = newdata, as.table = TRUE, 
+                      xlab=xlab, ylab =ylab, main = main,
+                      legend = legend, colorkey = colorkey,
+                      at = breaks, col.regions=col.regions,
+                      scales = scales, 
+                      yscale.components = yscale.lp,
+                      xscale.components = xscale.lp,
+                      par.strip.text = list(cex = 0.8),
+                      strip=strip, strip.left=strip.left)
+    
+    test <- names(user.list)[names(user.list) %in% names(temp.list)]
+    if(length(test)>0){
+        warning(paste("\tUser has reset plot component(s) normally left to openair:",
+            "\n\t", paste(test, collapse=", "),
+            "\n\t[This may make plot unstable]", sep=""), call.=FALSE)
+    }
+    
+    temp.list<- listUpdate(temp.list, user.list)
+    plt <- do.call(levelplot, temp.list) 
+
+
+
+#    plt <- levelplot(myform, data = newdata,
+#               as.table = TRUE, xlab=xlab, ylab =ylab, main = main,
+#               legend = legend, colorkey = colorkey,
+#               at = breaks, col.regions=col.regions,
+#               scales = scales,
+#               yscale.components = yscale.lp,
+#               xscale.components = xscale.lp,
+#               par.strip.text = list(cex = 0.8),
+#               strip=strip, strip.left=strip.left,
+#               ...)
 
     ##############################
     #update for two levels
