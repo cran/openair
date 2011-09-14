@@ -8,6 +8,113 @@
 ## By default ir shows the day of the month for each day, but can also show the wind vector,
 ## which may also be normalised to wind speed.
 
+
+
+##' Plot time series values in convential calendar format
+##'
+##' This function will plot one year of data by month laid out in a
+##' conventional calendar format. The main purpose is to help rapidly visualise
+##' potentially complex data in a familiar way. Users can also choose to show
+##' daily mean wind vectors if wind speed and direction are available.
+##'
+##' \code{calendarPlot} will plot one year of data in a conventional calendar
+##' format i.e. by month and day of the week. The main purpose of this function
+##' is to make it easy to visualise data in a familiar way. Currently the mean
+##' value of a variable is plotted using a colour scale. Further statistics
+##' will be added in due course.
+##'
+##' If wind direction are available it is then possible to plot the wind
+##' direction vector on each day. This is very useful for getting a feel for
+##' the meteorological conditions that affect pollutant concentrations. Note
+##' that if hourly or higher time resolution are supplied, then
+##' \code{calendarPlot} will calculate daily averages using
+##' \code{\link{timeAverage}}, which ensures that wind directions are
+##' vector-averaged.
+##'
+##' If wind speed is also available, then setting the option \code{annotate =
+##' "ws"} will plot the wind vectors whose length is scaled to the wind speed.
+##' Thus information on the daily mean wind speed and direction are available.
+##'
+##' @param mydata A data frame minimally containing \code{date} and at least
+##'   one other numeric variable and a year. The date should be in either
+##'   \code{Date} format or class \code{POSIXct}.
+##' @param pollutant Mandatory. A pollutant name corresponding to a variable in
+##'   a data frame should be supplied e.g. \code{pollutant = "nox". }
+##' @param year Year to plot e.g. \code{year = 2003}.
+##' @param type Not yet implemented.
+##' @param annotate This option controls what appears on each day of the
+##'   calendar. Can be: "date" - shows day of the month; "wd" - shows
+##'   vector-averaged wind direction, or "ws" - shows vector-averaged wind
+##'   direction scaled by wind speed.
+##' @param statistic Not currently implemented - only mean is currently
+##'   calculated.
+##' @param cols Colours to be used for plotting. Options include "default",
+##'   "increment", "heat", "jet" and user defined. For user defined the user
+##'   can supply a list of colour names recognised by R (type \code{colours()}
+##'   to see the full list). An example would be \code{cols = c("yellow",
+##'   "green", "blue")}
+##' @param limits Use this option to manually set the colour scale limits. This
+##'   is useful in the case when there is a need for two or more plots and a
+##'   consistent scale is needed on each. Set the limits to cover the maximimum
+##'   range of the data for all plots of interest. For example, if one plot had
+##'   data covering 0--60 and another 0--100, then set \code{limits = c(0,
+##'   100)}. Note that data will be ignored if outside the limits range.
+##' @param main The plot title; default is pollutant and year.
+##' @param key.header,key.footer Adds additional text/labels to the scale key.
+##'   For example, passing \code{calendarPlot(mydata, key.header = "header",
+##'   key.footer = "footer")} adds addition text above and below the scale key.
+##'   These arguments are passed to \code{drawOpenKey} via \code{quickText},
+##'   applying the \code{auto.text} argument, to handle formatting.
+##' @param key.position Location where the scale key is to plotted.  Allowed
+##'   arguments currently include \code{"top"}, \code{"right"}, \code{"bottom"}
+##'   and \code{"left"}.
+##' @param key Fine control of the scale key via \code{drawOpenKey}. See
+##'   \code{drawOpenKey} for further details.
+##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
+##'   \code{TRUE} titles and axis labels will automatically try and format
+##'   pollutant names and units properly e.g.  by subscripting the `2' in NO2.
+##' @param \dots Other graphical parameters are passed onto the \code{lattice} 
+##'   function \code{lattice:levelplot}, with common axis and title labelling 
+##'   options (such as \code{xlab}, \code{ylab}, \code{main}) being passed to 
+##'   via \code{quickText} to handle routine formatting.
+##' @export
+##' @return As well as generating the plot itself, \code{calendarPlot} also
+##'   returns an object of class ``openair''. The object includes three main
+##'   components: \code{call}, the command used to generate the plot;
+##'   \code{data}, the data frame of summarised information used to make the
+##'   plot; and \code{plot}, the plot itself. If retained, e.g. using
+##'   \code{output <- calendarPlot(mydata, "nox")}, this output can be used to
+##'   recover the data, reproduce or rework the original plot or undertake
+##'   further analysis.
+##'
+##' An openair output can be manipulated using a number of generic operations,
+##'   including \code{print}, \code{plot} and \code{summary}. See
+##'   \code{\link{openair.generics}} for further details.
+##' @author David Carslaw
+##' @seealso \code{\link{timePlot}}, \code{\link{timeVariation}}
+##' @keywords methods
+##' @examples
+##'
+##'
+##' # load example data from package
+##' data(mydata)
+##'
+##' # basic plot
+##' calendarPlot(mydata, pollutant = "o3", year = 2003)
+##'
+##' # show wind vectors
+##' calendarPlot(mydata, pollutant = "o3", year = 2003, annotate = "wd")
+##'
+##' # show wind vectors scaled by wind speed and different colours
+##' calendarPlot(mydata, pollutant = "o3", year = 2003, annotate = "ws",
+##' cols = "heat")
+##'
+##' # show only specific months with selectByDate
+##' calendarPlot(selectByDate(mydata, month = c(3,6,10), year = 2003),
+##' pollutant = "o3", year = 2003, annotate = "ws", cols = "heat")
+##'
+##'
+##'
 calendarPlot <- function(mydata,
                           pollutant = "nox",
                           year = 2003,
@@ -24,8 +131,18 @@ calendarPlot <- function(mydata,
 
     ##international keyboard
     ##first letter and ordered Sun to Sat
-  #  weekday.abb <- substr(make.weekday.abbs(), 1, 1)[c(7, 1:6)]
+    #weekday.abb <- substr(make.weekday.abbs(), 1, 1)[c(7, 1:6)]
     weekday.abb <- substr(format(ISOdate(2000, 1, 2:8), "%A"), 1, 1)[c(7, 1:6)]
+
+    ##extra args
+    extra.args <- list(...)
+
+    #label controls
+    #(main currently handled in formals)
+    extra.args$xlab <- if("xlab" %in% names(extra.args))
+                           quickText(extra.args$xlab, auto.text) else quickText("", auto.text)
+    extra.args$ylab <- if("ylab" %in% names(extra.args))
+                           quickText(extra.args$ylab, auto.text) else quickText("", auto.text)
 
     ## extract variables of interest
     if (annotate == "date") vars <- c("date", pollutant)
@@ -155,7 +272,7 @@ calendarPlot <- function(mydata,
          height = 1, width = 1.5, fit = "all")
     legend <- makeOpenKeyLegend(key, legend, "calendarPlot")
 
-    print(levelplot(conc.mat ~ x * y | month, data = mydata,
+    levelplot.args <- list(x = conc.mat ~ x * y | month, data = mydata,
               par.settings = cal.theme,
               main = main,
               at = col.scale,
@@ -165,9 +282,7 @@ calendarPlot <- function(mydata,
               x = list(at = 1:7, labels = weekday.abb, tck = 0),
               par.strip.text = list(cex = 0.8),
               alternating = 1, relation = "free"),
-              xlab = "",
               aspect = 6/7,
-              ylab = "",
               between = list(x = 1),
               colorkey = FALSE, legend = legend,
               panel = function(x, y, subscripts,...) {
@@ -200,7 +315,13 @@ calendarPlot <- function(mydata,
                               angle = 20, length = 0.07, lwd = 0.5)
                   }
 
-              }))
+              })
+
+    #reset for extra.args
+    levelplot.args<- listUpdate(levelplot.args, extra.args)
+
+    #plot
+    print(do.call(levelplot, levelplot.args))
 
     ## reset theme
     lattice.options(default.theme = def.theme)

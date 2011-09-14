@@ -1,11 +1,129 @@
 #######################
-#file contains 
+#file contains
 #scripts for:
 #######################
 #function: cutData
 #function: cutDaylight
 #
 
+
+
+##' Function to split data in different ways for conditioning
+##'
+##' Utility function to split data frames up in various ways for conditioning
+##' plots. Users would generally not be expected to call this function
+##' directly.  Widely used by many \code{openair} functions usually through the
+##' option \code{type}.
+##'
+##' This section give a brief description of each of the define levels of
+##' \code{type}. Note that all time dependent types require a column
+##' \code{date}.
+##'
+##' "default" does not split the data but will describe the levels as a date
+##' range in the format "day month year".
+##'
+##' "year" splits the data by each year.
+##'
+##' "month" splits the data by month of the year.
+##'
+##' "hour" splits the data by hour of the day.
+##'
+##' "monthyear" splits the data by year and month. It differs from month in
+##' that a level is defined for each month of the data set. This is useful
+##' sometimes to show an ordered sequence of months if the data set starts half
+##' way through a year; rather than starting in January.
+##'
+##' "weekend" splits the data by weekday and weekend.
+##'
+##' "weekday" splits the data by day of the week - ordered to start Monday.
+##'
+##' "season" splits data up by season. In the northern hemisphere winter =
+##' December, January, February; spring = March, April, May etc. These
+##' defintions will change of \code{hemisphere = "southern"}.
+##'
+##' "daylight" splits the data relative to estimated sunrise and sunset to give
+##' either daylight or nighttime. The cut is made by \code{cutDaylight} but
+##' more conveniently accessed via \code{cutData}, e.g. \code{cutData(mydata,
+##' type = "daylight", latitude=my.latitude, longitude=my.longitude)}. The
+##' daylight estimation, which is valid for dates between 1901 and 2099, is
+##' made using the measurement location, date, time and astronomical algorithms
+##' to estimate the relative positions of the Sun and the measurement location
+##' on the Earth's surface, and is based on NOAA methods
+##' (\url{http://www.esrl.noaa.gov/gmd/grad/solcalc/}). The
+##' \code{local.hour.offset} is zero if you are working in UTC/GMT, otherwise
+##' see \url{http://www.srrb.noaa.gov/highlights/sunrise/timezone.html} for
+##' local time zones corrections. Measurement location should be set using
+##' \code{latitude} (+ to North; - to South) and \code{longitude} (+ to East; -
+##' to West).
+##'
+##' "gmtbst" or "bstgmt" will split the data by hours that are in GMT i.e.
+##' mostly winter months) and hours in British summertime. Each of the two
+##' periods will be in \emph{local time}. The main purpose of this option is to
+##' test whether there is a shift in the diurnal profile when GMT and BST hours
+##' are compared. This option is particularly useful with the
+##' \code{timeVariation} function. For example, close to the source of road
+##' vehicle emissions, `rush-hour' will tend to occur at the same \emph{local
+##' time} throughout the year e.g. 8 am and 5 pm. Therefore, comparing GMT
+##' hours with BST hours will tend to show similar diurnal patterns (at least
+##' in the timing of the peaks, if not magnitude) when expressed in local time.
+##' By contrast a variable such as wind speed or temperature should show a
+##' clear shift when expressed in local time for BST vs. GMT. In essence, this
+##' option when used with \code{timeVariation} may help determine whether the
+##' variation in a pollutant is driven by man-made emissions or natural
+##' processes.
+##'
+##' "wd" splits the data by 8 wind sectors and requires a column \code{wd}:
+##' "NE", "E", "SE", "S", "SW", "W", "NW", "N".
+##'
+##' "ws" splits the data by 8 quantiles of wind speed and requires a column
+##' \code{ws}.
+##'
+##' "site" splits the data by site and therefore requires a column \code{site}.
+##'
+##' @aliases cutData cutDaylight
+##' @usage cutData(x, type = "default", hemisphere = "northern", n.levels = 4, is.axis = FALSE, ...)
+##'
+##' cutDaylight(x, local.hour.offset = 0,
+##'                  latitude = 51.522393, longitude = -0.154700, ...)
+##' @param x A data frame containing a field \code{date}.
+##' @param type A string giving the way in which the data frame should be
+##'   split. Pre-defined values are: "default", "year", "hour", "month",
+##'   "season", "weekday", "ws", "site", "weekend", "monthyear", "daylight",
+##'   "gmtbst" or "bstgmt".
+##'
+##' \code{type} can also be the name of a numeric or factor. If a numeric
+##'   column name is supplied \code{cutData} will split the data into four
+##'   quantiles. Factors levels will be used to split the data without any
+##'   adjustment.
+##' @param hemisphere Can be \code{"northern"} or \code{"southern"}, used to
+##'   split data into seasons.
+##' @param n.levels Number of quantiles to split numeric data into.
+##' @param is.axis A logical (\code{TRUE}/\code{FALSE}), used to request
+##'   shortened cut labels for axes.
+##' @param local.hour.offset,latitude,longitude Parameters used by
+##'   \code{cutDaylight} to estimate if the measurement was collected during
+##'   daylight or nighttime hours.  \code{local.hour.offset} gives the
+##'   measurement timezone and \code{latitude} and \code{longitude} give the
+##'   measurement location. NOTE: The default settings for these three
+##'   parameters are the London Marylebone Road AURN site associated with the
+##'   \code{mydata} example data set. See \code{\dots{}} and Details below for
+##'   further information.
+##' @param \dots All additional parameters are passed on to next function(s).
+##'   For example, with \code{cutData} all additional parameters are passed on
+##'   to \code{cutDaylight} allowing direct access to \code{cutDaylight} via
+##'   either \code{cutData} or any \code{openair} using \code{cutData} for
+##'   \code{type} conditioning.
+##' @export
+##' @return Returns a data frame with a column \code{cond} that is defined by
+##'   \code{type}.
+##' @author David Carslaw (cutData) and Karl Ropkins (cutDaylight)
+##' @keywords methods
+##' @examples
+##'
+##' ## split data by day of the week
+##' mydata <- cutData(mydata, type = "weekday")
+##'
+##'
 cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, is.axis = FALSE, ...) {
 
     ## function to cutData depending on choice of variable
@@ -14,21 +132,21 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
 
     ## note: is.axis modifies factor levels to give shorter labels for axis
     ##       generic label shortening handled at end of section
-    ##       format(date, "%?") outputs modified by is.axis are set using temp 
+    ##       format(date, "%?") outputs modified by is.axis are set using temp
     ##       declared at at start of associated type section - karl
 
     makeCond <- function(x, type = "default") {
         ## adds a column "cond"
 
-        
+
         conds <- c("default", "year", "hour", "month", "season", "weekday", "wd", "site",
                    "weekend", "monthyear", "bstgmt", "gmtbst", "daylight")
 
         ## if conditioning type already built in, is present in data frame and is a factor
         if (type %in% conds & type %in% names(x)) {
-           
+
             if (is.factor(x[ , type])) {
-               
+
                 x[ , type] <- factor(x[ , type])  ## remove unused factor levels
                 return(x)
             }
@@ -38,9 +156,10 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
             ## split by quantiles unless it is a factor, in which case keep as is
             ## number of quantiles set by n.levels
 
-            if (is.factor(x[, type]) | is.character(x[, type])) {
+            if (is.factor(x[, type]) | is.character(x[, type]) | class(x[, type])[1] == "Date" |
+                "POSIXt" %in% class(x[, type])) {
 
-                ## drop unused levels while we are at it             
+                ## drop unused levels while we are at it
                 x[, type] <- factor(x[, type])
 
             } else {
@@ -94,9 +213,9 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
              ## might only be partial year...
              ids <- which(month.abbs %in% unique(x$month))
              the.months <- month.abbs[ids]
-            
+
              x[ , type] <- ordered(x[ , type], levels = the.months)
-        } 
+        }
 
         if (type == "monthyear") {
             x[ , type] <- format(x$date, "%B %Y")
@@ -104,10 +223,10 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
         }
 
         if (type == "season") {
-            
+
             if (!hemisphere %in% c("northern", "southern")) {
                 stop("hemisphere must be 'northern' or 'southern'")}
-            
+
             if (hemisphere == "northern") {
                 x[ , type] <- "winter (DJF)" ## define all as winter first, then assign others
                 ids <- which(as.numeric(format(x$date, "%m")) %in% 3:5)
@@ -134,16 +253,16 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
                 x[ , type][ids] <- "spring (SON)"
 
                 seasons <- c("spring (SON)", "summer (DJF)", "autumn (MAM)", "winter (JJA)")
-                
+
                 ## might only be partial year...
                 ids <- which(seasons %in% unique(x$season))
                 the.season <- seasons[ids]
                 x[ , type] <- ordered(x[ , type], levels = c("spring (SON)", "summer (DJF)",
                                                   "autumn (MAM)", "winter (JJA)"))
-                
+
             }
-            
-        } 
+
+        }
 
         if (type == "weekend") {
             ## split by weekend/weekday
@@ -153,7 +272,7 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
             weekend[ , type] <- "weekend"
 
             x <- rbind(weekday, weekend)
-            x[ , type] <- ordered(x[ , type], levels = c("weekday", "weekend")) 
+            x[ , type] <- ordered(x[ , type], levels = c("weekday", "weekend"))
 
         }
 
@@ -174,7 +293,7 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
             x[ , type][is.na(x[ , type])] <- "N" # for wd < 22.5
             x[ , type] <- ordered(x[ , type], levels = c("N", "NE", "E", "SE", "S", "SW", "W", "NW"))}
 
-        
+
         if (type == "site") {
             x[ , type] <- x$site
             x[ , type] <- factor(x[ , type]) ## will get rid of any unused factor levels
@@ -193,7 +312,7 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
 
             gmt <- x[id.GMT, ]
             gmt[ , type] <- "GMT hours"
-            
+
             x <- rbind.fill(bst, gmt)
             x[ , type] <- factor(x[ , type])
             x$date <- as.POSIXct(x$date, "GMT")
@@ -217,15 +336,14 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
 
 ###########################################################################################
 #cutDaylight function
-
 cutDaylight <- function(x, local.hour.offset = 0,
-                  latitude = 51.522393, longitude = -0.154700, ... 
+                  latitude = 51.522393, longitude = -0.154700, ...
                   ){
 
 ##long, hour.off
 
 #condition openair data by daylight
-#using date (POSIXt) 
+#using date (POSIXt)
 #kr v 0.2
 #################################
 #based on noaa methods
@@ -240,15 +358,15 @@ cutDaylight <- function(x, local.hour.offset = 0,
 #(lat, long) position relative to sun
 #to estimate if daylight or nighttime hour
 ######################
-#solar.noon.lst, etc are factions of day 
-#seconds into that day = p.time * 86400 
+#solar.noon.lst, etc are factions of day
+#seconds into that day = p.time * 86400
 #so for example sunset time is
 #as.POSIXct(sunset.time.lst * 86400, origin = format(x$date, "%Y-%m-%d"))
 #(assuming you do not run into next day!)
 ######################
-#currently unsure about extremes 
+#currently unsure about extremes
 #long nights and days at poles need checking
-# 
+#
 
 ##################
 #suggestions:
@@ -268,13 +386,13 @@ degrees <- function(x) x * (180 / pi)
 ###############
 #get local time
 ###############
-temp <- x$date 
+temp <- x$date
 
 #################
 #make julian.refs
 #################
 #ref Gregorian calendar back extrapolated.
-#assumed good for years between 1800 and 2100 
+#assumed good for years between 1800 and 2100
 
 p.day <- (as.numeric(format(temp, "%H")) * 3600) +
          (as.numeric(format(temp, "%M")) * 60) +
@@ -296,48 +414,48 @@ geom.mean.anom.sun.deg <- 357.52911 + julian.century * (35999.05029 - 0.0001537 
 
 eccent.earth.orbit <- 0.016708634 - julian.century * (0.000042037 + 0.0001537 * julian.century)
 
-sun.eq.of.ctr <- sin(rad(geom.mean.anom.sun.deg)) * 
-                 (1.914602 - julian.century * (0.004817 + 0.000014*julian.century)) + 
-                 sin(rad(2 * geom.mean.anom.sun.deg)) * 
-                 (0.019993 - 0.000101*julian.century) + 
+sun.eq.of.ctr <- sin(rad(geom.mean.anom.sun.deg)) *
+                 (1.914602 - julian.century * (0.004817 + 0.000014*julian.century)) +
+                 sin(rad(2 * geom.mean.anom.sun.deg)) *
+                 (0.019993 - 0.000101*julian.century) +
                  sin(rad(3 * geom.mean.anom.sun.deg)) * 0.000289
 
 sun.true.long.deg <- sun.eq.of.ctr + geom.mean.long.sun.deg
 
-sun.app.long.deg <- sun.true.long.deg - 0.00569 - 0.00478 * 
+sun.app.long.deg <- sun.true.long.deg - 0.00569 - 0.00478 *
                     sin(rad(125.04 - 1934.136 * julian.century))
 
-mean.obliq.ecliptic.deg <- 23 + (26 + ((21.448 - julian.century * 
-                           (46.815 + julian.century * 
-                           (0.00059 - julian.century 
+mean.obliq.ecliptic.deg <- 23 + (26 + ((21.448 - julian.century *
+                           (46.815 + julian.century *
+                           (0.00059 - julian.century
                            * 0.001813)))) / 60) / 60
 
-obliq.corr.deg <- mean.obliq.ecliptic.deg + 
+obliq.corr.deg <- mean.obliq.ecliptic.deg +
                   0.00256 * cos(rad(125.04 - 1934.136 * julian.century))
 
-sun.declin.deg <- degrees(asin(sin(rad(obliq.corr.deg)) * 
+sun.declin.deg <- degrees(asin(sin(rad(obliq.corr.deg)) *
                   sin(rad(sun.app.long.deg))))
 
 vary <- tan(rad(obliq.corr.deg / 2)) * tan(rad(obliq.corr.deg/2))
 
-eq.of.time.minutes <- 4 * degrees(vary * sin(2 * rad(geom.mean.long.sun.deg)) - 
-                      2 * eccent.earth.orbit * sin(rad(geom.mean.anom.sun.deg)) + 
-                      4 * eccent.earth.orbit * vary * sin(rad(geom.mean.anom.sun.deg)) * 
-                      cos(2 * rad(geom.mean.long.sun.deg)) - 0.5 * vary * vary * 
-                      sin(4 * rad(geom.mean.long.sun.deg)) - 1.25 * eccent.earth.orbit * 
+eq.of.time.minutes <- 4 * degrees(vary * sin(2 * rad(geom.mean.long.sun.deg)) -
+                      2 * eccent.earth.orbit * sin(rad(geom.mean.anom.sun.deg)) +
+                      4 * eccent.earth.orbit * vary * sin(rad(geom.mean.anom.sun.deg)) *
+                      cos(2 * rad(geom.mean.long.sun.deg)) - 0.5 * vary * vary *
+                      sin(4 * rad(geom.mean.long.sun.deg)) - 1.25 * eccent.earth.orbit *
                       eccent.earth.orbit * sin(2 * rad(geom.mean.anom.sun.deg)))
 
 #original nooa code
 ##
-#ha.sunrise.deg <- degrees(acos(cos(rad(90.833)) / 
-#                  (cos(rad(latitude)) * cos(rad(sun.declin.deg))) - 
+#ha.sunrise.deg <- degrees(acos(cos(rad(90.833)) /
+#                  (cos(rad(latitude)) * cos(rad(sun.declin.deg))) -
 #                  tan(rad(latitude)) * tan(rad(sun.declin.deg))))
 ##
 #R error catcher added
 #for long nights>24hours/short nights<0
 
-ha.sunrise.deg <- cos(rad(90.833)) / 
-                  (cos(rad(latitude)) * cos(rad(sun.declin.deg))) - 
+ha.sunrise.deg <- cos(rad(90.833)) /
+                  (cos(rad(latitude)) * cos(rad(sun.declin.deg))) -
                   tan(rad(latitude)) * tan(rad(sun.declin.deg))
 ha.sunrise.deg <- ifelse(ha.sunrise.deg > 1, 1, ha.sunrise.deg)
 ha.sunrise.deg <- ifelse(ha.sunrise.deg < -1, -1, ha.sunrise.deg)
@@ -362,11 +480,11 @@ daylight <- ifelse(sunlight.duration.minutes == 0, FALSE,
                           ifelse(p.day < sunset.time.lst & p.day > sunrise.time.lst, TRUE, FALSE),
                           ifelse(p.day <= sunrise.time.lst & p.day >= sunset.time.lst, FALSE, TRUE)
              )))
-#as ordered factor 
+#as ordered factor
 daylight <- factor(daylight, levels=c(TRUE, FALSE), labels=c("daylight", "nighttime"))
 
 ###############################
-#output 
+#output
 ###############################
 x <- cbind(x, daylight = daylight)
 

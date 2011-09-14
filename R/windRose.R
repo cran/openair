@@ -18,8 +18,194 @@ pollutionRose <- function(mydata,
 }
 
 
+
+
+##' Traditional wind rose plot and pollution rose variation
+##'
+##' The traditional wind rose plot that plots wind speed and wind direction by
+##' different intervals. The pollution rose applies the same plot structure but
+##' substitutes other measurements, most commonly a pollutant time series, for
+##' wind speed.
+##'
+##' For \code{windRose} data are summarised by direction, typically by 45 or 30
+##' (or 10) degrees and by different wind speed categories. Typically, wind
+##' speeds are represented by different width "paddles". The plots show the
+##' proportion (here represented as a percentage) of time that the wind is from
+##' a certain angle and wind speed range.
+##'
+##' By default \code{windRose} will plot a windRose in using "paddle" style
+##' segments and placing the scale key below the plot.
+##'
+##' The argument \code{pollutant} uses the same plotting structure but
+##' substitutes another data series, defined by \code{pollutant}, for wind
+##' speed.
+##'
+##' The option \code{statistic = "prop.mean"} provides a measure of the
+##' relative contribution of each bin to the panel mean, and is intended for
+##' use with \code{pollutionRose}.
+##'
+##' \code{pollutionRose} is a \code{windRose} wrapper which brings
+##' \code{pollutant} forward in the argument list, and attempts to sensibly
+##' rescale break points based on the \code{pollutant} data range by by-passing
+##' \code{ws.int}.
+##'
+##' By default, \code{pollutionRose} will plot a pollution rose of \code{nox}
+##' using "wedge" style segments and placing the scale key to the right of the
+##' plot.
+##' @usage windRose(mydata, ws.int = 2, angle = 30, type = "default",
+##'                      cols = "default", grid.line = NULL, width = 1,
+##'                      auto.text = TRUE, breaks = 4, offset = 10,
+##'                      paddle = TRUE, key.header = NULL, key.footer = "(m/s)",
+##'                      key.position = "bottom", key = TRUE, dig.lab = 5,
+##'                      statistic = "prop.count", pollutant = NULL, annotate = TRUE,
+##'                      ...)
+##'
+##'
+##'     pollutionRose(mydata, pollutant = "nox", key.footer = pollutant,
+##'                          breaks = 6, paddle = FALSE, key.position = "right",
+##'                          ...)
+##'
+##'
+##' @aliases windRose pollutionRose
+##' @param mydata A data frame containing fields \code{ws} and \code{wd}
+##' @param ws.int The Wind speed interval. Default is 2 m/s but for low met
+##'   masts with low mean wind speeds a value of 1 or 0.5 m/s may be better.
+##'   Note, this argument is superseded in \code{pollutionRose}. See
+##'   \code{breaks} below.
+##' @param angle Default angle of "spokes" is 30. Other potentially useful
+##'   angles are 45 and 10. Note that the width of the wind speed interval may
+##'   need adjusting using \code{width}.
+##' @param type \code{type} determines how the data are split i.e. conditioned,
+##'   and then plotted. The default is will produce a single plot using the
+##'   entire data. Type can be one of the built-in types as detailed in
+##'   \code{cutData} e.g. "season", "year", "weekday" and so on. For example,
+##'   \code{type = "season"} will produce four plots --- one for each season.
+##'
+##' It is also possible to choose \code{type} as another variable in the data
+##'   frame. If that variable is numeric, then the data will be split into four
+##'   quantiles (if possible) and labelled accordingly. If type is an existing
+##'   character or factor variable, then those categories/levels will be used
+##'   directly. This offers great flexibility for understanding the variation
+##'   of different variables and how they depend on one another.
+##'
+##' Type can be up length two e.g. \code{type = c("season", "weekday")} will
+##'   produce a 2x2 plot split by season and day of the week. Note, when two
+##'   types are provided the first forms the columns and the second the rows.
+##' @param cols Colours to be used for plotting. Options include
+##'   \code{default}, \code{increment}, \code{heat}, \code{jet}, \code{hue} and
+##'   user defined. For user defined the user can supply a list of colour names
+##'   recognised by R (type \code{colours()} to see the full list). An example
+##'   would be \code{cols = c("yellow", "green", "blue", "black")}.
+##' @param grid.line Grid line interval to use. If \code{NULL}, as in default,
+##'   this is assigned by \code{windRose} based on the available data range.
+##'   However, it can also be forced to a specific value, e.g.
+##'   \code{grid.line = 10}.
+##' @param width For \code{paddle = TRUE}, the adjustment factor for width of
+##'   wind speed intervals. For example, \code{width = 1.5} will make the
+##'   paddle width 1.5 times wider.
+##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
+##'   \code{TRUE} titles and axis labels will automatically try and format
+##'   pollutant names and units properly e.g.  by subscripting the `2' in NO2.
+##' @param breaks Most commonly, the number of break points for wind speed in
+##'   \code{windRose} or pollutant in \code{pollutionRose}. For \code{windRose}
+##'   and the \code{ws.int} default of 2 m/s, the default, 4, generates the
+##'   break points 2, 4, 6, 8 m/s. For \code{pollutionRose}, the default, 6,
+##'   attempts to breaks the supplied data at approximately 6 sensible break
+##'   points. However, \code{breaks} can also be used to set specific break 
+##'   points. For example, the argument \code{breaks = c(1, 10, 100)} breaks
+##'   the data into segments <1, 1-10, 10-100, >100.
+##' @param offset The size of the 'hole' in the middle of the plot, expressed
+##'   as a percentage of the polar axis scale, default 10.
+##' @param paddle Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE}
+##'   plots rose using `paddle' style spokes. If \code{FALSE} plots rose using
+##'   `wedge' style spokes.
+##' @param key.header Adds additional text/labels above and/or below
+##' the scale key, respectively. For example, passing
+##' \code{windRose(mydata, key.header = "ws")} adds the addition text
+##' as a scale header. Note: This argument is passed to
+##' \code{drawOpenKey} via \code{quickText}, applying the auto.text
+##' argument, to handle formatting.
+##' @param key.footer see \code{key.footer}.
+##' @param key.position Location where the scale key is to plotted.  Allowed
+##'   arguments currently include \code{"top"}, \code{"right"}, \code{"bottom"}
+##'   and \code{"left"}.
+##' @param key Fine control of the scale key via \code{drawOpenKey}. See
+##'   \code{drawOpenKey} for further details.
+##' @param dig.lab The number of signficant figures at which scientific number
+##'   formatting is used in break point and key labelling. Default 5.
+##' @param statistic The \code{statistic} to be applied to each data bin in the
+##'   plot. Options currently include \code{"prop.count"},
+##'   \code{"prop.mean"} and \code{"abs.count"}. The default \code{"prop.count"}
+##'   sizes bins according to the proportion of the frequency of measurements.
+##'   Similarly, \code{prop.mean} sizes bins according to their relative contribution
+##'   to the mean. \code{"abs.count"} provides the absolute count of measurements
+##'   in each bin.
+##' @param pollutant Alternative data series to be sampled instead of wind
+##'   speed. The \code{windRose} default NULL is equivalent to \code{pollutant
+##'   = "ws"}.
+##' @param annotate If \code{TRUE} then the percentage calm and mean values are
+##'   printed in each panel.
+##' @param ... For \code{pollutionRose} other parameters that are passed on to
+##'\code{windRose}. For \code{windRose} other parameters that are passed on
+##'to \code{drawOpenKey}, \code{lattice:xyplot} and \code{cutData}. Axis and
+##'title labelling options (\code{xlab}, \code{ylab}, \code{main}) are passed
+##'to \code{xyplot} via \code{quickText} to handle routine formatting.
+##'
+##' @export windRose pollutionRose
+##' @return As well as generating the plot itself, \code{windRose} and
+##'   \code{pollutionRose} also return an object of class ``openair''. The
+##'   object includes three main components: \code{call}, the command used to
+##'   generate the plot; \code{data}, the data frame of summarised information
+##'   used to make the plot; and \code{plot}, the plot itself. If retained,
+##'   e.g. using \code{output <- windRose(mydata)}, this output can be used to
+##'   recover the data, reproduce or rework the original plot or undertake
+##'   further analysis.
+##'
+##' An openair output can be manipulated using a number of generic operations,
+##'   including \code{print}, \code{plot} and \code{summarise}. See
+##'   \code{\link{openair.generics}} for further details.
+##'
+##' Summarised proportions can also be extracted directly using the
+##'   \code{$data} operator, e.g.  \code{object$data} for \code{output <-
+##'   windRose(mydata)}. This returns a data frame with three set columns:
+##'   \code{cond}, conditioning based on \code{type}; \code{wd}, the wind
+##'   direction; and \code{calm}, the \code{statistic} for the proportion of
+##'   data unattributed to any specific wind direction because it was collected
+##'   under calm conditions; and then several (one for each range binned for
+##'   the plot) columns giving proportions of measurements associated with each
+##'   \code{ws} or \code{pollutant} range plotted as a discrete panel.
+##' @note \code{windRose} and \code{pollutionRose} both use \link{drawOpenKey}
+##'   to produce scale keys.
+##' @author David Carslaw (with some additional contributions by Karl Ropkins)
+##' @seealso See \code{\link{drawOpenKey}} for fine control of the scale key.
+##'
+##' See \code{\link{polarFreq}} for a more flexible version that considers
+##'   other statistics and pollutant concentrations.
+##' @keywords methods
+##' @examples
+##'
+##' # load example data from package data(mydata)
+##'
+##' # basic plot
+##' windRose(mydata)
+##'
+##' # one windRose for each year
+##' windRose(mydata,type = "year")
+##'
+##' # windRose in 10 degree intervals with gridlines and width adjusted
+##' windRose(mydata, angle = 10, width = 0.2, grid.line = 1)
+##'
+##' # pollutionRose of nox
+##' pollutionRose(mydata, pollutant = "nox")
+##'
+##' ## source apportionment plot - contribution to mean
+##' \dontrun{
+##' pollutionRose(mydata, pollutant = "pm10", type = "year", statistic = "prop.mean")
+##' }
+##'
+##'
 windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
-                      cols = "default", main = "", grid.line = 5, width = 1,
+                      cols = "default", grid.line = NULL, width = 1,
                       auto.text = TRUE, breaks = 4, offset = 10,
                       paddle = TRUE, key.header = NULL, key.footer = "(m/s)",
                       key.position = "bottom", key = TRUE, dig.lab = 5,
@@ -49,12 +235,79 @@ windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
         angle <- 3
     }
 
-    allowed.statistics <- c("prop.count", "prop.mean")
-    if (!is.character(statistic) || !statistic[1] %in% allowed.statistics) {
-        warning("In windRose(...):\n  statistic unrecognised",
-                "\n  enforcing statistic = 'prop.count'", call. = FALSE)
-        statistic <- "prop.count"
+    ##extra.args setup
+    extra.args <- list(...)
+
+    #label controls
+    extra.args$xlab <- if("xlab" %in% names(extra.args))
+                           quickText(extra.args$xlab, auto.text) else quickText("", auto.text)
+    extra.args$ylab <- if("ylab" %in% names(extra.args))
+                           quickText(extra.args$ylab, auto.text) else quickText("", auto.text)
+    extra.args$main <- if("main" %in% names(extra.args))
+                           quickText(extra.args$main, auto.text) else quickText("", auto.text)
+
+    ## statistics setup
+
+    # preset statitistics
+    if(is.character(statistic)){
+        #allowed cases
+        allowed.statistics <- c("prop.count", "prop.mean", "abs.count", "frequency")
+        if (!is.character(statistic) || !statistic[1] %in% allowed.statistics) {
+            warning("In windRose(...):\n  statistic unrecognised",
+                    "\n  enforcing statistic = 'prop.count'", call. = FALSE)
+            statistic <- "prop.count"
+        }
+
+        if(statistic=="prop.count"){
+            stat.fun <- length
+            stat.unit <- "%"
+            stat.scale <- "all"
+            stat.lab <- "Frequency of counts by wind direction (%)"
+            stat.fun2 <- function(x) round(length(x), 1)
+            stat.lab2 <- "count"
+            stat.labcalm <- function(x) round(x, 1)
+        }
+
+        if(statistic=="prop.mean"){
+            stat.fun <- function(x) sum(x, na.rm = TRUE)
+            stat.unit <- "%"
+            stat.scale <- "panel"
+            stat.lab <- "Proportion contribution to the mean (%)"
+            stat.fun2 <- function(x) signif(mean(x, na.rm = TRUE), 3)
+            stat.lab2 <- "mean"
+            stat.labcalm <- function(x) round(x, 1)
+        }
+
+        if(statistic=="abs.count" | statistic=="frequency"){
+            stat.fun <- length
+            stat.unit <- ""
+            stat.scale <- "none"
+            stat.lab <- "Count by wind direction"
+            stat.fun2 <- function(x) round(length(x), 0)
+            stat.lab2 <- "count"
+            stat.labcalm <- function(x) round(x, 0)
+        }
+
     }
+
+    if(is.list(statistic)){
+
+    #IN DEVELOPMENT
+
+    #this section has no testing/protection
+    #but allows users to supply a function
+    #scale it by total data or panel
+    #convert proportions to percentage
+    #label it
+        stat.fun <- statistic$fun
+        stat.unit <- statistic$unit
+        stat.scale <- statistic$scale
+        stat.lab <- statistic$lab
+        stat.fun2 <- statistic$fun2
+        stat.lab2 <- statistic$lab2
+        stat.labcalm <- statistic$labcalm
+    }
+
 
     vars <- c("wd", "ws")
     if (any(type %in%  dateTypes)) vars <- c(vars, "date")
@@ -92,46 +345,47 @@ windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
     theLabels <- gsub("[(]|[)]|[[]|[]]", "", levels(mydata$.z.poll))
     theLabels <- gsub("[,]", "-", theLabels)
 
-######################
+    ######################
     ## statistic handling
-#####################
+    #####################
 
     prepare.grid <- function(mydata) {
 
         levels(mydata$.z.poll) <- c(paste(".z.poll", 1:length(theLabels),
                                           sep = ""))
 
-
-        count <- length(mydata$wd)
+        all <- stat.fun(mydata$wd)
         calm <- mydata[mydata$wd == -999, ][, pollutant]
         mydata <- mydata[mydata$wd != -999, ]
         mydata <- na.omit(mydata) # needed?
 
-        if(statistic == "prop.count") {
-            calm <- length(calm)/count
-            weights <- tapply(mydata[, pollutant], list(mydata$wd, mydata$.z.poll),
-                              length) / count
+        calm <- stat.fun(calm)
+        weights <- tapply(mydata[, pollutant], list(mydata$wd, mydata$.z.poll),
+                              stat.fun)
+
+        #scaling
+        if(stat.scale=="all"){
+              calm <- calm/all
+              weights <- weights/all
         }
-
-        if(statistic == "prop.mean") {
-             calm <- sum(calm)
-
-            weights <- tapply(mydata[, pollutant], list(mydata$wd, mydata$.z.poll),
-                              sum)
-            temp <- sum(sum(weights, na.rm = TRUE), na.rm = TRUE) + calm
-
-            weights <- weights / temp
-            calm <- calm / temp
-
+        if(stat.scale=="panel"){
+              temp <- stat.fun(stat.fun(weights)) + calm
+              calm <- calm/temp
+              weights <- weights/temp
         }
 
         weights[is.na(weights)] <- 0
         weights <- t(apply(weights, 1, cumsum))
 
-        means <- mean(mydata[ , pollutant])
-        weights <- cbind(data.frame(weights), wd = as.numeric(row.names(weights)),
-                         calm = calm, means = means)
+        if(stat.scale=="all" | stat.scale=="panel"){
+            weights <- weights * 100
+            calm <- calm * 100
+        }
 
+        panel.fun <- stat.fun2(mydata[ , pollutant])
+
+        weights <- cbind(data.frame(weights), wd = as.numeric(row.names(weights)),
+                         calm = calm, panel.fun = panel.fun)
 
         weights
     }
@@ -174,6 +428,9 @@ windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
 
     results.grid <- ddply(mydata, type, prepare.grid)
 
+    #format
+    results.grid$calm <- stat.labcalm(results.grid$calm)
+
     ## proper names of labelling ##############################################################################
     pol.name <- sapply(levels(results.grid[ , type[1]]),
                        function(x) quickText(x, auto.text))
@@ -198,6 +455,7 @@ windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
                                                          length(type))], na.rm = TRUE)
     off.set <- max.freq * (offset / 100)
     box.widths <- seq(0.002 ^ 0.25, 0.016 ^ 0.25, length.out = length(theLabels)) ^ 4
+    box.widths <- box.widths * max.freq * angle / 5
 
     #key, colorkey, legend
     legend <- list(col = col, space = key.position, auto.text = auto.text,
@@ -206,22 +464,31 @@ windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
                    plot.style = if(paddle) "paddle"  else "other")
     legend <- makeOpenKeyLegend(key, legend, "windRose")
 
+
     temp <- paste(type, collapse = "+")
     myform <- formula(paste(".z.poll1 ~ wd | ", temp, sep = ""))
 
-    sub.title <- "Frequency of counts by wind direction (%)"
-    if (statistic == "prop.mean") sub.title <- "Proportion contribution to the mean (%)"
+    mymax <- 2 * max.freq
+    myby <- if(is.null(grid.line))
+                 pretty(c(0, mymax), 10)[2] else grid.line
 
-    plt <- xyplot(myform,
+    ###########
+    #rethink next bit?
+    #error catcher for users setting too big grid.line
+    ##########
+    if(myby/mymax > 0.9)
+          myby <- mymax * 0.9
+
+
+    #xyplot handling
+    xyplot.args <- list(x = myform,
                   xlim = 1.03 * c(-max.freq - off.set, max.freq + off.set),
                   ylim = 1.03 * c(-max.freq - off.set, max.freq + off.set),
                   data = results.grid,
                   type = "n",
-                  sub = sub.title,
+                  sub = stat.lab,
                   strip = strip,
                   strip.left = strip.left,
-                  xlab = "", ylab = "",
-                  main = quickText(main, auto.text),
                   as.table = TRUE,
                   aspect = 1,
                   par.strip.text = list(cex = 0.8),
@@ -230,7 +497,7 @@ windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
                   panel = function(x, y, subscripts, ...) {
                       panel.xyplot(x, y, ...)
                       angles <- seq(0, 2 * pi, length = 360)
-                      sapply(seq(off.set, 1 + off.set, by = grid.line/100),
+                      sapply(seq(off.set, mymax, by = myby),
                              function(x) llines(x * sin(angles), x * cos(angles),
                                                 col = "grey85", lwd = 1))
 
@@ -250,18 +517,23 @@ windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
                               }
                           })
                       }
-                      ltext(seq((grid.line / 100 + off.set), 1 + off.set,
-                                grid.line / 100) * sin(pi/4),
-                            seq((grid.line/100 +  off.set), 1 + off.set,
-                                grid.line / 100) *
-                            cos(pi / 4), paste(seq(grid.line, 100, by = grid.line),
-                                               "%", sep = ""), cex = 0.7)
-                      if (annotate) ltext(max.freq, -max.freq,
-                            label = paste("mean = ", sprintf("%.1f", subdata$means[1]),
-                            "\ncalm = ", sprintf("%.1f", 100 * subdata$calm[1]),
-                            "%", sep = ""), adj = c(1, 0), cex = 0.7, col = calm.col)
+                  ltext(seq((myby + off.set), mymax,
+                      myby) * sin(pi/4), seq((myby +
+                      off.set), mymax, myby) * cos(pi/4),
+                      paste(seq(myby, mymax, by = myby), stat.unit,
+                      sep = ""), cex = 0.7)
+                  if (annotate)
+                      ltext(max.freq, -max.freq, label = paste(stat.lab2, " = ",
+                          subdata$panel.fun[1], "\ncalm = ", subdata$calm[1], stat.unit,
+                          sep = ""), adj = c(1, 0), cex = 0.7, col = calm.col)
+                  }, legend = legend)
 
-                  }, legend = legend, ...)
+    #reset for extra.args
+    xyplot.args<- listUpdate(xyplot.args, extra.args)
+
+    #plot
+    plt <- do.call(xyplot, xyplot.args)
+
 
     ## output ################################################################################
 

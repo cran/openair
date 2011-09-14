@@ -1,3 +1,71 @@
+Changes in openair 0.5-11 [2011-09-14]
+=====================================
+
+*       update to corPlot, scatterPlot, smoothTrend, linearRelation,
+        percentileRose, trajPlot, trajLevel, timeVariation, TaylorDiagram,
+        timePlot, summaryPlot
+        improved ... handling
+*	remove warnings when importing air pollution data
+*	additional update to corPlot
+        added pollutant option, and openair class output
+*	tweak scaling on percentileRose deal with negative data
+*	change MannKendall to use TheilSen for all estimates for
+        consistency. May slightly affect some p estimates.
+
+Changes in openair 0.5-10 [2011-09-12]
+=====================================
+
+*       update to calendarPlot, kernelExceed,
+        MannKendall and conditionalQuantile
+        improved ... handling
+*       minor update to GoogleMapsPlot
+
+Changes in openair 0.5-9 [2011-09-08]
+=====================================
+
+*	allow model performance change to be considered in TaylorDiagram
+*	update to windRose and pollutionRose
+        stat related annotation
+*       update to polarPlot, ploarFreq and polarAnnulus
+        improved ... handling
+
+
+Changes in openair 0.5-8 [2011-09-02]
+=====================================
+
+*	NEW FUNCTION importMeta to import site meta data from air
+         pollution networks
+
+Changes in openair 0.5-7 [2011-08-30]
+=====================================
+
+*	update to trendLevel: improved ... handling
+*	update to windRose/pollutionRose: added statistic option
+	"abs.count"; improved scaling of segment widths; improved
+	... handling
+
+Changes in openair 0.5-6 [2011-08-30]
+=====================================
+
+*	NEW FUNCTIONS importTraj, trajPlot, trajLevel for importing
+	and plotting pre-defined HYSPLIT back trajectories. These
+	functions are under active development and are for testing
+	purposes only!
+*	Fix error in % upper/lower uncertainty intervals for
+	MannKendall
+*	More control over trend information placement for MannKendall
+	- arguments text.col, lab.frac (for vertical position) and
+	lab.cex (for font size)
+
+Changes in openair 0.5-4 [2011-08-04]
+=====================================
+*	Use roxygen2 for package documentation and future
+	maintainability
+*	Allow splitByDate to handle mutiple sites and output a new
+	column controlled by argument 'name'
+*	More options for MannKendall: control of colour and variable
+	x-axis scales
+
 Changes in openair 0.5-0 [2011-08-04]
 =====================================
 *	NEW FUNCTION corPlot for correlation matrices

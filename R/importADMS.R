@@ -1,15 +1,143 @@
-importADMS <- function(file=file.choose(), file.type="unknown", 
-                       drop.case = TRUE, drop.input.dates = TRUE, keep.units = TRUE, 
-                       simplify.names = TRUE, test.file.structure = TRUE, 
+##' ADMS data import function(s) for openair
+##'
+##' Function(s) to import various ADMS file types into openair. Currently
+##' handles ".met", ".bgd", ".mop" and ".pst" file structures. Uses
+##' \code{read.csv} (in \code{utils}) to read in data, format for R and openair
+##' and apply some file structure testing.
+##'
+##' The \code{importADMS} function were developed to help import various ADMS
+##' file types into openair. In most cases the parent import function should
+##' work in default configuration, e.g. \code{mydata <- importADMS()}. The
+##' function currently recognises four file formats: \code{.bgd}, \code{.met},
+##' \code{.mop} and \code{.pst}.  Where other file extensions have been set but
+##' the file structure is known, the import call can be forced by, e.g,
+##' \code{mydata <- importADMS(file.type="bgd")}. Other options can be adjusted
+##' to provide fine control of the data structuring and renaming.
+##'
+##' @aliases importADMS importADMSBgd importADMSMet importADMSMop importADMSPst
+##' @param file The ADMS file to be imported. Default, \code{file.choose()}
+##'   opens browser. Use of \code{read.csv} (in \code{utils}) also allows this
+##'   to be a readable text-mode connection or url (although these options are
+##'   currently not fully tested).
+##' @param file.type Type of ADMS file to be imported. With default, "unknown",
+##'   the import uses the file extension to identify the file type and, where
+##'   recognised, uses this to identify the file structure and import method to
+##'   be applied. Where file extension is not recognised the choice may be
+##'   forced by setting \code{file.type} to one of the known \code{file.type}
+##'   options: "bgd", "met", "mop" or "pst".
+##' @param drop.case Option to convert all data names to lower case. Default,
+##'   \code{TRUE}.  Alternative, \code{FALSE}, returns data with name cases as
+##'   defined in file.
+##' @param drop.input.dates Option to remove ADMS "hour", "day", and "year"
+##'   data columns after generating openair "date" timeseries. Default,
+##'   \code{TRUE}. Alternative, \code{FALSE}, returns both "date" and the
+##'   associated ADMS data columns as part of openair data frame.
+##' @param keep.units Option to retain ADMS data units. Default, \code{TRUE},
+##'   retains units (if recoverable) as character vector in data frame comment
+##'   if defined in \code{file}.  Alternative, \code{FALSE}, discards units.
+##'   (NOTE: currently, only \code{.bgd} and \code{.pst} files assign units.
+##'   So, this option is ignored when importing \code{.met} or \code{.mop}
+##'   files.)
+##' @param simplify.names Option to simplify data names in accordance with
+##'   common \code{openair} practices. Default, \code{TRUE}. Alternative,
+##'   \code{FALSE}, returns data with names as interpreted by standard R.
+##'   (NOTE: Some ADMS file data names include symbols and structures that R
+##'   does not allow as part of a name, so some renaming is automatic
+##'   regardless of \code{simplify.names} setting.  For example, brackets or
+##'   symbols are removed from names or repaced with ".", and names in the form
+##'   "1/x" may be returned as "X1.x" or "recip.x".)
+##' @param test.file.structure Option to test file structure before trying to
+##'   import. Default, \code{TRUE}, tests for expected file structure and halts
+##'   import operation if this is not found.  Alternative, \code{FALSE},
+##'   attempts import regardless of structure.
+##' @param drop.delim Option to remove delim columns from the data frame. ADMS
+##'   .mop files include two columns, "INPUT_DATA:" and "PROCESSED_DATA:", to
+##'   separate model input and output types.  Default, \code{TRUE}, removes
+##'   these. Alternative, \code{FALSE}, retains them as part of import.  (Note:
+##'   Option ignored when importing \code{.bgd}, \code{.met} or \code{.pst}
+##'   files.)
+##' @param add.prefixes Option to add prefixes to data names. ADMS .mop files
+##'   include a number of input and process data types with shared names.
+##'   Prefixes can be automatically added to these so individual data can be
+##'   readily identified in the R/openair environment. Default, \code{TRUE},
+##'   adds "process." as a prefix to processed data. Other options include:
+##'   \code{FALSE} which uses no prefixes and leave all name rationalisation to
+##'   R, and character vectors which are treated as the required prefixes. If
+##'   one vector is sent, this is treated as processed data prefix. If two (or
+##'   more) vectors are sent, the first and second are treated as the input and
+##'   processed data prefixes, respectively. For example, the argument
+##'   (\code{add.prefixes="out"}) would add the "out" prefix to processed data
+##'   names, while the argument (\code{add.prefixes=c("in","out")}) would add
+##'   "in" and "out" prefixes to input and output data names, respectively.
+##'   (Note: Option ignored when importing \code{.bgd}, \code{.met} or
+##'   \code{.pst} files.)
+##' @param names Option applied by \code{simplifyNamesADMS} when
+##'   \code{simplify.names} is enabled.  All names are simplified for the
+##'   default setting, \code{NULL}.
+##' @param ...  Additional arguments, passed to \code{read.csv} as part of
+##'   import operation.
+##' @export
+##' @return In standard use \code{importADMS()} returns a data frame for use in
+##'   openair. By comparison to the original file, the resulting data frame is
+##'   modified as follows:
+##'
+##' Time and date information will combined in a single column "date",
+##'   formatted as a conventional timeseries (\code{as.POSIX*}). If
+##'   \code{drop.input.dates} is enabled data series combined to generated the
+##'   new "date" data series will also be removed.
+##'
+##' If \code{simplify.names} is enabled common chemical names may be
+##'   simplified, and some other parameters may be reset to openair standards
+##'   (e.g. "ws", "wd" and "temp") according to operations defined in
+##'   \code{simplifyNamesADMS}. A summary of simplfication operations can be
+##'   obtained using, e.g., the call \code{importADMS(simplify.names)}.
+##'
+##' If \code{drop.case} is enabled all upper case characters in names will be
+##'   converted to lower case.
+##'
+##' If \code{keep.units} is enabled data units information may also be retained
+##'   as part of the data frame comment if available.
+##'
+##' With \code{.mop} files, input and processed data series names may also been
+##'   modified on the basis of \code{drop.delim} and \code{add.prefixes}
+##'   settings
+##' @note Times are assumed to be in GMT. Zero wind directions reset to 360 as
+##'   part of \code{.mop} file import.
+##' @author Karl Ropkins, David Carslaw and Matthew Williams (CERC).
+##' @seealso Generic import function \code{\link{import}}, for possible
+##'   alternative import methods.  Other dedicated import functions available
+##'   for other file types, including \code{\link{importKCL}},
+##'   \code{\link{importAURN}}, etc.
+##' @keywords methods
+##' @examples
+##'
+##'
+##' ##########
+##' #example 1
+##' ##########
+##' #To be confirmed
+##'
+##'
+##' #all current simplify.names operations
+##' importADMS(simplify.names)
+##'
+##' #to see what simplify.names does to adms data series name PHI
+##' new.name <- importADMS(simplify.names, names="PHI")
+##' new.name
+##'
+##'
+importADMS <- function(file=file.choose(), file.type="unknown",
+                       drop.case = TRUE, drop.input.dates = TRUE, keep.units = TRUE,
+                       simplify.names = TRUE, test.file.structure = TRUE,
                        drop.delim = TRUE, add.prefixes = TRUE,
                        names = NULL,
                        ...)
 {
 
-#importADMS 
+#importADMS
 #v0.2 kr
 #parent with four daughters (below)
-#Bgd, Mop and Met import methods and simplifyNamesADMS 
+#Bgd, Mop and Met import methods and simplifyNamesADMS
 
 if(substitute(file)=="simplify.names") { return(simplifyNamesADMS(names)) }
 
@@ -18,50 +146,50 @@ if(file.type=="unknown"){
   if(substr(file.type,1,1)=="."){
     file.type <- substr(file.type,2,4)
   } else {
-    stop("File extension not recognised\n       [If valid ADMS file, try setting file.type to one of: bgd, mop or met]", 
-                call. = FALSE) 
+    stop("File extension not recognised\n       [If valid ADMS file, try setting file.type to one of: bgd, mop or met]",
+                call. = FALSE)
   }
 }
 
-if(file.type=="bgd") { 
+if(file.type=="bgd") {
   return(importADMSBgd(
-    file=file, drop.case = drop.case, drop.input.dates = drop.input.dates, 
-    keep.units = keep.units, simplify.names = simplify.names, 
+    file=file, drop.case = drop.case, drop.input.dates = drop.input.dates,
+    keep.units = keep.units, simplify.names = simplify.names,
     test.file.structure = test.file.structure,
     drop.delim = drop.delim, add.prefixes = add.prefixes,
     ...
-  )) 
+  ))
 }
-if(file.type=="mop") { 
+if(file.type=="mop") {
   return(importADMSMop(
-    file=file, drop.case = drop.case, drop.input.dates = drop.input.dates, 
-    keep.units = keep.units, simplify.names = simplify.names, 
+    file=file, drop.case = drop.case, drop.input.dates = drop.input.dates,
+    keep.units = keep.units, simplify.names = simplify.names,
     test.file.structure = test.file.structure,
     drop.delim = drop.delim, add.prefixes = add.prefixes,
     ...
-  )) 
+  ))
 }
-if(file.type=="met") { 
+if(file.type=="met") {
   return(importADMSMet(
-    file=file, drop.case = drop.case, drop.input.dates = drop.input.dates, 
-    keep.units = keep.units, simplify.names = simplify.names, 
+    file=file, drop.case = drop.case, drop.input.dates = drop.input.dates,
+    keep.units = keep.units, simplify.names = simplify.names,
     test.file.structure = test.file.structure,
     drop.delim = drop.delim, add.prefixes = add.prefixes,
     ...
-  )) 
+  ))
 }
-if(file.type=="pst") { 
+if(file.type=="pst") {
   return(importADMSPst(
-    file=file, drop.case = drop.case, drop.input.dates = drop.input.dates, 
-    keep.units = keep.units, simplify.names = simplify.names, 
+    file=file, drop.case = drop.case, drop.input.dates = drop.input.dates,
+    keep.units = keep.units, simplify.names = simplify.names,
     test.file.structure = test.file.structure,
     drop.delim = drop.delim, add.prefixes = add.prefixes,
     ...
-  )) 
+  ))
 }
 
-stop("File extension not recognised\n       [If valid ADMS file, try setting file.type to one of: bgd, mop, met or pst]", 
-  call. = FALSE) 
+stop("File extension not recognised\n       [If valid ADMS file, try setting file.type to one of: bgd, mop, met or pst]",
+  call. = FALSE)
 }
 
 ###############
@@ -72,27 +200,27 @@ importADMSBgd <- function(file=file.choose()
     , drop.case=TRUE, drop.input.dates=TRUE
     , keep.units=TRUE, simplify.names=TRUE
     , test.file.structure=TRUE
-    , drop.delim = TRUE, add.prefixes = TRUE    
+    , drop.delim = TRUE, add.prefixes = TRUE
     , ...
 ){
     bgd <- readLines(file, n = -1)
     bgd <- sub('[[:space:]]+$', '', bgd) #strip out tail spaces
-    
+
     loc.start <- which(tolower(bgd) == "backgroundversion2")
     if(test.file.structure){
         if(length(loc.start)==0){
-            stop("File not recognised ADMS.bgd structure\n       [please contact openair if valid]", 
+            stop("File not recognised ADMS.bgd structure\n       [please contact openair if valid]",
                 call. = FALSE)
         }
     }
     if(length(loc.start) > 1){
-        warning("Multiple possible variable starts, taking last\n       [please contact openair problems encountered]", 
+        warning("Multiple possible variable starts, taking last\n       [please contact openair problems encountered]",
             call. = FALSE)
         loc.start <- loc.start[length(loc.start)]
     }
     no.var <- suppressWarnings(as.numeric(bgd[loc.start + 1]))[1]
     if(test.file.structure & is.na(no.var)) {
-        stop("File not recognised ADMS.bgd structure\n       [please contact openair if valid]", 
+        stop("File not recognised ADMS.bgd structure\n       [please contact openair if valid]",
             call. = FALSE)
     }
     variables <- bgd[(loc.start + 2) : (loc.start + 1 + no.var)]
@@ -107,12 +235,12 @@ importADMSBgd <- function(file=file.choose()
 
     units.start <- which(substr(bgd, 1, 6) == "UNITS:")
     if(length(units.start)==0){
-        warning("Data units not extracted from ADMS.bgd\n       [please contact file structure if problems encountered]", 
+        warning("Data units not extracted from ADMS.bgd\n       [please contact file structure if problems encountered]",
             call. = FALSE)
         units <- "units: undefined"
-    } 
+    }
     if(length(units.start) > 1){
-        warning("Multiple possible unit starts, taking last\n       [please contact openair problems encountered]", 
+        warning("Multiple possible unit starts, taking last\n       [please contact openair problems encountered]",
             call. = FALSE)
         units.start <- units.start[length(units.start)]
     }
@@ -124,17 +252,17 @@ importADMSBgd <- function(file=file.choose()
     }
     data.start <- which(substr(bgd, 1, 5) == "DATA:")
     if(length(data.start)==0){
-        stop("Data start not not located ADMS.bgd\n       [please contact file structure if problems encountered]", 
+        stop("Data start not not located ADMS.bgd\n       [please contact file structure if problems encountered]",
             call. = FALSE)
     }
     if(length(data.start) > 1){
-        warning("Multiple possible data starts, taking last\n       [please contact openair problems encountered]", 
+        warning("Multiple possible data starts, taking last\n       [please contact openair problems encountered]",
             call. = FALSE)
         data.start <- data.start[length(data.start)]
     }
 
-    ans <- read.csv(file, header = FALSE, skip = data.start 
-        , na.strings = c("", "NA", "-999", "-999.0") 
+    ans <- read.csv(file, header = FALSE, skip = data.start
+        , na.strings = c("", "NA", "-999", "-999.0")
         , ...)
     ans[] <- lapply(ans, function(x) { replace(x, x == -999, NA) })
     ########################
@@ -146,7 +274,7 @@ importADMSBgd <- function(file=file.choose()
     date <- as.POSIXct(strptime(date, format = "%Y-%j-%H"), "GMT")
     ans <- cbind(date = date, ans)
     if(length(variables) != ncol(ans) - 4){
-        warning("Variable data mismatch, taking shortest\n       [please contact if openair problems encountered]", 
+        warning("Variable data mismatch, taking shortest\n       [please contact if openair problems encountered]",
             call. = FALSE)
         variables <- variables[1: min(c(length(variables), ncol(ans) - 4), na.rm = TRUE)]
         ans <- ans[, 1:(length(variables) + 4)]
@@ -155,8 +283,8 @@ importADMSBgd <- function(file=file.choose()
     names(ans) <- c("date", "bgd.year", "bgd.day", "bgd.hour", variables)
     if(drop.input.dates==TRUE){
         ans <- ans[, c(1, 5:ncol(ans))]
-    } 
-    if(keep.units) { 
+    }
+    if(keep.units) {
         comment(ans) <- c(comment(ans), units)
     }
 
@@ -180,11 +308,11 @@ importADMSBgd <- function(file=file.choose()
 ##daughter
 ##importADMSMet
 
-importADMSMet <- function (file = file.choose() 
+importADMSMet <- function (file = file.choose()
     , drop.case=TRUE, drop.input.dates=TRUE
     , keep.units=TRUE, simplify.names=TRUE
     , test.file.structure=TRUE
-    , drop.delim = TRUE, add.prefixes = TRUE    
+    , drop.delim = TRUE, add.prefixes = TRUE
     , ...
 ){
     met <- readLines(file, n = -1)
@@ -192,18 +320,18 @@ importADMSMet <- function (file = file.choose()
     loc.start <- which(met == "VARIABLES:")
     if(test.file.structure){
         if(length(loc.start)==0){
-            stop("File not recognised ADMS.met structure\n       [please contact openair if valid]", 
+            stop("File not recognised ADMS.met structure\n       [please contact openair if valid]",
                 call. = FALSE)
         }
     }
     if(length(loc.start) > 1){
-        warning("Multiple possible variable starts, taking last\n       [please contact openair problems encountered]", 
+        warning("Multiple possible variable starts, taking last\n       [please contact openair problems encountered]",
             call. = FALSE)
         loc.start <- loc.start[length(loc.start)]
     }
     variables <- suppressWarnings(as.numeric(met[loc.start + 1]))[1]
     if(test.file.structure & is.na(variables)) {
-        stop("File not recognised ADMS.met structure\n       [please contact openair if valid]", 
+        stop("File not recognised ADMS.met structure\n       [please contact openair if valid]",
             call. = FALSE)
     }
     variables <- met[(loc.start + 2) : (loc.start + 1 + variables)]
@@ -211,24 +339,24 @@ importADMSMet <- function (file = file.choose()
     data.start <- which(met == "DATA:")
     if(test.file.structure){
         if(length(data.start)==0){
-            stop("File not recognised ADMS.met structure\n       [please contact openair if valid]", 
+            stop("File not recognised ADMS.met structure\n       [please contact openair if valid]",
                 call. = FALSE)
         }
     }
     if(length(data.start) > 1){
-        warning("Multiple possible data starts, taking last\n       [please contact openair if problems encountered]", 
+        warning("Multiple possible data starts, taking last\n       [please contact openair if problems encountered]",
             call. = FALSE)
         data.start <- data.start[length(data.start)]
     }
 
-    met <- read.csv(file, skip = data.start, header = FALSE, na.strings = c("-999", 
+    met <- read.csv(file, skip = data.start, header = FALSE, na.strings = c("-999",
         "-999.0"))
     met[] <- lapply(met, function(x) {
         replace(x, x == -999, NA)
     })
     met <- met[, sapply(met, function(x) !all(is.na(x)))]
     if(length(variables) != ncol(met)){
-        warning("Variable data mismatch, taking shortest\n       [please contact if openair problems encountered]", 
+        warning("Variable data mismatch, taking shortest\n       [please contact if openair problems encountered]",
             call. = FALSE)
         variables <- variables[1: min(c(length(variables), ncol(met)), na.rm = TRUE)]
         met <- met[, 1:length(variables)]
@@ -238,10 +366,10 @@ importADMSMet <- function (file = file.choose()
     #multiple year day hour name options
     fun.temp <- function(x, y, z){
         if(all(!y %in% names(x))){
-            stop(paste(z, 
-                " not extracted\n       [please contact openair if valid file]", 
+            stop(paste(z,
+                " not extracted\n       [please contact openair if valid file]",
                 sep = ""), call. = FALSE)
-        } 
+        }
         ans <- x[, y[y %in% names(x)]]
         if(!is.null(ncol(ans))) { ans <- ans[, 1] }
         ans
@@ -251,10 +379,10 @@ importADMSMet <- function (file = file.choose()
     hour <- fun.temp(met, c("HOUR", "THOUR"), "hour")
 
     met <- cbind(date = paste(year, day, hour, sep = "-"), met)
-    met$date <- as.POSIXct(strptime(met$date, format = "%Y-%j-%H"), 
+    met$date <- as.POSIXct(strptime(met$date, format = "%Y-%j-%H"),
         "GMT")
     if (drop.input.dates) {
-        met <- met[, !names(met) %in% 
+        met <- met[, !names(met) %in%
             c("YEAR", "TDAY", "THOUR", "DAY", "HOUR", "MONTH", "DAY.OF.MONTH")]
     }
 
@@ -276,11 +404,11 @@ importADMSMet <- function (file = file.choose()
     ids <- which(is.na(met$date))
     if (length(ids) > 0) {
         if (length(ids) == nrow(met)) {
-            stop("Invalid date (and time) format requested\n       [compare openair import settings and data structure]", 
+            stop("Invalid date (and time) format requested\n       [compare openair import settings and data structure]",
                 call. = FALSE)
         }
         met <- met[-ids, ]
-        reply <- paste("Missing dates detected, removing", length(ids), 
+        reply <- paste("Missing dates detected, removing", length(ids),
             "line", sep = " ")
         if (length(ids) > 1) {
             reply <- paste(reply, "s", sep = "")
@@ -299,11 +427,11 @@ importADMSMop <- function(file=file.choose()
     , drop.case=TRUE, drop.input.dates=TRUE
     , keep.units=TRUE, simplify.names=TRUE
     , test.file.structure=TRUE
-    , drop.delim = TRUE, add.prefixes = TRUE    
+    , drop.delim = TRUE, add.prefixes = TRUE
     , ...
 ){
 
-#problem 
+#problem
 #mismatch in file header line end with lr; data lines end with comma then lr
 #########
 #written a catch for this
@@ -324,7 +452,7 @@ importADMSMop <- function(file=file.choose()
 ##############
 #added an add.prefixes option to handle this
 
-#problem 
+#problem
 #no keep.units options
 ##############
 #no option to use
@@ -340,7 +468,7 @@ check.names <- ifelse(
     substr(check.names,nchar(check.names),nchar(check.names))=="."
     , substr(check.names,1,nchar(check.names)-1)
     , check.names
-) 
+)
 ##tidy 1/LMN
 check.names <- gsub("X1.LMO", "RECIP.LMO", check.names)
 
@@ -360,7 +488,7 @@ if(test.file.structure){
 ans <- read.csv(file, header=FALSE, skip=1
     , na.strings = c("", "NA", "-999", "-999.0")
     , ...
-) 
+)
 ans[] <- lapply(ans, function(x) { replace(x, x == -999, NA) })
 
 ##check for extra empty column
@@ -398,7 +526,7 @@ names(ans) <- make.names(check.names, unique=TRUE)
 
 ##reset wd 0 to 360
 ##get current PHI terminology
-temp <- if(simplify.names) simplifyNamesADMS("PHI") else "PHI" 
+temp <- if(simplify.names) simplifyNamesADMS("PHI") else "PHI"
 temp <- if(length(add.prefixes)>1) paste(add.prefixes[1], temp, sep=".") else temp
 if(temp %in% names(ans)) {
     ans[, temp][ans[, temp]==0] <- 360
@@ -422,10 +550,10 @@ if(drop.input.dates==TRUE){
 
 if(drop.delim==TRUE){
     ans <- ans[,!names(ans) %in% c("PROCESSED_DATA", "INPUT_DATA")]
-} 
+}
 ans <- cbind(date=date,ans)
 
-if(drop.case==TRUE) {  
+if(drop.case==TRUE) {
     names(ans) <- tolower(names(ans))
 }
 
@@ -458,7 +586,7 @@ importADMSPst <- function(file=file.choose()
     , drop.case=TRUE, drop.input.dates=TRUE
     , keep.units=TRUE, simplify.names=TRUE
     , test.file.structure=TRUE
-    , drop.delim = TRUE, add.prefixes = TRUE    
+    , drop.delim = TRUE, add.prefixes = TRUE
     , ...
 ){
 
@@ -503,7 +631,7 @@ if(test.file.structure){
 ans <- read.csv(file, header=FALSE, skip=1
     , na.strings = c("", "NA", "-999", "-999.0")
     , ...
-) 
+)
 ans[] <- lapply(ans, function(x) { replace(x, x == -999, NA) })
 
 #match up data and names
@@ -534,7 +662,7 @@ units[grep("[.]ug.m.", names(ans))] <- "ug/m3" #both 3 and superscript 3
 units[grep("[.]ppb", names(ans))] <- "ppb"
 units[grep("[.]ppm", names(ans))] <- "ppm"
 if(length(na.omit(units))==0)
-     units <- "units: unknown" else  
+     units <- "units: unknown" else
      units <- paste("units: ",paste(units, sep = "", collapse = ", "), sep="")
 
 if(simplify.names){
@@ -543,7 +671,7 @@ if(simplify.names){
 
 ans <- cbind(date=date,ans)
 
-if(drop.case==TRUE) {  
+if(drop.case==TRUE) {
     names(ans) <- tolower(names(ans))
 }
 
@@ -602,7 +730,7 @@ simplifyNamesADMS <- function(names=NULL){
            temp <- data.frame(cbind(adms.input = temp[1], r.handling = temp[2], simplify.names = temp[3]),
                    stringsAsFactors = FALSE)
            x <- rbind(x,temp)
-           x 
+           x
        }
        fun.temp.2 <- function(x,y,z, y.name) x
    } else {
@@ -644,7 +772,7 @@ simplifyNamesADMS <- function(names=NULL){
    ##conflict
    ##########
    ##both alpha.disp and alpha.met seem to have been abbrev. to alpha
-   #ALPHA(D) 
+   #ALPHA(D)
        names <- fun.temp(names, "ALPHA(D)", "ALPHA.DISP")
        names <- fun.temp(names, "ALPHA (D)", "ALPHA.DISP")
    #ALPHA(DISP)
@@ -672,7 +800,7 @@ simplifyNamesADMS <- function(names=NULL){
    #Conc|ppb|NAME|All sources|-| 1hr
       names <- fun.temp(names, "Conc|ppb|NAME|SOURCES|-| RESOLUTION", "NAME.SOURCES.RESOLUTION")
    #Conc|ppm|NAME|All sources|-| 1hr
-      names <- fun.temp(names, "Conc|ppm|NAME|SOURCES|-| RESOLUTION", "NAME.SOURCES.RESOLUTION")      
+      names <- fun.temp(names, "Conc|ppm|NAME|SOURCES|-| RESOLUTION", "NAME.SOURCES.RESOLUTION")
    #Conc|ug/m3|NAME|All sources|-| 1hr
       names <- fun.temp(names, "Conc|ug/m3|NAME|SOURCES|-| RESOLUTION", "NAME.SOURCES.RESOLUTION")
    #NAME.All.sources.1hr
@@ -681,13 +809,13 @@ simplifyNamesADMS <- function(names=NULL){
       names <- fun.temp(names, "NAME.All.sources.RESOLUTION", "NAME.RESOLUTION")
    #NAME.SOURCE.1hr
       names <- fun.temp(names, "NAME.SOURCE.1hr", "NAME.SOURCE")
-   
-   #general for above 
+
+   #general for above
       names <- fun.temp.2(names, "Conc|ppb|", "", TRUE)
       names <- fun.temp.2(names, "Conc|ppm|", "", TRUE)
-      names <- fun.temp.2(names, "Conc|.g/m.|", "", TRUE) 
-      #above covers 
-      ##u, m and mu for 1st and 
+      names <- fun.temp.2(names, "Conc|.g/m.|", "", TRUE)
+      #above covers
+      ##u, m and mu for 1st and
       ##3 and superscript3 for second
       names <- fun.temp.2(names, "[.][.][.][.]", ".", FALSE)
       names <- fun.temp.2(names, "[.][.][.]", ".", FALSE)
@@ -702,7 +830,7 @@ simplifyNamesADMS <- function(names=NULL){
    #DELTAT
        names <- fun.temp(names, "DELTAT", "DELTA.T")
        names <- fun.temp(names, "DELTA T", "DELTA.T")
-   #DELTATHETA 
+   #DELTATHETA
        names <- fun.temp(names, "DELTATHETA", "DELTA.THETA")
        names <- fun.temp(names, "DELTA THETA", "DELTA.THETA")
    #DIRN CHANGE
@@ -774,7 +902,7 @@ simplifyNamesADMS <- function(names=NULL){
        names <- fun.temp(names, "ROUGHNESS LENGTH (MET SITE)", "Z0.MET")
    #RUN
    #S HUMIDITY
-       names <- fun.temp(names, "S HUMIDITY", "SHU")   
+       names <- fun.temp(names, "S HUMIDITY", "SHU")
    #SEA SURFACE TEMPERATURE (C)
        names <- fun.temp(names, "SEA SURFACE TEMPERATURE (C)", "TSEA")
    #SEA TEMP
@@ -782,24 +910,24 @@ simplifyNamesADMS <- function(names=NULL){
    #SENSIBLE HEAT FLUX
        names <- fun.temp(names, "SENSIBLE HEAT FLUX", "FTHETA0")
    #SIGMATHETA
-       names <- fun.temp(names, "SIGMATHETA", "SIGMA.THETA") 
-       names <- fun.temp(names, "SIGMA THETA", "SIGMA.THETA") 
+       names <- fun.temp(names, "SIGMATHETA", "SIGMA.THETA")
+       names <- fun.temp(names, "SIGMA THETA", "SIGMA.THETA")
    #SIGMA THETA (DEGREES)
-       names <- fun.temp(names, "SIGMA THETA (DEGREES)", "SIGMA.THETA") 
+       names <- fun.temp(names, "SIGMA THETA (DEGREES)", "SIGMA.THETA")
    #SO2
    #SOLAR RAD
-       names <- fun.temp(names, "SOLAR RAD", "K") 
+       names <- fun.temp(names, "SOLAR RAD", "K")
    #SPECIFIC HUMIDITY
-       names <- fun.temp(names, "SPECIFIC HUMIDITY", "SHU") 
+       names <- fun.temp(names, "SPECIFIC HUMIDITY", "SHU")
    #T0C
-       names <- fun.temp(names, "T0C", "TEMP") 
+       names <- fun.temp(names, "T0C", "TEMP")
    #TDAY
    #TEMPERATURE
-       names <- fun.temp(names, "TEMPERATURE", "TEMP") 
+       names <- fun.temp(names, "TEMPERATURE", "TEMP")
    #TEMPERATURE (C)
-       names <- fun.temp(names, "TEMPERATURE (C)", "TEMP") 
+       names <- fun.temp(names, "TEMPERATURE (C)", "TEMP")
    #TEMPERATURE JUMP ACROSS BOUNDARY LAYER TOP
-       names <- fun.temp(names, "TEMPERATURE JUMP ACROSS BOUNDARY LAYER TOP", "DELTA.THETA") 
+       names <- fun.temp(names, "TEMPERATURE JUMP ACROSS BOUNDARY LAYER TOP", "DELTA.THETA")
    #THOUR
    #TEMPERATURE OVER LAND MINUS SEA SURFACE TEMPERATURE
        names <- fun.temp(names, "TEMPERATURE OVER LAND MINUS SEA SURFACE TEMPERATURE", "DELTA.T")

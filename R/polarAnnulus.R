@@ -1,4 +1,189 @@
+##' Bivariate polarAnnulus plot
+##'
+##' Typically plots the concentration of a pollutant by wind direction and as a
+##' function of time as an annulus. The function is good for visualising how
+##' concentrations of pollutants vary by wind direction and a time period e.g.
+##' by month, day of week.
+##'
+##' The \code{polarAnnulus} function shares many of the properties of the
+##' \code{polarPlot}. However, \code{polarAnnulus} is focussed on displaying
+##' information on how concentrations of a pollutant (values of another
+##' variable) vary with wind direction and time. Plotting as an annulus helps
+##' to reduce compression of information towards the centre of the plot. The
+##' circular plot is easy to interpret because wind direction is most easily
+##' understood in polar rather than Cartesian coordinates.
+##'
+##' The inner part of the annulus represents the earliest time and the outer
+##' part of the annulus the latest time. The time dimension can be shown in
+##' many ways including "trend", "hour" (hour or day), "season" (month of the
+##' year) and "weekday" (day of the week). Taking hour as an example, the plot
+##' will show how concentrations vary by hour of the day and wind direction.
+##' Such plots can be very useful for understanding how different source
+##' influences affect a location.
+##'
+##' For \code{type = "trend"} the amount of smoothing does not vary linearly
+##' with the length of the time series i.e. a certain amount of smoothing per
+##' unit interval in time. This is a deliberate choice because should one be
+##' interested in a subset (in time) of data, more detail will be provided for
+##' the subset compared with the full data set. This allows users to
+##' investigate specific periods in more detail. Full flexibility is given
+##' through the smoothing parameter \code{k}.
+##'
+##' @param mydata A data frame minimally containing \code{date}, \code{wd} and
+##'   a pollutant.
+##' @param pollutant Mandatory. A pollutant name corresponding to a variable in
+##'   a data frame should be supplied e.g. \code{pollutant = "nox"}. There can
+##'   also be more than one pollutant specified e.g. \code{pollutant = c("nox",
+##'   "no2")}. The main use of using two or more pollutants is for model
+##'   evaluation where two species would be expected to have similar
+##'   concentrations. This saves the user stacking the data and it is possible
+##'   to work with columns of data directly. A typical use would be
+##'   \code{pollutant = c("obs", "mod")} to compare two columns "obs" (the
+##'   observations) and "mod" (modelled values).
+##' @param resolution Two plot resolutions can be set: \code{"normal"} and
+##'   \code{"fine"} (the default).
+##' @param local.time Should the results be calculated in local time? The
+##'   default is \code{TRUE}. Emissions activity tends to occur at local time
+##'   e.g. rush hour is at 8 am every day. When the clocks go forward in
+##'   spring, the emissions are effectively released into the atmosphere at BST
+##'   - 1 hour during the summer. When plotting diurnal profiles, this has the
+##'   effect of "smearing-out" the concentrations. A better approach is to
+##'   express time as local time, which here is defined as BST (British Summer
+##'   Time). This correction tends to produce better-defined diurnal profiles
+##'   of concentration (or other variables) and allows a better comparison to
+##'   be made with emissions/activity data. If set to \code{FALSE} then GMT is
+##'   used.
+##' @param period This determines the temporal period to consider. Options are
+##'   "hour" (the default, to plot diurnal variations), "season" to plot
+##'   variation throughout the year, "weekday" to plot day of the week
+##'   variation and "trend" to plot the trend by wind direction.
+##' @param type \code{type} determines how the data are split i.e. conditioned,
+##'   and then plotted. The default is will produce a single plot using the
+##'   entire data. Type can be one of the built-in types as detailed in
+##'   \code{cutData} e.g. "season", "year", "weekday" and so on. For example,
+##'   \code{type = "season"} will produce four plots --- one for each season.
+##'
+##' It is also possible to choose \code{type} as another variable in the data
+##'   frame. If that variable is numeric, then the data will be split into four
+##'   quantiles (if possible) and labelled accordingly. If type is an existing
+##'   character or factor variable, then those categories/levels will be used
+##'   directly. This offers great flexibility for understanding the variation
+##'   of different variables and how they depend on one another.
+##'
+##' Type can be up length two e.g. \code{type = c("season", "site")} will
+##'   produce a 2x2 plot split by season and site. The use of two types is
+##'   mostly meant for situations where there are several sites. Note, when two
+##'   types are provided the first forms the columns and the second the rows.
+##'
+##' Also note that for the \code{polarAnnulus} function some type/period
+##'   combinations are forbidden or make little sense. For example, \code{type
+##'   = "season"} and \code{period = "trend"} (which would result in a plot
+##'   with too many gaps in it for sensible smoothing), or \code{type =
+##'   "weekday"} and \code{period = "weekday"}.
+##'
 
+##' @param limits The function does its best to choose sensible limits
+##'   automatically. However, there are circumstances when the user will wish
+##'   to set different ones. An example would be a series of plots showing each
+##'   year of data separately. The limits are set in the form \code{c(lower,
+##'   upper)}, so \code{limits = c(0, 100)} would force the plot limits to span
+##'   0-100.
+##' @param cols Colours to be used for plotting. Options include "default",
+##'   "increment", "heat", "jet" and user defined. For user defined the user
+##'   can supply a list of colour names recognised by R (type \code{colours()}
+##'   to see the full list). An example would be \code{cols = c("yellow",
+##'   "green", "blue")}
+##' @param width The width of the annulus; can be "normal" (the default),
+##'   "thin" or "fat".
+##' @param exclude.missing Setting this option to \code{TRUE} (the default)
+##'   removes points from the plot that are too far from the original data. The
+##'   smoothing routines will produce predictions at points where no data exist
+##'   i.e. they predict. By removing the points too far from the original data
+##'   produces a plot where it is clear where the original data lie. If set to
+##'   \code{FALSE} missing data will be interpolated.
+##' @param date.pad For \code{type = "trend"} (default), \code{date.pad = TRUE}
+##'   will pad-out missing data to the beginning of the first year and the end
+##'   of the last year. The purpose is to ensure that the trend plot begins and
+##'   ends at the beginning or end of year.
+##' @param force.positive The default is \code{TRUE}. Sometimes if smoothing
+##'   data with steep gradients it is possible for predicted values to be
+##'   negative. \code{force.positive = TRUE} ensures that predictions remain
+##'   postive. This is useful for several reasons. First, with lots of missing
+##'   data more interpolation is needed and this can result in artifacts
+##'   because the predictions are too far from the original data. Second, if it
+##'   is known beforehand that the data are all postive, then this option
+##'   carries that assumption through to the prediction. The only likely time
+##'   where setting \code{force.positive = FALSE} would be if background
+##'   concentrations were first subtracted resulting in data that is
+##'   legitimately negative. For the vast majority of situations it is expected
+##'   that the user will not need to alter the default option.
+##' @param k The smoothing value supplied to \code{gam} for the temporal and
+##'   wind direction components, respectively. In some cases e.g. a trend plot
+##'   with less than 1-year of data the smoothing with the default values may
+##'   become too noisy and affected more by outliers. Choosing a lower value of
+##'   \code{k} (say 10) may help produce a better plot.
+##' @param normalise If \code{TRUE} concentrations are normalised by dividing
+##'   by their mean value. This is done \emph{after} fitting the smooth
+##'   surface. This option is particularly useful if one is interested in the
+##'   patterns of concentrations for several pollutants on different scales
+##'   e.g. NOx and CO. Often useful if more than one \code{pollutant} is
+##'   chosen.
+##' @param key.header,key.footer Adds additional text/labels to the scale key.
+##'   For example, passing the options \code{key.header = "header", key.footer
+##'   = "footer1"} adds addition text above and below the scale key. These
+##'   arguments are passed to \code{drawOpenKey} via \code{quickText}, applying
+##'   the \code{auto.text} argument, to handle formatting.
+##' @param key.position Location where the scale key is to plotted.  Allowed
+##'   arguments currently include \code{"top"}, \code{"right"}, \code{"bottom"}
+##'   and \code{"left"}.
+##' @param key Fine control of the scale key via \code{drawOpenKey}. See
+##'   \code{drawOpenKey} for further details.
+##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
+##'   \code{TRUE} titles and axis labels will automatically try and format
+##'   pollutant names and units properly e.g.  by subscripting the \sQuote{2}
+##'   in NO2.
+##' @param \dots Other graphical parameters passed onto \code{lattice:levelplot}
+##'   and \code{cutData}. For example, \code{polarAnnulus} passes the option 
+##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern 
+##'   (rather than default northern) hemisphere handling of \code{type = "season"}.
+##'   Similarly, common axis and title labelling options (such as \code{xlab}, 
+##'   \code{ylab}, \code{main}) are passed to \code{levelplot} via \code{quickText} 
+##'   to handle routine formatting.
+##' @export
+##' @return As well as generating the plot itself, \code{polarAnnulus} also
+##'   returns an object of class ``openair''. The object includes three main
+##'   components: \code{call}, the command used to generate the plot;
+##'   \code{data}, the data frame of summarised information used to make the
+##'   plot; and \code{plot}, the plot itself. If retained, e.g. using
+##'   \code{output <- polarAnnulus(mydata, "nox")}, this output can be used to
+##'   recover the data, reproduce or rework the original plot or undertake
+##'   further analysis.
+##'
+##' An openair output can be manipulated using a number of generic operations,
+##'   including \code{print}, \code{plot} and \code{summary}. See
+##'   \code{\link{openair.generics}} for further details.
+##' @author David Carslaw
+##' @seealso \code{\link{polarPlot}}, \code{\link{polarFreq}},
+##'   \code{\link{pollutionRose}} and \code{\link{percentileRose}}
+##' @keywords methods
+##' @examples
+##'
+##'
+##' # load example data from package
+##' data(mydata)
+##'
+##' # diurnal plot for PM10 at Marylebone Rd
+##' polarAnnulus(mydata, pollutant = "pm10", main = "diurnal variation in pm10 at Marylebone Road")
+##'
+##' # seasonal plot for PM10 at Marylebone Rd
+##' \dontrun{polarAnnulus(mydata, poll="pm10", period = "season")}
+##'
+##' # trend in coarse particles (PMc = PM10 - PM2.5), calculate PMc first
+##'
+##' mydata$pmc <- mydata$pm10 - mydata$pm25
+##' \dontrun{polarAnnulus(mydata, poll="pmc", period = "trend", main = "trend in pmc at Marylebone Road")}
+##'
+##'
 polarAnnulus <- function(mydata,
                          pollutant = "nox",
                          resolution = "fine",
@@ -13,7 +198,6 @@ polarAnnulus <- function(mydata,
                          force.positive = TRUE,
                          k = c(20, 10),
                          normalise = FALSE,
-                         main = "",
                          key.header = "",
                          key.footer = pollutant,
                          key.position = "right",
@@ -33,6 +217,18 @@ polarAnnulus <- function(mydata,
         current.strip <- trellis.par.get("strip.background")
         trellis.par.set(list(strip.background = list(col = "white")))
     }
+
+    ##extra.args setup
+    extra.args <- list(...)
+
+    #label controls
+    extra.args$xlab <- if("xlab" %in% names(extra.args))
+                           quickText(extra.args$xlab, auto.text) else quickText("", auto.text)
+    extra.args$ylab <- if("ylab" %in% names(extra.args))
+                           quickText(extra.args$ylab, auto.text) else quickText("", auto.text)
+    extra.args$main <- if("main" %in% names(extra.args))
+                           quickText(extra.args$main, auto.text) else quickText("", auto.text)
+
 
     ## check data
     mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
@@ -285,12 +481,9 @@ polarAnnulus <- function(mydata,
     temp <- paste(type, collapse = "+")
     myform <- formula(paste("z ~ u * v | ", temp, sep = ""))
 
-    plt <- levelplot(myform, results.grid, axes = FALSE,
+    levelplot.args <- list(x = myform, results.grid, axes = FALSE,
                      as.table = TRUE,
                      aspect = 1,
-                     xlab = "",
-                     ylab = "",
-                     main = quickText(main, auto.text),
                      colorkey = FALSE, legend = legend,
                      at = col.scale, col.regions = col,
                      par.strip.text = list(cex = 0.8),
@@ -298,7 +491,7 @@ polarAnnulus <- function(mydata,
                      strip = strip,
 
                      len <- upper + d + 3,
-                     xlim = c(-len, len), ylim = c(-len, len),...,
+                     xlim = c(-len, len), ylim = c(-len, len),
 
                      panel = function(x, y, z,subscripts,...) {
                          panel.levelplot(x, y, z, subscripts, at = col.scale,
@@ -401,6 +594,13 @@ polarAnnulus <- function(mydata,
                          ltext(upper + d + 1.5, 0, "E", cex = 0.7)
 
                      })
+
+    #reset for extra.args
+    levelplot.args<- listUpdate(levelplot.args, extra.args)
+
+    #plot
+    plt <- do.call(levelplot, levelplot.args)
+
 
 #################
                                         #output
