@@ -1,3 +1,217 @@
+##' Plot time series
+##'
+##' Plot time series quickly, perhaps for multiple pollutants, grouped or in
+##' separate panels.
+##'
+##' The \code{timePlot} is the basic time series plotting function in
+##' \code{openair}. Its purpose is to make it quick and easy to plot time
+##' series for pollutants and other variables. The other purpose is to plot
+##' potentially many variables together in as compact a way as possible.
+##'
+##' The function is flexible enough to plot more than one variable at once. If
+##' more than one variable is chosen plots it can either show all variables on
+##' the same plot (with different line types) \emph{on the same scale}, or (if
+##' \code{group = FALSE}) each variable in its own panels with its own scale.
+##'
+##' The general preference is not to plot two variables on the same graph with
+##' two different y-scales. It can be misleading to do so and difficult with
+##' more than two variables. If there is in interest in plotting several
+##' variables together that have very different scales, then it can be useful
+##' to normalise the data first, which can be down be setting the
+##' \code{normalise} option.
+##'
+##' The user has fine control over the choice of colours, line width and line
+##' types used. This is useful for example, to emphasise a particular variable
+##' with a specific line type/colour/width.
+##'
+##' \code{timePlot} works very well with \code{\link{selectByDate}}, which is
+##' used for selecting particular date ranges quickly and easily. See examples
+##' below.
+##'
+##' By default plots are shown with a colour key at the bottom and in teh case
+##' of multiple pollutants or sites, strips on teh left of each plot. Sometimes
+##' this may be overkill and the user can opt to remove the key and/or the
+##' strip by setting \code{key} and/or \code{strip} to \code{FALSE}. One reason
+##' to do this is to maximise the plotting area and therefore the information
+##' shown.
+##'
+##' @param mydata A data frame of time series. Must include a \code{date} field
+##'   and at least one variable to plot.
+##' @param pollutant Name of variable to plot. Two or more pollutants can be
+##'   plotted, in which case a form like \code{pollutant = c("nox", "co")}
+##'   should be used.
+##' @param group If more than one pollutant is chosen, should they all be
+##'   plotted on the same graph together? The default is \code{FALSE}, which
+##'   means they are plotted in separate panels with their own scaled. If
+##'   \code{TRUE} then they are plotted on the same plot with the same scale.
+##' @param stack If \code{TRUE} the time series will be stacked by year. This
+##'   option can be useful if there are several years worth of data making it
+##'   difficult to see much detail when plotted on a single plot.
+##' @param normalise Should variables be normalised? The default is is not to
+##'   normalise the data. \code{normalise} can take two values, either
+##'   \code{"mean"} or a string representing a date in UK format e.g.
+##'   "1/1/1998" (in the format dd/mm/YYYY). If \code{normalise = "mean"} then
+##'   each time series is divided by its mean value.  If a date is chosen, then
+##'   values at that date are set to 100 and the rest of the data scaled
+##'   accordingly. Choosing a date (say at the beginning of a time series) is
+##'   very useful for showing how trends diverge over time. Setting \code{group
+##'   = TRUE} is often useful too to show all time series together in one
+##'   panel.
+##' @param avg.time This defines the time period to average to. Can be "sec",
+##'   "min", "hour", "day", "DSTday", "week", "month", "quarter" or "year". For
+##'   much increased flexibility a number can precede these options followed by
+##'   a space. For example, a timeAverage of 2 months would be \code{period =
+##'   "2 month"}. See function \code{timeAverage} for further details on this.
+##' @param data.thresh The data capture threshold to use (%) when aggregating
+##'   the data using \code{avg.time}. A value of zero means that all available
+##'   data will be used in a particular period regardless if of the number of
+##'   values available. Conversely, a value of 100 will mean that all data will
+##'   need to be present for the average to be calculated, else it is recorded
+##'   as \code{NA}. Not used if \code{avg.time = "default"}.
+##' @param statistic The statistic to apply when aggregating the data; default
+##'   is the mean. Can be one of "mean", "max", "min", "median", "frequency",
+##'   "sd", "percentile". Note that "sd" is the standard deviation and
+##'   "frequency" is the number (frequency) of valid records in the period.
+##'   "percentile" is the percentile level (%) between 0-100, which can be set
+##'   using the "percentile" option - see below. Not used if \code{avg.time =
+##'   "default"}.
+##' @param percentile The percentile level in % used when \code{statistic =
+##'   "percentile"} and when aggregating the data with \code{avg.time}. More
+##'   than one percentile level is allowed for \code{type = "default"} e.g.
+##'   \code{percentile = c(50, 95)}. Not used if \code{avg.time = "default"}.
+##' @param date.pad Should missing data be padded-out? This is useful where a
+##'   data frame consists of two or more "chunks" of data with time gaps
+##'   between them. By setting \code{date.pad = TRUE} the time gaps between the
+##'   chunks are shown properly, rather than with a line connecting each chunk.
+##'   For irregular data, set to \code{FALSE}. Note, this should not be set for
+##'   \code{type} other than \code{default}.
+##' @param type \code{type} determines how the data are split i.e. conditioned,
+##'   and then plotted. The default is will produce a single plot using the
+##'   entire data. Type can be one of the built-in types as detailed in
+##'   \code{cutData} e.g. "season", "year", "weekday" and so on. For example,
+##'   \code{type = "season"} will produce four plots --- one for each season.
+##'
+##' It is also possible to choose \code{type} as another variable in the data
+##'   frame. If that variable is numeric, then the data will be split into four
+##'   quantiles (if possible) and labelled accordingly. If type is an existing
+##'   character or factor variable, then those categories/levels will be used
+##'   directly. This offers great flexibility for understanding the variation
+##'   of different variables and how they depend on one another.
+##'
+##' Only one \code{type} is currently allowed in \code{timePlot}.
+
+##' @param cols Colours to be used for plotting. Options include "default",
+##'   "increment", "heat", "spectral", "hue", "brewer1" (default) and user
+##'   defined (see manual for more details). The same line colour can be set
+##'   for all pollutant e.g. \code{cols = "black"}.
+##' @param plot.type The \code{lattice} plot type, which is a line
+##'   (\code{plot.type = "l"}) by default. Another useful option is
+##'   \code{plot.type = "h"}, which draws vertical lines.
+##' @param key Should a key be drawn? The default is \code{TRUE}.
+##' @param log Should the y-axis appear on a log scale? The default is
+##'   \code{FALSE}. If \code{TRUE} a well-formatted log10 scale is used. This
+##'   can be useful for plotting data for several different pollutants that
+##'   exist on very different scales. It is therefore useful to use \code{log =
+##'   TRUE} together with \code{group = TRUE}.
+##' @param smooth Should a smooth line be applied to the data? The default is
+##'   \code{FALSE}.
+##' @param ci If a smooth fit line is applied, then \code{ci} determines
+##'   whether the 95% confidence intervals aer shown.
+##' @param ref.x Add a vertical dashed reference line at this value.
+##' @param ref.y Add a horizontal dashed reference line at this value.
+##' @param key.columns Number of columns to be used in the key. With many
+##'   pollutants a single column can make to key too wide. The user can thus
+##'   choose to use several columns by setting \code{columns} to be less than
+##'   the number of pollutants.
+##' @param name.pol This option can be used to give alternative names for the
+##'   variables plotted. Instead of taking the column headings as names, the
+##'   user can supply replacements. For example, if a column had the name "nox"
+##'   and the user wanted a different description, then setting \code{pol.name
+##'   = "nox before change"} can be used. If more than one pollutant is plotted
+##'   then use \code{c} e.g. \code{pol.name = c("nox here", "o3 there")}.
+##' @param date.breaks Number of major x-axis intervals to use. The function
+##'   will try and choose a sensible number of dates/times as well as
+##'   formatting the date/time appropriately to the range being considered.
+##'   This does not always work as desired automatically. The user can
+##'   therefore increase or decrease the number of intervals by adjusting the
+##'   value of \code{date.breaks} up or down.
+##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
+##'   \code{TRUE} titles and axis labels will automatically try and format
+##'   pollutant names and units properly e.g.  by subscripting the `2' in NO2.
+##' @param \dots Other graphical parameters are passed onto \code{cutData} and 
+##'   \code{lattice:xyplot}. For example, \code{timePlot} passes the option 
+##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern 
+##'   (rather than default northern) hemisphere handling of \code{type = "season"}.
+##'   Similarly, most common plotting parameters, such as \code{layout} for 
+##'   panel arrangement and \code{pch} and \code{cex} for plot symbol type and 
+##'   size and \code{lty} and \code{lwd} for line type and width, as passed 
+##'   to \code{xyplot}, although some maybe locally managed by \code{openair} 
+##'   on route, e.g. axis and title labelling options (such as \code{xlab}, 
+##'   \code{ylab}, \code{main}) are passed via \code{quickText} 
+##'   to handle routine formatting. See examples below.
+##' @export
+##' @return As well as generating the plot itself, \code{timePlot} also returns
+##'   an object of class ``openair''. The object includes three main
+##'   components: \code{call}, the command used to generate the plot;
+##'   \code{data}, the data frame of summarised information used to make the
+##'   plot; and \code{plot}, the plot itself. If retained, e.g. using
+##'   \code{output <- timePlot(mydata, "nox")}, this output can be used to
+##'   recover the data, reproduce or rework the original plot or undertake
+##'   further analysis.
+##'
+##' An openair output can be manipulated using a number of generic operations,
+##'   including \code{print}, \code{plot} and \code{summary}. See
+##'   \code{\link{openair.generics}} for further details.
+##' @author David Carslaw
+##' @seealso \code{\link{MannKendall}}, \code{\link{smoothTrend}},
+##'   \code{\link{linearRelation}}, \code{\link{selectByDate}} and
+##'   \code{\link{timeAverage}} for details on selecting averaging times and
+##'   other statistics in a flexible way
+##' @keywords methods
+##' @examples
+##'
+##'
+##' # basic use, single pollutant
+##' timePlot(mydata, pollutant = "nox")
+##'
+##' # two pollutants in separate panels
+##' timePlot(mydata, pollutant = c("nox", "no2"))
+##'
+##' # two pollutants in the same panel with the same scale
+##' timePlot(mydata, pollutant = c("nox", "no2"), group = TRUE)
+##'
+##' # alternative by normalising concentrations and plotting on the same
+##'   scale
+##' timePlot(mydata, pollutant = c("nox", "co", "pm10", "so2"), group = TRUE, avg.time =
+##'   "year", normalise = "1/1/1998", lwd = 3, lty = 1)
+##'
+##' # examples of selecting by date
+##'
+##' # plot for nox in 1999
+##' timePlot(selectByDate(mydata, year = 1999), pollutant = "nox")
+##'
+##' # select specific date range for two pollutants
+##' timePlot(selectByDate(mydata, start = "6/8/2003", end = "13/8/2003"),
+##' pollutant = c("no2", "o3"))
+##'
+##' # choose different line styles etc
+##' timePlot(mydata, pollutant = c("nox", "no2"), lty = 1)
+##'
+##' # choose different line styles etc
+##' timePlot(selectByDate(mydata, year = 2004, month = 6), pollutant =
+##' c("nox", "no2"), lwd = c(1, 2), col = "black")
+##'
+##' # different averaging times
+##'
+##' #daily mean O3
+##' timePlot(mydata, pollutant = "o3", avg.time = "day")
+##'
+##' # daily mean O3 ensuring each day has data capture of at least 75%
+##' timePlot(mydata, pollutant = "o3", avg.time = "day", data.thresh = 75)
+##'
+##' # 2-week average of O3 concentrations
+##' timePlot(mydata, pollutant = "o3", avg.time = "2 week")
+##'
 timePlot <- function(mydata,
                      pollutant = "nox",
                      group = FALSE,
@@ -9,16 +223,9 @@ timePlot <- function(mydata,
                      percentile = NA,
                      date.pad = FALSE,
                      type = "default",
-                     layout = c(1, 1),
                      cols = "brewer1",
-                     main = "",
-                     ylab = pollutant,
                      plot.type = "l",
-                     lty = 1:length(pollutant),
-                     lwd = 1,
-                     pch = NA,
                      key = TRUE,
-                     strip = TRUE,
                      log = FALSE,
                      smooth = FALSE,
                      ci = TRUE,
@@ -74,6 +281,42 @@ timePlot <- function(mydata,
         current.strip <- trellis.par.get("strip.background")
         trellis.par.set(list(strip.background = list(col = "white")))
     }
+
+##################################################################################
+
+    ##extra.args setup
+    extra.args <- list(...)
+
+    #label controls
+    #(further xlab handling in code body)
+    extra.args$xlab <- if("xlab" %in% names(extra.args))
+                           quickText(extra.args$xlab, auto.text) else quickText("", auto.text)
+    extra.args$ylab <- if("ylab" %in% names(extra.args))
+                           quickText(extra.args$ylab, auto.text) else NULL
+    extra.args$main <- if("main" %in% names(extra.args))
+                           quickText(extra.args$main, auto.text) else quickText("", auto.text)
+
+    #pch, lty, lwd, etc
+    #(extra handling of all three in code body)
+    if(!"pch" %in% names(extra.args))
+        extra.args$pch <- NA
+    if(!"lwd" %in% names(extra.args))
+        extra.args$lwd <- 1
+    if(!"lty" %in% names(extra.args))
+        extra.args$lwd <- NULL
+
+    #layout
+    #(type and group handling in code body)
+    if(!"layout" %in% names(extra.args))
+        extra.args$layout <- NULL
+
+    #strip
+    #extensive handling in main code body)
+    #so cheat
+    strip <- if("strip" %in% names(extra.args))
+        extra.args$strip else TRUE
+
+
 
 
 ##### warning messages and other checks ################################################################
@@ -134,14 +377,14 @@ timePlot <- function(mydata,
     if (type != "default") {
 
         group <- TRUE ## need to group pollutants if conditioning
-        if (missing(layout)) layout <- NULL else layout <- layout
+##        if (missing(layout)) layout <- NULL else layout <- layout
     }
 
     ## number of pollutants (or sites for type = "site")
     npol <- length(unique(mydata$variable)) ## number of pollutants
 
     ## layout - stack vertically
-    if (missing(layout) & !group) layout <- c(1, npol)
+    if (is.null(extra.args$layout) & !group & !stack) extra.args$layout <- c(1, npol)
 
     ## function to normalise data ##################################
     divide.by.mean <- function(x) {
@@ -161,8 +404,17 @@ timePlot <- function(mydata,
         x
     }
 
+
+#need to check the ylab handling below
+#not sure what was meant
+
     if (!missing(normalise)) {
-        if (!missing(ylab)) ylab <- "normalised level"
+
+#original code
+#        if (!missing(ylab)) ylab <- "normalised level"
+
+        if(is.null(extra.args$ylab))
+            extra.args$ylab <- "normalised level"
 
         if (normalise == "mean") {
 
@@ -177,6 +429,11 @@ timePlot <- function(mydata,
         }
 
     }
+    
+    #set ylab as pollutant(s) if not already set
+    if(is.null(extra.args$ylab))
+        extra.args$ylab <- quickText(paste(pollutant, collapse = ", "), auto.text)
+
 
     mylab <- sapply(seq_along(pollutant), function(x) quickText(pollutant[x], auto.text))
 
@@ -185,8 +442,10 @@ timePlot <- function(mydata,
                                              quickText(name.pol[x], auto.text))
                          }
 
-    ## ylabs for more than one pollutant
-    if (missing(ylab)) ylab <-  paste(pollutant, collapse = ", ")
+#got earlier
+
+#    ## ylabs for more than one pollutant
+#    if (missing(ylab)) ylab <-  paste(pollutant, collapse = ", ")
 
     ## set up colours
     myColors <- if (length(cols) == 1 && cols == "greyscale")
@@ -195,8 +454,12 @@ timePlot <- function(mydata,
     ## basic function for lattice call + defaults
     myform <- formula(paste("value ~ date |", type))
 
-    strip <- TRUE
+
+    if(is.null(extra.args$strip))
+        strip <- TRUE
+
     strip.left <- FALSE
+
     dates <- openair:::dateBreaks(mydata$date, date.breaks)$major ## for date scale
     formats <- openair:::dateBreaks(mydata$date, date.breaks)$format
 
@@ -205,7 +468,9 @@ timePlot <- function(mydata,
     ## layout changes depening on plot type
 
     if (!group) { ## sepate panels per pollutant
-        strip <- FALSE
+        if(is.null(extra.args$strip))
+            strip <- FALSE
+
         myform <- formula("value ~ date | variable")
 
         if (npol == 1) {
@@ -218,15 +483,21 @@ timePlot <- function(mydata,
         scales <- list(x = list(at = dates, format = formats), y = list(relation = "free",
                                                                rot = 0, log = nlog))
 
-        if (missing(lty)) lty <- 1 ## don't need different line types here
+        if (is.null(extra.args$lty)) extra.args$lty <- 1 ## don't need different line types here
     }
+
+    #set lty if not set by this point
+    if(is.null(extra.args$lty))
+        extra.args$lty <- 1:length(pollutant)
+
 
     if (type == "default") strip <- FALSE
 
     ## if stacking of plots by year is needed
     if (stack) {
         mydata$year <- format(mydata$date, "%Y")
-        layout <- c(1, length(unique(mydata$year)))
+        if(is.null(extra.args$layout))
+            extra.args$layout <- c(1, length(unique(mydata$year)))
         strip <- FALSE
         myform <- formula("value ~ date | year")
         strip.left <- strip.custom(par.strip.text = list(cex = 0.9), horizontal = FALSE)
@@ -247,12 +518,12 @@ timePlot <- function(mydata,
 
     if (key) {
         ## type of key depends on whether points are plotted or not
-        if (any(!is.na(pch))) {
-            key <- list(lines = list(col = myColors[1:npol], lty = lty, lwd = lwd),
-                        points = list(pch = pch, col = myColors[1:npol]),
+        if (any(!is.na(extra.args$pch))) {
+            key <- list(lines = list(col = myColors[1:npol], lty = extra.args$lty, lwd = extra.args$lwd),
+                        points = list(pch = extra.args$pch, col = myColors[1:npol]),
                         text = list(lab = mylab),  space = "bottom", columns = key.columns)
         } else {
-            key <- list(lines = list(col = myColors[1:npol], lty = lty, lwd = lwd),
+            key <- list(lines = list(col = myColors[1:npol], lty = extra.args$lty, lwd = extra.args$lwd),
                         text = list(lab = mylab),  space = "bottom", columns = key.columns)
         }
     } else {
@@ -268,9 +539,7 @@ timePlot <- function(mydata,
     }
 
     ## special layout if type = "wd"
-    layout = if (type == "wd") c(3, 3) else layout
-    skip <- FALSE
-    if (type == "wd") {
+    if (length(type) == 1 & type[1] == "wd" & is.null(extra.args$layout)) {
         ## re-order to make sensible layout
         wds <-  c("NW", "N", "NE", "W", "E", "SW", "S", "SE")
         mydata$wd <- ordered(mydata$wd, levels = wds)
@@ -281,25 +550,24 @@ timePlot <- function(mydata,
 
         mydata$wd <- factor(mydata$wd)  ## remove empty factor levels
 
-        layout = if (type == "wd") c(3, 3) else NULL
+        extra.args$layout <- c(3, 3)
+        if(!"skip" %in% names(extra.args))
+            extra.args$skip <- skip
     }
+    if(!"skip" %in% names(extra.args))
+         extra.args$skip <- FALSE
 
-    plt <- xyplot(myform,  data = mydata, groups = variable,
+
+    #the plot
+    xyplot.args <- list(x = myform,  data = mydata, groups = mydata$variable,
                   as.table = TRUE,
-                  layout = layout,
-                  skip = skip,
-                  lty = lty,
-                  lwd = lwd,
-                  pch = pch,
-                  main = quickText(main, auto.text),
                   par.strip.text = list(cex = 0.8),
-                  ylab = quickText(ylab, auto.text),
                   scales = scales,
                   key = key,
                   strip = strip,
                   strip.left = strip.left,
                   yscale.components = yscale.components.log10,
-                  panel =  panel.superpose,...,
+                  panel =  panel.superpose,
                   panel.groups = function(x, y, col.line, col.symbol, col, col.se, type, group.number, lty,
                   lwd, pch, subscripts,...) {
 
@@ -316,8 +584,8 @@ timePlot <- function(mydata,
                       panel.xyplot(x, y, type = plot.type, lty = lty, lwd = lwd,
                                    col.line = myColors[group.number],...)
                       ## deal with points separately - useful if missing data where line does not join consequtive points
-                      if (any(!is.na(pch))) {
-                          lpoints(x, y, type = "p", pch = pch, col.symbol = myColors[group.number],...)
+                      if (any(!is.na(extra.args$pch))) {
+                          lpoints(x, y, type = "p", pch = extra.args$pch, col.symbol = myColors[group.number],...)
                       }
                       if (smooth) panel.gam(x, y, col = myColors[group.number] ,
                                             col.se =  myColors[group.number],
@@ -327,8 +595,13 @@ timePlot <- function(mydata,
                       panel.abline(v = ref.x, lty = 5)
                       panel.abline(h = ref.y, lty = 5)
 
-                  }
-                  )
+                  })
+
+    #reset for extra.args
+    xyplot.args<- listUpdate(xyplot.args, extra.args)
+
+    #plot
+    plt <- do.call(xyplot, xyplot.args)
 
 #################
     ## output

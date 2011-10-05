@@ -1,50 +1,46 @@
 \name{selectRunning}
 \alias{selectRunning}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{Function to extract run lengths greater than a threshold}
-\description{Utility function to extract user-defined run lengths
-  (durations) above a threshold }
-
-\usage{ selectRunning(mydata, pollutant = "nox", run.len = 5, threshold = 500) }
-
-%- maybe also 'usage' for other objects documented here.
+\usage{
+  selectRunning(mydata, pollutant = "nox", run.len = 5,
+  threshold = 500)
+}
 \arguments{
-  \item{mydata}{A data frame with a \code{date} field and at
-    least one numeric \code{pollutant} field to analyse.}
+  \item{mydata}{A data frame with a \code{date} field and
+  at least one numeric \code{pollutant} field to analyse.}
 
   \item{pollutant}{Name of variable to process. Mandatory.}
 
-  \item{run.len}{Run length for extracting contiguous values of
-  \code{pollutant} above the \code{threshold} value.}
+  \item{run.len}{Run length for extracting contiguous
+  values of \code{pollutant} above the \code{threshold}
+  value.}
 
-  \item{threshold}{The threshold value for \code{pollutant} above which
-  data should be extracted.}
-
-
+  \item{threshold}{The threshold value for \code{pollutant}
+  above which data should be extracted.}
 }
-
+\value{
+  Returns a data frame that meets the chosen criteria. See
+  examples below.
+}
+\description{
+  Utility function to extract user-defined run lengths
+  (durations) above a threshold
+}
 \details{
-  This is a utility function to extract runs of values above a certain
-  threshold. For example, for a data frame of hourly NOx values we would
-  like to extract all those hours where the concentration is at least
-  500ppb for contiguous periods of 5 or more hours.
+  This is a utility function to extract runs of values
+  above a certain threshold. For example, for a data frame
+  of hourly NOx values we would like to extract all those
+  hours where the concentration is at least 500ppb for
+  contiguous periods of 5 or more hours.
 
-  This function is useful, for example, for selecting pollution episodes
-  from a data frame i.e. where concentrations remain elevated for a
-  certain period of time. It may also be of more general use when
-  analysing air pollution data. For example, \code{selectRunning} could be
-  used to extract continuous periods of rainfall --- which could be
-  important for particle concentrations. 
-
+  This function is useful, for example, for selecting
+  pollution episodes from a data frame i.e. where
+  concentrations remain elevated for a certain period of
+  time. It may also be of more general use when analysing
+  air pollution data. For example, \code{selectRunning}
+  could be used to extract continuous periods of rainfall
+  --- which could be important for particle concentrations.
 }
-
-\value{Returns a data frame that meets the chosen criteria. See examples
-below.}
-%\references{ ~put references to the literature/web site here ~ }
-\author{David Carslaw}
-
-%\seealso{\code{\link{timePlot}}, \code{\link{timeAverage}}}
-
 \examples{
 ## extract those hours where there are at least 5 consecutive NOx
 ## concentrations above 500ppb
@@ -56,5 +52,8 @@ mydata <- selectRunning(mydata, run.len = 5, threshold = 500)
 ## in-canyon recirculation
 \dontrun{polarPlot(mydata, pollutant = "nox")}
 }
+\author{
+  David Carslaw
+}
 \keyword{methods}
-%\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+

@@ -1,24 +1,212 @@
-TaylorDiagram <- function(mydata,
-                          obs = "obs",
-                          mod = "mod",
-                          group = NULL,
-                          type = "default",
-                          normalise = FALSE,
-                          layout = NULL,
-                          cols = "brewer1",
-                          main = "",
-                          ylab = NULL,
-                          xlab = NULL,
-                          pch = 20,
-                          cex = 2,
-                          rms.col = "darkgoldenrod",
-                          cor.col = "black",
-                          key = TRUE,
-                          key.title = group,
-                          key.columns = 1,
-                          key.pos = "bottom",
-                          strip = TRUE,
-                          auto.text = TRUE, ...)   {
+
+##' Taylor Diagram for model evaluation with conditioning
+##'
+##' Function to draw Taylor Diagrams for model evaluation. The function allows
+##' conditioning by any categorical or numeric variables, which makes the
+##' function very flexible.
+##'
+##' The Taylor Diagram is a very useful model evaluation tool. Details of the
+##' diagram can be found at
+##' \url{http://www-pcmdi.llnl.gov/about/staff/Taylor/CV/Taylor_diagram_primer.pdf}.
+##' The diagram provides a way of showing how three complementary model
+##' performance statistics vary simultaneously. These statistics are the
+##' correlation coefficient R, the standard deviation (sigma) and the (centred)
+##' root-mean-square error. These three statistics can be plotted on one (2D)
+##' graph because of the way they are related to one another which can be
+##' represented through the Law of Cosines.
+##'
+##' The \code{openair} version of the Taylor Diagram has several enhancements
+##' that increase its flexibility. In particular, the straightforward way of
+##' producing conditioning plots should prove valuable under many circumstances
+##' (using the \code{type} option). Many examples of Taylor Diagrams focus on
+##' model-observation comparisons for several models using all the available
+##' data. However, more insight can be gained into model performance by
+##' partitioning the data in various ways e.g. by season, daylight/nighttime,
+##' day of the week, by levels of a numeric variable e.g. wind speed or by
+##' land-use type etc.
+##'
+##' To consider several pollutants on one plot, a column identifying the pollutant name
+##' can be used e.g. \code{pollutant}. Then the Taylor Diagram can be plotted as (assuming
+##' a data frame \code{thedata}):
+##'
+##' \code{TaylorDiagram(thedata, obs = "obs", mod = "mod", group = "model", type = "pollutant")}
+##'
+##' which will give the model performance by pollutant in each panel.
+##'
+##' Note that it is important
+##' that each panel represents data with the same mean observed data
+##' across different groups. Therefore \code{TaylorDiagram(mydata,
+##' group = "model", type = "season")} is OK, whereas
+##' \code{TaylorDiagram(mydata, group = "season", type = "model")} is
+##' not because each panel (representing a model) will have four
+##' different mean values --- one for each season. Generally, the
+##' option \code{group} is either missing (one model being evaluated)
+##' or represents a column giving the model name.
+##'
+##' @param mydata A data frame minimally containing a column of observations
+##'   and a column of predictions.
+##' @param obs A column of observations with which the predictions (\code{mod})
+##'   will be compared.
+##' @param mod A column of model predictions. Note, \code{mod} can be
+##' of length 2 i.e. two lots of model predictions. If two sets of
+##' predictions are are present e.g. \code{mod = c("base",
+##' "revised")}, then arrows are shown on the Taylor Diafram which
+##' show the change in model performance in going from the first to
+##' the second. This is useful where, for example, there is interest
+##' in comparing how one model run compares with another using
+##' different assumptions e.g. input data or model set up. See
+##' examples below.
+##' @param group The \code{group} column is used to differentiate between
+##'   different models and can be a factor or character. The total number of
+##'   models compared will be equal to the number of unique values of
+##'   \code{group}.
+##' @param type \code{type} determines how the data are split i.e. conditioned,
+##'   and then plotted. The default is will produce a single plot using the
+##'   entire data. Type can be one of the built-in types as detailed in
+##'   \code{cutData} e.g. "season", "year", "weekday" and so on. For example,
+##'   \code{type = "season"} will produce four plots --- one for each season.
+##'
+##' It is also possible to choose \code{type} as another variable in the data
+##'   frame. If that variable is numeric, then the data will be split into four
+##'   quantiles (if possible) and labelled accordingly. If type is an existing
+##'   character or factor variable, then those categories/levels will be used
+##'   directly. This offers great flexibility for understanding the variation
+##'   of different variables and how they depend on one another.
+##'
+##' Type can be up length two e.g. \code{type = c("season", "weekday")} will
+##'   produce a 2x2 plot split by season and day of the week. Note, when two
+##'   types are provided the first forms the columns and the second the rows.
+##' @param normalise Should the data be normalised by dividing the standard
+##'   deviation of the observations? The statistics can be normalised (and
+##'   non-dimensionalised) by dividing both the RMS difference and the standard
+##'   deviation of the \code{mod} values by the standard deviation of the
+##'   observations (\code{obs}). In this case the "observed" point is plotted
+##'   on the x-axis at unit distance from the origin. This makes it possible to
+##'   plot statistics for different species (maybe with different units) on the
+##'   same plot.
+##' @param cols Colours to be used for plotting. Options include "default",
+##'   "increment", "heat", "spectral", "hue", "brewer1", "greyscale" and user
+##'   defined (see \code{openColours} for more details). The same line colour
+##'   can be set for all pollutant e.g. \code{cols = "black"}.
+##' @param rms.col Colour for centred-RMS lines and text.
+##' @param cor.col Colour for correlation coefficient lines and text.
+##' @param arrow.lwd Width of arrow used when used for comparing two model outputs.
+##' @param key Should the key be shown?
+##' @param key.title Title for the key.
+##' @param key.columns Number of columns to be used in the key. With many
+##'   pollutants a single column can make to key too wide. The user can thus
+##'   choose to use several columns by setting \code{columns} to be less than
+##'   the number of pollutants.
+##' @param key.pos Position of the key e.g. "top", "bottom", "left" and
+##'   "right". See details in \code{lattice:xyplot} for more details about
+##'   finer control.
+##' @param strip Should a strip be shown?
+##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
+##'   \code{TRUE} titles and axis labels will automatically try and format
+##'   pollutant names and units properly e.g.  by subscripting the `2' in NO2.
+##' @param \dots Other graphical parameters are passed onto \code{cutData} and 
+##'   \code{lattice:xyplot}. For example, \code{TaylorDiagram} passes the option 
+##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern 
+##'   (rather than default northern) hemisphere handling of \code{type = "season"}. 
+##'   Similarly, common graphical parameters, such as \code{layout} for panel 
+##'   arrangement and \code{pch} and \code{cex} for plot symbol type and size, 
+##'   are passed on to \code{xyplot}. Most are passed unmodified, although there are 
+##'   some special cases where \code{openair} may locally manage this process. For 
+##'   example, common axis and title labelling options (such as \code{xlab}, \code{ylab}, 
+##'   \code{main}) are passed via \code{quickText} to handle routine formatting. 
+##' @export
+##' @return As well as generating the plot itself, \code{TaylorDiagram} also
+##'   returns an object of class ``openair''. The object includes three main
+##'   components: \code{call}, the command used to generate the plot;
+##'   \code{data}, the data frame of summarised information used to make the
+##'   plot; and \code{plot}, the plot itself. If retained, e.g. using
+##'   \code{output <- TaylorDiagram(thedata, obs = "nox", mod = "mod")}, this
+##'   output can be used to recover the data, reproduce or rework the original
+##'   plot or undertake further analysis. For example, \code{output$data} will
+##'   be a data frame consisting of the group, type, correlation coefficient
+##'   (R), the standard deviation of the observations and measurements.
+##'
+##' An openair output can be manipulated using a number of generic operations,
+##'   including \code{print}, \code{plot} and \code{summary}. See
+##'   \code{\link{openair.generics}} for further details.
+##' @author David Carslaw
+##' @seealso \code{taylor.diagram} from the \code{plotrix} package from which
+##'   some of the annotation code was used.
+##' @references
+##'
+##' Taylor, K.E.: Summarizing multiple aspects of model performance in a single
+##'   diagram. J.  Geophys. Res., 106, 7183-7192, 2001 (also see PCMDI Report
+##'   55, \url{http://wwwpcmdi.  llnl.gov/publications/ab55.html})
+##'
+##' IPCC, 2001: Climate Change 2001: The Scientific Basis, Contribution of
+##'   Working Group I to the Third Assessment Report of the Intergovernmental
+##'   Panel on Climate Change [Houghton, J.T., Y. Ding, D.J. Griggs, M. Noguer,
+##'   P.J. van der Linden, X. Dai, K. Maskell, and C.A.  Johnson (eds.)].
+##'   Cambridge University Press, Cambridge, United Kingdom and New York, NY,
+##'   USA, 881 pp. (see
+##'   \url{http://www.grida.no/climate/ipcc_tar/wg1/317.htm#fig84})
+##' @keywords methods
+##'
+##' @examples
+##' ## in the examples below, most effort goes into making some artificial data
+##' ## the function itself can be run very simply
+##'
+##' ## dummy model data for 2003
+##' dat <- selectByDate(mydata, year = 2003)
+##' dat <- data.frame(date = mydata$date, obs = mydata$nox, mod = mydata$nox)
+##'
+##' ## now make mod worse by adding bias and noise according to the month
+##' ## do this for 3 different models
+##' dat <- transform(dat, month = as.numeric(format(date, "%m")))
+##' mod1 <- transform(dat, mod = mod + 10 * month + 10 * month * rnorm(nrow(dat)),
+##' model = "model 1")
+##' ## lag the results for mod1 to make the correlation coefficient worse
+##' ## without affecting the sd
+##' mod1 <- transform(mod1, mod = c(mod[5:length(mod)], mod[(length(mod) - 3) :
+##' length(mod)]))
+##'
+##' ## model 2
+##' mod2 <- transform(dat, mod = mod + 7 * month + 7 * month * rnorm(nrow(dat)),
+##' model = "model 2")
+##' ## model 3
+##' mod3 <- transform(dat, mod = mod + 3 * month + 3 * month * rnorm(nrow(dat)),
+##' model = "model 3")
+##'
+##' mod.dat <- rbind(mod1, mod2, mod3)
+##'
+##' ## basic Taylor plot
+##'
+##' TaylorDiagram(mod.dat, obs = "obs", mod = "mod", group = "model")
+##'
+##' ## Taylor plot by season
+##' TaylorDiagram(mod.dat, obs = "obs", mod = "mod", group = "model", type = "season")
+##'
+##' ## now show how to evaluate model improvement (or otherwise)
+##' mod1a <- transform(dat, mod = mod + 2 * month + 2 * month * rnorm(nrow(dat)),
+##' model = "model 1")
+##' mod2a <- transform(mod2, mod = mod * 1.3)
+##' mod3a <- transform(dat, mod = mod + 10 * month + 10 * month * rnorm(nrow(dat)),
+##' model = "model 3")
+##' mod.dat2 <- rbind(mod1a, mod2a, mod3a)
+##' mod.dat$mod2 <- mod.dat2$mod
+##'
+##' ## now we have a data frame with 3 models, 1 set of observations
+##' ## and TWO sets of model predictions (mod and mod2)
+##'
+##' ## do for all models
+##' TaylorDiagram(mod.dat, obs = "obs", mod = c("mod", "mod2"), group = "model")
+##'
+##' ## all models, by season
+##' TaylorDiagram(mod.dat, obs = "obs", mod = c("mod", "mod2"), group = "model",
+##' type = "season")
+##'
+##'
+TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type = "default",
+                          normalise = FALSE,  cols = "brewer1", 
+                          rms.col = "darkgoldenrod", cor.col = "black", arrow.lwd = 3,
+                          key = TRUE, key.title = group, key.columns = 1,
+                          key.pos = "bottom", strip = TRUE, auto.text = TRUE, ...)
+{
 
 
     ## greyscale handling
@@ -33,7 +221,34 @@ TaylorDiagram <- function(mydata,
     }
 
 
-################################################################################################
+    ##extra.args setup
+    extra.args <- list(...)
+
+    #label controls (some local xlab, ylab management in code)
+    extra.args$xlab <- if("xlab" %in% names(extra.args))
+                           quickText(extra.args$xlab, auto.text) else NULL
+    extra.args$ylab <- if("ylab" %in% names(extra.args))
+                           quickText(extra.args$ylab, auto.text) else NULL
+    extra.args$main <- if("main" %in% names(extra.args))
+                           quickText(extra.args$main, auto.text) else quickText("", auto.text)
+
+    #layout (also code in body)
+    if(!"layout" %in% names(extra.args))
+        extra.args$layout <- NULL
+
+    #pch, cex (also code in body)
+    if(!"pch" %in% names(extra.args))
+        extra.args$pch <- 20
+    if(!"cex" %in% names(extra.args))
+        extra.args$cex <- 2
+
+## #######################################################################################
+
+    ## check to see if two data sets are present
+    combine <- FALSE
+
+     if (length(mod) ==2) combine <- TRUE
+
     if (any(type %in%  openair:::dateTypes)) {
 
         vars <- c("date", obs, mod)
@@ -61,13 +276,14 @@ TaylorDiagram <- function(mydata,
 
     if (!missing(group)) if (group %in% type) stop ("Can't have 'group' also in 'type'.")
 
-    ## data checks
-    mydata <- openair:::checkPrep(mydata, vars, type)
+    ## data checks, for base and new data if necessary
 
-    ## remove missing data
-    mydata <- na.omit(mydata)
+        mydata <- openair:::checkPrep(mydata, vars, type)
 
-    mydata <- cutData(mydata, type, ...)
+        ## remove missing data
+        mydata <- na.omit(mydata)
+
+        mydata <- cutData(mydata, type, ...)
 
     if (missing(group)) {
 
@@ -78,6 +294,7 @@ TaylorDiagram <- function(mydata,
         ## don't overwrite a
     } else {  ## means that group is there
         mydata <- cutData(mydata, group, ...)
+
     }
 
     legend <- NULL
@@ -85,7 +302,7 @@ TaylorDiagram <- function(mydata,
     npol <- length(levels(mydata[ , group]))
 
     ## function to calculate stats for TD
-    calcStats <- function(mydata) {
+    calcStats <- function(mydata, obs = obs, mod = mod) {
         R <- cor(mydata[[obs]], mydata[[mod]], use = "pairwise")
         sd.obs <- sd(mydata[[obs]])
         sd.mod <- sd(mydata[[mod]])
@@ -98,7 +315,12 @@ TaylorDiagram <- function(mydata,
         res
     }
 
-    results <- ddply(mydata, c(group, type), calcStats)
+    results <- ddply(mydata, c(group, type), calcStats, obs = obs, mod = mod[1])
+
+
+    if (combine) results.new <- ddply(mydata, c(group, type), calcStats,
+                                      obs = obs, mod = mod[2])
+
 
     ## if no group to plot, then add a dummy one to make xyplot work
     if (is.null(group)) {results$MyGroupVar <- factor("MyGroupVar"); group <-  "MyGroupVar"}
@@ -118,34 +340,43 @@ TaylorDiagram <- function(mydata,
 
     if (missing(key.columns)) if (npol < 5) key.columns <- npol else key.columns <- 4
 
-    if (key & npol > 1) {
 
-        key <- list(points = list(col = myColors[1:npol]), pch = pch, cex = cex,
+
+    if (key & npol > 1 & !combine) {
+
+        key <- list(points = list(col = myColors[1:npol]), pch = extra.args$pch, cex = extra.args$cex,
                     text = list(lab = pol.name, cex = 0.8), space = key.pos,
                     columns = key.columns,
                     title = quickText(key.title, auto.text),
                     cex.title = 0.8, lines.title = 3)
+    } else if (key & npol > 1 & combine) {
 
+        key <- list(lines = list(col = myColors[1:npol]), lwd = arrow.lwd,
+                    text = list(lab = pol.name, cex = 0.8), space = key.pos,
+                    columns = key.columns,
+                    title = quickText(key.title, auto.text),
+                    cex.title = 0.8, lines.title = 3)
     } else {
-
         key <- NULL
     }
 
+
     ## special wd layout
-    skip <- FALSE
-    if (length(type) == 1 & type[1] == "wd" ) {
+    if (length(type) == 1 & type[1] == "wd" & is.null(extra.args$layout)) {
         ## re-order to make sensible layout
         wds <-  c("NW", "N", "NE", "W", "E", "SW", "S", "SE")
         mydata$wd <- ordered(mydata$wd, levels = wds)
-
         ## see if wd is actually there or not
         wd.ok <- sapply(wds, function (x) {if (x %in% unique(mydata$wd)) FALSE else TRUE })
         skip <- c(wd.ok[1:4], TRUE, wd.ok[5:8])
-
         mydata$wd <- factor(mydata$wd)  ## remove empty factor levels
-
-        layout = if (type == "wd") c(3, 3) else NULL
+        extra.args$layout <- c(3, 3)
+        if(!"skip" %in% names(extra.args))
+            extra.args$skip <- skip
     }
+    if(!"skip" %in% names(extra.args))
+         extra.args$skip <- FALSE
+
 
     ## proper names of labelling ##############################################################################
 
@@ -172,31 +403,29 @@ TaylorDiagram <- function(mydata,
 
     maxsd <- 1.2 * max(results$sd.obs, results$sd.mod)
 
-    if (missing(ylab)) {
-        if (normalise) ylab <- "standard deviation (normalised)" else ylab <- "standard deviation"
-    }
+    #xlim, ylim handling
+    if(!"ylim" %in% names(extra.args))
+        extra.args$ylim <- 1.12 * c(0, maxsd)
+    if(!"xlim" %in% names(extra.args))
+        extra.args$xlim <- 1.12 * c(0, maxsd)
 
-    if (missing(xlab)) xlab <- ylab
+    #xlab, ylab local management
+    if(is.null(extra.args$ylab))
+        extra.args$ylab <- if(normalise) "standard deviation (normalised)" else "standard deviation"
+    if(is.null(extra.args$xlab))
+        extra.args$xlab <- extra.args$ylab
 
-    plt <- xyplot(myform,  data = results, groups = MyGroupVar,
-                  xlim = 1.12 * c(0, maxsd),
-                  ylim = 1.12 * c(0, maxsd),
+    #plot
+    xyplot.args <- list(x = myform,  data = results, groups = results$MyGroupVar,
                   aspect = 1,
                   type = "n",
                   as.table = TRUE,
-                  pch = pch,
-                  cex = cex,
-                  main = quickText(main, auto.text),
-                  ylab = quickText(ylab, auto.text),
-                  xlab = quickText(xlab, auto.text),
                   scales = scales,
                   key = key,
                   par.strip.text = list(cex = 0.8),
                   strip = strip,
                   strip.left = strip.left,
-                  layout = layout,
-                  skip = skip,
-                  panel =  panel.superpose,...,
+                  panel =  panel.superpose,
                   panel.groups = function(x, y, col.symbol, col, type, col.line, lty, lwd,
                   group.number,
 
@@ -284,13 +513,24 @@ TaylorDiagram <- function(mydata,
 
                   results <- transform(results, x = sd.mod * R, y = sd.mod * sin(acos(R)))
 
-                  lpoints(results$x[subscripts], results$y[subscripts],
+                  if (combine) {
+                      results.new <- transform(results.new, x = sd.mod * R, y = sd.mod * sin(acos(R)))
+                      larrows(results$x[subscripts], results$y[subscripts],
+                              results.new$x[subscripts], results.new$y[subscripts],
+                              angle = 30, length = 0.1, col =  myColors[group.number], lwd = arrow.lwd)
+                  } else {
+
+                      lpoints(results$x[subscripts], results$y[subscripts],
                           col.symbol = myColors[group.number], ...)
-
-
+                  }
 
               })
 
+    #reset for extra.args
+    xyplot.args<- listUpdate(xyplot.args, extra.args)
+
+    #plot
+    plt <- do.call(xyplot, xyplot.args)
 
 
     if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip, strip.left = strip.left))

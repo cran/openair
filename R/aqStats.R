@@ -1,4 +1,59 @@
 ## function to provide a summary of air quality statistics by year
+
+
+##' Calculate summary statistics for air pollution data by year
+##'
+##' Calculate a range of air pollution-relevant statistics by year and by site.
+##'
+##' This function calculates a range of common and air pollution-specific
+##' statistics from a data frame. The statistics are calculated on an annual
+##' basis and the input is assumed to be hourly data. The function can cope
+##' with several sites and years. The user can control the output by setting
+##' \code{transpose} appropriately.
+##'
+##' Note that the input data is assumed to be in mass units e.g. ug/m3 for all
+##' species except CO (mg/m3).
+##'
+##' The following statistics are calculated:
+##'
+##' \itemize{ \item \bold{data.capture} --- percentage data capture over a full
+##' year.  \item \bold{mean} --- annual mean.  \item \bold{minimum} --- minimum
+##' hourly value.  \item \bold{maximum} --- maximum hourly value.  \item
+##' \bold{median} --- median value.  \item \bold{max.daily} --- maximum daily
+##' mean.  \item \bold{max.rolling.8} --- maximum 8-hour rolling mean.  \item
+##' \bold{max.rolling.24} --- maximum 24-hour rolling mean.  \item
+##' \bold{percentile.95} --- 95th percentile. Note that several percentiles can
+##' be calculated.  \item \bold{roll.8.O3.gt.100} --- number of days when the
+##' daily maximum rolling 8-hour mean ozone concentration is >100 ug/m3.  \item
+##' \bold{hours.gt.200} --- number of hours NO2 is more than 200 ug/m3.  \item
+##' \bold{days.gt.50} --- number of days PM10 is more than 50 ug/m3. }
+##'
+##' @param mydata A data frame containing a \code{date} field of hourly data.
+##' @param pollutant The name of a pollutant e.g. \code{pollutant = c("o3",
+##'   "pm10")}.
+##' @param data.thresh The data capture threshold in %. No values are
+##'   calculated if data capture over the period of interest is less than this
+##'   value. \code{data.thresh} is used for example in the calculation of daily
+##'   mean values from hourly data. If there are less than \code{data.thresh}
+##'   percentage of measurements available in a period, \code{NA} is returned.
+##' @param percentile Percentile values to calculate for each pollutant.
+##' @param transpose The default is to return a data frame with columns
+##'   representing the statistics. If \code{transpose = TRUE} then the results
+##'   have columns for each pollutant-site combination.
+##' @param ... Other arguments, currently unused.
+##' @export
+##' @author David Carslaw
+##' @keywords methods
+##' @examples
+##'
+##' ## Statistics for 2004. NOTE! these data are in ppb/ppm so the
+##' ## example is for illustrative purposes only
+##' aqStats(selectByDate(mydata, year = 2004), pollu=c("no2", "pm10"))
+##' ## transpose the results:
+##' aqStats(selectByDate(mydata, year = 2004), pollu=c("no2", "pm10"),
+##' transpose = TRUE)
+##'
+##'
 aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(95, 99),
                     transpose = FALSE, ...) {
 
@@ -6,6 +61,52 @@ aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(
     if (!"site" %in% names(mydata)) mydata$site <- "site"
 
     vars <- c("date", pollutant, "site")
+
+
+##' Example data for openair
+##'
+##' The mydata dataset is provided as an example dataset as part of the openair
+##' package. The dataset contains hourly measurements of air pollutant
+##' concentrations, wind speed and wind direction collected at the Marylebone
+##' (London) air quality monitoring supersite between 1st January 1998 and 23rd
+##' June 2005.
+##'
+##' \code{mydata} is supplied with the \code{openair} package as an example
+##' dataset for use with documented examples.
+##'
+##' @name mydata
+##' @docType data
+##' @format Data frame with 65533 observations (rows) on the following 10
+##'   variables: \describe{ \item{list("date")}{Observation date/time stamp in
+##'   year-month-day hour:minute:second format (POSIXct). }
+##'   \item{list("ws")}{Wind speed, in m/s, as numeric vector.}
+##'   \item{list("wd")}{Wind direction, in degrees from North, as a numeric
+##'   vector.} \item{list("nox")}{Oxides of nitrogen concentration, in ppb, as
+##'   a numeric vector.} \item{list("no2")}{Nitrogen dioxide concentration, in
+##'   ppb, as a numeric vector.} \item{list("o3")}{Ozone concentration, in ppb,
+##'   as a numeric vector.} \item{list("pm10")}{Particulate PM10 fraction
+##'   measurement, in ug/m3 (raw TEOM), as a numeric vector.}
+##'   \item{list("so2")}{Sulfur dioxide concentration, in ppb, as a numeric
+##'   vector.} \item{list("co")}{Carbon monoxide concentration, in ppm, as a
+##'   numeric vector.} \item{list("pm25")}{Particulate PM2.5 fraction
+##'   measurement, in ug/m3, as a numeric vector.} }
+##' @note \code{openair} functions generally require data frames with a field
+##'   "date" that can be in either \code{POSIXct} or \code{Date} format but
+##'   should be GMT time zone. This can be hourly data or higher resolution
+##'   data.
+##' @source \code{mydata} was compiled from data archived in the London Air
+##'   Quality Archive.  See \url{http://www.londonair.org.uk} for site details.
+##'
+##' The same data is also provide in \code{'.csv'} format via the openair
+##'   project web site \url{http://www.openair-project.org}.
+##' @keywords datasets
+##' @examples
+##'
+##'
+##' #basic structure
+##' head(mydata)
+##'
+##'
     mydata <- checkPrep(mydata, vars, "default", remove.calm = FALSE)
 
     ## pre-defined lits of pollutants that need special treatment

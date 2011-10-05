@@ -3,14 +3,14 @@
 #####################
 #working
 #
-#kr 07/07/2011 v 
+#kr 07/07/2011 v
 
 #######################
-#file contains 
+#file contains
 #scripts for:
 #######################
 #function: GoogleMapsPlot
-#function: openairMapManager 
+#function: openairMapManager
 #function: panel.GoogleMaps
 #function: panel.GoogleMapsRaster
 #
@@ -18,7 +18,7 @@
 ######################
 #notes
 ######################
-#GoogleMapsPlot 
+#GoogleMapsPlot
 #requires/loads RgoogleMaps (openair suggests)
 #RgoogleMaps version 1.1.9.13 (not 10)
 #requires png package for png
@@ -28,7 +28,7 @@
 #selects panel.GoogleMapsRaster or panel.GoogleMaps
 #structure of both panel...(map)
 #one arg, map; no extra args allowed
-#no checking that map is valid 
+#no checking that map is valid
 #map is modification of RgoogleMaps output
 #
 
@@ -64,13 +64,169 @@
 ##GoogleMapsPlot
 #################################
 
-GoogleMapsPlot <- function(mydata, 
+
+
+##' GoogleMapsPlot
+##'
+##' [IN DEVELOPMENT] Map plotting for openair data sets.
+##'
+
+##'
+##' \code{GoogleMapsPlot} is an IN DEVELOPMENT function.
+##'
+##' It combines a dedicated map layer, e.g.  \code{\link{panel.GoogleMaps}}, or
+##' (the default) \code{\link{panel.GoogleMapsRaster}}, and standard
+##' \code{\link{lattice}} panels such as \code{\link[lattice]{panel.xyplot}} or
+##' \code{\link[lattice]{panel.levelplot}} as a data layer, to produce
+##' map-based data visualisations.
+##'
+##' It provides lattice-style conditioning/handling for
+##' \code{\link[RgoogleMaps]{RgoogleMaps}} outputs.
+##'
+##' @aliases GoogleMapsPlot panel.GoogleMapsRaster panel.GoogleMaps
+##' @param mydata The openair data frame to use to generate the
+##'   \code{GoogleMapsPlot} plot.
+##' @param latitude,longitude The names of the data series in \code{mydata}
+##'   giving the latitudes and longitudes, respectively, of measurements.
+##' @param type The type of data conditioning to apply before plotting. The
+##'   default is will produce a single plot using the entire data. Other type
+##'   options include "hour" (for hour of the day), "weekday" (for day of the
+##'   week) and "month" (for month of the year), "year", "season" (string,
+##'   summer, autumn or winter) and "daylight" (daylight or nighttime hour).
+##'   But it is also possible to set \code{type} to the name of another
+##'   variable in \code{mydata}, in which case the plotted data will be divided
+##'   into quantiles based on that data series. See \code{cutData} for further
+##'   details.(NOTE: type conditioning currently allows up to two levels of
+##'   conditioning, e.g., \code{type = c("weekday", "daylight")}.)
+##' @param xlim,ylim The x-axis and y-axis size ranges. By default these sized
+##'   on the basis of \code{latitude} and \code{longitude}, but can be forced
+##'   as part of the plot call.
+##' @param pollutant If supplied, the name of a pollutant or variable in
+##'   \code{mydata} that is to be evaluated at the each measurement point.
+##'   Depending on settings, nominally \code{cols} and \code{cex}, the
+##'   evaluation can be by colour, size or both.
+##' @param labels If supplied, either the name of \code{mydata} column/field
+##'   containing the labels to be used or a list, containing that field name
+##'   (as \code{labels}), and any other label properties, e.g. \code{cex},
+##'   \code{col}, etc, required for fine-tuning label appearance.
+##' @param cols The colour set to use to colour scaled data. Typically,
+##'   \code{cols} is passed to \code{openColours} for evaluation, but can be
+##'   forced to one colour using e.g. \code{col = "red"}. The special case
+##'   \code{cols = "greyscale"} forces all plot components (the map, the data
+##'   layer and the plot strip of \code{type} conditioning) to greyscale for
+##'   black and white printing. See \code{?openColours} for more details.
+##' @param limits By default, the data colour scale is fitted to the total data
+##'   range. However, there are circumstances when the user may wish to set
+##'   different ones. In such cases \code{limits} can be set in the form
+##'   \code{c(lower, upper)} to modify the colour range.
+##' @param cex The size of data points plotted on maps. By default this
+##'   \code{NULL} or \code{pollutant} if supplied. If \code{NULL} all points
+##'   are plotted an equal size. If \code{pollutant} or the name of another
+##'   variable in \code{mydata} this is used by scaled using \code{cex.range}.
+##'   If necessary, \code{cex} can also be forced, e.g. \code{cex = 1} to make
+##'   all points the same size.
+##' @param pch The plot symbol to be used when plotting data. By default this
+##'   is a solid circle (\code{pch = 20}), but can be any predefined symbol,
+##'   e.g. \code{pch = 1} is the open circle symbol used in most standard R
+##'   plots. \code{pch} may also be the name of a variable in \code{mydata} for
+##'   local control.
+##' @param cex.range The range to rescale \code{cex} values to if \code{cex} is
+##'   supplied as a \code{mydata} variable name. This is intended to provide
+##'   sensible data point points regardless of the variable value range but may
+##'   be require fine-tuning.
+##' @param xlab,ylab,main The x-axis, y-axis and main title labels to be added
+##'   to the plot. All labels are passed via \code{quickText} to handle
+##'   formatting if enabled (\code{auto.text = TRUE}). By default
+##'   \code{GoogleMapsPlot} uses \code{latitude} and \code{longitude} names as
+##'   xlab and ylab, respectively.
+##' @param map If supplied, an \code{RgoogleMaps} output, to be used as a
+##'   background map. If \code{NULL} (as in default), a map is produced using
+##'   the \code{RgoogleMaps} function \code{MapBackground}, the supplied
+##'   \code{latitude} and \code{longitude} ranges, and any additional
+##'   \code{RgoogleMaps} arguments supplied as part of the plot call.  (Note:
+##'   the \code{map} object currently used in \code{panel...} functions is a
+##'   modified form of this output, details to be confirmed.)
+##' @param map.raster Should the map be plotted as a raster object? The default
+##'   \code{TRUE} uses \code{panel.GoogleMapsRaster} to produce the map layer,
+##'   while the alternative (\code{FALSE}) uses \code{panel.GoogleMaps}. (NOTE:
+##'   The raster version is typically much faster but may not be available for
+##'   all computer systems.)
+##' @param map.cols Like \code{cols} a colour scale, but, if supplied, used to
+##'   recolour the map layer before plotting. (NOTE: If set, this will override
+##'   \code{cols = "greyscale"}.)
+##' @param aspect The aspect ratio of the plot.
+##' @param as.table \code{as.table} is a \code{lattice} option that controls
+##'   the order in which multiple panels are displayed. The default
+##'   (\code{TRUE}) produces layouts similar to other openair plot.
+##' @param plot.type The method to use to produce the data layer for the plot.
+##'   By default (\code{plot.type = "xy"}), this is an x-y style scatter plot,
+##'   but can also be other pre-defined options (e.g. "level" for a levelplot)
+##'   or a user-defined panel of a similar structire to \code{panel...}
+##'   functions in \code{lattice}.
+##' @param plot.transparent Data layer transparency control. When enabled, this
+##'   forces colours used in the data layer to transparent, and can be a
+##'   numeric setting the colour density, from invisible (0) to solid (1), or a
+##'   logical (\code{TRUE} applying default 0.5). Note: User-defined colours
+##'   (and some panel defaults when supplying specialist functions using e.g.
+##'   \code{plot.type = panel...}) may sometimes supersede this option.
+##' @param key Fine control for the color scale key. By default (\code{key =
+##'   NULL}) the key is generated is a colour range exists, but can be forced
+##'   (\code{key = TRUE/FALSE}) or controlled at a higher level (via
+##'   \code{drawOpenKey}).
+##' @param key.position Location where the scale key should be plotted.
+##'   Allowed arguments currently include \code{"top"}, \code{"right"},
+##'   \code{"bottom"} and \code{"left"}.
+##' @param key.header,key.footer Header and footer labels to add to colour key,
+##'   if drawn. If enabled (\code{auto.text = TRUE}), these arguments are
+##'   passed to the scale key (\code{drawOpenKey}) via \code{quickText} to
+##'   handle formatting.
+##' @param auto.text Automatic routine text formatting. \code{auto.text = TRUE}
+##'   allows labels (\code{xlab}, \code{ylab}, \code{main}, etc.) to be passed
+##'   to the plot via \code{quickText}.  \code{auto.text = FALSE} turns this
+##'   option off and passes labels to the plot without modification.
+##' @param ... Addition options are passed on to \code{cutData} for \code{type}
+##'   handling, \code{MapBackground} in \code{RgoogleMaps} for map layer
+##'   production, and \code{xyplot} in \code{lattice} for data layer
+##'   production.
+##' @export
+##' @return As well as generating the plot itself, \code{GoogleMapsPlot} also
+##'   returns an object of class ``openair''. The object includes three main
+##'   components: \code{call}, the command used to generate the plot;
+##'   \code{data}, the data frame of summarised information used to make the
+##'   plot; and \code{plot}, the plot itself. If retained, e.g. using
+##'   \code{output <- GoogleMapsPlot(mydata)}, this output can be used to
+##'   recover the data, reproduce or rework the original plot or undertake
+##'   further analysis.
+##'
+##' An openair output can be manipulated using a number of generic operations,
+##'   including \code{print}, \code{plot} and \code{summary}. See
+##'   \code{\link{openair.generics}} for further details.
+##' @note IN DEVELOPMENT: HANDLE WITH CARE.
+##' @author Karl Ropkins
+##' @seealso \code{\link[RgoogleMaps]{MapBackground}},
+##'   \code{\link[lattice]{xyplot}}, \code{\link[lattice]{panel.xyplot}} and
+##'   \code{\link[lattice]{panel.levelplot}}
+##' @references This function makes extensive use of code developed by others.
+##'
+##' RgoogleMaps: Markus Loecher and Sense Networks (2011).  RgoogleMaps:
+##'   Overlays on Google map tiles in R. R package version 1.1.9.6.
+##'   http://CRAN.R-project.org/package=RgoogleMaps
+##'
+##' lattice: Sarkar, Deepayan (2008) Lattice: Multivariate Data Visualization
+##'   with R. Springer, New York. ISBN 978-0-387-75968-5
+##' @keywords methods
+##' @examples
+##'
+##' #TO BE CONFIRMED
+##'
+##'
+GoogleMapsPlot <- function(mydata,
          latitude = "latitude", longitude = "longitude", type = "default",
-         xlim, ylim, pollutant = NULL, labels = NULL, cols = "default", 
+         xlim, ylim, pollutant = NULL, labels = NULL, cols = "default",
          limits = c(0,100), cex = pollutant, pch = NULL, cex.range =c(2,10),
          xlab = longitude, ylab = latitude, main = "",
-         map = NULL, map.raster = TRUE, map.cols = NULL, 
-         aspect = 1, as.table = TRUE, plot.type = "xy", 
+         map = NULL, map.raster = TRUE, map.cols = NULL,
+         aspect = 1, as.table = TRUE, plot.type = "xy",
          plot.transparent = FALSE,
          key = NULL, key.position = "right",
          key.header = "", key.footer = pollutant,
@@ -86,7 +242,7 @@ GoogleMapsPlot <- function(mydata,
 #same type and something else conflict
 #
 
-#uses 
+#uses
 #RgoogleMaps MapBackground, etc.
     stopifnot(require("RgoogleMaps"))
 
@@ -101,7 +257,7 @@ GoogleMapsPlot <- function(mydata,
 ##########################
 #column assignment in args
 ###########################
-#below code assumes 
+#below code assumes
 #col assignment by col
 #######################
 #could have characters or numerics?
@@ -127,7 +283,7 @@ GoogleMapsPlot <- function(mydata,
     extra.args <- list(...)
 
     #map panel
-    map.panel <- if(map.raster)     
+    map.panel <- if(map.raster)
                      panel.GoogleMapsRaster else panel.GoogleMaps
 
     #plot.type
@@ -136,13 +292,13 @@ GoogleMapsPlot <- function(mydata,
         plot.type <- panel.xyplot
     if(is.character(plot.type) && plot.type == "level")
         plot.type <- panel.levelplot
-        
+
     if(!is.function(plot.type)){
         warning(paste("GoogleMapsPlot did not recognise 'plot.type'",
             "\n\t[applying default]", sep=""), call.=FALSE)
         plot.type <- panel.xyplot
     }
-    
+
     #pollutant only 1 allowed
     #see suggestions
     if(length(pollutant) > 1){
@@ -163,7 +319,7 @@ GoogleMapsPlot <- function(mydata,
 
     if(is.list(labels)){
         temp <- labels$labels
-        label2 <- if(length(temp) > 0) 
+        label2 <- if(length(temp) > 0)
                         labels$labels else NULL
     } else label2 <- if(length(labels) > 0)
                          labels else NULL
@@ -181,13 +337,13 @@ GoogleMapsPlot <- function(mydata,
 
     temp <- na.omit(sapply(list(cex, pch, label2), function(x){
                       if("character" %in% is(x)) x else NA}))
-   
+
     #keep date if about
     temp <- if("date" %in% names(mydata))
                 c("date", pollutant, temp) else
                     c(pollutant, temp)
     #all of x, y, temp need to be handled as type here
-    mydata <- checkPrep(mydata, temp, type=c(latitude, longitude, type), 
+    mydata <- checkPrep(mydata, temp, type=c(latitude, longitude, type),
                         remove.calm = FALSE)
 
     ############################
@@ -214,7 +370,7 @@ GoogleMapsPlot <- function(mydata,
                          FALSE else temp
     }
 
-    #cex default 
+    #cex default
     if(is.null(cex)){
         cex <- if(is.numeric(cex.range)) mean(cex.range) else 1
     } else {
@@ -247,25 +403,25 @@ GoogleMapsPlot <- function(mydata,
         cols <- "default"
 
     #if map.cols and cols same use darker range
-    col.range <- if(identical(map.cols, cols)) 
+    col.range <- if(identical(map.cols, cols))
                      openColours(cols, 156)[56:156] else openColours(cols, 101)
 
     #make transparent
 
     if(is.logical(plot.transparent) && plot.transparent)
         plot.transparent <- 0.5
-    
+
     if(is.numeric(plot.transparent)){
         if(any(plot.transparent < 0) | any(plot.transparent > 1)){
             warning(paste("GoogleMapsPlot could sensibly apply requested 'plot.transparency'",
-                          "\n\t[Sugest numeric in range 0 to 1]", 
+                          "\n\t[Sugest numeric in range 0 to 1]",
                           "\n\t[resetting value(s) to default, 0.5]",
                     sep=""), call.=FALSE)
             plot.transparent[plot.transparent > 1] <- 0.5
             plot.transparent[plot.transparent < 0] <- 0.5
         }
         col.range <- col2rgb(col.range)
-        col.range <- rgb(col.range[1,], col.range[2,], col.range[3,], 
+        col.range <- rgb(col.range[1,], col.range[2,], col.range[3,],
                       alpha = plot.transparent * 255, max = 255)
     }
 
@@ -291,23 +447,23 @@ GoogleMapsPlot <- function(mydata,
     ################
     #labels handling
     ################
-    
+
     #get labels source
 
-#note 
+#note
 #currently make labels even if not there
 #then don't plot if labels$labels NULL
 #rethink?
 
     if(!is.null(label2))
-        label2 <- mydata[, label2]    
-    
+        label2 <- mydata[, label2]
+
     #default label style
 
     temp <- list(labels = label2, cex = 0.75, col = "red", lwd=2)
-    labels <- if(is.list(labels)) 
-                  listUpdate(temp, labels[names(labels) != "labels"]) else temp 
-    
+    labels <- if(is.list(labels))
+                  listUpdate(temp, labels[names(labels) != "labels"]) else temp
+
     #check for label formatting
     temp <- labels$fun
     if(!is.null(temp) && is.function(temp))
@@ -320,7 +476,7 @@ GoogleMapsPlot <- function(mydata,
     #if key null but scalable data present
     #force key
     if(is.null(key))
-        if(length(unique(z))>1) 
+        if(length(unique(z))>1)
             key = TRUE
 
     #make legend using defaults
@@ -337,13 +493,13 @@ GoogleMapsPlot <- function(mydata,
     if(is.null(map)){
 
         #get xlims from data/local if not set
-        temp.y <- if(missing(ylim)) 
+        temp.y <- if(missing(ylim))
                       mydata[, latitude] else ylim
-        temp.x <- if(missing(xlim)) 
+        temp.x <- if(missing(xlim))
                       mydata[, longitude] else xlim
 
         #get names of args that MapBackground can handle
-        temp <- unique(c(names(formals(MapBackground)), 
+        temp <- unique(c(names(formals(MapBackground)),
                          names(formals(GetMap.bbox)),
                          names(formals(GetMap))))
 
@@ -354,7 +510,7 @@ GoogleMapsPlot <- function(mydata,
                  call.=FALSE)
 
         #override some RgoogleMaps defaults
-        map <- list(lon = temp2$lonR, lat = temp2$latR, destfile = "XtempX.png", 
+        map <- list(lon = temp2$lonR, lat = temp2$latR, destfile = "XtempX.png",
                      maptype = "terrain", size = c(640,640))
 
         ##update my defaults with relevant ones in call
@@ -366,18 +522,21 @@ GoogleMapsPlot <- function(mydata,
             stop(paste("\tGoogleMapsPlot could not apply supplied lat, lon and RgoogleMap args",
                        "\n\t[check call settings and data source]", sep = ""),
                  call.=FALSE)
-    } 
+    }
 
     #get xlim, ylim from map if not supplied
     #use map lims to reset borders for plot
-    #(is larger than data range 
+    #(is larger than data range
     #and already done by RgoogleMaps!)
 
-    if(missing(xlim))
+#Currently disabled because
+#issue with RgoogleMaps
+
+#    if(missing(xlim))
         xlim <- c(map$BBOX$ll[2], map$BBOX$ur[2])
-    if(missing(ylim))
-        ylim <- c(map$BBOX$ll[1], map$BBOX$ur[1])   
- 
+#    if(missing(ylim))
+        ylim <- c(map$BBOX$ll[1], map$BBOX$ur[1])
+
      map <- openairMapManager(map)
 
 ###############
@@ -389,17 +548,17 @@ GoogleMapsPlot <- function(mydata,
     map$xlim <- xlim
     map$ylim <- ylim
 
-    ra <- dim(map$myTile) 
+    ra <- dim(map$myTile)
 
     ##############
-    #recolor map 
+    #recolor map
     #############
     if(!is.null(map.cols)){
 
         #if map.cols and cols same use lighten map range
         if(identical(map.cols, cols))
             map.cols <- if(length(map.cols) == 1 && map.cols == "greyscale")
-                            openColours(c("white", grey(0.65)), 10) else 
+                            openColours(c("white", grey(0.65)), 10) else
                             openColours(map.cols, 7)[1:2]
 
         #make an intensity scale
@@ -433,7 +592,7 @@ GoogleMapsPlot <- function(mydata,
 #can we drop it?
 
     if(!is.null(labels$labels))
-             labels$labels <- sapply(labels$labels, function(x){ 
+             labels$labels <- sapply(labels$labels, function(x){
                                                         x <- paste(" ", x, sep = "")
                                                         quickText(x, auto.text)})
 
@@ -443,32 +602,32 @@ GoogleMapsPlot <- function(mydata,
     #plot
     ##############################
 
-    plt <- xyplot(myform, data = mydata, z = z, 
-                  cex = cex, pch = pch, xlim = xlim, ylim = ylim, 
-                  col = mycols, aspect = aspect, as.table = as.table, 
-                  at = breaks, col.regions = col.range, 
+    plt <- xyplot(myform, data = mydata, z = z,
+                  cex = cex, pch = pch, xlim = xlim, ylim = ylim,
+                  col = mycols, aspect = aspect, as.table = as.table,
+                  at = breaks, col.regions = col.range,
                   main = main, xlab = xlab, ylab = ylab, labels = labels,
-                  panel = function(x, y, subscripts, at, col.regions, ...){ 
+                  panel = function(x, y, subscripts, at, col.regions, ...){
                                    map.panel(map)
                                    temp <- list(...)
                                    if(!is.null(subscripts)){
-                                        temp <- lapply(temp, function(x) 
+                                        temp <- lapply(temp, function(x)
                                         x <- if(length(x)>1) x[subscripts] else x )
 
-                                        labels <- lapply(labels, function(x) 
+                                        labels <- lapply(labels, function(x)
                                         x <- if(length(x)>1) x[subscripts] else x )
 
                                         subscripts <- 1:length(subscripts)
                                    }
                                    temp <- listUpdate(
-                                               list(x = x, y = y, z = temp$z, at = at, 
-                                                    col.regions = col.regions, subscripts = subscripts), 
+                                               list(x = x, y = y, z = temp$z, at = at,
+                                                    col.regions = col.regions, subscripts = subscripts),
                                                temp)
                                    do.call(plot.type, temp)
 
 
                                    labels <- listUpdate(
-                                               list(x = x, y = y, subscripts = subscripts), 
+                                               list(x = x, y = y, subscripts = subscripts),
                                                labels)
                                    if(!is.null(labels$labels))
                                        do.call(ltext, labels)
@@ -500,27 +659,27 @@ GoogleMapsPlot <- function(mydata,
 #RgoogleMaps version handler
 #IN DEVELOPMENT
 #################################
-#this was introduced on introduction of 
+#this was introduced on introduction of
 #RgoogleMaps 1.1.9.10-13
 #rgdal/png dependent change
-#at same time the structures map 
-#structures changed 
+#at same time the structures map
+#structures changed
 #
 
 openairMapManager <- function(map){
 
     #set up
     ra <- dim(map$myTile)
-    
+
     #version test
-    tempfun <- function(x, pck = "RgoogleMaps") 
+    tempfun <- function(x, pck = "RgoogleMaps")
                   compareVersion(packageDescription(pck)$Version, x)
 
-    #if RgoogleMaps version between 1.1.5 and 1.1.9.13 
+    #if RgoogleMaps version between 1.1.5 and 1.1.9.13
     #currently don't know structure
     if(tempfun("1.1.9.13") < 0){
         warning(paste("GoogleMapsPlot may not be able to support this version of 'RgoogleMaps'",
-                      "\n\t[You may encounter problems]", 
+                      "\n\t[You may encounter problems]",
                       "\n\t[If so, suggest updating RgoogleMaps or contacting openair]",
                 sep=""), call.=FALSE)
 
@@ -528,7 +687,7 @@ openairMapManager <- function(map){
         #imagematrix, png
         #NOT tested for jgp
         map$myTile <- matrix(attr(map$myTile, "COL")[map$myTile],
-                             nrow = ra[1], ncol = ra[2]    
+                             nrow = ra[1], ncol = ra[2]
                       )
         map$myTile <- t(map$myTile)
         map$myTile <- map$myTile[nrow(map$myTile):1,]
@@ -537,9 +696,9 @@ openairMapManager <- function(map){
     }
 
     if(length(ra) > 2){
-       
+
         if(ra[3] == 4 & attr(map$myTile, "type") == "rgb"){
-            map$myTile <- rgb(map$myTile[, , 1], map$myTile[, , 2], 
+            map$myTile <- rgb(map$myTile[, , 1], map$myTile[, , 2],
                               map$myTile[, , 3], map$myTile[, , 4])
             dim(map$myTile) <- ra[1:2]
             attr(map$myTile, "type") <- "openair"
@@ -547,7 +706,7 @@ openairMapManager <- function(map){
         }
 
         if(ra[3] == 3 & attr(map$myTile, "type") == "rgb"){
-            map$myTile <- rgb(map$myTile[, , 1], map$myTile[, , 2], 
+            map$myTile <- rgb(map$myTile[, , 1], map$myTile[, , 2],
                               map$myTile[, , 3])
             dim(map$myTile) <- ra[1:2]
             attr(map$myTile, "type") <- "openair"
@@ -560,10 +719,10 @@ openairMapManager <- function(map){
             attr(map$myTile, "type") <- "openair"
             return(map)
         }
-    } 
+    }
 
     warning(paste("GoogleMapsPlot encountered unexpected 'RgoogleMaps' output",
-                  "\n\t[You may encounter problems or some options may not be supported]", 
+                  "\n\t[You may encounter problems or some options may not be supported]",
                   "\n\t[If so, suggest updating RgoogleMaps or contacting openair]",
             sep=""), call.=FALSE)
     return(map)
@@ -578,10 +737,10 @@ openairMapManager <- function(map){
 #
 
 panel.GoogleMapsRaster <- function(map){
-    grid.raster(map$myTile, 
+    grid.raster(map$myTile,
          x = unit(map$BBOX$ll[2], "native"), y = unit(map$BBOX$ll[1], "native"),
-         width = unit(map$BBOX$ur[2] - map$BBOX$ll[2], "native"),  
-         height = unit(map$BBOX$ur[1] - map$BBOX$ll[1], "native"), 
+         width = unit(map$BBOX$ur[2] - map$BBOX$ll[2], "native"),
+         height = unit(map$BBOX$ur[1] - map$BBOX$ll[1], "native"),
          just = c("left", "bottom")
     )
 }
@@ -595,30 +754,30 @@ panel.GoogleMapsRaster <- function(map){
 #
 
 panel.GoogleMaps <- function(map){
-    
+
     #there has to be a better way
 
     #both the rect handling
-    #and the map.col generation 
+    #and the map.col generation
     #need thinking about
 
     if(attr(map$myTile, "type") != "openair")
         map <- openairMapManager(map)
 
-    ra <- dim(map$myTile) 
+    ra <- dim(map$myTile)
     map.col <- map$myTile
 
-    map.lon <- rep(seq(map$BBOX$ll[2], map$BBOX$ur[2], 
-                       length.out = ra[1]), 
+    map.lon <- rep(seq(map$BBOX$ll[2], map$BBOX$ur[2],
+                       length.out = ra[1]),
                    each = ra[2])
-    map.lat <- rep(seq(map$BBOX$ur[1], map$BBOX$ll[1], 
-                       length.out = ra[2]), 
+    map.lat <- rep(seq(map$BBOX$ur[1], map$BBOX$ll[1],
+                       length.out = ra[2]),
                    time = ra[1])
     width <- (map$BBOX$ll[2] - map$BBOX$ur[2]) / ra[1]
     height <- (map$BBOX$ll[1] - map$BBOX$ur[1]) / ra[2]
 
-    panel.rect(x = map.lon, y = map.lat, 
-               width = width, height = height, 
+    panel.rect(x = map.lon, y = map.lat,
+               width = width, height = height,
                col = map.col, border = map.col)
 }
 

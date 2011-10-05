@@ -1,56 +1,49 @@
 \name{quickText}
-
 \alias{quickText}
-
-\title{
-Automatic text formatting for openair
-}
-\description{
-  Workhorse function that automatically applies routine text formatting to common 
-  expressions and data names used in openair.  
-}
+\title{Automatic text formatting for openair}
 \usage{
-quickText(text, auto.text = TRUE)
+  quickText(text, auto.text = TRUE)
 }
-
 \arguments{
+  \item{text}{A character vector.}
 
-  \item{text}{ A character vector. }
-
-  \item{auto.text}{ A logical option. The default, \code{TRUE}, applies \code{quickText} to 
-  \code{text} and returns the result. The alternative, \code{FALSE}, returns \code{text} 
-  unchanged. (A number of \code{openair} functions enable/unenable \code{quickText} using 
-  this option. }
-
-}
-
-\details{
-
-  \code{quickText} is routine formatting lookup table. It screens the supplied character vector 
-  \code{text} and automatically applies formatting to any recognised character sub-series. The 
-  function is used in a number of \code{openair} functions and can also be used directly by users 
-  to format text components of their own graphs (see below).
+  \item{auto.text}{A logical option. The default,
+  \code{TRUE}, applies \code{quickText} to \code{text} and
+  returns the result. The alternative, \code{FALSE},
+  returns \code{text} unchanged. (A number of
+  \code{openair} functions enable/unenable \code{quickText}
+  using this option.}
 }
 \value{
-  The function returns an expression for graphical evaluation.   
+  The function returns an expression for graphical
+  evaluation.
 }
-
-\author{
-  Karl Ropkins.
+\description{
+  Workhorse function that automatically applies routine
+  text formatting to common expressions and data names used
+  in openair.
 }
-
-
+\details{
+  \code{quickText} is routine formatting lookup table. It
+  screens the supplied character vector \code{text} and
+  automatically applies formatting to any recognised
+  character sub-series. The function is used in a number of
+  \code{openair} functions and can also be used directly by
+  users to format text components of their own graphs (see
+  below).
+}
 \examples{
-
 #example 1
 ##see axis formatting in an openair plot, e.g.:
 scatterPlot(mydata, x = "no2", y = "pm10")
 
 #example 2
 ##using quickText in other plots
-plot(mydata$no2, mydata$pm10, xlab = quickText("my no2 label"), 
-     ylab = quickText("pm10 [ ug.m-3 ]"))
-
+plot(mydata$no2, mydata$pm10, xlab = quickText("my no2 label"),
+ylab = quickText("pm10 [ ug.m-3 ]"))
 }
+\author{
+  Karl Ropkins.
+}
+\keyword{methods}
 
-\keyword{ methods }

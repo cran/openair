@@ -1,5 +1,126 @@
+##' Function to rapidly provide an overview of air quality data
+##'
+##' This function provides a quick graphical and numerical summary of data. The
+##' location presence/absence of data are shown, with summary statistics and
+##' plots of variable distributions. \code{summaryPlot} can also provide
+##' summaries of a single pollutant across many sites.
+##'
 
-
+##'
+##' \code{summaryPlot} produces two panels of plots: one showing the
+##' presence/absence of data and the other the distributions. The left panel
+##' shows time series and codes the presence or absence of data in different
+##' colours. By stacking the plots one on top of another it is easy to compare
+##' different pollutants/variables. Overall statistics are given for each
+##' variable: mean, maximum, minimum, missing hours (also expressed as a
+##' percentage), median and the 95th percentile. For each year the data capture
+##' rate (expressed as a percentage of hours in that year) is also given.
+##'
+##' The right panel shows either a histogram or a density plot depending on the
+##' choice of \code{type}. Density plots avoid the issue of arbitrary bin sizes
+##' that can sometimes provide a misleading view of the data distribution.
+##' Density plots are often more appropriate, but their effectiveness will
+##' depend on the data in question.
+##'
+##' \code{summaryPlot} will only show data that are numeric or integer type.
+##' This is useful for checking that data have been imported properly. For
+##' example, if for some reason a column representing wind speed erroneosly had
+##' one or more fields with charcters in, the whole column would be either
+##' character or factor type. The absence of a wind speed variable in the
+##' \code{summaryPlot} plot would therefore indicate a problem with the input
+##' data. In this particular case, the user should go back to the source data
+##' and remove the characters or remove them using R functions.
+##'
+##' If there is a field \code{site}, which would generally mean there is more
+##' than one site, \code{summaryPlot} will provide information on a
+##' \emph{single} pollutant across all sites, rather than provide details on
+##' all pollutants at a \emph{single} site. In this case the user should also
+##' provide a name of a pollutant e.g. \code{pollutant = "nox"}. If a pollutant
+##' is not provided the first numeric field will automatically be chosen.
+##'
+##' \bold{It is strongly recommended that the \code{summaryPlot} function is
+##' applied to all new imported data sets to ensure the data are imported as
+##' expected.}
+##'
+##' @param mydata A data frame to be summarised. Must contain a \code{date}
+##'   field and at least one other parameter.
+##' @param na.len Missing data are only shown with at least \code{na.len}
+##'   \emph{contiguous} missing vales. The purpose of setting \code{na.len} is
+##'   for clarity: with long time series it is difficult to see where
+##'   individual missing hours are. Furthermore, setting \code{na.len = 96},
+##'   for example would show where there are at least 4 days of continuous
+##'   missing data.
+##' @param clip When data contain outliers, the histogram or density plot can
+##'   fail to show the distribution of the main body of data. Setting
+##'   \code{clip = TRUE}, will remove the top 1 % of data to yield what is
+##'   often a better display of the overall distribution of the data. The
+##'   amount of clipping can be set with \code{percentile}.
+##' @param percentile This is used to clip the data. For example,
+##'   \code{percentile = 0.99} (the default) will remove the top 1 percentile
+##'   of values i.e. values greater than the 99th percentile will not be used.
+##' @param type \code{type} is used to determine whether a histogram (the
+##'   default) or a density plot is used to show the distribution of the data.
+##' @param pollutant \code{pollutant} is used when there is a field \code{site}
+##'   and there is more than one site in the data frame.
+##' @param period \code{period} is either \code{year} (the default) or
+##'   \code{month}. Statistics are calculated depending on the \code{period}
+##'   chosen.
+##' @param breaks Number of histogram bins. Sometime useful but not easy to set
+##'   a single value for a range of very different variables.
+##' @param col.trend Colour to be used to show the monthly trend of the data,
+##'   shown as a shaded region. Type \code{colors()} into R to see the full
+##'   range of colour names.
+##' @param col.data Colour to be used to show the \emph{presence} of data. Type
+##'   \code{colors()} into R to see the full range of colour names.
+##' @param col.mis Colour to be used to show missing data.
+##' @param col.hist Colour for the histogram or density plot.
+##' @param cols Predefined colour scheme, currently only enabled for
+##'   \code{"greyscale"}.
+##' @param date.breaks Number of major x-axis intervals to use. The function
+##'   will try and choose a sensible number of dates/times as well as
+##'   formatting the date/time appropriately to the range being considered.
+##'   This does not always work as desired automatically. The user can
+##'   therefore increase or decrease the number of intervals by adjusting the
+##'   value of \code{date.breaks} up or down.
+##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
+##'   \code{TRUE} titles and axis labels will automatically try and format
+##'   pollutant names and units properly e.g.  by subscripting the \sQuote{2}
+##'   in NO2.
+##' @param ... Other graphical parameters. Commonly used examples include the 
+##'   axis and title labelling options (such as \code{xlab}, \code{ylab} and 
+##'   \code{main}), which are all passed to the plot via \code{quickText} to handle 
+##'   routine formatting. As \code{summaryPlot} has two components, the axis 
+##'   labels may be a vector. For example, the default case (\code{type = "histogram"}) 
+##'   sets y labels equivalent to \code{ylab = c("", "Percent of Total")}.
+##' @export
+##' @author David Carslaw
+##' @keywords methods
+##' @examples
+##'
+##'
+##' # load example data from package
+##' data(mydata)
+##'
+##' # do not clip density plot data
+##' summaryPlot(mydata, clip = FALSE)
+##'
+##' # exclude highest 5 % of data etc.
+##' \dontrun{summaryPlot(mydata, percentile = 0.95)}
+##'
+##' # show missing data where there are at least 96 contiguous missing
+##' # values (4 days)
+##' \dontrun{summaryPlot(mydata, na.len = 96)}
+##'
+##' # show data in green
+##' \dontrun{summaryPlot(mydata, col.data = "green")}
+##'
+##' # show missing data in yellow
+##' \dontrun{summaryPlot(mydata, col.mis = "yellow")}
+##'
+##' # show density plot line in black
+##' \dontrun{summaryPlot(mydata, col.dens = "black")}
+##'
+##'
 summaryPlot <- function(mydata,
                       na.len = 24,
                       clip = TRUE,
@@ -7,17 +128,14 @@ summaryPlot <- function(mydata,
                       type = "histogram",
                       pollutant = "nox",
                       period = "years",
-                      breaks = 20,
+                      breaks = NULL,
                       col.trend = "darkgoldenrod2",
                       col.data = "lightblue",
                       col.mis = rgb(0.65, 0.04, 0.07),
                       col.hist = "forestgreen",
                       cols = NULL,
-                      main = "",
                       date.breaks = 7,
                       auto.text = TRUE,
-                      xlab = NULL,
-                      ylab = NULL, 
                       ...) {
 
     #greyscale handling
@@ -34,7 +152,24 @@ summaryPlot <- function(mydata,
     } else {
         col.stat <- "darkgreen"
     }
-    
+
+
+    ##extra.args setup
+    extra.args <- list(...)
+
+    #label controls
+    #all handled further in code body
+    xlab <- if("xlab" %in% names(extra.args))
+                extra.args$xlab else NULL
+    ylab <- if("ylab" %in% names(extra.args))
+                extra.args$xlab else NULL
+    main <- if("main" %in% names(extra.args))
+                extra.args$main else ""
+
+    #drop main, xlab, ylab from extra.args
+    extra.args <- extra.args[!names(extra.args) %in% c("xlab", "ylab", "main")]
+
+#the above might be a better retro fix for more complex functions?
 
     ## if date in format dd/mm/yyyy hh:mm (basic check)
     if (length(grep("/", as.character(mydata$date[1]))) > 0) {
@@ -48,7 +183,7 @@ summaryPlot <- function(mydata,
     }
 
     ## for plot
-    dateBreaks <- dateBreaks(mydata$date, date.breaks)$major
+    dateBreaks <- openair:::dateBreaks(mydata$date, date.breaks)$major
 
     ## print data types - helps with debugging
     print(unlist(sapply(mydata, class)))
@@ -77,9 +212,9 @@ summaryPlot <- function(mydata,
             names(mydata) <- c("date", "variable", "value")
 
             site.names <- as.character(unique(mydata$variable))
-          
+
             mydata <- reshape(mydata, idvar = "date", timevar = "variable", direction = "wide")
-           
+
             names(mydata)[2 : ncol(mydata)] <-   site.names
 
             warning(paste("More than one site detected, using", pollutant))
@@ -107,11 +242,11 @@ summaryPlot <- function(mydata,
     ## round the dates depending on period
     min.year <- as.numeric(min(format(mydata$date, "%Y")))
     max.year <- as.numeric(max(format(mydata$date, "%Y")))
-    start.date <- as.POSIXct(dateTrunc(min(mydata$date), period))
-    end.date <- as.POSIXct(dateCeil(max(mydata$date), period) - 3600)
+    start.date <- as.POSIXct(openair:::dateTrunc(min(mydata$date), period))
+    end.date <- as.POSIXct(openair:::dateCeil(max(mydata$date), period) - 3600)
 
     ## find time interval of data and pad any missing times
-    interval <- find.time.interval(mydata$date)
+    interval <- openair:::find.time.interval(mydata$date)
     all.dates <- data.frame(date = seq(start.date, end.date, by = interval))
     mydata <- merge(mydata, all.dates, all = TRUE)
 
@@ -178,32 +313,41 @@ summaryPlot <- function(mydata,
     max.x <- as.numeric(max(mydata$date))
     seq.year <- seq(start.date, end.date, by = period)
 
-    if(is.null(ylab[1])) {
-        ylab[1] <- ""
-    } else {
-        if(is.na(ylab[1])) ylab[1] <- ""
-    }
-    if(is.null(xlab[1])) {
-        xlab[1] <- "date"
-    } else {
-        if(is.na(xlab[1])) xlab[1] <- "date"
-    }
 
-    plt1 <- xyplot(value ~ date | variable , data = dummy.dat, type = "n",
+    #xlab, ylab handling for plt1
+    #(so user inputs go through quicktext)
+    my.ylab <- if(is.null(ylab[1]) || is.na(ylab[1]))
+                   "" else quickText(ylab[1], auto.text)
+    my.xlab <- if(is.null(xlab[1]) || is.na(xlab[1]))
+                   "date" else quickText(xlab[1], auto.text)
+
+#    if(is.null(ylab[1])) {
+#        ylab[1] <- ""
+#    } else {
+#        if(is.na(ylab[1])) ylab[1] <- ""
+#    }
+#    if(is.null(xlab[1])) {
+#        xlab[1] <- "date"
+#    } else {
+#        if(is.na(xlab[1])) xlab[1] <- "date"
+#    }
+
+
+    xyplot.args <- list(x = value ~ date | variable , data = dummy.dat, type = "n",
                    ylim = c(0, 5.5),
-                   ylab = ylab[1],
-                   xlab = xlab[1],
+                   ylab = my.ylab,
+                   xlab = my.xlab,
                    xlim = c(start.date - 60, end.date + 60),
 
                    ## override scaling for more sensible date/time breaks
-                   scales = list(y = list(draw = FALSE), x = list(at =
-                                                         dateBreaks(mydata$date, date.breaks)$major, format =
-                                                         dateBreaks(mydata$date, date.breaks)$format)),
+                   scales = list(y = list(draw = FALSE),
+                   x = list(at = openair:::dateBreaks(mydata$date, date.breaks)$major,
+                   format = openair:::dateBreaks(mydata$date, date.breaks)$format)),
                    layout = c(1, length(unique(mydata$variable))),
                    strip = FALSE,
                    strip.left = strip.custom(horizontal = FALSE, factor.levels = pol.name),
 
-                   par.strip.text = list(cex = 0.7),...,
+                   par.strip.text = list(cex = 0.7),
                    panel = function(x, y, subscripts)  {
                        panelNo <- panel.number()
 
@@ -244,6 +388,12 @@ summaryPlot <- function(mydata,
                        ltext(seq.year, 5 , paste(data.cap, "%"), cex = 0.6, col = col.stat, pos = 4)
                    })
 
+    #reset for extra.args
+    xyplot.args<- listUpdate(xyplot.args, extra.args)
+
+    #plot
+    plt1 <- do.call(xyplot, xyplot.args)
+
     print(plt1, position = c(0, 0, 0.7, 1), more = TRUE)
 
     ## clip data to help show interesting part of distribution
@@ -256,22 +406,39 @@ summaryPlot <- function(mydata,
         row.names(mydata) <- NULL
     }
 
-    if(is.null(xlab[2])) {
-        xlab[2] <- "value"
+    #xlab, ylab handling for plt2
+    #(so user inputs go through quicktext)
+    #(and unique histogram/density naming is handled)
+    my.ylab <- if(is.null(ylab[2]) || is.na(ylab[2]))
+                   "" else ylab[2]
+    if(my.ylab == ""){
+
+        if(type == "histogram") my.ylab <- "Percent of Total"
+        if(type == "density") my.ylab <- "Density"
+
     } else {
-        if(is.na(xlab[2])) xlab[2] <- "value"
+        my.lab <- quickText(my.lab, auto.text)
     }
+
+    my.xlab <- if(is.null(xlab[2]) || is.na(xlab[2]))
+                   "value" else quickText(xlab[2], auto.text)
+
+#    if(is.null(xlab[2])) {
+#        xlab[2] <- "value"
+#    } else {
+#        if(is.na(xlab[2])) xlab[2] <- "value"
+#    }
 
     if (type == "histogram") {
 
-        if(is.null(ylab[2])) {
-           ylab[2] <- "Percent of Total"
-        } else {
-           if(is.na(ylab[2])) ylab[2] <- "Percent of Total"
-        }
+#        if(is.null(ylab[2])) {
+#           ylab[2] <- "Percent of Total"
+#        } else {
+#           if(is.na(ylab[2])) ylab[2] <- "Percent of Total"
+#        }
 
-        plt2 <- histogram(~ value | variable, data = mydata,
-                          xlab = xlab[2], ylab = ylab[2], 
+        histogram.args <- list(x = ~ value | variable, data = mydata,
+                          xlab = my.xlab, ylab = my.ylab,
                           par.strip.text = list(cex = 0.7),
                           breaks = breaks,
                           layout = c(1, length(unique(mydata$variable))),
@@ -282,17 +449,25 @@ summaryPlot <- function(mydata,
                               panel.grid(-1, -1)
                               panel.histogram(x,  col = col.hist, border = NA,...)
                           })
+
+        #reset for extra.args
+##(currently off so like summaryPlot previously)
+##        histogram.args<- listUpdate(histogram.args, extra.args)
+
+        #plot
+        plt2 <- do.call(histogram, histogram.args)
+
     } else {
 
-        if(is.null(ylab[2])) {
-           ylab[2] <- "Density"
-        } else {
-           if(is.na(ylab[2])) ylab[2] <- "Density"
-        }
+#        if(is.null(ylab[2])) {
+#           ylab[2] <- "Density"
+#        } else {
+#           if(is.na(ylab[2])) ylab[2] <- "Density"
+#        }
 
-        plt2 <- densityplot(~ value | variable, data = mydata,
+        densityplot.args <- list(x = ~ value | variable, data = mydata,
                             par.strip.text = list(cex = 0.7),
-                            xlab = xlab[2], ylab = ylab[2],
+                            xlab = my.xlab, ylab = my.ylab,
                             layout = c(1, length(unique(mydata$variable))),
                             scales = list(relation = "free", y = list(rot = 0), cex = 0.7),
                             strip = FALSE,
@@ -302,12 +477,21 @@ summaryPlot <- function(mydata,
                                 panel.densityplot(x, lwd = 2, plot.points = FALSE,
                                                   col = col.hist,...)
                             })
+
+        #reset for extra.args
+##(currently off so like summaryPlot previously)
+##        densityplot.args<- listUpdate(densityplot.args, extra.args)
+
+        #plot
+        plt2 <- do.call(densityplot, densityplot.args)
+
+        plt2 <- densityplot()
     }
 
     print(plt2, position = c(0.7, 0, 1, 0.975))
 
     #reset if greyscale
-    if (length(cols) == 1 && cols == "greyscale") 
+    if (length(cols) == 1 && cols == "greyscale")
         trellis.par.set("strip.background", current.strip)
 
     ## use grid to add an overall title
