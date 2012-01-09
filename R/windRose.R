@@ -52,7 +52,7 @@ pollutionRose <- function(mydata,
 ##' By default, \code{pollutionRose} will plot a pollution rose of \code{nox}
 ##' using "wedge" style segments and placing the scale key to the right of the
 ##' plot.
-##' @usage windRose(mydata, ws.int = 2, angle = 30, type = "default",
+##' @usage windRose(mydata, ws = "ws", wd = "wd", ws.int = 2, angle = 30, type = "default",
 ##'                      cols = "default", grid.line = NULL, width = 1,
 ##'                      auto.text = TRUE, breaks = 4, offset = 10,
 ##'                      paddle = TRUE, key.header = NULL, key.footer = "(m/s)",
@@ -68,6 +68,8 @@ pollutionRose <- function(mydata,
 ##'
 ##' @aliases windRose pollutionRose
 ##' @param mydata A data frame containing fields \code{ws} and \code{wd}
+##' @param ws Name of the column representing wind speed.
+##' @param wd Name of the column representing wind direction.
 ##' @param ws.int The Wind speed interval. Default is 2 m/s but for low met
 ##'   masts with low mean wind speeds a value of 1 or 0.5 m/s may be better.
 ##'   Note, this argument is superseded in \code{pollutionRose}. See
@@ -111,7 +113,7 @@ pollutionRose <- function(mydata,
 ##'   and the \code{ws.int} default of 2 m/s, the default, 4, generates the
 ##'   break points 2, 4, 6, 8 m/s. For \code{pollutionRose}, the default, 6,
 ##'   attempts to breaks the supplied data at approximately 6 sensible break
-##'   points. However, \code{breaks} can also be used to set specific break 
+##'   points. However, \code{breaks} can also be used to set specific break
 ##'   points. For example, the argument \code{breaks = c(1, 10, 100)} breaks
 ##'   the data into segments <1, 1-10, 10-100, >100.
 ##' @param offset The size of the 'hole' in the middle of the plot, expressed
@@ -145,13 +147,15 @@ pollutionRose <- function(mydata,
 ##'   = "ws"}.
 ##' @param annotate If \code{TRUE} then the percentage calm and mean values are
 ##'   printed in each panel.
-##' @param ... For \code{pollutionRose} other parameters that are passed on to
-##'\code{windRose}. For \code{windRose} other parameters that are passed on
-##'to \code{drawOpenKey}, \code{lattice:xyplot} and \code{cutData}. Axis and
-##'title labelling options (\code{xlab}, \code{ylab}, \code{main}) are passed
-##'to \code{xyplot} via \code{quickText} to handle routine formatting.
+##' @param ... For \code{pollutionRose} other parameters that are
+##' passed on to \code{windRose}. For \code{windRose} other parameters
+##' that are passed on to \code{drawOpenKey}, \code{lattice:xyplot}
+##' and \code{cutData}. Axis and title labelling options (\code{xlab},
+##' \code{ylab}, \code{main}) are passed to \code{xyplot} via
+##' \code{quickText} to handle routine formatting.
 ##'
 ##' @export windRose pollutionRose
+##' @import plyr
 ##' @return As well as generating the plot itself, \code{windRose} and
 ##'   \code{pollutionRose} also return an object of class ``openair''. The
 ##'   object includes three main components: \code{call}, the command used to
@@ -204,7 +208,7 @@ pollutionRose <- function(mydata,
 ##' }
 ##'
 ##'
-windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
+windRose <- function (mydata, ws = "ws", wd = "wd", ws.int = 2, angle = 30, type = "default",
                       cols = "default", grid.line = NULL, width = 1,
                       auto.text = TRUE, breaks = 4, offset = 10,
                       paddle = TRUE, key.header = NULL, key.footer = "(m/s)",
@@ -225,7 +229,7 @@ windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
     }
 
 
-    if (360/angle != round(360/angle)) {
+    if (360 / angle != round(360 / angle)) {
         warning("In windRose(...):\n  angle will produce some spoke overlap",
                 "\n  suggest one of: 5, 6, 8, 9, 10, 12, 15, 30, 45, etc.", call. = FALSE)
     }
@@ -268,7 +272,7 @@ windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
             stat.labcalm <- function(x) round(x, 1)
         }
 
-        if(statistic=="prop.mean"){
+        if(statistic=="prop.mean") {
             stat.fun <- function(x) sum(x, na.rm = TRUE)
             stat.unit <- "%"
             stat.scale <- "panel"
@@ -278,7 +282,7 @@ windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
             stat.labcalm <- function(x) round(x, 1)
         }
 
-        if(statistic=="abs.count" | statistic=="frequency"){
+        if(statistic=="abs.count" | statistic=="frequency") {
             stat.fun <- length
             stat.unit <- ""
             stat.scale <- "none"
@@ -290,7 +294,7 @@ windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
 
     }
 
-    if(is.list(statistic)){
+    if(is.list(statistic)) {
 
     #IN DEVELOPMENT
 
@@ -309,27 +313,27 @@ windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
     }
 
 
-    vars <- c("wd", "ws")
-    if (any(type %in%  dateTypes)) vars <- c(vars, "date")
+    vars <- c(wd, ws)
+    if (any(type %in%  openair:::dateTypes)) vars <- c(vars, "date")
 
     if (!is.null(pollutant)) {
         vars <- c(vars, pollutant)
     }
-    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
 
     mydata <- na.omit(mydata)
 
     if (is.null(pollutant))
-        pollutant <- "ws"
+        pollutant <- ws
     mydata$.z.poll <- mydata[, pollutant]
 
     ## if (type == "ws")  type <- "ws.1"
 
-    mydata$wd <- angle * ceiling(mydata$wd/angle - 0.5)
-    mydata$wd[mydata$wd == 0] <- 360
+    mydata[ , wd] <- angle * ceiling(mydata[ , wd] / angle - 0.5)
+    mydata[ , wd][mydata[ , wd] == 0] <- 360
 
     ## flag calms as negatives
-    mydata$wd[mydata$ws == 0] <- -999 ## set wd to flag where there are calms
+    mydata[ , wd][mydata[ , ws] == 0] <- -999 ## set wd to flag where there are calms
     ## do after rounding or -999 changes
 
     if (length(breaks) == 1) breaks <- 0:(breaks - 1) * ws.int
@@ -354,18 +358,18 @@ windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
         levels(mydata$.z.poll) <- c(paste(".z.poll", 1:length(theLabels),
                                           sep = ""))
 
-        all <- stat.fun(mydata$wd)
-        calm <- mydata[mydata$wd == -999, ][, pollutant]
-        mydata <- mydata[mydata$wd != -999, ]
+        all <- stat.fun(mydata[ , wd])
+        calm <- mydata[mydata[ , wd] == -999, ][, pollutant]
+        mydata <- mydata[mydata[ , wd] != -999, ]
         mydata <- na.omit(mydata) # needed?
 
         calm <- stat.fun(calm)
-        weights <- tapply(mydata[, pollutant], list(mydata$wd, mydata$.z.poll),
+        weights <- tapply(mydata[, pollutant], list(mydata[ , wd], mydata$.z.poll),
                               stat.fun)
 
         #scaling
         if(stat.scale=="all"){
-              calm <- calm/all
+              calm <- calm / all
               weights <- weights/all
         }
         if(stat.scale=="panel"){
@@ -393,7 +397,7 @@ windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
     if (paddle) {
         poly <- function(wd, len1, len2, width, colour, x.off = 0,
                          y.off = 0) {
-            theta <- wd * pi/180
+            theta <- wd * pi / 180
             len1 <- len1 + off.set
             len2 <- len2 + off.set
             x1 <- len1 * sin(theta) - width * cos(theta) + x.off
@@ -462,7 +466,7 @@ windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
                    labels = theLabels, footer = key.footer, header = key.header,
                    height = 0.60, width = 1.5, fit = "scale",
                    plot.style = if(paddle) "paddle"  else "other")
-    legend <- makeOpenKeyLegend(key, legend, "windRose")
+    legend <- openair:::makeOpenKeyLegend(key, legend, "windRose")
 
 
     temp <- paste(type, collapse = "+")
@@ -519,7 +523,7 @@ windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
                       }
                   ltext(seq((myby + off.set), mymax,
                       myby) * sin(pi/4), seq((myby +
-                      off.set), mymax, myby) * cos(pi/4),
+                      off.set), mymax, myby) * cos(pi / 4),
                       paste(seq(myby, mymax, by = myby), stat.unit,
                       sep = ""), cex = 0.7)
                   if (annotate)
@@ -529,7 +533,7 @@ windRose <- function (mydata, ws.int = 2, angle = 30, type = "default",
                   }, legend = legend)
 
     #reset for extra.args
-    xyplot.args<- listUpdate(xyplot.args, extra.args)
+    xyplot.args <- openair:::listUpdate(xyplot.args, extra.args)
 
     #plot
     plt <- do.call(xyplot, xyplot.args)

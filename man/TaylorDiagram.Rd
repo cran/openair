@@ -2,12 +2,12 @@
 \alias{TaylorDiagram}
 \title{Taylor Diagram for model evaluation with conditioning}
 \usage{
-  TaylorDiagram(mydata, obs = "obs", mod = "mod", group =
-  NULL, type = "default", normalise = FALSE, cols =
-  "brewer1", rms.col = "darkgoldenrod", cor.col = "black",
-  arrow.lwd = 3, key = TRUE, key.title = group, key.columns
-  = 1, key.pos = "bottom", strip = TRUE, auto.text = TRUE,
-  ...)
+  TaylorDiagram(mydata, obs = "obs", mod = "mod",
+    group = NULL, type = "default", normalise = FALSE,
+    cols = "brewer1", rms.col = "darkgoldenrod",
+    cor.col = "black", arrow.lwd = 3, key = TRUE,
+    key.title = group, key.columns = 1, key.pos = "right",
+    strip = TRUE, auto.text = TRUE, ...)
 }
 \arguments{
   \item{mydata}{A data frame minimally containing a column
@@ -20,7 +20,7 @@
   \code{mod} can be of length 2 i.e. two lots of model
   predictions. If two sets of predictions are are present
   e.g. \code{mod = c("base", "revised")}, then arrows are
-  shown on the Taylor Diafram which show the change in
+  shown on the Taylor Diagram which show the change in
   model performance in going from the first to the second.
   This is useful where, for example, there is interest in
   comparing how one model run compares with another using
@@ -53,7 +53,12 @@
   Type can be up length two e.g. \code{type = c("season",
   "weekday")} will produce a 2x2 plot split by season and
   day of the week. Note, when two types are provided the
-  first forms the columns and the second the rows.}
+  first forms the columns and the second the rows.
+
+  Note that often it will make sense to use \code{type =
+  "site"} when multiple sites are available. This will
+  ensure that each panel contains data specific to an
+  individual site.}
 
   \item{normalise}{Should the data be normalised by
   dividing the standard deviation of the observations? The
@@ -64,14 +69,20 @@
   the "observed" point is plotted on the x-axis at unit
   distance from the origin. This makes it possible to plot
   statistics for different species (maybe with different
-  units) on the same plot.}
+  units) on the same plot. The normalisation is done by
+  each \code{group}/\code{type} combination.}
 
-  \item{cols}{Colours to be used for plotting. Options
-  include "default", "increment", "heat", "spectral",
-  "hue", "brewer1", "greyscale" and user defined (see
-  \code{openColours} for more details). The same line
-  colour can be set for all pollutant e.g. \code{cols =
-  "black"}.}
+  \item{cols}{Colours to be used for plotting. Useful
+  options for categorical data are avilable from
+  \code{RColorBrewer} colours --- see the \code{openair}
+  \code{openColours} function for more details. Useful
+  schemes include "Accent", "Dark2", "Paired", "Pastel1",
+  "Pastel2", "Set1", "Set2", "Set3" --- but see
+  ?\code{brewer.pal} for the maximum useful colours in
+  each. For user defined the user can supply a list of
+  colour names recognised by R (type \code{colours()} to
+  see the full list). An example would be \code{cols =
+  c("yellow", "green", "blue")}.}
 
   \item{rms.col}{Colour for centred-RMS lines and text.}
 
@@ -107,7 +118,7 @@
   \code{TaylorDiagram} passes the option \code{hemisphere =
   "southern"} on to \code{cutData} to provide southern
   (rather than default northern) hemisphere handling of
-  \code{type = "season"}. Similarly, common graphical
+  \code{type = "season"}.  Similarly, common graphical
   parameters, such as \code{layout} for panel arrangement
   and \code{pch} and \code{cex} for plot symbol type and
   size, are passed on to \code{xyplot}. Most are passed
@@ -190,7 +201,22 @@
   model) will have four different mean values --- one for
   each season. Generally, the option \code{group} is either
   missing (one model being evaluated) or represents a
-  column giving the model name.
+  column giving the model name. However, the data can be
+  normalised using the \code{normalise} option.
+  Normalisation is carried out on a per
+  \code{group}/\code{type} basis making it possible to
+  compare data on different scales e.g.
+  \code{TaylorDiagram(mydata, group = "season", type =
+  "model", normalise = TRUE)}. In this way it is possible
+  to compare different pollutants, sites etc. in the same
+  panel.
+
+  Also note that if multiple sites are present it makes
+  sense to use \code{type = "site"} to ensure that each
+  panel represents an individual site with its own specific
+  standard deviation etc. If this is not the case then
+  select a single site from the data first e.g.
+  \code{subset(mydata, site == "Harwell")}.
 }
 \examples{
 ## in the examples below, most effort goes into making some artificial data
@@ -259,7 +285,7 @@ type = "season")
   Report of the Intergovernmental Panel on Climate Change
   [Houghton, J.T., Y. Ding, D.J. Griggs, M. Noguer, P.J.
   van der Linden, X. Dai, K. Maskell, and C.A.  Johnson
-  (eds.)]. Cambridge University Press, Cambridge, United
+  (eds.)].  Cambridge University Press, Cambridge, United
   Kingdom and New York, NY, USA, 881 pp. (see
   \url{http://www.grida.no/climate/ipcc_tar/wg1/317.htm#fig84})
 }

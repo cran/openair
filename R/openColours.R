@@ -6,10 +6,12 @@
 ##' select particular colour schemes, or define their own range of colours of a
 ##' user-defined length.
 ##'
-##' Each of the pre-defined schemes have merits and their use will depend on a
-##' particular situation. For showing incrementing concentrations e.g. high
-##' concentrations emphasised, then "default", "heat", "jet" and "increment"
-##' are very useful.
+##' Each of the pre-defined schemes have merits and their use will
+##' depend on a particular situation. For showing incrementing
+##' concentrations e.g. high concentrations emphasised, then
+##' "default", "heat", "jet" and "increment" are very useful. See also
+##' the description of \code{RColorBrewer} schemes for the option
+##' \code{scheme}.
 ##'
 ##' To colour-code categorical-type problems e.g. colours for different
 ##' pollutants, "hue" and "brewer1" are useful.
@@ -23,12 +25,40 @@
 ##' names. To see the full list of names, type \code{colors()} into R.
 ##'
 ##' @param scheme The pre-defined schemes are "increment", "default",
-##'   "brewer1", "heat", "jet", "hue", "greyscale".
-##' @param n The number of colours to be returned.
+##' "brewer1", "heat", "jet", "hue", "greyscale", or a vector of R
+##' colour names e.g. c("green", "blue"). It is also possible to
+##' supply colour schemes from the \code{RColorBrewer} package. This
+##' package defines three types of colour schemes: sequential,
+##' diverging or qualitative. See \url{http://colorbrewer.org} for
+##' more details concerning the orginal work on which this is based.
+##'
+##' Sequential colours are useful for ordered data where there is a
+##' need to show a difference between low and high values with colours
+##' going from light to dark. The pre-defined colours that can be
+##' supplied are: "Blues", "BuGn", "BuPu", "GnBu", "Greens", "Greys",
+##' "Oranges", "OrRd", "PuBu", "PuBuGn", "PuRd", "Purples", "RdPu",
+##' "Reds", "YlGn", "YlGnBu", "YlOrBr", "YlOrRd".
+##'
+##'  Diverging palettes put equal emphasis on mid-range critical
+##' values and extremes at both ends of the data range. Pre-defined
+##' values are: "BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy",
+##' "RdYlBu", "RdYlGn", "Spectral".
+##'
+##' Qualitative palettes are useful for differentiating between
+##' categorical data types. The pre-defined schemes are "Accent",
+##' "Dark2", "Paired", "Pastel1", "Pastel2", "Set1", "Set2", "Set3".
+##'
+##' Note that because of the way these schemes have been developed
+##' they only exist over certain number of colour gradations
+##' (typically 3--10) --- see ?\code{brewer.pal} for actual
+##' details. If less than or more than the required number of colours
+##' is supplied then \code{openair} will interpolate the colours.
+##' @param n number of colours required.
 ##' @export
+##' @import RColorBrewer
 ##' @return Returns colour values - see examples below.
 ##' @author David Carslaw
-##' @references ~put references to the literature/web site here ~
+##' @references \url{http://colorbrewer.org}
 ##' @keywords methods
 ##' @examples
 ##'
@@ -44,16 +74,27 @@
 ##'
 openColours <- function(scheme = "default", n = 100) {
 
-                                        #predefined schemes
-    schemes <- c("increment", "default", "brewer1", "heat", "jet", "hue", "greyscale")
+    ## pre-defined brewer colour palletes sequential, diverging, qualitative
+    brewer.col <- c("Blues", "BuGn", "BuPu", "GnBu", "Greens", "Greys", "Oranges", "OrRd", "PuBu",
+                    "PuBuGn", "PuRd", "Purples", "RdPu", "Reds", "YlGn", "YlGnBu", "YlOrBr", "YlOrRd",
+                    "BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu", "RdYlGn", "Spectral",
+                    "Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1", "Set2", "Set3")
+    ## max colours allowed
 
-                                        #schemes
+    brewer.n <- c(rep(9, 18), rep(9, 9), c(8, 8, 12, 9, 8, 9, 8, 12))
+
+    ## predefined schemes
+    schemes <- c("increment", "default", "brewer1", "heat", "jet", "hue", "greyscale", brewer.col)
+
+    ## schemes
     heat <- colorRampPalette(brewer.pal(9, "YlOrRd"), interpolate = "spline")
 
     jet <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan",
                               "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
 
     default.col <- colorRampPalette(brewer.pal(11, "Spectral"), interpolate = "spline")
+
+
 
     ## for this pallete use specfified number if possible - because it has been thought about...
     brewer1 <- function (n) {
@@ -64,6 +105,23 @@ openColours <- function(scheme = "default", n = 100) {
         } else {
 
             thefun <- suppressWarnings(colorRampPalette(brewer.pal(9, "Set1"), interpolate = "spline"))
+            thefun(n)
+        }
+
+    }
+
+    ## for this pallete use specfified number if possible - because it has been thought about...
+    find.brewer <- function (thecol, n) {
+
+        n.brew <- brewer.n[scheme == brewer.col]
+
+        if (n >= 3 & n <= n.brew) {
+
+            brewer.pal(n, thecol)
+
+        } else {
+
+            thefun <- suppressWarnings(colorRampPalette(brewer.pal(n.brew, thecol), interpolate = "spline"))
             thefun(n)
         }
 
@@ -88,11 +146,13 @@ openColours <- function(scheme = "default", n = 100) {
 
     greyscale <- grey(seq(0.9, 0.1, length=n))
 
-                                        #error catcher
+    ## error catcher
     if (length(scheme) == 1){
+        if (scheme %in% brewer.col) cols <- find.brewer(scheme, n)
         if (scheme == "increment") cols <- increment(n)
         if (scheme == "default") cols <- rev(default.col(n))
         if (scheme == "brewer1") cols <- brewer1(n)
+        if (scheme %in% brewer.col) cols <- find.brewer(scheme, n)
         if (scheme == "heat") cols <- heat(n)
         if (scheme == "jet") cols <- jet(n)
         if (scheme == "hue") cols <- hue

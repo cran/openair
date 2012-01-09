@@ -3,10 +3,10 @@
 \title{Conditional quantile estimates for model evaluation}
 \usage{
   conditionalQuantile(mydata, obs = "obs", mod = "mod",
-  type = "default", bins = 31, min.bin = c(10, 20), xlab =
-  "predicted value", ylab = "observed value", col =
-  brewer.pal(5, "YlOrRd"), key.columns = 2, key.position =
-  "bottom", auto.text = TRUE, ...)
+    type = "default", bins = 31, min.bin = c(10, 20),
+    xlab = "predicted value", ylab = "observed value",
+    col = brewer.pal(5, "YlOrRd"), key.columns = 2,
+    key.position = "bottom", auto.text = TRUE, ...)
 }
 \arguments{
   \item{mydata}{A data frame containing the field
@@ -74,9 +74,9 @@
   \code{conditionalQuantile} passes the option
   \code{hemisphere = "southern"} on to \code{cutData} to
   provide southern (rather than default northern)
-  hemisphere handling of \code{type = "season"}. Similarly,
-  common axis and title labelling options (such as
-  \code{xlab}, \code{ylab}, \code{main}) are passed to
+  hemisphere handling of \code{type = "season"}.
+  Similarly, common axis and title labelling options (such
+  as \code{xlab}, \code{ylab}, \code{main}) are passed to
   \code{xyplot} via \code{quickText} to handle routine
   formatting.}
 }

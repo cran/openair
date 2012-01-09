@@ -33,7 +33,7 @@
   \code{height} height of key.
 
   Note: \code{width} and \code{height} refer to the key
-  dimensions. \code{height} is the length of the key along
+  dimensions.  \code{height} is the length of the key along
   the plot axis it is positioned against, and \code{width}
   is the length perpendicular to that.
 
@@ -171,7 +171,7 @@ windRose(mydata,)
 #windRose(mydata, key.position="right")
 
 windRose(mydata,
-key =list(space="right")
+   key =list(space="right")
 )
 
 #however:
@@ -179,10 +179,10 @@ key =list(space="right")
 #key and drawOpenKey. For example,
 
 windRose(mydata,
-key = list(header="Title", footer="wind speed",
-plot.style = c("ticks", "border"),
-fit = "all", height = 1,
-space = "top")
+   key = list(header="Title", footer="wind speed",
+              plot.style = c("ticks", "border"),
+              fit = "all", height = 1,
+              space = "top")
 )
 }
 \author{

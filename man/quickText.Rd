@@ -40,7 +40,7 @@ scatterPlot(mydata, x = "no2", y = "pm10")
 #example 2
 ##using quickText in other plots
 plot(mydata$no2, mydata$pm10, xlab = quickText("my no2 label"),
-ylab = quickText("pm10 [ ug.m-3 ]"))
+     ylab = quickText("pm10 [ ug.m-3 ]"))
 }
 \author{
   Karl Ropkins.

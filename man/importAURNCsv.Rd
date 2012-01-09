@@ -3,11 +3,13 @@
 \title{AURN csv file data import for openair}
 \usage{
   importAURNCsv(file = file.choose(), header.at = 5,
-  data.at = 7, na.strings = c("No data", "", "NA"),
-  date.name = "Date", date.break = "-", time.name = "time",
-  misc.info = c(1, 2, 3, 4), is.site = 4, bad.24 = TRUE,
-  correct.time = -3600, output = "final", data.order =
-  c("value", "status", "unit"), simplify.names = TRUE, ...)
+    data.at = 7, na.strings = c("No data", "", "NA"),
+    date.name = "Date", date.break = "-",
+    time.name = "time", misc.info = c(1, 2, 3, 4),
+    is.site = 4, bad.24 = TRUE, correct.time = -3600,
+    output = "final",
+    data.order = c("value", "status", "unit"),
+    simplify.names = TRUE, ...)
 }
 \arguments{
   \item{file}{The name of the AURN file to be imported.
@@ -56,8 +58,8 @@
   series classes or functions.}
 
   \item{correct.time}{Numerical correction (in seconds) for
-  imported date. AURN data is logged retrospectively. For 1
-  hour average data, \code{correct.time = -3600} resets
+  imported date.  AURN data is logged retrospectively. For
+  1 hour average data, \code{correct.time = -3600} resets
   this to the start of the sampling period.}
 
   \item{output}{Output style. Default "final" using
@@ -90,9 +92,9 @@
   resets the time stamp to the start of the measurement
   period. If name simplification was requested
   (\code{simplify.names = TRUE}), common chemical names
-  will be simplified. For example, "carbon monoxide" will
+  will be simplified.  For example, "carbon monoxide" will
   be reset to "co". Currently, this option only applies to
-  inorganics and particulates, not organics. Non-value
+  inorganics and particulates, not organics.  Non-value
   information will be rationalised according to data.order.
   For example, for the default, \code{data.order =
   c("value", "status", "unit")}, the status and unit

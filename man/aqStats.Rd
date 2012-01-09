@@ -3,7 +3,7 @@
 \title{Calculate summary statistics for air pollution data by year}
 \usage{
   aqStats(mydata, pollutant = "no2", data.thresh = 75,
-  percentile = c(95, 99), transpose = FALSE, ...)
+    percentile = c(95, 99), transpose = FALSE, ...)
 }
 \arguments{
   \item{mydata}{A data frame containing a \code{date} field

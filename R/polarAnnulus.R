@@ -81,13 +81,7 @@
 ##'   with too many gaps in it for sensible smoothing), or \code{type =
 ##'   "weekday"} and \code{period = "weekday"}.
 ##'
-
-##' @param limits The function does its best to choose sensible limits
-##'   automatically. However, there are circumstances when the user will wish
-##'   to set different ones. An example would be a series of plots showing each
-##'   year of data separately. The limits are set in the form \code{c(lower,
-##'   upper)}, so \code{limits = c(0, 100)} would force the plot limits to span
-##'   0-100.
+##' @param limits Limits for colour scale.
 ##' @param cols Colours to be used for plotting. Options include "default",
 ##'   "increment", "heat", "jet" and user defined. For user defined the user
 ##'   can supply a list of colour names recognised by R (type \code{colours()}
@@ -95,6 +89,13 @@
 ##'   "green", "blue")}
 ##' @param width The width of the annulus; can be "normal" (the default),
 ##'   "thin" or "fat".
+##' @param min.bin The minimum number of points allowed in a wind speed/wind
+##'   direction bin.  The default is 1. A value of two requires at least 2
+##'   valid records in each bin an so on; bins with less than 2 valid records
+##'   are set to NA. Care should be taken when using a value > 1 because of the
+##'   risk of removing real data points. It is recommended to consider your
+##'   data with care. Also, the \code{polarFreq} function can be of use in such
+##'   circumstances.
 ##' @param exclude.missing Setting this option to \code{TRUE} (the default)
 ##'   removes points from the plot that are too far from the original data. The
 ##'   smoothing routines will produce predictions at points where no data exist
@@ -128,11 +129,12 @@
 ##'   patterns of concentrations for several pollutants on different scales
 ##'   e.g. NOx and CO. Often useful if more than one \code{pollutant} is
 ##'   chosen.
-##' @param key.header,key.footer Adds additional text/labels to the scale key.
+##' @param key.header Adds additional text/labels to the scale key.
 ##'   For example, passing the options \code{key.header = "header", key.footer
 ##'   = "footer1"} adds addition text above and below the scale key. These
 ##'   arguments are passed to \code{drawOpenKey} via \code{quickText}, applying
 ##'   the \code{auto.text} argument, to handle formatting.
+##' @param key.footer see \code{key.header}.
 ##' @param key.position Location where the scale key is to plotted.  Allowed
 ##'   arguments currently include \code{"top"}, \code{"right"}, \code{"bottom"}
 ##'   and \code{"left"}.
@@ -142,12 +144,12 @@
 ##'   \code{TRUE} titles and axis labels will automatically try and format
 ##'   pollutant names and units properly e.g.  by subscripting the \sQuote{2}
 ##'   in NO2.
-##' @param \dots Other graphical parameters passed onto \code{lattice:levelplot}
-##'   and \code{cutData}. For example, \code{polarAnnulus} passes the option 
-##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern 
+##' @param ... Other graphical parameters passed onto \code{lattice:levelplot}
+##'   and \code{cutData}. For example, \code{polarAnnulus} passes the option
+##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern
 ##'   (rather than default northern) hemisphere handling of \code{type = "season"}.
-##'   Similarly, common axis and title labelling options (such as \code{xlab}, 
-##'   \code{ylab}, \code{main}) are passed to \code{levelplot} via \code{quickText} 
+##'   Similarly, common axis and title labelling options (such as \code{xlab},
+##'   \code{ylab}, \code{main}) are passed to \code{levelplot} via \code{quickText}
 ##'   to handle routine formatting.
 ##' @export
 ##' @return As well as generating the plot itself, \code{polarAnnulus} also
@@ -193,6 +195,7 @@ polarAnnulus <- function(mydata,
                          limits = c(0, 100),
                          cols = "default",
                          width = "normal",
+                         min.bin = 1,
                          exclude.missing = TRUE,
                          date.pad = FALSE,
                          force.positive = TRUE,
@@ -231,7 +234,7 @@ polarAnnulus <- function(mydata,
 
 
     ## check data
-    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
 
     ## if more than one pollutant, need to stack the data and set type = "variable"
     ## this case is most relevent for model-measurement compasrions where data are in columns
@@ -354,6 +357,13 @@ polarAnnulus <- function(mydata,
         binned <- tapply(mydata[, pollutant], list(time.cut, wd.cut), mean, na.rm = TRUE)
         binned <- as.vector(binned)
 
+        ## frequency - remove points with freq < min.bin
+        bin.len <- tapply(mydata[, pollutant], list(time.cut, wd.cut), length)
+        binned.len <- as.vector(bin.len)
+
+        ids <- which(binned.len < min.bin)
+        binned[ids] <- NA
+
         ## data to predict over
         time.seq <- ws.wd$time.seq
         wd <- ws.wd$wd
@@ -385,7 +395,10 @@ polarAnnulus <- function(mydata,
             wsp <- rep(x, res)
             wdp <- rep(y, rep(res, res))
 
-            ind <- exclude.too.far(wsp, wdp, mydata$trend, mydata$wd, dist = 0.03)
+          #  ind <- exclude.too.far(wsp, wdp, mydata$trend, mydata$wd, dist = 0.03)
+            ## data with gaps caused by min.bin
+            all.data <- na.omit(data.frame(time.seq = ws.wd$time.seq, wd = ws.wd$wd, binned))
+            ind <- with(all.data, exclude.too.far(wsp, wdp, time.seq, wd, dist = 0.03))
 
             input.data$pred[ind] <- NA
             pred <- input.data$pred
@@ -476,7 +489,7 @@ polarAnnulus <- function(mydata,
     legend <- list(col = col, at = col.scale, space = key.position,
                    auto.text = auto.text, footer = key.footer, header = key.header,
                    height = 1, width = 1.5, fit = "all")
-    legend <- makeOpenKeyLegend(key, legend, "polarAnnulus")
+    legend <- openair:::makeOpenKeyLegend(key, legend, "polarAnnulus")
 
     temp <- paste(type, collapse = "+")
     myform <- formula(paste("z ~ u * v | ", temp, sep = ""))
@@ -596,7 +609,7 @@ polarAnnulus <- function(mydata,
                      })
 
     #reset for extra.args
-    levelplot.args<- listUpdate(levelplot.args, extra.args)
+    levelplot.args<- openair:::listUpdate(levelplot.args, extra.args)
 
     #plot
     plt <- do.call(levelplot, levelplot.args)

@@ -2,31 +2,31 @@
 \alias{selectByDate}
 \title{Subset a data frame based on date}
 \usage{
-  selectByDate(mydata, start = "1/1/2008", end =
-  "31/12/2008", year = 2008, month = 1, day = "weekday",
-  hour = 1, use.local.tz = TRUE)
+  selectByDate(mydata, start = "1/1/2008",
+    end = "31/12/2008", year = 2008, month = 1,
+    day = "weekday", hour = 1)
 }
 \arguments{
   \item{mydata}{A data frame containing a \code{date} field
   in hourly or high resolution format.}
 
-  \item{start}{A start date in the form d/m/yyyy e.g.
-  "1/2/1999".}
+  \item{start}{A start date string in the form d/m/yyyy
+  e.g. "1/2/1999" or in 'R' format i.e. "YYYY-mm-dd",
+  "1999-02-01"}
 
-  \item{end}{An end date in the form d/m/yyyy e.g.
-  "31/5/1999".}
+  \item{end}{See \code{start} for format.}
 
   \item{year}{A year or years to select e.g. \code{year =
   1998:2004} to select 1998-2004 inclusive or \code{year =
   c(1998, 2004)} to select 1998 and 2004.}
 
   \item{month}{A month or months to select. Can either be
-  numeric e.g. \code{month = 1:6} to select months 1-6
+  numeric e.g.  \code{month = 1:6} to select months 1-6
   (January to June), or by name e.g. \code{month =
   c("January", "December")}. Names can be abbreviated to 3
   letters and be in lower or upper case.}
 
-  \item{day}{A day or or days to select. For example
+  \item{day}{A day name or or days to select. For example
   \code{day = c("Monday", "Wednesday")}. Names can be
   abbreviated to 3 letters and be in lower or upper case.
   Also accepts "weekday" (Monday - Friday) and "weekend"
@@ -34,10 +34,6 @@
 
   \item{hour}{An hour or hours to select from 0-23 e.g.
   \code{hour = 0:12} to select hours 0 to 12 inclusive.}
-
-  \item{use.local.tz}{Used when \code{start} and \code{end}
-  dates are supplied. The default is to use any time zone
-  information supplied and if not, assume GMT/UTC.}
 }
 \description{
   Utility function to make it easier to select periods from
@@ -53,7 +49,9 @@
   Dates are assumed to be inclusive, so \code{start =
   "1/1/1999"} means that times are selected from hour zero.
   Similarly, \code{end = "31/12/1999"} will include all
-  hours of the 31st December.
+  hours of the 31st December. \code{start} and \code{end}
+  can also be in standard R format as a string i.e.
+  "YYYY-mm-dd", so \code{start = "1999-01-01"} is fine.
 
   All options are applied in turn making it possible to
   select quite complex dates
@@ -64,8 +62,12 @@ data.1999 <- selectByDate(mydata, start = "1/1/1999", end = "31/12/1999")
 head(data.1999)
 tail(data.1999)
 
+# or...
+data.1999 <- selectByDate(mydata, start = "1999-01-01", end = "1999-12-31")
+
 # easier way
 data.1999 <- selectByDate(mydata, year = 1999)
+
 
 # more complex use: select weekdays between the hours of 7 am to 7 pm
 sub.data <- selectByDate(mydata, day = "weekday", hour = 7:19)

@@ -4,14 +4,15 @@
 \alias{trendLevelWd}
 \title{trendLevel}
 \usage{
-  trendLevel(mydata, pollutant = "nox", x = "month", y =
-  "hour", type = "year", rotate.axis = c(90, 0), n.levels =
-  c(10, 10, 4), limits = c(0, 100), cols = "default",
-  auto.text = TRUE, key.header = "use.stat.name",
-  key.footer = pollutant, key.position = "right", key =
-  TRUE, statistic = c("mean", "max", "frequency"),
-  stat.args = NULL, stat.safe.mode = TRUE,
-  drop.unused.types = TRUE, ...)
+  trendLevel(mydata, pollutant = "nox", x = "month",
+    y = "hour", type = "year", rotate.axis = c(90, 0),
+    n.levels = c(10, 10, 4), limits = c(0, 100),
+    cols = "default", auto.text = TRUE,
+    key.header = "use.stat.name", key.footer = pollutant,
+    key.position = "right", key = TRUE,
+    statistic = c("mean", "max", "frequency"),
+    stat.args = NULL, stat.safe.mode = TRUE,
+    drop.unused.types = TRUE, ...)
 }
 \arguments{
   \item{mydata}{The openair data frame to use to generate
@@ -57,7 +58,7 @@
   generating the \code{trendLevel} plot.}
 
   \item{cols}{The colour set to use to colour the
-  \code{trendLevel} surface. \code{cols} is passed to
+  \code{trendLevel} surface.  \code{cols} is passed to
   \code{openColours} for evaluation. See
   \code{?openColours} for more details.}
 
@@ -84,7 +85,7 @@
   via \code{statistic}.}
 
   \item{key.position}{Location where the scale key should
-  be plotted. Allowed arguments currently include
+  be plotted.  Allowed arguments currently include
   \code{"top"}, \code{"right"}, \code{"bottom"} and
   \code{"left"}.}
 
@@ -117,7 +118,7 @@
   (see Details below.)}
 
   \item{drop.unused.types}{Hide unused/empty \code{type}
-  conditioning cases. Some conditioning options may
+  conditioning cases.  Some conditioning options may
   generate empty cases for some data sets, e.g. a hour of
   the day when no measurements were taken. Empty \code{x}
   and \code{y} cases generate 'holes' in individual plots.

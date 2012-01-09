@@ -25,9 +25,9 @@
 ##' with too many panels.
 ##'
 ##' @param mydata A data frame which should consist of some numeric columns.
-##' @param pollutants the names of data-series in \code{mydata} to be 
-##'   plotted by \code{corPlot}. The default option \code{NULL} and the alternative 
-##'   \code{"all"} use all available valid (numeric) data. 
+##' @param pollutants the names of data-series in \code{mydata} to be
+##'   plotted by \code{corPlot}. The default option \code{NULL} and the alternative
+##'   \code{"all"} use all available valid (numeric) data.
 ##' @param type \code{type} determines how the data are split i.e. conditioned,
 ##'   and then plotted. The default is will produce a single plot using the
 ##'   entire data. Type can be one of the built-in types as detailed in
@@ -57,10 +57,10 @@
 ##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
 ##'   \code{TRUE} titles and axis labels will automatically try and format
 ##'   pollutant names and units properly e.g.  by subscripting the `2' in NO2.
-##' @param \dots Other graphical parameters passed onto \code{lattice:levelplot}, 
-##'   with common axis and title labelling options (such as \code{xlab}, 
-##'   \code{ylab}, \code{main}) being passed via \code{quickText} 
-##'   to handle routine formatting. 
+##' @param \dots Other graphical parameters passed onto \code{lattice:levelplot},
+##'   with common axis and title labelling options (such as \code{xlab},
+##'   \code{ylab}, \code{main}) being passed via \code{quickText}
+##'   to handle routine formatting.
 ##' @export
 ##' @author David Carslaw --- but mostly based on code contained in Sarkar
 ##'   (2007)
@@ -128,7 +128,7 @@ corPlot <- function(mydata, pollutants = NULL, type = "default", cluster = TRUE,
 
     mydata <- checkPrep(mydata, pollutants, type = type,
                         remove.calm = FALSE)
-    
+
     ## remove variables where all are NA
     mydata <- mydata[ , sapply(mydata, function(x) !all(is.na(x)))]
 
@@ -241,7 +241,7 @@ corPlot <- function(mydata, pollutants = NULL, type = "default", cluster = TRUE,
     #################
 
     #currently length(type) 1 only!
-    plot(plt) 
+    plot(plt)
 
     ##openair object
 
@@ -263,7 +263,7 @@ corPlot <- function(mydata, pollutants = NULL, type = "default", cluster = TRUE,
 
 panel.corrgram <- function(x, y, z, subscripts, at, level = 0.9, text.col, r.thresh = r.thres,
                            label = FALSE, ...) {
-    require("ellipse", quietly = TRUE)
+    require(ellipse)
     x <- as.numeric(x)[subscripts]
     y <- as.numeric(y)[subscripts]
     z <- as.numeric(z)[subscripts]

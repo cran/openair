@@ -2,17 +2,18 @@
 \alias{scatterPlot}
 \title{Flexible scatter plots}
 \usage{
-  scatterPlot(mydata, x = "nox", y = "no2", z = NA, method
-  = "scatter", group = NA, avg.time = "default",
-  data.thresh = 0, statistic = "mean", percentile = NA,
-  type = "default", smooth = FALSE, spline = FALSE, linear
-  = FALSE, ci = TRUE, mod.line = FALSE, cols = "hue",
-  plot.type = "p", key = TRUE, key.title = group,
-  key.columns = 1, key.position = "bottom", strip = TRUE,
-  log.x = FALSE, log.y = FALSE, x.inc = 10, y.inc = 10,
-  y.relation = "same", x.relation = "same", ref.x = NULL,
-  ref.y = NULL, k = 100, trans = TRUE, map = FALSE,
-  auto.text = TRUE, ...)
+  scatterPlot(mydata, x = "nox", y = "no2", z = NA,
+    method = "scatter", group = NA, avg.time = "default",
+    data.thresh = 0, statistic = "mean", percentile = NA,
+    type = "default", smooth = FALSE, spline = FALSE,
+    linear = FALSE, ci = TRUE, mod.line = FALSE,
+    cols = "hue", plot.type = "p", key = TRUE,
+    key.title = group, key.columns = 1,
+    key.position = "right", strip = TRUE, log.x = FALSE,
+    log.y = FALSE, x.inc = 10, y.inc = 10,
+    y.relation = "same", x.relation = "same", ref.x = NULL,
+    ref.y = NULL, k = 100, trans = TRUE, map = FALSE,
+    auto.text = TRUE, ...)
 }
 \arguments{
   \item{mydata}{A data frame containing at least two
@@ -33,7 +34,7 @@
 
   \item{method}{Methods include \code{"scatter"}
   (conventional scatter plot), \code{"hexbin"} (hexagonal
-  binning using the \code{hexbin} package). \code{level}
+  binning using the \code{hexbin} package).  \code{level}
   for a binned or smooth surface plot and \code{"density"}
   (2D kernel density estimates).}
 
@@ -51,7 +52,7 @@
   flexibility a number can precede these options followed
   by a space. For example, a timeAverage of 2 months would
   be \code{period = "2 month"}. See function
-  \code{timeAverage} for further details on this. This
+  \code{timeAverage} for further details on this.  This
   option se useful as one method by which the number of
   points plotted is reduced i.e. by choosing a longer
   averaging time.}

@@ -3,8 +3,8 @@
 \title{corrgram plot with conditioning}
 \usage{
   corPlot(mydata, pollutants = NULL, type = "default",
-  cluster = TRUE, cols = "default", r.thresh = 0.8,
-  text.col = c("black", "black"), auto.text = TRUE, ...)
+    cluster = TRUE, cols = "default", r.thresh = 0.8,
+    text.col = c("black", "black"), auto.text = TRUE, ...)
 }
 \arguments{
   \item{mydata}{A data frame which should consist of some
@@ -49,7 +49,7 @@
   correlations.}
 
   \item{text.col}{The colour of the text used to show the
-  correlation values. The first value controls the colour
+  correlation values.  The first value controls the colour
   of negative correlations and the second positive.}
 
   \item{auto.text}{Either \code{TRUE} (default) or

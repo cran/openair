@@ -2,14 +2,16 @@
 \alias{import}
 \title{Generic data import for openair}
 \usage{
-  import(file = file.choose(), file.type = "csv", sep =
-  NULL, header.at = 1, data.at = 2, eof.report = NULL,
-  na.strings = c("", "NA"), quote = "\"", date.name =
-  "date", date.break = "/", date.order = "dmy", time.name =
-  "date", time.break = ":", time.order = "hm", time.format
-  = "GMT", cipher = NULL, is.ws = NULL, is.wd = NULL,
-  is.site = NULL, misc.info = NULL, bad.24 = FALSE,
-  correct.time = NULL, previous = FALSE, output = "final")
+  import(file = file.choose(), file.type = "csv",
+    sep = NULL, header.at = 1, data.at = 2,
+    eof.report = NULL, na.strings = c("", "NA"),
+    quote = "\"", date.name = "date", date.break = "/",
+    date.order = "dmy", time.name = "date",
+    time.break = ":", time.order = "hm",
+    time.format = "GMT", cipher = NULL, is.ws = NULL,
+    is.wd = NULL, is.site = NULL, misc.info = NULL,
+    bad.24 = FALSE, correct.time = NULL, previous = FALSE,
+    output = "final")
 }
 \arguments{
   \item{file}{The name of the file to be imported. Default,
@@ -146,11 +148,11 @@
   some R time series classes and functions.}
 
   \item{correct.time}{Numerical correction (in seconds) for
-  imported date. Default NULL turns this option off. When
+  imported date.  Default NULL turns this option off. When
   enabled, used to offset "date" entries.}
 
   \item{previous}{Logical (TRUE/FALSE) to use earlier
-  version of import. Default FALSE uses the most recent
+  version of import.  Default FALSE uses the most recent
   version of import. Alternative TRUE accesses earlier
   alternative.}
 
@@ -228,7 +230,7 @@
 }
 \seealso{
   Dedicated import functions available for selected file
-  types, e.g. : \code{\link{importAURN}},
+  types, e.g.  : \code{\link{importAURN}},
   \code{\link{importAURNCsv}}, \code{\link{importKCL}},
   \code{\link{importADMS}}, etc.
 }

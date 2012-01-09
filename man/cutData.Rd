@@ -4,10 +4,10 @@
 \title{Function to split data in different ways for conditioning}
 \usage{
   cutData(x, type = "default", hemisphere = "northern",
-  n.levels = 4, is.axis = FALSE, ...)
+    n.levels = 4, is.axis = FALSE, ...)
 
   cutDaylight(x, local.hour.offset = 0, latitude =
-  51.522393, longitude = -0.154700, ...)
+    51.522393, longitude = -0.154700, ...)
 }
 \arguments{
   \item{x}{A data frame containing a field \code{date}.}
@@ -44,7 +44,7 @@
   information.}
 
   \item{\dots}{All additional parameters are passed on to
-  next function(s). For example, with \code{cutData} all
+  next function(s).  For example, with \code{cutData} all
   additional parameters are passed on to \code{cutDaylight}
   allowing direct access to \code{cutDaylight} via either
   \code{cutData} or any \code{openair} using \code{cutData}

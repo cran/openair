@@ -73,11 +73,12 @@
 ##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
 ##'   \code{TRUE} titles and axis labels will automatically try and format
 ##'   pollutant names and units properly e.g.  by subscripting the `2' in NO2.
-##' @param \dots Other graphical parameters are passed onto the \code{lattice} 
-##'   function \code{lattice:levelplot}, with common axis and title labelling 
-##'   options (such as \code{xlab}, \code{ylab}, \code{main}) being passed to 
+##' @param \dots Other graphical parameters are passed onto the \code{lattice}
+##'   function \code{lattice:levelplot}, with common axis and title labelling
+##'   options (such as \code{xlab}, \code{ylab}, \code{main}) being passed to
 ##'   via \code{quickText} to handle routine formatting.
 ##' @export
+##' @import grid
 ##' @return As well as generating the plot itself, \code{calendarPlot} also
 ##'   returns an object of class ``openair''. The object includes three main
 ##'   components: \code{call}, the command used to generate the plot;

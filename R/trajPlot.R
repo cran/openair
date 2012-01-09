@@ -37,6 +37,25 @@
 ##' @param lon Column containing the longitude, as a decimal.
 ##' @param lat Column containing the latitude, as a decimal.
 ##' @param pollutant Pollutant to be plotted.
+##' @param type \code{type} determines how the data are split
+##' i.e. conditioned, and then plotted. The default is will produce a
+##' single plot using the entire data. Type can be one of the built-in
+##' types as detailed in \code{cutData} e.g. "season", "year",
+##' "weekday" and so on. For example, \code{type = "season"} will
+##' produce four plots --- one for each season.
+##'
+##' It is also possible to choose \code{type} as another variable in
+##' the data frame. If that variable is numeric, then the data will be
+##' split into four quantiles (if possible) and labelled
+##' accordingly. If type is an existing character or factor variable,
+##' then those categories/levels will be used directly. This offers
+##' great flexibility for understanding the variation of different
+##' variables and how they depend on one another.
+##'
+##' \code{type} can be up length two e.g. \code{type = c("season",
+##' "weekday")} will produce a 2x2 plot split by season and day of the
+##' week. Note, when two types are provided the first forms the
+##' columns and the second the rows.
 ##' @param method For trajectory plots, either "scatter" or
 ##' "level". The latter option bins the data according to the values
 ##' of \code{x.inc} and \code{y.inc}.
@@ -103,26 +122,58 @@
 ##' trajLevel(subset(lond, lat > 40 & lat < 70 & lon >-20 & lon <20), pollutant = "pm2.5",
 ##' smooth = TRUE, type = "season")
 ##' }
-trajLevel <- function(mydata, lon = "lon", lat = "lat", pollutant = "pm10",
-                      method = "level", smooth = FALSE, map = TRUE, lon.inc = 1.5,
-                      lat.inc = 1.5,...)  {
+trajLevel <- function(mydata, lon = "lon", lat = "lat",
+                      pollutant = "pm10", type = "default", method = "level", smooth = FALSE,
+                      map = TRUE, lon.inc = 1.5, lat.inc = 1.5,...)  {
 
-    ##extra.args
+    ## mydata can be a list of several trajectory files; in which case combine them
+    ## before averaging
+
+    if (is.list(mydata)) mydata <- rbind.fill(mydata)
+
+    mydata <- cutData(mydata, type, ...)
+
+    ## bin data
+    mydata$ygrid <- round_any(mydata[ , lat], lat.inc)
+    mydata$xgrid <- round_any(mydata[ , lon], lon.inc)
+
+    rhs <- c("xgrid", "ygrid", type)
+    rhs <- paste(rhs, collapse = "+")
+    mydata <- mydata[ , c("date", "xgrid", "ygrid", type, pollutant)]
+    ids <- which(names(mydata) %in% c("xgrid", "ygrid", type))
+
+    mydata <- aggregate(mydata[ , -ids], mydata[ , ids], mean, na.rm = TRUE)
+    attr(mydata$date, "tzone") <- "GMT"  ## avoid warning messages about TZ
+
+    ## change x/y names to gridded values
+    lon <- "xgrid"
+    lat <- "ygrid"
+
+    ## extra.args
     extra.args <- list(...)
 
-    #aspect
+    ## aspect
     if(!"aspect" %in% names(extra.args))
         extra.args$aspect <- 1
 
-    ##the plot
-    scatterPlot.args <- list(mydata, x = lon, y = lat, z = pollutant,
+    if(!"ylab" %in% names(extra.args))
+        extra.args$ylab <- "latitude"
+
+    if(!"xlab" %in% names(extra.args))
+        extra.args$xlab <- "longitude"
+
+     if(!"main" %in% names(extra.args))
+        extra.args$main <- pollutant
+
+    ## the plot
+    scatterPlot.args <- list(mydata, x = lon, y = lat, z = pollutant, type = type,
                              method = method, smooth = smooth, map = map,
                              x.inc = lon.inc, y.inc = lat.inc)
 
-    #reset for extra.args
-    scatterPlot.args<- listUpdate(scatterPlot.args, extra.args)
+    ## reset for extra.args
+    scatterPlot.args<- openair:::listUpdate(scatterPlot.args, extra.args)
 
-    #plot
+    ## plot
     do.call(scatterPlot, scatterPlot.args)
 
 }
@@ -132,7 +183,7 @@ trajLevel <- function(mydata, lon = "lon", lat = "lat", pollutant = "pm10",
 ##' @param group For \code{trajPlot} it is sometimes useful to group
 ##' and colour trajectories according to a grouping variable. See example below.
 ##' @export
-trajPlot <- function(mydata, lon = "lon", lat = "lat", pollutant = "pm10",
+trajPlot <- function(mydata, lon = "lon", lat = "lat", pollutant = "pm10", type = "default",
                      method = "scatter", smooth = FALSE, map = TRUE, lon.inc = 1.5,
                      lat.inc = 1.5, group = NA, ...)
 {
@@ -146,15 +197,29 @@ trajPlot <- function(mydata, lon = "lon", lat = "lat", pollutant = "pm10",
     if(!"cex" %in% names(extra.args))
         extra.args$cex <- 0.1
 
+    if(!"ylab" %in% names(extra.args))
+        extra.args$ylab <- "latitude"
+
+    if(!"xlab" %in% names(extra.args))
+        extra.args$xlab <- "longitude"
+
+
     if (missing(pollutant)) { ## don't need key
 
         if (is.na(group)) key <- FALSE else key <- TRUE
 
-        scatterPlot.args <- list(mydata, x = lon, y = lat, z = NA, method = method, smooth = smooth,
-                                 map = map, x.inc = lon.inc, y.inc = lat.inc, key = key, group = group)
+        if(!"main" %in% names(extra.args))
+             extra.args$main <- NULL
+
+        scatterPlot.args <- list(mydata, x = lon, y = lat, z = NA, type = type, method = method,
+                                 smooth = smooth, map = map, x.inc = lon.inc, y.inc = lat.inc,
+                                 key = key, group = group)
 
     } else {
-        scatterPlot.args <- list(mydata, x = lon, y = lat, z = pollutant, method = method,
+         if(!"main" %in% names(extra.args))
+             extra.args$main <- pollutant
+
+        scatterPlot.args <- list(mydata, x = lon, y = lat, z = pollutant, type = type, method = method,
                                  smooth = smooth, map = map, x.inc = lon.inc, y.inc = lat.inc,
                                  group = group)
     }

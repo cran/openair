@@ -2,11 +2,12 @@
 \alias{percentileRose}
 \title{Function to plot percentiles by wind direction}
 \usage{
-  percentileRose(mydata, pollutant = "nox", type =
-  "default", percentile = c(25, 50, 75, 90, 95), cols =
-  "default", fill = TRUE, angle.scale = 45, auto.text =
-  TRUE, key.header = NULL, key.footer = "percentile",
-  key.position = "bottom", key = TRUE, ...)
+  percentileRose(mydata, pollutant = "nox",
+    type = "default", percentile = c(25, 50, 75, 90, 95),
+    cols = "default", fill = TRUE, intervals = NULL,
+    angle.scale = 45, auto.text = TRUE, key.header = NULL,
+    key.footer = "percentile", key.position = "bottom",
+    key = TRUE, ...)
 }
 \arguments{
   \item{mydata}{A data frame minimally containing \code{wd}
@@ -54,6 +55,9 @@
   (default) or should lines be drawn (\code{fill =
   FALSE}).}
 
+  \item{intervals}{User-supplied intervals for the scale
+  e.g. \code{intervals = c(0, 10, 30, 50)}}
+
   \item{angle.scale}{The pollutant scale is by default
   shown at a 45 degree angle. Sometimes the placement of
   the scale may interfere with an interesting feature. The
@@ -67,13 +71,14 @@
   automatically try and format pollutant names and units
   properly e.g.  by subscripting the \sQuote{2} in NO2.}
 
-  \item{key.header,key.footer}{Adds additional text/labels
-  to the scale key. For example, passing options
-  \code{key.header = "header", key.footer = "footer"} adds
-  addition text above and below the scale key. These
-  arguments are passed to \code{drawOpenKey} via
-  \code{quickText}, applying the \code{auto.text} argument,
-  to handle formatting.}
+  \item{key.header}{Adds additional text/labels to the
+  scale key.  For example, passing options \code{key.header
+  = "header", key.footer = "footer"} adds addition text
+  above and below the scale key. These arguments are passed
+  to \code{drawOpenKey} via \code{quickText}, applying the
+  \code{auto.text} argument, to handle formatting.}
+
+  \item{key.footer}{\code{key.header}.}
 
   \item{key.position}{Location where the scale key is to
   plotted.  Allowed arguments currently include
@@ -84,12 +89,12 @@
   \code{drawOpenKey}. See \code{drawOpenKey} for further
   details.}
 
-  \item{\dots}{Other graphical parameters are passed onto
+  \item{...}{Other graphical parameters are passed onto
   \code{cutData} and \code{lattice:xyplot}. For example,
   \code{percentileRose} passes the option \code{hemisphere
   = "southern"} on to \code{cutData} to provide southern
   (rather than default northern) hemisphere handling of
-  \code{type = "season"}. Similarly, common graphical
+  \code{type = "season"}.  Similarly, common graphical
   arguments, such as \code{xlim} and \code{ylim} for
   plotting ranges and \code{lwd} for line thickness when
   using \code{fill = FALSE}, are passed on \code{xyplot},

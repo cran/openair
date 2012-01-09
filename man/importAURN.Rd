@@ -3,7 +3,7 @@
 \title{AURN data import for openair}
 \usage{
   importAURN(site = "my1", year = 2009, pollutant = "all",
-  hc = FALSE)
+    hc = FALSE)
 }
 \arguments{
   \item{site}{Site code of the AURN site to import e.g.

@@ -2,11 +2,11 @@
 \alias{linearRelation}
 \title{Linear relations between pollutants}
 \usage{
-  linearRelation(mydata, x = "nox", y = "no2", period =
-  "monthly", condition = FALSE, n = 20, rsq.thresh = 0,
-  ylim = c(0, 20), ylab = paste("slope from ", y, " = m.",
-  x, " + c", sep = ""), auto.text = TRUE, cols = NULL, span
-  = 0.3, ...)
+  linearRelation(mydata, x = "nox", y = "no2",
+    period = "monthly", condition = FALSE, n = 20,
+    rsq.thresh = 0, ylim = c(0, 20),
+    ylab = paste("slope from ", y, " = m.", x, " + c", sep = ""),
+    auto.text = TRUE, cols = NULL, span = 0.3, ...)
 }
 \arguments{
   \item{mydata}{A data frame minimally containing
@@ -34,11 +34,11 @@
   may be changing over time.}
 
   \item{n}{The minimum number of points to be sent to the
-  linear model. Because there may only be a few points e.g.
-  hours where two pollutants are available over one week,
-  \code{n} can be set to ensure that at least \code{n}
-  points are sent to the linear model. If a period has
-  hours < \code{n} that period will be ignored.}
+  linear model.  Because there may only be a few points
+  e.g. hours where two pollutants are available over one
+  week, \code{n} can be set to ensure that at least
+  \code{n} points are sent to the linear model. If a period
+  has hours < \code{n} that period will be ignored.}
 
   \item{rsq.thresh}{The minimum correlation coefficient
   (R2) allowed. If the relationship between \code{x} and

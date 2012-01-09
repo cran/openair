@@ -2,8 +2,8 @@
 \alias{calcFno2}
 \title{Estimate NO2/NOX emission ratios from monitoring data}
 \usage{
-  calcFno2(input, tau = 60, plot = TRUE, user.fno2, main =
-  "", xlab = "year", ...)
+  calcFno2(input, tau = 60, user.fno2, main = "",
+    xlab = "year", ...)
 }
 \arguments{
   \item{input}{A data frame with the following fields.
@@ -19,10 +19,6 @@
   \item{tau}{Mixing time scale. It is unlikely the user
   will need to adjust this. See details below.}
 
-  \item{plot}{Should a plot be produced? The default is
-  \code{TRUE} and will plot the trend in f-NO2 as a monthly
-  time series.}
-
   \item{user.fno2}{User-supplied f-NO2 fraction e.g. 0.1 is
   a NO2/NOX ratio of 10% by volume. \code{user.no2} will be
   applied to the whole time series and is useful for
@@ -32,7 +28,8 @@
 
   \item{xlab}{x-axis label.}
 
-  \item{\dots}{Other graphical parameters.}
+  \item{...}{Other graphical parameters send to
+  \code{scatterPlot}.}
 }
 \value{
   As well as generating the plot itself, \code{calcFno2}
@@ -90,7 +87,7 @@
 \references{
   Clapp, L.J., Jenkin, M.E., 2001. Analysis of the
   relationship between ambient levels of O3, NO2 and NO as
-  a function of NOX in the UK. Atmospheric Environment 35
+  a function of NOX in the UK.  Atmospheric Environment 35
   (36), 6391-6405.
 
   Carslaw, D.C. and N Carslaw (2007).  Detecting and
@@ -115,7 +112,7 @@
 
   Carslaw, D.C. and Beevers, S.D. (2005c). Estimations of
   road vehicle primary NO2 exhaust emission fractions using
-  monitoring data in London. Atmospheric Environment,
+  monitoring data in London.  Atmospheric Environment,
   39(1): 167-177.
 
   Carslaw, D. C. and S. D. Beevers (2004). Investigating

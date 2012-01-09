@@ -104,7 +104,9 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE) {
         }
 
         ## daylight saving time can cause terrible problems - best avoided!!
-        if (length(unique(format(mydata$date, "%Z"))) > 1) {
+        z <- as.POSIXlt(mydata$date[1])
+        zz <- attr(z, "tzone")
+        if (length(zz) == 3L) {
             warning("Detected data with Daylight Saving Time, converting to UTC/GMT")
             attr(mydata$date, "tzone") <- "GMT"
 

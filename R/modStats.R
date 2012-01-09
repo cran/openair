@@ -24,6 +24,8 @@
 ##'
 ##' \item \eqn{r}, the Pearson correlation coefficient.
 ##'
+##' \item \eqn{IOA}, the Index of Agreement.
+##'
 ##' }
 ##'
 ##' All statistics are based on complete pairs of \code{mod} and \code{obs}.
@@ -79,10 +81,10 @@ modStats <- function(mydata,  mod = "mod", obs = "obs", type = "default", ...) {
      ## extract variables of interest
     vars <- c(mod, obs)
 
-    if (any(type %in%  dateTypes)) vars <- c("date", vars)
+    if (any(type %in%  openair:::dateTypes)) vars <- c("date", vars)
 
     ## check the data
-    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
 
     mydata <- cutData(mydata, type, ...)
 
@@ -143,6 +145,17 @@ modStats <- function(mydata,  mod = "mod", obs = "obs", type = "default", ...) {
         data.frame(r = res)
     }
 
+     ##  Index of Agreement
+    IOA <- function(x, mod = "mod", obs = "obs") {
+        x <- na.omit(x[ , c(mod, obs)])
+        res <- 1 - sum((x[ , obs] - x[ , mod]) ^ 2 )  /
+                    sum((abs(x[ , mod] - mean(x[ , obs])) + abs(x[ , obs] - mean(x[ , obs]))) ^ 2)
+
+        data.frame(IOA = res)
+    }
+
+
+
     ## calculate the various statistics
     res.n <- ddply(mydata, type, n, mod, obs)
     res.FAC <- ddply(mydata, type, FAC2, mod, obs)
@@ -152,9 +165,10 @@ modStats <- function(mydata,  mod = "mod", obs = "obs", type = "default", ...) {
     res.NMGE <- ddply(mydata, type, NMGE, mod, obs)
     res.RMSE <- ddply(mydata, type, RMSE, mod, obs)
     res.r <- ddply(mydata, type, r, mod, obs)
+    res.IOA <- ddply(mydata, type, IOA, mod, obs)
 
     ## merge them all into one data frame
-    results <- list(res.n, res.FAC, res.MB, res.MGE, res.NMB, res.NMGE, res.RMSE, res.r)
+    results <- list(res.n, res.FAC, res.MB, res.MGE, res.NMB, res.NMGE, res.RMSE, res.r, res.IOA)
     results <- Reduce(function(x, y, by = type) merge(x, y, by = type, all = TRUE), results)
 
     results <- sortDataFrame(results, key = type)
