@@ -2,13 +2,14 @@
 \alias{polarFreq}
 \title{Function to plot wind speed/direction frequencies and other statistics}
 \usage{
-  polarFreq(mydata, pollutant = "", statistic =
-  "frequency", ws.int = 1, grid.line = 5, breaks = seq(0,
-  5000, 500), cols = "default", trans = TRUE, type =
-  "default", min.bin = 1, ws.upper = NA, offset = 10,
-  border.col = "transparent", key.header = statistic,
-  key.footer = pollutant, key.position = "right", key =
-  TRUE, auto.text = TRUE, ...)
+  polarFreq(mydata, pollutant = "",
+    statistic = "frequency", ws.int = 1, grid.line = 5,
+    breaks = seq(0, 5000, 500), cols = "default",
+    trans = TRUE, type = "default", min.bin = 1,
+    ws.upper = NA, offset = 10, border.col = "transparent",
+    key.header = statistic, key.footer = pollutant,
+    key.position = "right", key = TRUE, auto.text = TRUE,
+    ...)
 }
 \arguments{
   \item{mydata}{A data frame minimally containing
@@ -26,7 +27,7 @@
   wind speed/direction in different bins. The scale
   therefore shows the counts in each bin. The option "mean"
   will plot the mean concentration of a pollutant (see next
-  point) in wind speed/direction bins, and so on. Finally,
+  point) in wind speed/direction bins, and so on.  Finally,
   "weighted.mean" will plot the concentration of a
   pollutant weighted by wind speed/direction. Each segment
   therefore provides the percentage overall contribution to
@@ -60,7 +61,7 @@
   \item{trans}{Should a transformation be applied?
   Sometimes when producing plots of this kind they can be
   dominated by a few high points. The default therefore is
-  \code{TRUE} and a square-root transform is applied. This
+  \code{TRUE} and a square-root transform is applied.  This
   results in a non-linear scale and (usually) a better
   representation of the distribution. If set to
   \code{FALSE} a linear scale is used.}
@@ -115,7 +116,7 @@
   useful choice sometimes is "white".}
 
   \item{key.header,key.footer}{Adds additional text/labels
-  to the scale key. For example, passing options
+  to the scale key.  For example, passing options
   \code{key.header = "header", key.footer = "footer"} adds
   addition text above and below the scale key. These
   arguments are passed to \code{drawOpenKey} via
@@ -141,7 +142,7 @@
   \code{polarFreq} passes the option \code{hemisphere =
   "southern"} on to \code{cutData} to provide southern
   (rather than default northern) hemisphere handling of
-  \code{type = "season"}. Similarly, common axis and title
+  \code{type = "season"}.  Similarly, common axis and title
   labelling options (such as \code{xlab}, \code{ylab},
   \code{main}) are passed to \code{xyplot} via
   \code{quickText} to handle routine formatting.}

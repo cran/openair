@@ -3,7 +3,8 @@
 \title{Function to calculate timeAverages for data frames}
 \usage{
   timeAverage(mydata, avg.time = "day", data.thresh = 0,
-  statistic = "mean", percentile = NA, start.date = NA)
+    statistic = "mean", percentile = NA, start.date = NA,
+    vector.ws = FALSE)
 }
 \arguments{
   \item{mydata}{A data frame containing a \code{date} field
@@ -15,7 +16,10 @@
   flexibility a number can precede these options followed
   by a space. For example, a time average of 2 months would
   be \code{avg.time = "2 month"}. See \code{cut.POSIXt} for
-  further details on this.
+  further details on this. In addition, \code{avg.time} can
+  equal "season", in which case 3-month seasonal values are
+  calculated with spring defined as March, April, May and
+  so on.
 
   Note that \code{avg.time} can be \emph{less} than the
   time interval of the original series, in which case the
@@ -40,7 +44,7 @@
   "max", "min", "median", "sum", "frequency", "sd",
   "percentile". Note that "sd" is the standard deviation
   and "frequency" is the number (frequency) of valid
-  records in the period. "percentile" is the percentile
+  records in the period.  "percentile" is the percentile
   level (%) between 0-100, which can be set using the
   "percentile" option - see below.}
 
@@ -58,6 +62,18 @@
   sequence is then "2009-11-29 12:00:00", "2009-11-29
   12:15:00" \ldots{} \code{start.date} is therefore used to
   force this type of sequence.}
+
+  \item{vector.ws}{Should vector averaging be carried out
+  on wind speed if available? The default is \code{FALSE}
+  and scalar averages are calculated. Vector averaging of
+  the wind speed is carried out on the u and v wind
+  components. For example, consider the average of two
+  hours where the wind direction and speed of the first
+  hour is 0 degrees and 2m/s and 180 degrees and 2m/s for
+  the second hour. The scalar average of the wind speed is
+  simply the arithmetic average = 2m/s and the vector
+  average is 0m/s. Vector-averaged wind speeds will always
+  be lower than scalar-averaged values.}
 }
 \value{
   Returns a data frame with date in class \code{POSIXct}
@@ -92,7 +108,7 @@
 
   It is also very useful for plotting data using
   \code{\link{timePlot}}. Often the data are too dense to
-  see patterns and setting different averaging periods
+  see patterns and setheiltting different averaging periods
   easily helps with interpretation.
 }
 \examples{

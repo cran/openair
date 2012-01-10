@@ -30,14 +30,12 @@
 ##'   = 3.5 will be used.
 ##' @param tau Mixing time scale. It is unlikely the user will need to adjust
 ##'   this. See details below.
-##' @param plot Should a plot be produced? The default is \code{TRUE} and will
-##'   plot the trend in f-NO2 as a monthly time series.
 ##' @param user.fno2 User-supplied f-NO2 fraction e.g. 0.1 is a NO2/NOX ratio
 ##'   of 10% by volume. \code{user.no2} will be applied to the whole time
 ##'   series and is useful for testing "what if" questions.
 ##' @param main Title of plot if required.
 ##' @param xlab x-axis label.
-##' @param \dots Other graphical parameters.
+##' @param ... Other graphical parameters send to \code{scatterPlot}.
 ##' @export
 ##' @return As well as generating the plot itself, \code{calcFno2} also returns
 ##'   an object of class ``openair''. The object includes three main
@@ -93,7 +91,6 @@
 ##'
 calcFno2 <- function(input,
                       tau = 60,
-                      plot = TRUE,
                       user.fno2,
                       main = "",
                       xlab = "year", ...) {
@@ -165,8 +162,8 @@ calcFno2 <- function(input,
     ## plot results ##################################################################
     plot.fno2 <- function(results,...) {
 
-        theplot <- scatterPlot(results, x = "date", y = "fno2", ylab = "f-NO2 (%)", ...)
-        print(theplot)
+        scatterPlot(results, x = "date", y = "fno2", ylab = "f-NO2 (%)", ...)
+
     }
 
 ###plots orginal monthly NO2 and predicted with  ###############################
@@ -193,7 +190,7 @@ calcFno2 <- function(input,
     if(!any(names(input) %in% "temp"))  input$temp <- 11
     if(!any(names(input) %in% "cl"))  input$cl <- 4.5
 
-    input <- checkPrep(input, Names = c("date", "nox", "no2", "back_no2",
+    input <- openair:::checkPrep(input, Names = c("date", "nox", "no2", "back_no2",
                                "back_nox", "back_o3", "cl", "temp"), "default")
     input <- na.omit(input)
     input.all <- prepare(input)  ## process input data
@@ -243,7 +240,7 @@ calcFno2 <- function(input,
         hourly <- rbind(hourly, gaps)
         hourly <- hourly[order(hourly$date), ]
 
-        if (plot) print(plot.fno2(results,...))
+        plot.fno2(results,...)
         results <- list(results = results, hourly = hourly)
 
     #################
@@ -269,7 +266,7 @@ calcFno2 <- function(input,
 
         res <- rbind(res, gaps)
         res <- res[order(res$date), ]
-        if (plot) print(plot.no2(input.all, res,...))
+       plot.no2(input.all, res,...)
 
     #################
     #output

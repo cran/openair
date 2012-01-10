@@ -2,8 +2,8 @@
 \alias{modStats}
 \title{Calculate common model evaluation statistics}
 \usage{
-  modStats(mydata, mod = "mod", obs = "obs", type =
-  "default", ...)
+  modStats(mydata, mod = "mod", obs = "obs",
+    type = "default", ...)
 }
 \arguments{
   \item{mydata}{A data frame.}
@@ -36,7 +36,7 @@
   season and day of the week.}
 
   \item{...}{Other aruments to be passed to \code{cutData}
-  e.g. \code{hemisphere = "southern"}}
+  e.g.  \code{hemisphere = "southern"}}
 }
 \value{
   Returns a data frame with model evaluation statistics.
@@ -68,6 +68,8 @@
   \item \eqn{RMSE}, the root mean squared error.
 
   \item \eqn{r}, the Pearson correlation coefficient.
+
+  \item \eqn{IOA}, the Index of Agreement.
 
   }
 

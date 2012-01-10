@@ -1,12 +1,13 @@
 Package: openair
 Type: Package
 Title: Tools for the analysis of air pollution data
-Version: 0.5-11
-Date: 2011-09-14
+Version: 0.5-16
+Date: 2012-01-09
+ByteCompile: true
 Author: David Carslaw and Karl Ropkins
 Depends: R (>= 2.13.0),
 Imports: proto, Matrix, utils, grid, plyr, reshape2, mgcv, zoo,
-        lattice, boot,RColorBrewer
+        lattice, cluster, boot, RColorBrewer
 Suggests: latticeExtra, hexbin, RgoogleMaps, ellipse, maps
 Maintainer: David Carslaw <david.carslaw@kcl.ac.uk>
 Description: Tools to analyse, interpret and understand air pollution
@@ -18,6 +19,7 @@ License: GPL (>= 2)
 URL: http://www.openair-project.org/
 LazyLoad: yes
 LazyData: yes
+Packaged: 2012-01-09 14:57:01 UTC; david
 Collate: 'aqStats.R' 'calcFno2.R' 'calcPercentile.R' 'calendarPlot.R'
         'checkPrep.R' 'conditionalQuantile.R' 'corPlot.R' 'cutData.R'
         'date.breaks.R' 'drawOpenKey.R' 'GoogleMapsPlot.R' 'import.2.R'
@@ -29,8 +31,7 @@ Collate: 'aqStats.R' 'calcFno2.R' 'calcPercentile.R' 'calendarPlot.R'
         'scatterPlot.R' 'selectRunning.R' 'smoothTrend.R'
         'summaryPlot.R' 'TaylorDiagram.R' 'timeAverage.R' 'timePlot.R'
         'timeVariation.R' 'trendLevel.R' 'utilities.R' 'windRose.R'
-        'zzz.R' 'trajPlot.R' 'importTraj.R' 'getMeta.R' 'senTheil.R'
-        'TheilSen.R'
-Packaged: 2011-10-05 06:46:08 UTC; david
+        'trajPlot.R' 'importTraj.R' 'getMeta.R' 'senTheil.R'
+        'TheilSen.R' 'polarCluster.R' 'zzz.R'
 Repository: CRAN
-Date/Publication: 2011-10-05 11:31:43
+Date/Publication: 2012-01-10 07:25:59

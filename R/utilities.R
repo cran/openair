@@ -22,13 +22,17 @@ dateTypes <- c("year", "hour", "month", "season", "weekday", "weekend", "monthye
 ## can't think of better way unless user specifies what the time interval is meant to be
 
 find.time.interval <- function(dates) {
-    ## assumes date is ordered before we get here
 
     ## could have several sites, dates may be unordered
     ## find the most common time gap in all the data
     dates <- unique(dates)  ## make sure they are unique
 
-    id <- which.max(table(diff(as.numeric(dates[order(dates)]))))
+    len <- length(dates)
+
+    ## sample only 100 rather than everything
+    len <- min(c(100, len))
+
+    id <- which.max(table(diff(as.numeric(dates[order(dates[1 : len])]))))
     seconds <- as.numeric(names(id))
 
     if ("POSIXt" %in% class(dates)) seconds <- paste(seconds, "sec")
@@ -42,7 +46,36 @@ find.time.interval <- function(dates) {
 }
 
 ###############################################################################
+## when interval is known
+date.pad2 <- function(mydata, type = "default", interval = "month") {
 
+    date.pad.site <- function(mydata, type = type, interval = interval) {
+        ## function to fill missing data gaps
+        ## assume no missing data to begin with
+        if (type == "site" ) site <- mydata$site[1]
+
+        ## pad out missing data for better looking plot
+        start.date <- min(mydata$date, na.rm = TRUE)
+        end.date <- max(mydata$date, na.rm = TRUE)
+
+        all.dates <- data.frame(date = seq(start.date, end.date, by = interval))
+        mydata <- merge(mydata, all.dates, all = TRUE)
+
+
+        if (type == "site") mydata$site <- site
+        mydata
+    }
+
+    if (type == "site") {
+        mydata <- split(mydata, mydata$site)
+        mydata <- lapply(mydata, date.pad.site, type, interval)
+        mydata <- do.call(rbind, mydata)
+    } else {
+        mydata <- date.pad.site(mydata, type, interval
+                                )
+    }
+    mydata
+}
 #############################################################################################
 ## Function to pad out missing time data, optionally dealing with conditioning variable "site"
 date.pad <- function(mydata, type = "default") {
@@ -60,11 +93,16 @@ date.pad <- function(mydata, type = "default") {
         if (class(mydata$date)[1] == "Date") {
             interval <- "day"
         } else {
-            interval <- find.time.interval(mydata$date)
+            interval <- openair:::find.time.interval(mydata$date)
         }
 
-        all.dates <- data.frame(date = seq(start.date, end.date, by = interval))
-        mydata <- merge(mydata, all.dates, all = TRUE)
+        ## only pad if there are missing data
+        if (length(unique((diff(mydata$date)))) != 1L) {
+
+            all.dates <- data.frame(date = seq(start.date, end.date, by = interval))
+            mydata <- merge(mydata, all.dates, all = TRUE)
+
+        }
         if (type == "site") mydata$site <- site
         mydata
     }
@@ -80,6 +118,36 @@ date.pad <- function(mydata, type = "default") {
 }
 #############################################################################################
 
+## Function to pad out missing time data, optionally dealing with conditioning variable "site"
+## version where interval is given
+date.pad2 <- function(mydata, type = "default", interval = "month") {
+
+    date.pad.site <- function(mydata) {
+        ## function to fill missing data gaps
+        ## assume no missing data to begin with
+        if (type == "site" ) site <- mydata$site[1]
+
+        ## pad out missing data for better looking plot
+        start.date <- min(mydata$date, na.rm = TRUE)
+        end.date <- max(mydata$date, na.rm = TRUE)
+
+        all.dates <- data.frame(date = seq(start.date, end.date, by = interval))
+        mydata <- merge(mydata, all.dates, all = TRUE)
+
+
+        if (type == "site") mydata$site <- site
+        mydata
+    }
+
+    if (type == "site") {
+        mydata <- split(mydata, mydata$site)
+        mydata <- lapply(mydata, date.pad.site)
+        mydata <- do.call(rbind, mydata)
+    } else {
+        mydata <- date.pad.site(mydata)
+    }
+    mydata
+}
 
 
 
@@ -264,17 +332,21 @@ one more label than date")
 ##' format can be intimidating for new users. This function can be used to
 ##' select quite complex dates simply - see examples below.
 ##'
-##' Dates are assumed to be inclusive, so \code{start = "1/1/1999"} means that
-##' times are selected from hour zero. Similarly, \code{end = "31/12/1999"}
-##' will include all hours of the 31st December.
+##' Dates are assumed to be inclusive, so \code{start = "1/1/1999"}
+##' means that times are selected from hour zero. Similarly, \code{end
+##' = "31/12/1999"} will include all hours of the 31st
+##' December. \code{start} and \code{end} can also be in standard R
+##' format as a string i.e. "YYYY-mm-dd", so \code{start =
+##' "1999-01-01"} is fine.
 ##'
 ##' All options are applied in turn making it possible to select quite complex
 ##' dates
 ##'
 ##' @param mydata A data frame containing a \code{date} field in hourly or high
 ##'   resolution format.
-##' @param start A start date in the form d/m/yyyy e.g. "1/2/1999".
-##' @param end An end date in the form d/m/yyyy e.g. "31/5/1999".
+##' @param start A start date string in the form d/m/yyyy
+##' e.g. "1/2/1999" or in 'R' format i.e. "YYYY-mm-dd", "1999-02-01"
+##' @param end See \code{start} for format.
 ##' @param year A year or years to select e.g. \code{year = 1998:2004} to
 ##'   select 1998-2004 inclusive or \code{year = c(1998, 2004)} to select 1998
 ##'   and 2004.
@@ -282,15 +354,12 @@ one more label than date")
 ##'   \code{month = 1:6} to select months 1-6 (January to June), or by name
 ##'   e.g. \code{month = c("January", "December")}. Names can be abbreviated to
 ##'   3 letters and be in lower or upper case.
-##' @param day A day or or days to select. For example \code{day = c("Monday",
+##' @param day A day name or or days to select. For example \code{day = c("Monday",
 ##'   "Wednesday")}. Names can be abbreviated to 3 letters and be in lower or
 ##'   upper case. Also accepts "weekday" (Monday - Friday) and "weekend" for
 ##'   convenience.
 ##' @param hour An hour or hours to select from 0-23 e.g. \code{hour = 0:12} to
 ##'   select hours 0 to 12 inclusive.
-##' @param use.local.tz Used when \code{start} and \code{end} dates are
-##'   supplied. The default is to use any time zone information supplied and if
-##'   not, assume GMT/UTC.
 ##' @export
 ##' @author David Carslaw
 ##' @keywords methods
@@ -301,8 +370,12 @@ one more label than date")
 ##' head(data.1999)
 ##' tail(data.1999)
 ##'
+##' # or...
+##' data.1999 <- selectByDate(mydata, start = "1999-01-01", end = "1999-12-31")
+##'
 ##' # easier way
 ##' data.1999 <- selectByDate(mydata, year = 1999)
+##'
 ##'
 ##' # more complex use: select weekdays between the hours of 7 am to 7 pm
 ##' sub.data <- selectByDate(mydata, day = "weekday", hour = 7:19)
@@ -312,21 +385,31 @@ one more label than date")
 ##' c("dec", "jan", "feb"))
 ##'
 selectByDate <- function (mydata, start = "1/1/2008", end = "31/12/2008", year = 2008,
-    month = 1, day = "weekday", hour = 1, use.local.tz = TRUE)
+    month = 1, day = "weekday", hour = 1)
 
 {
      ## extract variables of interest
     vars <- names(mydata)
 
     weekday.names <- format(ISOdate(2000, 1, 3:9), "%A")
-    my.tz <- if(use.local.tz)
 
-        attr(mydata$date, "tzone") <- attr(mydata$date, "tzone") else  attr(mydata$date, "tzone") <- "GMT"
 
     if (!missing(start) & !missing(end)) {
-        start <- as.POSIXct(strptime(start, format = "%d/%m/%Y"), my.tz)
-        end <- as.POSIXct(strptime(end, format = "%d/%m/%Y"), my.tz) + (23 * 3600)
-        mydata <- subset(mydata, date >= start & date <= end)
+
+        if (length(grep("/", start)) > 0 & length(grep("/", end)) > 0) {
+            ## assume UK date format
+            start <- as.Date(start, "%d/%m/%Y")
+            end <- as.Date(end, "%d/%m/%Y")
+        }
+
+        if (length(grep("-", start)) > 0 & length(grep("-", end)) > 0) {
+            ## assume R date format
+            start <- as.Date(start)
+            end <- as.Date(end)
+        }
+
+        mydata <- subset(mydata, as.Date(date) >= start & as.Date(date) <= end)
+
     }
     if (!missing(year)) {
         mydata <- mydata[as.numeric(format(mydata$date, "%Y")) %in%  year, ]
@@ -601,6 +684,64 @@ errorInMean <- function (x, mult = qt((1 + conf.int)/2, n - 1), conf.int = 0.95,
       se)
 }
 
+## bootsrap confidence intervals in the mean from Hmisc
+bootMean <- function (x, conf.int = 0.95, B = 1000, na.rm = TRUE, reps = FALSE)
+{
+    if (na.rm)
+        x <- x[!is.na(x)]
+    n <- length(x)
+    xbar <- mean(x)
+    if (n < 2)
+        return(c(Mean = xbar, Lower = NA, Upper = NA))
+    z <- unlist(lapply(1:B, function(i, x, N)
+                       sum(x[.Internal(sample(N, N, TRUE, NULL))]), x = x, N = n)) / n
+    quant <- quantile(z, c((1 - conf.int) / 2, (1 + conf.int) / 2))
+    names(quant) <- NULL
+    res <- c(Mean = xbar, Lower = quant[1], Upper = quant[2])
+    if (reps)
+        attr(res, "reps") <- z
+    res
+}
+
+bootMeanDiff <- function (mydata, x = "x", y = "y", conf.int = 0.95, B = 1000, na.rm = TRUE, reps = TRUE)
+{
+
+    ## calculates bootstrap mean differences
+    ## assumes y - x
+    x.name <- x
+    y.name <- y
+    x <- na.omit(mydata[ , x])
+    y <- na.omit(mydata[ , y])
+    Mean <- mean(y) - mean(x)
+
+    if (nrow(mydata) < 2) {
+        res1 <- data.frame(variable = x.name, Mean = mean(x), Lower = NA, Upper = NA)
+        res2 <- data.frame(variable = y.name, Mean = mean(y), Lower = NA, Upper = NA)
+        res <- data.frame(variable = paste(y.name, "-", x.name), Mean = Mean, Lower = NA, Upper = NA)
+
+        res <- rbind.fill(res1, res2, res)
+        res$variable <- factor(res$variable)
+        return(res)
+
+    }
+
+    x <- attr(bootMean(x,  B = B, reps = TRUE), 'reps')
+    y <- attr(bootMean(y,  B = B, reps = TRUE), 'reps')
+    quant1 <- quantile(x, c((1 - conf.int) / 2, (1 + conf.int) / 2))
+    quant2 <- quantile(y, c((1 - conf.int) / 2, (1 + conf.int) / 2))
+    quant <- quantile(y - x, c((1 - conf.int) / 2, (1 + conf.int) / 2))
+    names(quant1) <- NULL
+    names(quant2) <- NULL
+    names(quant) <- NULL
+
+    res1 <- data.frame(variable = x.name, Mean = mean(x), Lower = quant1[1], Upper = quant1[2])
+    res2 <- data.frame(variable = y.name, Mean = mean(y), Lower = quant2[1], Upper = quant2[2])
+    res <- data.frame(variable = paste(y.name, "-", x.name), Mean = Mean, Lower = quant[1], Upper = quant[2])
+
+    res <- rbind.fill(res1, res2, res)
+    res$variable <- factor(res$variable)
+    res
+}
 
 ###########################################################################################################
 

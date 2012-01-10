@@ -2,8 +2,8 @@
 \alias{splitByDate}
 \title{Divide up a data frame by time}
 \usage{
-  splitByDate(mydata, dates = "1/1/2003", labels =
-  c("before", "after"), name = "split.by")
+  splitByDate(mydata, dates = "1/1/2003",
+    labels = c("before", "after"), name = "split.by")
 }
 \arguments{
   \item{mydata}{A data frame containing a \code{date} field

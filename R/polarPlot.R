@@ -1,52 +1,76 @@
 ##' Bivariate polar plot with smoothing
 ##'
-##' Function for plotting pollutant concentration in polar coordinates showing
-##' concentration by wind speed and direction. Mean concentrations are
-##' calculated for wind speed-direction \sQuote{bins} (e.g. 0-1, 1-2 m/s,...
-##' and 0-10, 10-20 degrees etc.).  To aid interpretation, gam smoothing is
+##' Function for plotting pollutant concentration in polar coordinates
+##' showing concentration by wind speed (or another numeric variable)
+##' and direction. Mean concentrations are calculated for wind
+##' speed-direction \sQuote{bins} (e.g. 0-1, 1-2 m/s,...  and 0-10,
+##' 10-20 degrees etc.).  To aid interpretation, \code{gam} smoothing is
 ##' carried out using \code{mgcv}.
 ##'
-##' The bivariate polar plot is a useful diagnostic tool for quickly gaining an
-##' idea of potential sources. Wind speed is one of the most useful variables
-##' to use to separate source types (see references). For example, ground-level
-##' concentrations resulting from buoyant plumes from chimney stacks tend to
-##' peak under higher wind speed conditions. Conversely, ground-level,
-##' non-buoyant plumes such as from road traffic, tend to have highest
-##' concentrations under low wind speed conditions. Other sources such as from
-##' aircraft engines also show differing characteristics by wind speed.
+##' The bivariate polar plot is a useful diagnostic tool for quickly
+##' gaining an idea of potential sources. Wind speed is one of the
+##' most useful variables to use to separate source types (see
+##' references). For example, ground-level concentrations resulting
+##' from buoyant plumes from chimney stacks tend to peak under higher
+##' wind speed conditions. Conversely, ground-level, non-buoyant
+##' plumes such as from road traffic, tend to have highest
+##' concentrations under low wind speed conditions. Other sources such
+##' as from aircraft engines also show differing characteristics by
+##' wind speed.
 ##'
-##' The plots can vary considerably depending on how much smoothing is done.
-##' The approach adopted here is based on the very flexible and capable
-##' \code{mgcv} package that uses \emph{Generalized Additive Models}. While
-##' methods do exist to find an optimum level of smoothness, they are not
-##' necessarily useful. The principal aim of \code{polarPlot} is as a graphical
-##' analysis rather than for quantitative purposes. In this respect the
-##' smoothing aims to strike a balance between interesting (real) features and
-##' overly noisy data. The defaults used in \code{polarPlot} are based on the
-##' analysis of data from many different sources. More advanced users may wish
-##' to modify the code and adopt other smoothing approaches.
+##' The function has been developed to allow variables other than wind
+##' speed to be plotted with wind direction in polar coordinates. The
+##' key issue is that the other variable plotted against wind
+##' direction should be discriminating in some way. For example,
+##' temperature can help reveal high-level sources brought down to
+##' ground level in unstable atmospheric conditions, or show the
+##' effect a source emission dependent on temperature e.g. biogenic
+##' isoprene.
 ##'
-##' These plots often show interesting features at higher wind speeds (see
-##' references below). For these conditions there can be very few measurements
-##' and therefore greater uncertainty in the calculation of the surface. There
-##' are several ways in which this issue can be tackled. First, it is possible
-##' to avoid smoothing altogether and use \code{\link{polarFreq}}. Second, the
-##' effect of setting a minimum number of measurements in each wind
-##' speed-direction bin can be examined through \code{min.bin}. It is possible
-##' that a single point at high wind speed conditions can strongly affect the
-##' surface prediction. Therefore, setting \code{min.bin = 3}, for example,
-##' will remove all wind speed-direction bins with fewer than 3 measurements
-##' \emph{before} fitting the surface. Third, consider setting
-##' \code{uncertainty = TRUE}. This option will show the predicted surface
-##' together with upper and lower 95% confidence intervals, which take account
-##' of the frequency of measurements.
+##' The plots can vary considerably depending on how much smoothing is
+##' done.  The approach adopted here is based on the very flexible and
+##' capable \code{mgcv} package that uses \emph{Generalized Additive
+##' Models}. While methods do exist to find an optimum level of
+##' smoothness, they are not necessarily useful. The principal aim of
+##' \code{polarPlot} is as a graphical analysis rather than for
+##' quantitative purposes. In this respect the smoothing aims to
+##' strike a balance between revealing interesting (real) features and
+##' overly noisy data. The defaults used in \code{polarPlot} are based
+##' on the analysis of data from many different sources. More advanced
+##' users may wish to modify the code and adopt other smoothing
+##' approaches.
+##'
+##' Various statistics are possible to consider e.g. mean, maximum,
+##' median. \code{statistic = "max"} is often useful for revealing
+##' sources.
+##'
+##' Wind direction is split up into 10 degree intervals and the other
+##' variable (e.g. wind speed) 30 intervals. These 2D bins are then
+##' used to calculate the statistics.
+##'
+##' These plots often show interesting features at higher wind speeds
+##' (see references below). For these conditions there can be very few
+##' measurements and therefore greater uncertainty in the calculation
+##' of the surface. There are several ways in which this issue can be
+##' tackled. First, it is possible to avoid smoothing altogether and
+##' use \code{\link{polarFreq}}. Second, the effect of setting a
+##' minimum number of measurements in each wind speed-direction bin
+##' can be examined through \code{min.bin}. It is possible that a
+##' single point at high wind speed conditions can strongly affect the
+##' surface prediction. Therefore, setting \code{min.bin = 3}, for
+##' example, will remove all wind speed-direction bins with fewer than
+##' 3 measurements \emph{before} fitting the surface. Third, consider
+##' setting \code{uncertainty = TRUE}. This option will show the
+##' predicted surface together with upper and lower 95% confidence
+##' intervals, which take account of the frequency of measurements.
 ##'
 ##' Variants on \code{polarPlot} include \code{polarAnnulus} and
 ##' \code{polarFreq}.
 ##'
-##' @param mydata A data frame minimally containing \code{ws}, \code{wd} and a
-##'   pollutant. Can also contain \code{date} if plots by time period are
-##'   required.
+##' @param mydata A data frame minimally containing \code{wd}, another
+##' variable to plot in polar coordinates (the default is a column
+##' "ws" --- wind speed) and a pollutant. Should also contain \code{date}
+##' if plots by time period are required.
 ##' @param pollutant Mandatory. A pollutant name corresponding to a variable in
 ##'   a data frame should be supplied e.g. \code{pollutant = "nox"}. There can
 ##'   also be more than one pollutant specified e.g. \code{pollutant = c("nox",
@@ -56,128 +80,153 @@
 ##'   to work with columns of data directly. A typical use would be
 ##'   \code{pollutant = c("obs", "mod")} to compare two columns "obs" (the
 ##'   observations) and "mod" (modelled values).
-##' @param type \code{type} determines how the data are split i.e. conditioned,
-##'   and then plotted. The default is will produce a single plot using the
-##'   entire data. Type can be one of the built-in types as detailed in
-##'   \code{cutData} e.g. "season", "year", "weekday" and so on. For example,
-##'   \code{type = "season"} will produce four plots --- one for each season.
+##' @param x Name of variable to plot against wind direction in polar
+##' coordinates, the default is wind speed, "ws".
+##' @param wd Name of wind direction field.
+##' @param type \code{type} determines how the data are split
+##' i.e. conditioned, and then plotted. The default is will produce a
+##' single plot using the entire data. Type can be one of the built-in
+##' types as detailed in \code{cutData} e.g. "season", "year",
+##' "weekday" and so on. For example, \code{type = "season"} will
+##' produce four plots --- one for each season.
 ##'
-##' It is also possible to choose \code{type} as another variable in the data
-##'   frame. If that variable is numeric, then the data will be split into four
-##'   quantiles (if possible) and labelled accordingly. If type is an existing
-##'   character or factor variable, then those categories/levels will be used
-##'   directly. This offers great flexibility for understanding the variation
-##'   of different variables and how they depend on one another.
+##' It is also possible to choose \code{type} as another variable in
+##' the data frame. If that variable is numeric, then the data will be
+##' split into four quantiles (if possible) and labelled
+##' accordingly. If type is an existing character or factor variable,
+##' then those categories/levels will be used directly. This offers
+##' great flexibility for understanding the variation of different
+##' variables and how they depend on one another.
 ##'
-##' Type can be up length two e.g. \code{type = c("season", "weekday")} will
-##'   produce a 2x2 plot split by season and day of the week. Note, when two
-##'   types are provided the first forms the columns and the second the rows.
+##' Type can be up length two e.g. \code{type = c("season",
+##' "weekday")} will produce a 2x2 plot split by season and day of the
+##' week. Note, when two types are provided the first forms the
+##' columns and the second the rows.
 ##' @param statistic The statistic that should be applied to each wind
-##'   speed/direction bin. Can be "mean" (default), "median", "max" (maximum),
-##'   "frequency". "stdev" (standard deviation) or "weighted.mean". Because of
-##'   the smoothing involved, the colour scale for some of these statistics is
-##'   only to provide an indication of overall pattern and should not be
-##'   interpreted in concentration units e.g. for \code{statistic =
-##'   "weighted.mean"} where the bin mean is multiplied by the bin frequency
-##'   and divided by the total frequency. In many cases using \code{polarFreq}
-##'   will be better. Setting \code{statistic = "weighted.mean"} can be useful
-##'   because it provides an indication of the concentration * frequency of
-##'   occurrence and will highlight the wind speed/direction conditions that
-##'   dominate the overall mean.
-##' @param resolution Two plot resolutions can be set: "normal" (the default)
-##'   and "fine", for a smoother plot. It should be noted that plots with a
-##'   "fine" resolution can take longer to render and the default option should
-##'   be sufficient or most circumstances.
+##' speed/direction bin. Can be "mean" (default), "median", "max"
+##' (maximum), "frequency". "stdev" (standard deviation) or
+##' "weighted.mean". Because of the smoothing involved, the colour
+##' scale for some of these statistics is only to provide an
+##' indication of overall pattern and should not be interpreted in
+##' concentration units e.g. for \code{statistic = "weighted.mean"}
+##' where the bin mean is multiplied by the bin frequency and divided
+##' by the total frequency. In many cases using \code{polarFreq} will
+##' be better. Setting \code{statistic = "weighted.mean"} can be
+##' useful because it provides an indication of the concentration *
+##' frequency of occurrence and will highlight the wind
+##' speed/direction conditions that dominate the overall mean.
+##' @param resolution Two plot resolutions can be set: "normal" (the
+##' default) and "fine", for a smoother plot. It should be noted that
+##' plots with a "fine" resolution can take longer to render and the
+##' default option should be sufficient or most circumstances.
 ##' @param limits The function does its best to choose sensible limits
-##'   automatically. However, there are circumstances when the user will wish
-##'   to set different ones. An example would be a series of plots showing each
-##'   year of data separately. The limits are set in the form \code{c(lower,
-##'   upper)}, so \code{limits = c(0, 100)} would force the plot limits to span
-##'   0-100.
-##' @param exclude.missing Setting this option to \code{TRUE} (the default)
-##'   removes points from the plot that are too far from the original data. The
-##'   smoothing routines will produce predictions at points where no data exist
-##'   i.e. they predict. By removing the points too far from the original data
-##'   produces a plot where it is clear where the original data lie. If set to
-##'   \code{FALSE} missing data will be interpolated.
-##' @param uncertainty Should the uncertainty in the calculated surface be
-##'   shown? If \code{TRUE} three plots are produced on the same scale showing
-##'   the predicted surface together with the estimated lower and upper
-##'   uncertainties at the 95% confidence interval. Calculating the
-##'   uncertainties is useful to understand whether features are real or not.
-##'   For example, at high wind speeds where there are few data there is
-##'   greater uncertainty over the predicted values. The uncertainties are
-##'   calculated using the GAM and weighting is done by the frequency of
-##'   measurements in each wind speed-direction bin. Note that if uncertainties
-##'   are calculated then the type is set to "default".
-##' @param cols Colours to be used for plotting. Options include "default",
-##'   "increment", "heat", "jet" and user defined. For user defined the user
-##'   can supply a list of colour names recognised by R (type \code{colours()}
-##'   to see the full list). An example would be \code{cols = c("yellow",
-##'   "green", "blue")}
-##' @param min.bin The minimum number of points allowed in a wind speed/wind
-##'   direction bin.  The default is 1. A value of two requires at least 2
-##'   valid records in each bin an so on; bins with less than 2 valid records
-##'   are set to NA. Care should be taken when using a value > 1 because of the
-##'   risk of removing real data points. It is recommended to consider your
-##'   data with care. Also, the \code{polarFreq} function can be of use in such
-##'   circumstances.
-##' @param upper This sets the upper limit wind speed to be used. Often there
-##'   are only a relatively few data points at very high wind speeds and
-##'   plotting all of them can reduce the useful information in the plot.
-##' @param ws.int This sets the (dashed) circular grid line spacing. The
-##'   default is 5. It can be useful, for example, to set \code{ws.int} to a
-##'   lower value when the wind speeds are low to get a sensible grid spacing.
-##' @param angle.scale The wind speed scale is by default shown at a 45 degree
-##'   angle. Sometimes the placement of the scale may interfere with an
-##'   interesting feature. The user can therefore set \code{angle.scale} to
-##'   another value (between 0 and 360 degrees) to mitigate such problems. For
-##'   example \code{angle.scale = 315} will draw the scale heading in a NW
-##'   direction.
-##' @param units The units shown on the wind speed scale. These are only shown
-##'   on the third highest \code{ws.int} interval to reduce chart clutter.
-##' @param force.positive The default is \code{TRUE}. Sometimes if smoothing
-##'   data with streep gradients it is possible for predicted values to be
-##'   negative. \code{force.positive = TRUE} ensures that predictions remain
-##'   postive. This is useful for several reasons. First, with lots of missing
-##'   data more interpolation is needed and this can result in artefacts
-##'   because the predictions are too far from the original data. Second, if it
-##'   is known beforehand that the data are all postive, then this option
-##'   carries that assumption through to the prediction. The only likley time
-##'   where setting \code{force.positive = FALSE} would be if background
-##'   concentrations were first subtracted resulting in data that is
-##'   legitimately negative. For the vast majority of situations it is expected
-##'   that the user will not need to alter the default option.
-##' @param k This is the smoothing parameter that is set if auto.smooth is set
-##'   to \code{FALSE}. Typically, value of around 100 (the default) seems to be
-##'   suitable and will resolve more features in the plot.
-##' @param normalise If \code{TRUE} concentrations are normalised by dividing
-##'   by their mean value. This is done \emph{after} fitting the smooth
-##'   surface. This option is particularly useful if one is interested in the
-##'   patterns of concentrations for several pollutants on different scales
-##'   e.g. NOx and CO. Often useful if more than one \code{pollutant} is
-##'   chosen.
-##' @param key.header,key.footer Adds additional text/labels to the scale key.
-##'   For example, passing the options \code{key.header = "header", key.footer
-##'   = "footer1"} adds addition text above and below the scale key. These
-##'   arguments are passed to \code{drawOpenKey} via \code{quickText}, applying
-##'   the \code{auto.text} argument, to handle formatting.
-##' @param key.position Location where the scale key is to plotted.  Allowed
-##'   arguments currently include \code{"top"}, \code{"right"}, \code{"bottom"}
-##'   and \code{"left"}.
-##' @param key Fine control of the scale key via \code{drawOpenKey}. See
-##'   \code{drawOpenKey} for further details.
+##' automatically. However, there are circumstances when the user will
+##' wish to set different ones. An example would be a series of plots
+##' showing each year of data separately. The limits are set in the
+##' form \code{c(lower, upper)}, so \code{limits = c(0, 100)} would
+##' force the plot limits to span 0-100.
+##' @param exclude.missing Setting this option to \code{TRUE} (the
+##' default) removes points from the plot that are too far from the
+##' original data. The smoothing routines will produce predictions at
+##' points where no data exist i.e. they predict. By removing the
+##' points too far from the original data produces a plot where it is
+##' clear where the original data lie. If set to \code{FALSE} missing
+##' data will be interpolated.
+##' @param uncertainty Should the uncertainty in the calculated
+##' surface be shown? If \code{TRUE} three plots are produced on the
+##' same scale showing the predicted surface together with the
+##' estimated lower and upper uncertainties at the 95% confidence
+##' interval. Calculating the uncertainties is useful to understand
+##' whether features are real or not.  For example, at high wind
+##' speeds where there are few data there is greater uncertainty over
+##' the predicted values. The uncertainties are calculated using the
+##' GAM and weighting is done by the frequency of measurements in each
+##' wind speed-direction bin. Note that if uncertainties are
+##' calculated then the type is set to "default".
+##' @param cols Colours to be used for plotting. Options include
+##' "default", "increment", "heat", "jet" and \code{RColorBrewer}
+##' colours --- see the \code{openair} \code{openColours} function for
+##' more details. For user defined the user can supply a list of
+##' colour names recognised by R (type \code{colours()} to see the
+##' full list). An example would be \code{cols = c("yellow", "green",
+##' "blue")}
+##' @param min.bin The minimum number of points allowed in a wind
+##' speed/wind direction bin.  The default is 1. A value of two
+##' requires at least 2 valid records in each bin an so on; bins with
+##' less than 2 valid records are set to NA. Care should be taken when
+##' using a value > 1 because of the risk of removing real data
+##' points. It is recommended to consider your data with care. Also,
+##' the \code{polarFreq} function can be of use in such circumstances.
+##' @param upper This sets the upper limit wind speed to be
+##' used. Often there are only a relatively few data points at very
+##' high wind speeds and plotting all of them can reduce the useful
+##' information in the plot.
+##' @param angle.scale The wind speed scale is by default shown at a
+##' 315 degree angle. Sometimes the placement of the scale may
+##' interfere with an interesting feature. The user can therefore set
+##' \code{angle.scale} to another value (between 0 and 360 degrees) to
+##' mitigate such problems. For example \code{angle.scale = 45} will
+##' draw the scale heading in a NE direction.
+##' @param units The units shown on the polar axis scale.
+##' @param force.positive The default is \code{TRUE}. Sometimes if
+##' smoothing data with steep gradients it is possible for predicted
+##' values to be negative. \code{force.positive = TRUE} ensures that
+##' predictions remain positive. This is useful for several
+##' reasons. First, with lots of missing data more interpolation is
+##' needed and this can result in artifacts because the predictions
+##' are too far from the original data. Second, if it is known
+##' beforehand that the data are all positive, then this option carries
+##' that assumption through to the prediction. The only likely time
+##' where setting \code{force.positive = FALSE} would be if background
+##' concentrations were first subtracted resulting in data that is
+##' legitimately negative. For the vast majority of situations it is
+##' expected that the user will not need to alter the default option.
+##' @param k This is the smoothing parameter used by the \code{gam}
+##' function in package \code{mgcv}. Typically, value of around 100
+##' (the default) seems to be suitable and will resolve important
+##' features in the plot. The most appropriate choice of \code{k} is
+##' problem-dependent; but extensive testing of polar plots for many
+##' different problems suggests a value of \code{k} of about 100 is
+##' suitable. Setting \code{k} to higher values will not tend to
+##' affect the surface predictions by much but will add to the
+##' computation time. Lower values of \code{k} will increase
+##' smoothing. Sometimes with few data to plot \code{polarPlot} will
+##' fail. Under these circumstances it can be worth lowering the value
+##' of \code{k}.
+##' @param normalise If \code{TRUE} concentrations are normalised by
+##' dividing by their mean value. This is done \emph{after} fitting
+##' the smooth surface. This option is particularly useful if one is
+##' interested in the patterns of concentrations for several
+##' pollutants on different scales e.g. NOx and CO. Often useful if
+##' more than one \code{pollutant} is chosen.
+##' @param key.header Adds additional text/labels to the scale key.
+##' For example, passing the options \code{key.header = "header",
+##' key.footer = "footer1"} adds addition text above and below the
+##' scale key. These arguments are passed to \code{drawOpenKey} via
+##' \code{quickText}, applying the \code{auto.text} argument, to
+##' handle formatting.
+##' @param key.footer see \code{key.footer}.
+##' @param key.position Location where the scale key is to plotted.
+##' Allowed arguments currently include \code{"top"}, \code{"right"},
+##' \code{"bottom"} and \code{"left"}.
+##' @param key Fine control of the scale key via
+##' \code{drawOpenKey}. See \code{drawOpenKey} for further details.
 ##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
-##'   \code{TRUE} titles and axis labels will automatically try and format
-##'   pollutant names and units properly e.g.  by subscripting the `2' in NO2.
-##' @param \dots Other graphical parameters passed onto \code{lattice:levelplot}
-##'   and \code{cutData}. For example, \code{polarPlot} passes the option 
-##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern 
-##'   (rather than default northern) hemisphere handling of \code{type = "season"}.
-##'   Similarly, common axis and title labelling options (such as \code{xlab}, 
-##'   \code{ylab}, \code{main}) are passed to \code{levelplot} via \code{quickText} 
-##'   to handle routine formatting.
+##' \code{TRUE} titles and axis labels will automatically try and
+##' format pollutant names and units properly e.g.  by subscripting
+##' the `2' in NO2.
+##' @param ... Other graphical parameters passed onto
+##' \code{lattice:levelplot} and \code{cutData}. For example,
+##' \code{polarPlot} passes the option \code{hemisphere = "southern"}
+##' on to \code{cutData} to provide southern (rather than default
+##' northern) hemisphere handling of \code{type = "season"}.
+##' Similarly, common axis and title labelling options (such as
+##' \code{xlab}, \code{ylab}, \code{main}) are passed to
+##' \code{levelplot} via \code{quickText} to handle routine
+##' formatting.
 ##' @export
+##' @import lattice
+##' @import mgcv
 ##' @return As well as generating the plot itself, \code{polarPlot} also
 ##'   returns an object of class ``openair''. The object includes three main
 ##'   components: \code{call}, the command used to generate the plot;
@@ -198,7 +247,7 @@
 ##'   \code{v}, the translational vectors based on \code{ws} and \code{wd}; and
 ##'   the local \code{pollutant} estimate.
 ##' @author David Carslaw
-##' @seealso \code{\link{polarAnnulus}}, \code{\link{polarFreq}}
+##' @seealso \code{\link{polarAnnulus}}, \code{\link{polarFreq}}, \code{\link{percentileRose}}
 ##' @references
 ##'
 ##' Carslaw, D.C., Beevers, S.D, Ropkins, K and M.C. Bell (2006).  Detecting
@@ -243,28 +292,13 @@
 ##' \dontrun{polarPlot(mydata, pollutant = "so2", uncertainty = TRUE)}
 ##'
 ##'
-polarPlot <- function(mydata,
-                      pollutant = "nox",
-                      type = "default",
-                      statistic = "mean",
-                      resolution = "normal",
-                      limits = NA,
-                      exclude.missing = TRUE,
-                      uncertainty = FALSE,
-                      cols = "default",
-                      min.bin = 1,
-                      upper = NA,
-                      ws.int = 5,
-                      angle.scale = 45,
-                      units = "(m/s)",
-                      force.positive = TRUE,
-                      k = 100,
-                      normalise = FALSE,
-                      key.header = "",
-                      key.footer = pollutant,
-                      key.position = "right",
-                      key = TRUE,
-                      auto.text = TRUE, ...) {
+polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "default",
+                      statistic = "mean", resolution = "normal", limits = NA,
+                      exclude.missing = TRUE, uncertainty = FALSE, cols = "default",
+                      min.bin = 1, upper = NA, angle.scale = 315, units = x,
+                      force.positive = TRUE, k = 100, normalise = FALSE,
+                      key.header = "", key.footer = pollutant, key.position = "right",
+                      key = TRUE, auto.text = TRUE, ...) {
 
 
     ## initial checks ##########################################################################################
@@ -291,24 +325,31 @@ polarPlot <- function(mydata,
     ##extra.args setup
     extra.args <- list(...)
 
-    #label controls
+                                        #label controls
     extra.args$xlab <- if("xlab" %in% names(extra.args))
-                           quickText(extra.args$xlab, auto.text) else quickText("", auto.text)
+        quickText(extra.args$xlab, auto.text) else quickText("", auto.text)
     extra.args$ylab <- if("ylab" %in% names(extra.args))
-                           quickText(extra.args$ylab, auto.text) else quickText("", auto.text)
+        quickText(extra.args$ylab, auto.text) else quickText("", auto.text)
     extra.args$main <- if("main" %in% names(extra.args))
-                           quickText(extra.args$main, auto.text) else quickText("", auto.text)
+        quickText(extra.args$main, auto.text) else quickText("", auto.text)
 
-    #layout default
+                                        #layout default
     if(!"layout" %in% names(extra.args))
-         extra.args$layout <- NULL
+        extra.args$layout <- NULL
 
     ## extract variables of interest
 
-    vars <- c("wd", "ws", pollutant)
-    if (any(type %in%  dateTypes)) vars <- c(vars, "date")
+    vars <- c(wd, x, pollutant)
+    if (any(type %in%  openair:::dateTypes)) vars <- c(vars, "date")
 
-    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
+
+    ## this is used later for the 'x' scale
+    min.scale <- floor(min(mydata[[x]], na.rm = TRUE))
+
+    ## scale data by subtracting the min value
+    ## this helps with dealing with data with offsets - scaling
+    mydata[ , x] <- mydata[ , x] - min(mydata[ , x], na.rm = TRUE)
 
     ## if more than one pollutant, need to stack the data and set type = "variable"
     ## this case is most relevent for model-measurement compasrions where data are in columns
@@ -335,8 +376,14 @@ polarPlot <- function(mydata,
 
 
     ## if upper ws not set, set it to the max to display all information
-    max.ws <- ceiling(max(mydata$ws, na.rm = TRUE))
-    if(missing(upper)) upper <- max.ws
+    max.ws <- ceiling(max(mydata[[x]], na.rm = TRUE))
+    min.ws <- floor(min(mydata[[x]], na.rm = TRUE))
+    clip <- TRUE ## used for removing data where ws > upper
+
+    if(missing(upper)) {
+        upper <- max.ws
+        clip <- FALSE
+    }
 
     ## for resolution of grid plotting (default = 101; fine =201)
     if (resolution == "normal") int <- 101
@@ -344,12 +391,12 @@ polarPlot <- function(mydata,
     if (resolution == "ultra.fine") int <- 401  ## very large files!
 
     ## binning wd data properly
-    ws <- seq(0, max.ws, length = 30)
-    wd <- seq(from = 10, to = 360, by = 10) ## wind directions from 10 to 360
-    ws.wd <- expand.grid(ws = ws, wd = wd)
+    ws.seq <- seq(min.ws, max.ws, length = 30)
+    wd.seq <- seq(from = 10, to = 360, by = 10) ## wind directions from 10 to 360
+    ws.wd <- expand.grid(x = ws.seq, wd = wd.seq)
 
-    u <- with(ws.wd, ws * sin(pi * wd / 180))  ## convert to polar coords
-    v <- with(ws.wd, ws * cos(pi * wd / 180))
+    u <- with(ws.wd, x * sin(pi * wd / 180))  ## convert to polar coords
+    v <- with(ws.wd, x * cos(pi * wd / 180))
 
     ## data to predict over
     input.data <- expand.grid(u = seq(-upper, upper, length = int),
@@ -357,33 +404,33 @@ polarPlot <- function(mydata,
 
     prepare.grid <- function(mydata) {
         ## identify which ws and wd bins the data belong
-        wd <- cut(mydata$wd, breaks = seq(0, 360, 10), include.lowest = TRUE)
-        ws <- cut(mydata$ws, breaks = seq(0, max.ws, length = 31), include.lowest = TRUE)
+        wd <- cut(mydata[ , wd], breaks = seq(0, 360, 10), include.lowest = TRUE)
+        x <- cut(mydata[ , x], breaks = seq(0, max.ws, length = 31), include.lowest = TRUE)
 
         binned <- switch(statistic,
-                         frequency = tapply(mydata[ , pollutant], list(wd, ws), function(x)
+                         frequency = tapply(mydata[ , pollutant], list(wd, x), function(x)
                          length(na.omit(x))),
-                         mean =  tapply(mydata[, pollutant], list(wd, ws), function(x)
+                         mean =  tapply(mydata[, pollutant], list(wd, x), function(x)
                          mean(x, na.rm = TRUE)),
-                         median = tapply(mydata[, pollutant], list(wd, ws), function(x)
+                         median = tapply(mydata[, pollutant], list(wd, x), function(x)
                          median(x, na.rm = TRUE)),
-                         max = tapply(mydata[, pollutant], list(wd, ws), function(x)
+                         max = tapply(mydata[, pollutant], list(wd, x), function(x)
                          max(x, na.rm = TRUE)),
-                         stdev = tapply(mydata[, pollutant], list(wd, ws), function(x)
+                         stdev = tapply(mydata[, pollutant], list(wd, x), function(x)
                          sd(x, na.rm = TRUE)),
-                         weighted.mean = tapply(mydata[, pollutant], list(wd, ws),
+                         weighted.mean = tapply(mydata[, pollutant], list(wd, x),
                          function(x) (mean(x) * length(x) / nrow(mydata)))
                          )
 
         binned <- as.vector(t(binned))
 
         ## frequency - remove points with freq < min.bin
-        bin.len <- tapply(mydata[, pollutant], list(ws, wd), length)
+        bin.len <- tapply(mydata[, pollutant], list(x, wd), length)
         binned.len <- as.vector(bin.len)
 
         ids <- which(binned.len < min.bin)
         binned[ids] <- NA
-######################Smoothing#################################################
+        ## ####################Smoothing#################################################
         if (force.positive) n <- 0.5 else n <- 1
 
         ## no uncertainty to calculate
@@ -418,7 +465,7 @@ polarPlot <- function(mydata,
                                    "upper uncertainty"), each = n))
         }
 
-#############################################################################
+        ## ###########################################################################
         ## function to remove points too far from original data
         exclude <- function(results) {
 
@@ -447,7 +494,7 @@ polarPlot <- function(mydata,
     results.grid <- ddply(mydata, type, prepare.grid)
 
     ## remove wind speeds > upper to make a circle
-    results.grid$z[(results.grid$u ^ 2 + results.grid$v ^ 2) ^ 0.5 > upper] <- NA
+    if (clip) results.grid$z[(results.grid$u ^ 2 + results.grid$v ^ 2) ^ 0.5 > upper] <- NA
 
     ## proper names of labelling ##############################################################################
     pol.name <- sapply(levels(results.grid[ , type[1]]), function(x) quickText(x, auto.text))
@@ -487,7 +534,7 @@ polarPlot <- function(mydata,
 
     col.scale = breaks
 
-    #special handling of layout for uncertainty
+                                        #special handling of layout for uncertainty
     if (uncertainty & is.null(extra.args$layout)) {
         extra.args$layout <- c(3, 1)
     }
@@ -498,60 +545,76 @@ polarPlot <- function(mydata,
     legend <- list(col = col, at = col.scale, space = key.position,
                    auto.text = auto.text, footer = key.footer, header = key.header,
                    height = 1, width = 1.5, fit = "all")
-    legend <- makeOpenKeyLegend(key, legend, "polarPlot")
+    legend <- openair:::makeOpenKeyLegend(key, legend, "polarPlot")
 
-########################################################################################################
+    ## ######################################################################################################
+
+    ## scaling
+    ## scalining of 'zeroed' data
+    intervals <- pretty(range(mydata[ , x], na.rm = TRUE))
+    ## labels for scaling
+    labels <- pretty(intervals + min.scale)
+    ## offset the lines/labels if necessary
+    intervals <- intervals + (min(labels) - min.scale)
+
+    ## add zero in the middle if it exists
+    if (min.scale != 0){
+        labels <- labels[-1]
+        intervals <- intervals[-1]
+    }
+
 
     temp <- paste(type, collapse = "+")
     myform <- formula(paste("z ~ u * v | ", temp, sep = ""))
 
     levelplot.args <- list(x = myform, results.grid, axes = FALSE,
-                     as.table = TRUE,
-                     strip = strip,
-                     strip.left = strip.left,
-                     col.regions = col,
-                     region = TRUE,
-                     aspect = 1,
-                     at = col.scale,
-                     par.strip.text = list(cex = 0.8),
-                     scales = list(draw = FALSE),
-                     xlim = c(-upper * 1, upper * 1),
-                     ylim = c(-upper * 1, upper * 1),
-                     colorkey = FALSE, legend = legend,
+                           as.table = TRUE,
+                           strip = strip,
+                           strip.left = strip.left,
+                           col.regions = col,
+                           region = TRUE,
+                           aspect = 1,
+                           at = col.scale,
+                           par.strip.text = list(cex = 0.8),
+                           scales = list(draw = FALSE),
+                           xlim = c(-upper * 1.025, upper * 1.025),
+                           ylim = c(-upper * 1.025, upper * 1.025),
+                           colorkey = FALSE, legend = legend,
 
-                     panel = function(x, y, z,subscripts,...) {
-                         panel.levelplot(x, y, z,
-                                         subscripts,
-                                         at = col.scale,
-                                         pretty = TRUE,
-                                         col.regions = col,
-                                         labels = FALSE)
+                           panel = function(x, y, z,subscripts,...) {
+                               panel.levelplot(x, y, z,
+                                               subscripts,
+                                               at = col.scale,
+                                               pretty = TRUE,
+                                               col.regions = col,
+                                               labels = FALSE)
 
-                         angles <- seq(0, 2 * pi, length = 360)
+                               angles <- seq(0, 2 * pi, length = 360)
 
-                         sapply(seq(ws.int, 10 * ws.int, ws.int), function(x)
-                                llines(x * sin(angles), x * cos(angles), col = "grey", lty = 5))
+                               sapply(intervals, function(x) llines(x * sin(angles), x * cos(angles),
+                                                                    col = "grey", lty = 5))
 
-                         ltext(seq(ws.int, 10 * ws.int, by = ws.int) * sin(pi * angle.scale / 180),
-                               seq(ws.int, 10 * ws.int, by = ws.int) * cos(pi * angle.scale / 180),
-                               paste(seq(ws.int, 10 * ws.int, by = ws.int), c("", "",
-                                                              units, rep("", 7))), cex = 0.7)
 
-                         ## add axis line to central polarPlot
-                         larrows(-upper, 0, upper, 0, code = 3, length = 0.1)
-                         larrows(0, -upper, 0, upper, code = 3, length = 0.1)
+                               ltext(1.07 * intervals * sin(pi * angle.scale / 180),
+                                     1.07 * intervals * cos(pi * angle.scale / 180),
+                                     sapply(paste(labels, c("", "", units, rep("", 7))), function(x)
+                                            quickText(x, auto.text)) , cex = 0.7, pos = 4)
 
-                         ltext(upper * -1 * 0.95, 0.07 * upper, "W", cex = 0.7)
-                         ltext(0.07 * upper, upper * -1 * 0.95, "S", cex = 0.7)
-                         ltext(0.07 * upper, upper * 0.95, "N", cex = 0.7)
-                         ltext(upper * 0.95, 0.07 *upper, "E", cex = 0.7)
+                               ## add axis line to central polarPlot
+                               larrows(-upper, 0, upper, 0, code = 3, length = 0.1)
+                               larrows(0, -upper, 0, upper, code = 3, length = 0.1)
 
-                     })
+                               ltext(upper * -1 * 0.95, 0.07 * upper, "W", cex = 0.7)
+                               ltext(0.07 * upper, upper * -1 * 0.95, "S", cex = 0.7)
+                               ltext(0.07 * upper, upper * 0.95, "N", cex = 0.7)
+                               ltext(upper * 0.95, 0.07 *upper, "E", cex = 0.7)
 
-    #reset for extra.args
-    levelplot.args<- listUpdate(levelplot.args, extra.args)
+                           })
 
-    #plot
+                                        #reset for extra.args
+    levelplot.args<- openair:::listUpdate(levelplot.args, extra.args)
+
+                                        #plot
     plt <- do.call(levelplot, levelplot.args)
 
     ## output ##############################################################################################

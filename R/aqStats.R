@@ -42,6 +42,7 @@
 ##'   have columns for each pollutant-site combination.
 ##' @param ... Other arguments, currently unused.
 ##' @export
+##' @import reshape2
 ##' @author David Carslaw
 ##' @keywords methods
 ##' @examples

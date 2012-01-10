@@ -1,3 +1,53 @@
+Changes in openair 0.5-15 [2011-12-08]
+=====================================
+
+*	Update imports etc.
+
+Changes in openair 0.5-15 [2011-12-08]
+=====================================
+
+*       Update to [IN DEVELOPMENT] GoogleMapsPlot.
+*	Tidy up calcFno2 plotting.
+*	Improve speed of timeAverage by removing date.pad.
+*	Add vector averaging option to timeAverage for wind speed.
+
+Changes in openair 0.5-14 [2011-11-29]
+=====================================
+
+*       NEW FUNCTION polarCluster for undertaking k-means clustering
+        of bivariate polar plots
+*       Remove any considerations of time zones in selectByDate. If
+        start and end are supplied, whole days based on Date format
+        are used to select. Now accepts start/end in the form
+        "YYYY-mm-dd" as well as UK format e.g. dd/mm/YYYY.
+
+Changes in openair 0.5-13 [2011-11-18]
+=====================================
+
+*       Major update to polarPlot allowing variables other than
+	"ws" to be plotted with wind direction.
+*       Improve documentation for polarPlot/TaylorDiagram
+*	Update openair citation information to Journal article
+
+Changes in openair 0.5-12 [2011-11-14]
+=====================================
+
+*       do not clip polarPlot concentrations unless upper is supplied
+*       new option 'intervals' for percentileRose
+*       add min.bin option to polarAnnulus
+*       add Index of Agreement to modStats
+*       new averaging time "season" for timeAverage
+*	better treatment of avg.time = "season" and type = "season" in
+	TheilSen and smoothTrend
+*	use bootstrap methods to calculate 95% confidence intervals in
+        the mean for timeVariation
+*	New option 'difference' in timeVariation to show difference
+        between two variables with bootstrap 95% CI in the mean
+*	Byte-compile package
+*	Place key on right be default in scatterPlot to avoid clash
+        with x or y axis labels.
+*	Include all colour schemes defined in the RColorBrewer package
+
 Changes in openair 0.5-11 [2011-09-14]
 =====================================
 

@@ -2,14 +2,14 @@
 \alias{timePlot}
 \title{Plot time series}
 \usage{
-  timePlot(mydata, pollutant = "nox", group = FALSE, stack
-  = FALSE, normalise = NULL, avg.time = "default",
-  data.thresh = 0, statistic = "mean", percentile = NA,
-  date.pad = FALSE, type = "default", cols = "brewer1",
-  plot.type = "l", key = TRUE, log = FALSE, smooth = FALSE,
-  ci = TRUE, ref.x = NULL, ref.y = NULL, key.columns = 1,
-  name.pol = pollutant, date.breaks = 7, auto.text = TRUE,
-  ...)
+  timePlot(mydata, pollutant = "nox", group = FALSE,
+    stack = FALSE, normalise = NULL, avg.time = "default",
+    data.thresh = 0, statistic = "mean", percentile = NA,
+    date.pad = FALSE, type = "default", cols = "brewer1",
+    plot.type = "l", key = TRUE, log = FALSE,
+    smooth = FALSE, ci = TRUE, ref.x = NULL, ref.y = NULL,
+    key.columns = 1, name.pol = pollutant, date.breaks = 7,
+    auto.text = TRUE, ...)
 }
 \arguments{
   \item{mydata}{A data frame of time series. Must include a
@@ -34,7 +34,7 @@
   \item{normalise}{Should variables be normalised? The
   default is is not to normalise the data. \code{normalise}
   can take two values, either \code{"mean"} or a string
-  representing a date in UK format e.g. "1/1/1998" (in the
+  representing a date in UK format e.g.  "1/1/1998" (in the
   format dd/mm/YYYY). If \code{normalise = "mean"} then
   each time series is divided by its mean value.  If a date
   is chosen, then values at that date are set to 100 and
@@ -82,7 +82,7 @@
   "chunks" of data with time gaps between them. By setting
   \code{date.pad = TRUE} the time gaps between the chunks
   are shown properly, rather than with a line connecting
-  each chunk. For irregular data, set to \code{FALSE}.
+  each chunk.  For irregular data, set to \code{FALSE}.
   Note, this should not be set for \code{type} other than
   \code{default}.}
 
@@ -158,7 +158,7 @@
   \item{date.breaks}{Number of major x-axis intervals to
   use. The function will try and choose a sensible number
   of dates/times as well as formatting the date/time
-  appropriately to the range being considered. This does
+  appropriately to the range being considered.  This does
   not always work as desired automatically. The user can
   therefore increase or decrease the number of intervals by
   adjusting the value of \code{date.breaks} up or down.}
@@ -173,7 +173,7 @@
   \code{timePlot} passes the option \code{hemisphere =
   "southern"} on to \code{cutData} to provide southern
   (rather than default northern) hemisphere handling of
-  \code{type = "season"}. Similarly, most common plotting
+  \code{type = "season"}.  Similarly, most common plotting
   parameters, such as \code{layout} for panel arrangement
   and \code{pch} and \code{cex} for plot symbol type and
   size and \code{lty} and \code{lwd} for line type and
@@ -254,9 +254,9 @@ timePlot(mydata, pollutant = c("nox", "no2"))
 timePlot(mydata, pollutant = c("nox", "no2"), group = TRUE)
 
 # alternative by normalising concentrations and plotting on the same
-scale
+  scale
 timePlot(mydata, pollutant = c("nox", "co", "pm10", "so2"), group = TRUE, avg.time =
-"year", normalise = "1/1/1998", lwd = 3, lty = 1)
+  "year", normalise = "1/1/1998", lwd = 3, lty = 1)
 
 # examples of selecting by date
 

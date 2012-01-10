@@ -2,17 +2,18 @@
 \alias{timeVariation}
 \title{Diurnal, day of the week and monthly variation}
 \usage{
-  timeVariation(mydata, pollutant = "nox", local.time =
-  FALSE, normalise = FALSE, xlab = c("hour", "hour",
-  "month", "weekday"), name.pol = pollutant, type =
-  "default", group = NULL, ci = TRUE, cols = "hue", key =
-  NULL, key.columns = 1, auto.text = TRUE, alpha = 0.4,
-  ...)
+  timeVariation(mydata, pollutant = "nox",
+    local.time = FALSE, normalise = FALSE,
+    xlab = c("hour", "hour", "month", "weekday"),
+    name.pol = pollutant, type = "default", group = NULL,
+    difference = FALSE, B = 500, ci = TRUE, cols = "hue",
+    key = NULL, key.columns = 1, auto.text = TRUE,
+    alpha = 0.4, ...)
 }
 \arguments{
   \item{mydata}{A data frame of hourly (or higher temporal
-  resolution data). Must include a \code{date} field and at
-  least one variable to plot.}
+  resolution data).  Must include a \code{date} field and
+  at least one variable to plot.}
 
   \item{pollutant}{Name of variable to plot. Two or more
   pollutants can be plotted, in which case a form like
@@ -69,8 +70,21 @@
   setting \code{group = "site"} will plot all sites
   together in each panel. See examples below.}
 
+  \item{difference}{If two pollutants are chosen then
+  setting \code{difference = TRUE} will also plot the
+  difference in means between the two variables as
+  \code{pollutant[2] - pollutant[1]}. Bootstrap 95\%
+  confidence intervals of the difference in means are also
+  calculated. A horizontal dashed line is shown at y = 0.}
+
+  \item{B}{Number of bootstrap replicates to use. Can be
+  useful to reduce this value when there are a large number
+  of observations available to increase the speed of the
+  calculations without affecting the 95% confidence
+  interval calculations by much.}
+
   \item{ci}{Should confidence intervals be shown? The
-  default is \code{TRUE}. Setting this to \code{FALSE} can
+  default is \code{TRUE}.  Setting this to \code{FALSE} can
   be useful if multiple pollutants are chosen where
   over-lapping confidence intervals can over complicate
   plots.}
@@ -81,7 +95,7 @@
   details).}
 
   \item{key}{By default \code{timeVariation} produces four
-  plots on one page. While it is useful to see these plots
+  plots on one page.  While it is useful to see these plots
   together, it is sometimes necessary just to use one for a
   report. If \code{key} is \code{TRUE}, a key is added to
   all plots allowing the extraction of a single plot
@@ -99,10 +113,10 @@
   properly e.g.  by subscripting the `2' in NO2.}
 
   \item{alpha}{The alpha transparency used for plotting
-  confidence intervals. 0 is fully transparent and 1 is
+  confidence intervals.  0 is fully transparent and 1 is
   opaque. The default is 0.4}
 
-  \item{\dots}{Other graphical parameters passed onto
+  \item{...}{Other graphical parameters passed onto
   \code{lattice:xyplot} and \code{cutData}. For example, in
   the case of \code{cutData} the option \code{hemisphere =
   "southern"}.}
@@ -114,7 +128,7 @@
   \code{call}, the command used to generate the plot;
   \code{data}, the data used to make the four components of
   the plot (or subplots); and \code{plot}, the associated
-  subplots.  If retained, e.g. using \code{output <-
+  subplots.  If retained, e.g.  using \code{output <-
   timeVariation(mydata, "nox")}, this output can be used to
   recover the data, reproduce or rework the original plot
   or undertake further analysis.
@@ -133,26 +147,50 @@
   \code{output <- timeVariation(mydata, "nox")}
 }
 \description{
-  Plots the diurnal and day of the week variation for
-  different variables, typically pollutant concentrations.
-  Three separate plots are produced.
+  Plots the diurnal, day of the week and monthly variation
+  for different variables, typically pollutant
+  concentrations. Four separate plots are produced.
 }
 \details{
   The variation of pollutant concentrations by hour of the
-  day and day of the week can reveal many interesting
-  features that relate to source types. For traffic
-  sources, there are often important differences in the way
-  vehicles vary by vehicles type e.g. less heavy vehicles
-  at weekends.
+  day and day of the week etc. can reveal many interesting
+  features that relate to source types and meteorology. For
+  traffic sources, there are often important differences in
+  the way vehicles vary by vehicles type e.g. less heavy
+  vehicles at weekends.
 
   The \code{timeVariation} function makes it easy to see
   how concentrations (and many other variable types) vary
   by hour of the day and day of the week.
 
-  The plots also show the 95% confidence intervals in the
-  mean, which is particularly useful for comparing two
-  different pollutants whose concentrations have been
-  normalised.
+  The plots also show the 95\% confidence intervals in the
+  mean. The 95\% confidence intervals in the mean are
+  calculated through bootstrap simulations, which will
+  provide more robust estimates of the confidence intervals
+  (particularly when there are relatively few data).
+
+  The function can handle multiple pollutants and uses the
+  flexible \code{type} option to provide separate panels
+  for each 'type' --- see \code{cutData} for more details.
+  \code{timeVariation} can also accept a \code{group}
+  option which is useful if data are stacked. This will
+  work in a similar way to having multiple pollutants in
+  separate columns.
+
+  The option \code{difference} will calculate the
+  difference in means of two pollutants together with
+  bootstrap estimates of the 95\% confidence intervals in
+  the difference in the mean. This works in two ways:
+  either two pollutants are supplied in separate columns
+  e.g. \code{pollutant = c("no2", "o3")}, or there are two
+  unique values of \code{group}. The difference is
+  calculated as the second pollutant minus the first and is
+  labelled as such. Considering differences in this way can
+  provide many useful insights and is particularly useful
+  for model evaluation when information is needed about
+  where a model differs from observations by many different
+  time scales. The manual contains various examples of
+  using \code{difference = TRUE}.
 
   Note also that the \code{timeVariation} function works
   well on a subset of data and in conjunction with other
@@ -198,6 +236,19 @@ timeVariation(mydata, pollutant = "nox", group = "gmtbst")
 ## example, consider the NOx and NO2 split by levels of O3:
 
 \dontrun{timeVariation(mydata, pollutant = c("nox", "no2"), type = "o3", normalise = TRUE)}
+
+## difference in concentrations
+timeVariation(mydata, poll= c("pm25", "pm10"), difference = TRUE)
+
+# It is also useful to consider how concentrations vary by
+# considering two different periods e.g. in intervention
+# analysis. In the following plot NO2 has clearly increased but much
+# less so at weekends - perhaps suggesting vehicles other than cars
+# are important because flows of cars are approximately invariant by
+# day of the week
+
+mydata <- splitByDate(mydata, dates= "1/1/2003", labels = c("before Jan. 2003", "After Jan. 2003"))
+timeVariation(mydata, pollutant = "no2", group = "split.by", difference = TRUE)
 
 ## sub plots can be extracted from the openair object
 myplot <- timeVariation(mydata, pollutant = "no2")

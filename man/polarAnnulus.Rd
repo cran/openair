@@ -2,13 +2,15 @@
 \alias{polarAnnulus}
 \title{Bivariate polarAnnulus plot}
 \usage{
-  polarAnnulus(mydata, pollutant = "nox", resolution =
-  "fine", local.time = FALSE, period = "hour", type =
-  "default", limits = c(0, 100), cols = "default", width =
-  "normal", exclude.missing = TRUE, date.pad = FALSE,
-  force.positive = TRUE, k = c(20, 10), normalise = FALSE,
-  key.header = "", key.footer = pollutant, key.position =
-  "right", key = TRUE, auto.text = TRUE, ...)
+  polarAnnulus(mydata, pollutant = "nox",
+    resolution = "fine", local.time = FALSE,
+    period = "hour", type = "default", limits = c(0, 100),
+    cols = "default", width = "normal", min.bin = 1,
+    exclude.missing = TRUE, date.pad = FALSE,
+    force.positive = TRUE, k = c(20, 10),
+    normalise = FALSE, key.header = "",
+    key.footer = pollutant, key.position = "right",
+    key = TRUE, auto.text = TRUE, ...)
 }
 \arguments{
   \item{mydata}{A data frame minimally containing
@@ -83,13 +85,7 @@
   with too many gaps in it for sensible smoothing), or
   \code{type = "weekday"} and \code{period = "weekday"}.}
 
-  \item{limits}{The function does its best to choose
-  sensible limits automatically. However, there are
-  circumstances when the user will wish to set different
-  ones. An example would be a series of plots showing each
-  year of data separately. The limits are set in the form
-  \code{c(lower, upper)}, so \code{limits = c(0, 100)}
-  would force the plot limits to span 0-100.}
+  \item{limits}{Limits for colour scale.}
 
   \item{cols}{Colours to be used for plotting. Options
   include "default", "increment", "heat", "jet" and user
@@ -100,6 +96,16 @@
 
   \item{width}{The width of the annulus; can be "normal"
   (the default), "thin" or "fat".}
+
+  \item{min.bin}{The minimum number of points allowed in a
+  wind speed/wind direction bin.  The default is 1. A value
+  of two requires at least 2 valid records in each bin an
+  so on; bins with less than 2 valid records are set to NA.
+  Care should be taken when using a value > 1 because of
+  the risk of removing real data points. It is recommended
+  to consider your data with care. Also, the
+  \code{polarFreq} function can be of use in such
+  circumstances.}
 
   \item{exclude.missing}{Setting this option to \code{TRUE}
   (the default) removes points from the plot that are too
@@ -149,13 +155,15 @@
   scales e.g. NOx and CO. Often useful if more than one
   \code{pollutant} is chosen.}
 
-  \item{key.header,key.footer}{Adds additional text/labels
-  to the scale key. For example, passing the options
+  \item{key.header}{Adds additional text/labels to the
+  scale key.  For example, passing the options
   \code{key.header = "header", key.footer = "footer1"} adds
   addition text above and below the scale key. These
   arguments are passed to \code{drawOpenKey} via
   \code{quickText}, applying the \code{auto.text} argument,
   to handle formatting.}
+
+  \item{key.footer}{see \code{key.header}.}
 
   \item{key.position}{Location where the scale key is to
   plotted.  Allowed arguments currently include
@@ -171,12 +179,12 @@
   automatically try and format pollutant names and units
   properly e.g.  by subscripting the \sQuote{2} in NO2.}
 
-  \item{\dots}{Other graphical parameters passed onto
+  \item{...}{Other graphical parameters passed onto
   \code{lattice:levelplot} and \code{cutData}. For example,
   \code{polarAnnulus} passes the option \code{hemisphere =
   "southern"} on to \code{cutData} to provide southern
   (rather than default northern) hemisphere handling of
-  \code{type = "season"}. Similarly, common axis and title
+  \code{type = "season"}.  Similarly, common axis and title
   labelling options (such as \code{xlab}, \code{ylab},
   \code{main}) are passed to \code{levelplot} via
   \code{quickText} to handle routine formatting.}

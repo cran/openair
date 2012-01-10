@@ -163,17 +163,17 @@
 ##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
 ##'   \code{TRUE} titles and axis labels will automatically try and format
 ##'   pollutant names and units properly e.g.  by subscripting the `2' in NO2.
-##' @param \dots Other graphical parameters are passed onto \code{cutData} and 
-##'   an appropriate \code{lattice} plot function (\code{xyplot}, \code{levelplot} 
-##'   or \code{hexbinplot} depending on \code{method}). For example, 
-##'   \code{scatterPlot} passes the option \code{hemisphere = "southern"} on to 
-##'   \code{cutData} to provide southern (rather than default northern) hemisphere 
-##'   handling of \code{type = "season"}. Similarly, for the default case 
-##'   \code{method = "scatter"} common axis and title labelling options (such 
-##'   as \code{xlab}, \code{ylab}, \code{main}) are passed to \code{xyplot} via 
-##'   \code{quickText} to handle routine formatting. Other common graphical 
-##'   parameters, e.g. \code{layout} for panel arrangement, 
-##'   \code{pch} for plot symbol and \code{lwd} and \code{lty} 
+##' @param \dots Other graphical parameters are passed onto \code{cutData} and
+##'   an appropriate \code{lattice} plot function (\code{xyplot}, \code{levelplot}
+##'   or \code{hexbinplot} depending on \code{method}). For example,
+##'   \code{scatterPlot} passes the option \code{hemisphere = "southern"} on to
+##'   \code{cutData} to provide southern (rather than default northern) hemisphere
+##'   handling of \code{type = "season"}. Similarly, for the default case
+##'   \code{method = "scatter"} common axis and title labelling options (such
+##'   as \code{xlab}, \code{ylab}, \code{main}) are passed to \code{xyplot} via
+##'   \code{quickText} to handle routine formatting. Other common graphical
+##'   parameters, e.g. \code{layout} for panel arrangement,
+##'   \code{pch} for plot symbol and \code{lwd} and \code{lty}
 ##'   for line width and type, as also available (see examples below).
 ##' @export
 ##' @return As well as generating the plot itself, \code{scatterPlot} also
@@ -280,7 +280,7 @@ scatterPlot <- function(mydata,
                         key = TRUE,
                         key.title = group,
                         key.columns = 1,
-                        key.position = "bottom",
+                        key.position = "right",
                         strip = TRUE,
                         log.x = FALSE,
                         log.y = FALSE,
@@ -329,6 +329,8 @@ scatterPlot <- function(mydata,
                            quickText(extra.args$xlab, auto.text) else quickText(x, auto.text)
     extra.args$ylab <- if("ylab" %in% names(extra.args))
                            quickText(extra.args$ylab, auto.text) else quickText(y, auto.text)
+    extra.args$key.footer <- if("key.footer" %in% names(extra.args))
+                             extra.args$key.footer else NULL
     if(!"lwd" %in% names(extra.args))
          extra.args$lwd <- 1
     if(!"lty" %in% names(extra.args))
@@ -529,12 +531,11 @@ scatterPlot <- function(mydata,
     pol.name <- sapply(levels(mydata[ , group]), function(x) quickText(x, auto.text))
 
     if (is.na(z)) { ## non-continuous key
-        if (missing(key.columns)) if (npol < 5) key.columns <- npol else key.columns <- 4
 
         if (key & npol > 1) {
             if (plot.type == "p") {
-                key <- list(points = list(col = myColors[1:npol]), 
-                            pch = if("pch" %in% names(extra.args)) extra.args$pch else 1, 
+                key <- list(points = list(col = myColors[1:npol]),
+                            pch = if("pch" %in% names(extra.args)) extra.args$pch else 1,
                             text = list(lab = pol.name, cex = 0.8),
                             space = key.position, columns = key.columns,
                             title = quickText(key.title, auto.text), cex.title = 1,
@@ -550,9 +551,9 @@ scatterPlot <- function(mydata,
             }
 
             if (plot.type == "b") {
-                key <- list(points = list(col = myColors[1:npol]), 
+                key <- list(points = list(col = myColors[1:npol]),
                             pch = if("pch" %in% names(extra.args)) extra.args$pch else 1,
-                            lines = list(col = myColors[1:npol], 
+                            lines = list(col = myColors[1:npol],
                             lty = extra.args$lty, lwd = extra.args$lwd),
                             text = list(lab = pol.name, cex = 0.8),  space = key.position,
                             columns = key.columns,
@@ -668,7 +669,7 @@ scatterPlot <- function(mydata,
                                                       lwd = lwd, ...)
 
 
-                      if (map) {
+                      if (map && group.number == 1) {
                           require(maps)
                           mp <- map(database="world", plot = FALSE)
                           llines(mp$x, mp$y, col = "black")
@@ -693,14 +694,14 @@ scatterPlot <- function(mydata,
         default.main <- if(is.na(z)) "" else paste(x, "vs.", y, "by levels of", z)
 
         extra.args$main <- if("main" %in% names(extra.args))
-                               quickText(extra.args$main, auto.text) else 
+                               quickText(extra.args$main, auto.text) else
                                    quickText(default.main, auto.text)
 
         if(!"pch" %in% names(extra.args))
             extra.args$pch <- 1
 
         #reset for extra.args
-        xyplot.args<- listUpdate(xyplot.args, extra.args)
+        xyplot.args<- openair:::listUpdate(xyplot.args, extra.args)
 
         #plot
         plt <- do.call(xyplot, xyplot.args)
@@ -742,7 +743,7 @@ scatterPlot <- function(mydata,
             extra.args$pch <- 1
 
         #reset for extra.args
-        hexbinplot.args<- listUpdate(hexbinplot.args, extra.args)
+        hexbinplot.args<- openair:::listUpdate(hexbinplot.args, extra.args)
 
         #plot
         plt <- do.call(hexbinplot, hexbinplot.args)
@@ -811,7 +812,7 @@ scatterPlot <- function(mydata,
 
         col.scale <- breaks
 
-    
+
         #plot byt ... handler
 
         levelplot.args <- list(x = myform, data = mydata,
@@ -838,6 +839,7 @@ scatterPlot <- function(mydata,
                              }
 
                              if (map) {
+
                                  require(maps)
                                  mp <- map(database="world", plot = FALSE)
                                  llines(mp$x, mp$y, col = "black")
@@ -850,14 +852,14 @@ scatterPlot <- function(mydata,
 
         #z must exist to get here
         extra.args$main <- if("main" %in% names(extra.args))
-                               quickText(extra.args$main, auto.text) else 
+                               quickText(extra.args$main, auto.text) else
                                    quickText(paste(x, "vs.", y, "by levels of", z), auto.text)
 
         if(!"pch" %in% names(extra.args))
             extra.args$pch <- 1
 
         #reset for extra.args
-        levelplot.args<- listUpdate(levelplot.args, extra.args)
+        levelplot.args<- openair:::listUpdate(levelplot.args, extra.args)
 
         #plot
         plt <- do.call(levelplot, levelplot.args)
@@ -944,7 +946,7 @@ scatterPlot <- function(mydata,
             extra.args$pch <- 1
 
         #reset for extra.args
-        levelplot.args<- listUpdate(levelplot.args, extra.args)
+        levelplot.args<- openair:::listUpdate(levelplot.args, extra.args)
 
         #plot
         plt <- do.call(levelplot, levelplot.args)

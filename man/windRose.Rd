@@ -3,24 +3,30 @@
 \alias{windRose}
 \title{Traditional wind rose plot and pollution rose variation}
 \usage{
-  windRose(mydata, ws.int = 2, angle = 30, type =
-  "default", cols = "default", grid.line = NULL, width = 1,
-  auto.text = TRUE, breaks = 4, offset = 10, paddle = TRUE,
-  key.header = NULL, key.footer = "(m/s)", key.position =
-  "bottom", key = TRUE, dig.lab = 5, statistic =
-  "prop.count", pollutant = NULL, annotate = TRUE, ...)
+  windRose(mydata, ws = "ws", wd = "wd", ws.int = 2, angle
+    = 30, type = "default", cols = "default", grid.line =
+    NULL, width = 1, auto.text = TRUE, breaks = 4, offset =
+    10, paddle = TRUE, key.header = NULL, key.footer =
+    "(m/s)", key.position = "bottom", key = TRUE, dig.lab =
+    5, statistic = "prop.count", pollutant = NULL, annotate
+    = TRUE, ...)
 
   pollutionRose(mydata, pollutant = "nox", key.footer =
-  pollutant, breaks = 6, paddle = FALSE, key.position =
-  "right", ...)
+    pollutant, breaks = 6, paddle = FALSE, key.position =
+    "right", ...)
 }
 \arguments{
   \item{mydata}{A data frame containing fields \code{ws}
   and \code{wd}}
 
+  \item{ws}{Name of the column representing wind speed.}
+
+  \item{wd}{Name of the column representing wind
+  direction.}
+
   \item{ws.int}{The Wind speed interval. Default is 2 m/s
   but for low met masts with low mean wind speeds a value
-  of 1 or 0.5 m/s may be better. Note, this argument is
+  of 1 or 0.5 m/s may be better.  Note, this argument is
   superseded in \code{pollutionRose}. See \code{breaks}
   below.}
 
@@ -123,7 +129,7 @@
   \code{"prop.count"}, \code{"prop.mean"} and
   \code{"abs.count"}. The default \code{"prop.count"} sizes
   bins according to the proportion of the frequency of
-  measurements. Similarly, \code{prop.mean} sizes bins
+  measurements.  Similarly, \code{prop.mean} sizes bins
   according to their relative contribution to the mean.
   \code{"abs.count"} provides the absolute count of
   measurements in each bin.}

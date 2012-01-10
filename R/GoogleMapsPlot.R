@@ -100,7 +100,9 @@
 ##'   conditioning, e.g., \code{type = c("weekday", "daylight")}.)
 ##' @param xlim,ylim The x-axis and y-axis size ranges. By default these sized
 ##'   on the basis of \code{latitude} and \code{longitude}, but can be forced
-##'   as part of the plot call.
+##'   as part of the plot call [NOTE: This IN DEVELOPMENT option is currently 
+##'   restricted and requested ranges are forced square to maintain map aspect 
+##'   ratio.].
 ##' @param pollutant If supplied, the name of a pollutant or variable in
 ##'   \code{mydata} that is to be evaluated at the each measurement point.
 ##'   Depending on settings, nominally \code{cols} and \code{cex}, the
@@ -139,6 +141,8 @@
 ##'   formatting if enabled (\code{auto.text = TRUE}). By default
 ##'   \code{GoogleMapsPlot} uses \code{latitude} and \code{longitude} names as
 ##'   xlab and ylab, respectively.
+##' @param axes An alternative (short hand) option to add/remove 
+##'   (\code{TRUE}/\code{FALSE}) all x and y axis annotation and labelling.
 ##' @param map If supplied, an \code{RgoogleMaps} output, to be used as a
 ##'   background map. If \code{NULL} (as in default), a map is produced using
 ##'   the \code{RgoogleMaps} function \code{MapBackground}, the supplied
@@ -201,7 +205,11 @@
 ##' An openair output can be manipulated using a number of generic operations,
 ##'   including \code{print}, \code{plot} and \code{summary}. See
 ##'   \code{\link{openair.generics}} for further details.
-##' @note IN DEVELOPMENT: HANDLE WITH CARE.
+##' @note IN DEVELOPMENT: HANDLE WITH CARE. 
+##'   
+##'   Users should be aware that Google Maps are flat 2D projections of the 
+##'   Earth's (curved) surface. Latitude and longitude scales are therefore 
+##'   locally modified to account for this. 
 ##' @author Karl Ropkins
 ##' @seealso \code{\link[RgoogleMaps]{MapBackground}},
 ##'   \code{\link[lattice]{xyplot}}, \code{\link[lattice]{panel.xyplot}} and
@@ -224,7 +232,7 @@ GoogleMapsPlot <- function(mydata,
          latitude = "latitude", longitude = "longitude", type = "default",
          xlim, ylim, pollutant = NULL, labels = NULL, cols = "default",
          limits = c(0,100), cex = pollutant, pch = NULL, cex.range =c(2,10),
-         xlab = longitude, ylab = latitude, main = "",
+         xlab = longitude, ylab = latitude, main = "", axes = TRUE, 
          map = NULL, map.raster = TRUE, map.cols = NULL,
          aspect = 1, as.table = TRUE, plot.type = "xy",
          plot.transparent = FALSE,
@@ -345,6 +353,25 @@ GoogleMapsPlot <- function(mydata,
     #all of x, y, temp need to be handled as type here
     mydata <- checkPrep(mydata, temp, type=c(latitude, longitude, type),
                         remove.calm = FALSE)
+
+    ############################
+    #axes handling
+    ############################
+    if(!axes){
+        temp <- list(draw = FALSE)
+        extra.args$scales <- if("scales" %in% names(extra.args)){
+                                 if(is.list(extra.args$scales)){
+                                     listUpdate(temp, extra.args$scales)
+                                 } else temp 
+                             } else temp
+#############
+#this will need changing
+#if we move xlab, ylab to ...
+#############
+        xlab <- ""
+        ylab <- ""   
+    }
+
 
     ############################
     #type, cutData handling
@@ -503,6 +530,8 @@ GoogleMapsPlot <- function(mydata,
                          names(formals(GetMap.bbox)),
                          names(formals(GetMap))))
 
+######temp til RgoogleMaps Fixed
+
         temp2 <- try(qbbox(lat = temp.y, lon = temp.x), silent = TRUE)
         if(is(temp2)[1] == "try-error")
             stop(paste("\tGoogleMapsPlot could not apply supplied lat, lon combination",
@@ -518,6 +547,21 @@ GoogleMapsPlot <- function(mydata,
 
         #use MapBackground and list of allowed args
         map <- try(do.call(GetMap.bbox, map), silent = TRUE)
+
+#get square range map
+
+#temp.2 <- c(min(temp.y, na.rm = TRUE) + (diff(range(temp.y, na.rm=TRUE))/2),
+#            min(temp.x, na.rm = TRUE) + (diff(range(temp.x, na.rm=TRUE))/2))
+#zoom <- min(MaxZoom(range(temp.y, na.rm=TRUE), 
+#                    range(temp.x, na.rm=TRUE)), 
+#            na.rm=TRUE)
+#map <- list(center = temp.2, zoom = zoom, destfile = "XtempX.png", 
+#                     maptype = "terrain")
+#map <- listUpdate(map, extra.args, subset.b = temp)
+#map$size <- c(640, 640)
+#map <- try(do.call(GetMap, map), silent = TRUE)
+
+
         if(is(map)[1] == "try-error")
             stop(paste("\tGoogleMapsPlot could not apply supplied lat, lon and RgoogleMap args",
                        "\n\t[check call settings and data source]", sep = ""),
@@ -532,10 +576,27 @@ GoogleMapsPlot <- function(mydata,
 #Currently disabled because
 #issue with RgoogleMaps
 
-#    if(missing(xlim))
-        xlim <- c(map$BBOX$ll[2], map$BBOX$ur[2])
-#    if(missing(ylim))
-        ylim <- c(map$BBOX$ll[1], map$BBOX$ur[1])
+##    if(missing(xlim))
+##        xlim <- c(map$BBOX$ll[2], map$BBOX$ur[2])
+##    if(missing(ylim))
+##        ylim <- c(map$BBOX$ll[1], map$BBOX$ur[1])
+
+###############
+#new bit
+###############
+#using rescale to panel dimensions
+
+#x, ylims
+temp <- LatLon2XY.centered(map, c(map$BBOX$ll[1], map$BBOX$ur[1]), 
+                                c(map$BBOX$ll[2], map$BBOX$ur[2]))
+xlim <- temp$newX
+ylim <- temp$newY    
+
+#latitude, longitude
+temp <- LatLon2XY.centered(map, mydata[, latitude], 
+                                mydata[, longitude])
+mydata[, longitude] <- temp$newX
+mydata[, latitude] <- temp$newY
 
      map <- openairMapManager(map)
 
@@ -544,6 +605,10 @@ GoogleMapsPlot <- function(mydata,
 ###############
 #while testing xlim/ylim
 ###############
+
+##############
+#rationalise the x,ylim?
+##############
 
     map$xlim <- xlim
     map$ylim <- ylim
@@ -596,16 +661,52 @@ GoogleMapsPlot <- function(mydata,
                                                         x <- paste(" ", x, sep = "")
                                                         quickText(x, auto.text)})
 
+#######################
+#could think about moving these
+#and map making outside
+#plot function
+#######################
 
+#axis formatting
+    gmYscale.components <- function(lim, ...){
+        ans <- yscale.components.default(c(map$BBOX$ll[1], map$BBOX$ur[1]), ...)
+        ans$num.limit <- map$ylim
+        temp <- LatLon2XY.centered(map, ans$left$ticks$at,
+                                        map$BBOX$ll[2])
+        temp.2 <- LatLon2XY.centered(map, ans$left$ticks$at,
+                                          map$BBOX$ur[2])
+        ans$left$ticks$at <- temp$newY
+        ans$left$labels$at <- temp$newY
+        ans$right <- ans$left
+        ans$right$ticks$at <- temp.2$newY
+        ans$right$labels$at <- temp.2$newY
+        ans
+    }
+    gmXscale.components <- function(lim, ...){
+        ans <- xscale.components.default(c(map$BBOX$ll[2], map$BBOX$ur[2]), ...)
+        ans$num.limit <- map$xlim
+        temp <- LatLon2XY.centered(map, map$BBOX$ll[1],
+                                        ans$bottom$ticks$at)
+        temp.2 <- LatLon2XY.centered(map, map$BBOX$ur[1],
+                                          ans$bottom$ticks$at)
+        ans$bottom$ticks$at <- temp$newX
+        ans$bottom$labels$at <- temp$newX
+        ans$top <- ans$bottom
+        ans$top$ticks$at <- temp.2$newX
+        ans$top$labels$at <- temp.2$newX
+        ans
+    }
 
     ##############################
     #plot
     ##############################
 
-    plt <- xyplot(myform, data = mydata, z = z,
+    my.plot <- list(myform, data = mydata, z = z,
                   cex = cex, pch = pch, xlim = xlim, ylim = ylim,
                   col = mycols, aspect = aspect, as.table = as.table,
                   at = breaks, col.regions = col.range,
+                  yscale.components = gmYscale.components,
+                  xscale.components = gmXscale.components,
                   main = main, xlab = xlab, ylab = ylab, labels = labels,
                   panel = function(x, y, subscripts, at, col.regions, ...){
                                    map.panel(map)
@@ -631,9 +732,9 @@ GoogleMapsPlot <- function(mydata,
                                                labels)
                                    if(!is.null(labels$labels))
                                        do.call(ltext, labels)
-
-                  }, legend = legend, ...
-    )
+                  }, legend = legend)
+    my.plot <- listUpdate(my.plot, extra.args)
+    plt <- do.call(xyplot, my.plot)
 
     ##############################
     #update for two levels
@@ -738,9 +839,9 @@ openairMapManager <- function(map){
 
 panel.GoogleMapsRaster <- function(map){
     grid.raster(map$myTile,
-         x = unit(map$BBOX$ll[2], "native"), y = unit(map$BBOX$ll[1], "native"),
-         width = unit(map$BBOX$ur[2] - map$BBOX$ll[2], "native"),
-         height = unit(map$BBOX$ur[1] - map$BBOX$ll[1], "native"),
+         x = unit(map$xlim[1], "native"), y = unit(map$ylim[1], "native"),
+         width = unit(map$xlim[2] - map$xlim[1], "native"),
+         height = unit(map$ylim[2] - map$ylim[1], "native"),
          just = c("left", "bottom")
     )
 }
@@ -767,14 +868,14 @@ panel.GoogleMaps <- function(map){
     ra <- dim(map$myTile)
     map.col <- map$myTile
 
-    map.lon <- rep(seq(map$BBOX$ll[2], map$BBOX$ur[2],
+    map.lon <- rep(seq(map$xlim[1], map$xlim[2],
                        length.out = ra[1]),
                    each = ra[2])
-    map.lat <- rep(seq(map$BBOX$ur[1], map$BBOX$ll[1],
+    map.lat <- rep(seq(map$ylim[2], map$ylim[1],
                        length.out = ra[2]),
                    time = ra[1])
-    width <- (map$BBOX$ll[2] - map$BBOX$ur[2]) / ra[1]
-    height <- (map$BBOX$ll[1] - map$BBOX$ur[1]) / ra[2]
+    width <- (map$xlim[1] - map$xlim[2]) / ra[1]
+    height <- (map$ylim[1] - map$ylim[1]) / ra[2]
 
     panel.rect(x = map.lon, y = map.lat,
                width = width, height = height,

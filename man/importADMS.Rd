@@ -7,10 +7,10 @@
 \title{ADMS data import function(s) for openair}
 \usage{
   importADMS(file = file.choose(), file.type = "unknown",
-  drop.case = TRUE, drop.input.dates = TRUE, keep.units =
-  TRUE, simplify.names = TRUE, test.file.structure = TRUE,
-  drop.delim = TRUE, add.prefixes = TRUE, names = NULL,
-  ...)
+    drop.case = TRUE, drop.input.dates = TRUE,
+    keep.units = TRUE, simplify.names = TRUE,
+    test.file.structure = TRUE, drop.delim = TRUE,
+    add.prefixes = TRUE, names = NULL, ...)
 }
 \arguments{
   \item{file}{The ADMS file to be imported. Default,
@@ -44,18 +44,18 @@
   character vector in data frame comment if defined in
   \code{file}.  Alternative, \code{FALSE}, discards units.
   (NOTE: currently, only \code{.bgd} and \code{.pst} files
-  assign units. So, this option is ignored when importing
+  assign units.  So, this option is ignored when importing
   \code{.met} or \code{.mop} files.)}
 
   \item{simplify.names}{Option to simplify data names in
   accordance with common \code{openair} practices. Default,
   \code{TRUE}. Alternative, \code{FALSE}, returns data with
-  names as interpreted by standard R. (NOTE: Some ADMS file
-  data names include symbols and structures that R does not
-  allow as part of a name, so some renaming is automatic
-  regardless of \code{simplify.names} setting.  For
-  example, brackets or symbols are removed from names or
-  repaced with ".", and names in the form "1/x" may be
+  names as interpreted by standard R.  (NOTE: Some ADMS
+  file data names include symbols and structures that R
+  does not allow as part of a name, so some renaming is
+  automatic regardless of \code{simplify.names} setting.
+  For example, brackets or symbols are removed from names
+  or repaced with ".", and names in the form "1/x" may be
   returned as "X1.x" or "recip.x".)}
 
   \item{test.file.structure}{Option to test file structure
@@ -74,7 +74,7 @@
 
   \item{add.prefixes}{Option to add prefixes to data names.
   ADMS .mop files include a number of input and process
-  data types with shared names. Prefixes can be
+  data types with shared names.  Prefixes can be
   automatically added to these so individual data can be
   readily identified in the R/openair environment. Default,
   \code{TRUE}, adds "process." as a prefix to processed
@@ -89,7 +89,7 @@
   prefix to processed data names, while the argument
   (\code{add.prefixes=c("in","out")}) would add "in" and
   "out" prefixes to input and output data names,
-  respectively. (Note: Option ignored when importing
+  respectively.  (Note: Option ignored when importing
   \code{.bgd}, \code{.met} or \code{.pst} files.)}
 
   \item{names}{Option applied by \code{simplifyNamesADMS}

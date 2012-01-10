@@ -66,7 +66,7 @@ quickText <- function(text, auto.text = TRUE){
 			ans)
 	ans <- gsub("wd","' 'wind dir.' '", ans)
 	ans <- gsub("rh ","' 'relative humidity' '", ans)
-	ans <- gsub("cl ","' 'cloud cover' '", ans)
+#	ans <- gsub("cl ","' 'cloud cover' '", ans)
 	ans <- gsub("temp","' 'temperature' '", ans)
 
 #pm10 variants

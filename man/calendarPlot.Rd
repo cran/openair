@@ -2,12 +2,12 @@
 \alias{calendarPlot}
 \title{Plot time series values in convential calendar format}
 \usage{
-  calendarPlot(mydata, pollutant = "nox", year = 2003, type
-  = "default", annotate = "date", statistic = "mean", cols
-  = "heat", limits = c(0, 100), main = paste(pollutant,
-  "in", year), key.header = "", key.footer = "",
-  key.position = "right", key = TRUE, auto.text = TRUE,
-  ...)
+  calendarPlot(mydata, pollutant = "nox", year = 2003,
+    type = "default", annotate = "date",
+    statistic = "mean", cols = "heat", limits = c(0, 100),
+    main = paste(pollutant, "in", year), key.header = "",
+    key.footer = "", key.position = "right", key = TRUE,
+    auto.text = TRUE, ...)
 }
 \arguments{
   \item{mydata}{A data frame minimally containing
@@ -52,10 +52,10 @@
   year.}
 
   \item{key.header,key.footer}{Adds additional text/labels
-  to the scale key. For example, passing
+  to the scale key.  For example, passing
   \code{calendarPlot(mydata, key.header = "header",
   key.footer = "footer")} adds addition text above and
-  below the scale key. These arguments are passed to
+  below the scale key.  These arguments are passed to
   \code{drawOpenKey} via \code{quickText}, applying the
   \code{auto.text} argument, to handle formatting.}
 

@@ -50,8 +50,12 @@
 ##' @param statistic Statistic used for calculating monthly values. Default is
 ##'   \code{"mean"}, but can also be \code{"percentile"}. See
 ##'   \code{timeAverage} for more details.
-##' @param avg.time Either "month" (the default), or "year". Determines whether
-##'   monthly mean or annual mean trends are plotted.
+##' @param avg.time  Can be "month" (the default), "season" or
+##' "year". Determines the time over which data should be
+##' averaged. Note that for "year", six or more years are
+##' required. For "season" the data are plit up into spring: March,
+##' April, May etc. Note that December is considered as belonging to
+##' winter of the following year.
 ##' @param percentile Percentile value(s) to use if \code{statistic =
 ##'   "percentile"} is chosen. Can be a vector of numbers e.g. \code{percentile
 ##'   = c(5, 50, 95)} will plot the 5th, 50th and 95th percentile values
@@ -95,20 +99,21 @@
 ##'   \code{TRUE} titles and axis labels will automatically try and format
 ##'   pollutant names and units properly e.g.  by subscripting the \sQuote{2}
 ##'   in NO2.
-##' @param \dots Other graphical parameters are passed onto \code{cutData} and 
-##'   \code{lattice:xyplot}. For example, \code{smoothTrend} passes the option 
-##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern 
+##' @param \dots Other graphical parameters are passed onto \code{cutData} and
+##'   \code{lattice:xyplot}. For example, \code{smoothTrend} passes the option
+##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern
 ##'   (rather than default northern) hemisphere handling of \code{type = "season"}.
-##'   Similarly, common graphical arguments, such as \code{xlim} and \code{ylim} 
-##'   for plotting ranges and \code{pch} and \code{cex} for plot symbol type and 
-##'   size, are passed on \code{xyplot}, although some local modifications may 
-##'   be applied by openair. For example, axis and title labelling options (such 
-##'   as \code{xlab}, \code{ylab} and \code{main}) are passed to \code{xyplot} via 
-##'   \code{quickText} to handle routine formatting. One special case here is 
-##'   that many graphical parameters can be vectors when used with 
-##'   \code{statistic = "percentile"} and a vector of \code{percentile} values, 
-##'   see examples below.   
+##'   Similarly, common graphical arguments, such as \code{xlim} and \code{ylim}
+##'   for plotting ranges and \code{pch} and \code{cex} for plot symbol type and
+##'   size, are passed on \code{xyplot}, although some local modifications may
+##'   be applied by openair. For example, axis and title labelling options (such
+##'   as \code{xlab}, \code{ylab} and \code{main}) are passed to \code{xyplot} via
+##'   \code{quickText} to handle routine formatting. One special case here is
+##'   that many graphical parameters can be vectors when used with
+##'   \code{statistic = "percentile"} and a vector of \code{percentile} values,
+##'   see examples below.
 ##' @export
+##' @import zoo
 ##' @return As well as generating the plot itself, \code{smoothTrend} also
 ##'   returns an object of class ``openair''. The object includes three main
 ##'   components: \code{call}, the command used to generate the plot;
@@ -178,11 +183,11 @@ smoothTrend <- function(mydata,
     extra.args <- list(...)
 
     #label controls
-    ##xlab in args because local unique 
+    ##xlab in args because local unique
     ##ylab in code before plot because of local unique
     extra.args$main <- if("main" %in% names(extra.args))
                            quickText(extra.args$main, auto.text) else quickText("", auto.text)
-    
+
     #lty, lwd, pch, cex handling
     if(!"lty" %in% names(extra.args))
         extra.args$lty <- 1
@@ -199,7 +204,7 @@ smoothTrend <- function(mydata,
 
     vars <- c("date", pollutant)
 
-    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
 
     if (!missing(percentile)) statistic <- "percentile"
 
@@ -209,17 +214,17 @@ smoothTrend <- function(mydata,
         percentile <- percentile[1]
     }
 
-    if (!avg.time %in% c("year", "month")) stop("Averaging period must be 'month' or 'year'.")
+    if (!avg.time %in% c("year", "season", "month")) stop("Averaging period must be 'month' or 'year'.")
 
     ## for overall data and graph plotting
-    start.year <- startYear(mydata$date)
-    end.year <-  endYear(mydata$date)
-    start.month <- startMonth(mydata$date)
-    end.month <-  endMonth(mydata$date)
+    start.year <- openair:::startYear(mydata$date)
+    end.year <-  openair:::endYear(mydata$date)
+    start.month <- openair:::startMonth(mydata$date)
+    end.month <-  openair:::endMonth(mydata$date)
 
     ## date formatting for plot
-    date.at <- dateBreaks(mydata$date, date.breaks)$major
-    date.format <- dateBreaks(mydata$date)$format
+    date.at <- openair:::dateBreaks(mydata$date, date.breaks)$major
+    date.format <- openair:::dateBreaks(mydata$date)$format
 
     ## cutData depending on type
     mydata <- cutData(mydata, type, ...)
@@ -259,10 +264,10 @@ smoothTrend <- function(mydata,
         mydata <- mydata[min.idx:max.idx, ]
 
         ## these subsets may have different dates to overall
-        start.year <- startYear(mydata$date)
-        end.year <-  endYear(mydata$date)
-        start.month <- startMonth(mydata$date)
-        end.month <-  endMonth(mydata$date)
+        start.year <- openair:::startYear(mydata$date)
+        end.year <-  openair:::endYear(mydata$date)
+        start.month <- openair:::startMonth(mydata$date)
+        end.month <-  openair:::endMonth(mydata$date)
 
         ## can't deseason less than 2 years of data
         if (nrow(mydata) < 24) deseason <- FALSE
@@ -344,7 +349,7 @@ smoothTrend <- function(mydata,
         key <- list(lines = list(col = myColors[1 : length(npol)], lty = extra.args$lty, lwd = extra.args$lwd,
                     pch = extra.args$pch, type = "b", cex = extra.args$cex),
                     text = list(lab = key.lab),  space = "bottom", columns = key.columns)
-        if (!"ylab" %in% names(extra.args)) 
+        if (!"ylab" %in% names(extra.args))
             extra.args$ylab <-  quickText(paste(pollutant, collapse = ", "), auto.text)
 
     } else {
@@ -368,7 +373,7 @@ smoothTrend <- function(mydata,
                   scales = list(x = list(at = date.at, format = date.format),
                   y = list(relation = y.relation, rot = 0)),
                   panel = panel.superpose,
-                  
+
                   panel.groups = function(x, y, group.number, lwd, lty, pch, col, col.line, col.symbol,
                   subscripts, type = "b",...) {
 
@@ -391,7 +396,7 @@ smoothTrend <- function(mydata,
                   })
 
     #reset for extra.args
-    xyplot.args <- listUpdate(xyplot.args, extra.args)
+    xyplot.args <- openair:::listUpdate(xyplot.args, extra.args)
 
     #plot
     plt <- do.call(xyplot, xyplot.args)

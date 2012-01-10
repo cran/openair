@@ -2,8 +2,9 @@
 \alias{calcPercentile}
 \title{Calculate percentile values from a time series}
 \usage{
-  calcPercentile(mydata, pollutant = "o3", avg.time =
-  "month", percentile = 50, data.thresh = 0, start = NA)
+  calcPercentile(mydata, pollutant = "o3",
+    avg.time = "month", percentile = 50, data.thresh = 0,
+    start = NA)
 }
 \arguments{
   \item{mydata}{A data frame of data with a \code{date}
@@ -28,7 +29,7 @@
 }
 \value{
   Returns a data frame with new columns for each percentile
-  level. New columns are given names like percentile.95
+  level.  New columns are given names like percentile.95
   e.g. when percentile = 95 is chosen. See examples below.
 }
 \description{

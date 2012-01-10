@@ -2,8 +2,8 @@
 \alias{rollingMean}
 \title{Calculate rollingMean values}
 \usage{
-  rollingMean(mydata, pollutant = "o3", hours = 8, new.name
-  = "rolling", data.thresh = 75)
+  rollingMean(mydata, pollutant = "o3", hours = 8,
+    new.name = "rolling", data.thresh = 75)
 }
 \arguments{
   \item{mydata}{A data frame containing a \code{date}

@@ -3,13 +3,15 @@
 \alias{trajPlot}
 \title{Trajectory plots with conditioning}
 \usage{
-  trajLevel(mydata, lon = "lon", lat = "lat", pollutant =
-  "pm10", method = "level", smooth = FALSE, map = TRUE,
-  lon.inc = 1.5, lat.inc = 1.5, ...)
+  trajLevel(mydata, lon = "lon", lat = "lat",
+    pollutant = "pm10", type = "default", method = "level",
+    smooth = FALSE, map = TRUE, lon.inc = 1.5,
+    lat.inc = 1.5, ...)
 
-  trajPlot(mydata, lon = "lon", lat = "lat", pollutant =
-  "pm10", method = "scatter", smooth = FALSE, map = TRUE,
-  lon.inc = 1.5, lat.inc = 1.5, group = NA, ...)
+  trajPlot(mydata, lon = "lon", lat = "lat",
+    pollutant = "pm10", type = "default",
+    method = "scatter", smooth = FALSE, map = TRUE,
+    lon.inc = 1.5, lat.inc = 1.5, group = NA, ...)
 }
 \arguments{
   \item{mydata}{Data frame, the result of importing a
@@ -21,6 +23,29 @@
   \item{lat}{Column containing the latitude, as a decimal.}
 
   \item{pollutant}{Pollutant to be plotted.}
+
+  \item{type}{\code{type} determines how the data are split
+  i.e. conditioned, and then plotted. The default is will
+  produce a single plot using the entire data. Type can be
+  one of the built-in types as detailed in \code{cutData}
+  e.g. "season", "year", "weekday" and so on. For example,
+  \code{type = "season"} will produce four plots --- one
+  for each season.
+
+  It is also possible to choose \code{type} as another
+  variable in the data frame. If that variable is numeric,
+  then the data will be split into four quantiles (if
+  possible) and labelled accordingly. If type is an
+  existing character or factor variable, then those
+  categories/levels will be used directly. This offers
+  great flexibility for understanding the variation of
+  different variables and how they depend on one another.
+
+  \code{type} can be up length two e.g. \code{type =
+  c("season", "weekday")} will produce a 2x2 plot split by
+  season and day of the week. Note, when two types are
+  provided the first forms the columns and the second the
+  rows.}
 
   \item{method}{For trajectory plots, either "scatter" or
   "level". The latter option bins the data according to the
@@ -112,7 +137,7 @@ type = "day")
 
 # or show each day grouped by colour, with some other options set
 \dontrun{
-trajPlot(selectByDate(lond, start = "15/4/2010", end = "21/4/2010"), plot.type = "l",
+ trajPlot(selectByDate(lond, start = "15/4/2010", end = "21/4/2010"), plot.type = "l",
 group = "day", col = "jet", lwd = 2, key.pos = "right", key.col = 1)
 }
 # more examples to follow linking with concentration measurements...

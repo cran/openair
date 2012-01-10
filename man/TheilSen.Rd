@@ -4,13 +4,13 @@
 \title{Tests for trends using Theil-Sen estimates}
 \usage{
   TheilSen(mydata, pollutant = "nox", deseason = FALSE,
-  type = "default", avg.time = "month", statistic = "mean",
-  percentile = NA, data.thresh = 0, alpha = 0.05, dec.place
-  = 2, xlab = "year", lab.frac = 0.99, lab.cex = 0.8,
-  x.relation = "same", y.relation = "same", data.col =
-  "cornflowerblue", line.col = "red", text.col =
-  "darkgreen", cols = NULL, auto.text = TRUE, autocor =
-  FALSE, slope.percent = FALSE, date.breaks = 7,...)
+    type = "default", avg.time = "month", statistic =
+    "mean", percentile = NA, data.thresh = 0, alpha = 0.05,
+    dec.place = 2, xlab = "year", lab.frac = 0.99, lab.cex
+    = 0.8, x.relation = "same", y.relation = "same",
+    data.col = "cornflowerblue", line.col = "red", text.col
+    = "darkgreen", cols = NULL, auto.text = TRUE, autocor =
+    FALSE, slope.percent = FALSE, date.breaks = 7,...)
 
   MannKendall(mydata,...)
 }
@@ -21,7 +21,7 @@
   pollutant.}
 
   \item{pollutant}{The parameter for which a trend test is
-  required. Mandatory.}
+  required.  Mandatory.}
 
   \item{deseason}{Should the data be de-deasonalized first?
   If \code{TRUE} the function \code{stl} is used (seasonal
@@ -51,10 +51,12 @@
   day of the week. Note, when two types are provided the
   first forms the columns and the second the rows.}
 
-  \item{avg.time}{Either "month" (the default), or "year".
-  Determines whether monthly mean or annual mean trends are
-  plotted. Note that for "year", six or more years are
-  required.}
+  \item{avg.time}{Can be "month" (the default), "season" or
+  "year". Determines the time over which data should be
+  averaged. Note that for "year", six or more years are
+  required. For "season" the data are plit up into spring:
+  March, April, May etc. Note that December is considered
+  as belonging to winter of the following year.}
 
   \item{statistic}{Statistic used for calculating monthly
   values. Default is \code{"mean"}, but can also be
@@ -147,7 +149,7 @@
   \item{date.breaks}{Number of major x-axis intervals to
   use. The function will try and choose a sensible number
   of dates/times as well as formatting the date/time
-  appropriately to the range being considered. This does
+  appropriately to the range being considered.  This does
   not always work as desired automatically. The user can
   therefore increase or decrease the number of intervals by
   adjusting the value of \code{date.breaks} up or down.}
@@ -157,7 +159,7 @@
   \code{TheilSen} passes the option \code{hemisphere =
   "southern"} on to \code{cutData} to provide southern
   (rather than default northern) hemisphere handling of
-  \code{type = "season"}. Similarly, common axis and title
+  \code{type = "season"}.  Similarly, common axis and title
   labelling options (such as \code{xlab}, \code{ylab},
   \code{main}) are passed to \code{xyplot} via
   \code{quickText} to handle routine formatting.}

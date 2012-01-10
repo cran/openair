@@ -3,7 +3,7 @@
 \title{Import data from King's College London networks}
 \usage{
   importKCL(site = "my1", year = 2009, pollutant = "all",
-  met = FALSE, units = "mass")
+    met = FALSE, units = "mass")
 }
 \arguments{
   \item{site}{Site code of the network site to import e.g.

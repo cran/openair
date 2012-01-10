@@ -94,9 +94,12 @@ MannKendall <- function(mydata, ...) {
 ##' "weekday")} will produce a 2x2 plot split by season and day of the
 ##' week. Note, when two types are provided the first forms the
 ##' columns and the second the rows.
-##' @param avg.time Either "month" (the default), or "year". Determines whether
-##'   monthly mean or annual mean trends are plotted. Note that for "year",
-##'   six or more years are required.
+##' @param avg.time Can be "month" (the default), "season" or
+##' "year". Determines the time over which data should be
+##' averaged. Note that for "year", six or more years are
+##' required. For "season" the data are plit up into spring: March,
+##' April, May etc. Note that December is considered as belonging to
+##' winter of the following year.
 ##' @param statistic Statistic used for calculating monthly values. Default is
 ##'   \code{"mean"}, but can also be \code{"percentile"}. See
 ##'   \code{timeAverage} for more details.
@@ -286,10 +289,15 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
     vars <- c("date", pollutant)
 
 
-    if (!avg.time %in% c("year", "month")) stop ("avg.time can only be 'month' or 'year'.")
+    if (!avg.time %in% c("year", "month", "season")) stop ("avg.time can only be 'month', 'season' or 'year'.")
 
     ## data checks
     mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
+
+     ## date formatting for plot
+    date.at <- as.Date(openair:::dateBreaks(mydata$date, date.breaks)$major)
+    date.format <- openair:::dateBreaks(mydata$date)$format
+
 
     ## cutData depending on type
     mydata <- cutData(mydata, type, ...)
@@ -300,9 +308,10 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
     start.month <-  openair:::startMonth(mydata$date)
     end.month <-   openair:::endMonth(mydata$date)
 
-    ## calculate means
-    mydata <- ddply(mydata, type, timeAverage, avg.time = avg.time, statistic = statistic,
-                    percentile = percentile, data.thresh = data.thresh)
+
+    mydata <- ddply(mydata, type, timeAverage, avg.time = avg.time,
+                         statistic = statistic, percentile = percentile,
+                         data.thresh = data.thresh)
 
     process.cond <- function(mydata) {
 
@@ -449,6 +458,7 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
     res2 <- merge(res2, percent.change, by = type)
 ########################################################################################################
 
+
     temp <- paste(type, collapse = "+")
     myform <- formula(paste("conc ~ date| ", temp, sep = ""))
 
@@ -458,8 +468,7 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
                         as.table = TRUE,
                         strip = strip,
                         strip.left = strip.left,
-                        scales = list(x = list(at = openair:::dateBreaks(split.data$date, date.breaks)$major,
-                                      format = openair:::dateBreaks(split.data$date)$format,
+                        scales = list(x = list(at = date.at, format = date.format,
                                       relation = x.relation),
                         y = list(relation = y.relation, rot = 0)),
 
@@ -510,7 +519,7 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
                         })
 
                                         #reset for extra.args
-    xyplot.args<- listUpdate(xyplot.args, extra.args)
+    xyplot.args<- openair:::listUpdate(xyplot.args, extra.args)
 
                                         #plot
     plt <- do.call(xyplot, xyplot.args)
@@ -518,7 +527,7 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
 
     ## output ######################################################################################
 
-    if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip, strip.left = strip.left))
+    if (length(type) == 1) plot(plt) else plot(openair:::useOuterStrips(plt, strip = strip, strip.left = strip.left))
     newdata <- list(main.data = split.data, res2 = res2, subsets = c("main.data", "res2"))
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
@@ -563,7 +572,7 @@ panel.shade <- function(split.data, start.year, end.year, ylim) {
 
 MKstats <- function(x, y, alpha, autocor) {
 
-    estimates <- regci(as.numeric(x), y, alpha = alpha, autocor = autocor)$regci
+    estimates <- openair:::regci(as.numeric(x), y, alpha = alpha, autocor = autocor)$regci
 
     p <- estimates[2, 5]
 

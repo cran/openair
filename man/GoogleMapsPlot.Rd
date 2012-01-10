@@ -4,15 +4,17 @@
 \alias{panel.GoogleMapsRaster}
 \title{GoogleMapsPlot}
 \usage{
-  GoogleMapsPlot(mydata, latitude = "latitude", longitude =
-  "longitude", type = "default", xlim, ylim, pollutant =
-  NULL, labels = NULL, cols = "default", limits = c(0,
-  100), cex = pollutant, pch = NULL, cex.range = c(2, 10),
-  xlab = longitude, ylab = latitude, main = "", map = NULL,
-  map.raster = TRUE, map.cols = NULL, aspect = 1, as.table
-  = TRUE, plot.type = "xy", plot.transparent = FALSE, key =
-  NULL, key.position = "right", key.header = "", key.footer
-  = pollutant, auto.text = TRUE, ...)
+  GoogleMapsPlot(mydata, latitude = "latitude",
+    longitude = "longitude", type = "default", xlim, ylim,
+    pollutant = NULL, labels = NULL, cols = "default",
+    limits = c(0, 100), cex = pollutant, pch = NULL,
+    cex.range = c(2, 10), xlab = longitude,
+    ylab = latitude, main = "", axes = TRUE, map = NULL,
+    map.raster = TRUE, map.cols = NULL, aspect = 1,
+    as.table = TRUE, plot.type = "xy",
+    plot.transparent = FALSE, key = NULL,
+    key.position = "right", key.header = "",
+    key.footer = pollutant, auto.text = TRUE, ...)
 }
 \arguments{
   \item{mydata}{The openair data frame to use to generate
@@ -28,7 +30,7 @@
   hour of the day), "weekday" (for day of the week) and
   "month" (for month of the year), "year", "season"
   (string, summer, autumn or winter) and "daylight"
-  (daylight or nighttime hour). But it is also possible to
+  (daylight or nighttime hour).  But it is also possible to
   set \code{type} to the name of another variable in
   \code{mydata}, in which case the plotted data will be
   divided into quantiles based on that data series. See
@@ -40,11 +42,13 @@
   \item{xlim,ylim}{The x-axis and y-axis size ranges. By
   default these sized on the basis of \code{latitude} and
   \code{longitude}, but can be forced as part of the plot
-  call.}
+  call [NOTE: This IN DEVELOPMENT option is currently
+  restricted and requested ranges are forced square to
+  maintain map aspect ratio.].}
 
   \item{pollutant}{If supplied, the name of a pollutant or
   variable in \code{mydata} that is to be evaluated at the
-  each measurement point. Depending on settings, nominally
+  each measurement point.  Depending on settings, nominally
   \code{cols} and \code{cex}, the evaluation can be by
   colour, size or both.}
 
@@ -75,7 +79,7 @@
   If \code{NULL} all points are plotted an equal size. If
   \code{pollutant} or the name of another variable in
   \code{mydata} this is used by scaled using
-  \code{cex.range}. If necessary, \code{cex} can also be
+  \code{cex.range}.  If necessary, \code{cex} can also be
   forced, e.g. \code{cex = 1} to make all points the same
   size.}
 
@@ -98,6 +102,10 @@
   (\code{auto.text = TRUE}). By default
   \code{GoogleMapsPlot} uses \code{latitude} and
   \code{longitude} names as xlab and ylab, respectively.}
+
+  \item{axes}{An alternative (short hand) option to
+  add/remove (\code{TRUE}/\code{FALSE}) all x and y axis
+  annotation and labelling.}
 
   \item{map}{If supplied, an \code{RgoogleMaps} output, to
   be used as a background map. If \code{NULL} (as in
@@ -130,11 +138,11 @@
   similar to other openair plot.}
 
   \item{plot.type}{The method to use to produce the data
-  layer for the plot. By default (\code{plot.type = "xy"}),
-  this is an x-y style scatter plot, but can also be other
-  pre-defined options (e.g. "level" for a levelplot) or a
-  user-defined panel of a similar structire to
-  \code{panel...} functions in \code{lattice}.}
+  layer for the plot.  By default (\code{plot.type =
+  "xy"}), this is an x-y style scatter plot, but can also
+  be other pre-defined options (e.g. "level" for a
+  levelplot) or a user-defined panel of a similar structire
+  to \code{panel...} functions in \code{lattice}.}
 
   \item{plot.transparent}{Data layer transparency control.
   When enabled, this forces colours used in the data layer
@@ -142,7 +150,7 @@
   density, from invisible (0) to solid (1), or a logical
   (\code{TRUE} applying default 0.5). Note: User-defined
   colours (and some panel defaults when supplying
-  specialist functions using e.g. \code{plot.type =
+  specialist functions using e.g.  \code{plot.type =
   panel...}) may sometimes supersede this option.}
 
   \item{key}{Fine control for the color scale key. By
@@ -152,7 +160,7 @@
   \code{drawOpenKey}).}
 
   \item{key.position}{Location where the scale key should
-  be plotted. Allowed arguments currently include
+  be plotted.  Allowed arguments currently include
   \code{"top"}, \code{"right"}, \code{"bottom"} and
   \code{"left"}.}
 
@@ -211,6 +219,11 @@
 }
 \note{
   IN DEVELOPMENT: HANDLE WITH CARE.
+
+  Users should be aware that Google Maps are flat 2D
+  projections of the Earth's (curved) surface. Latitude and
+  longitude scales are therefore locally modified to
+  account for this.
 }
 \examples{
 #TO BE CONFIRMED

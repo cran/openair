@@ -93,8 +93,8 @@
 }
 \note{
   The trajectories were run using the February 2011 HYSPLIT
-  model. The function is primarily written to investigate a
-  single site at a time for a single year. The trajectory
+  model.  The function is primarily written to investigate
+  a single site at a time for a single year. The trajectory
   files are quite large and care should be exercised when
   importing several years and/or sites.
 }

@@ -30,16 +30,20 @@
 ##' with outputs from instruments where there are a range of time periods used.
 ##'
 ##' It is also very useful for plotting data using \code{\link{timePlot}}.
-##' Often the data are too dense to see patterns and setting different
+##' Often the data are too dense to see patterns and setheiltting different
 ##' averaging periods easily helps with interpretation.
 ##'
 ##' @param mydata A data frame containing a \code{date} field . Can be class
 ##'   \code{POSIXct} or \code{Date}.
-##' @param avg.time This defines the time period to average to. Can be "sec",
-##'   "min", "hour", "day", "DSTday", "week", "month", "quarter" or "year". For
-##'   much increased flexibility a number can precede these options followed by
-##'   a space. For example, a time average of 2 months would be \code{avg.time
-##'   = "2 month"}. See \code{cut.POSIXt} for further details on this.
+##' @param avg.time This defines the time period to average to. Can be
+##' "sec", "min", "hour", "day", "DSTday", "week", "month", "quarter"
+##' or "year". For much increased flexibility a number can precede
+##' these options followed by a space. For example, a time average of
+##' 2 months would be \code{avg.time = "2 month"}. See
+##' \code{cut.POSIXt} for further details on this. In addition,
+##' \code{avg.time} can equal "season", in which case 3-month seasonal
+##' values are calculated with spring defined as March, April, May and
+##' so on.
 ##'
 ##' Note that \code{avg.time} can be \emph{less} than the time interval of the
 ##'   original series, in which case the series is expanded to the new time
@@ -70,6 +74,16 @@
 ##'   that the sequence is then "2009-11-29 12:00:00", "2009-11-29 12:15:00"
 ##'   \ldots{} \code{start.date} is therefore used to force this type of
 ##'   sequence.
+##' @param vector.ws Should vector averaging be carried out on wind
+##' speed if available? The default is \code{FALSE} and scalar
+##' averages are calculated. Vector averaging of the wind speed is
+##' carried out on the u and v wind components. For example, consider
+##' the average of two hours where the wind direction and speed of the
+##' first hour is 0 degrees and 2m/s and 180 degrees and 2m/s for the
+##' second hour. The scalar average of the wind speed is simply the
+##' arithmetic average = 2m/s and the vector average is
+##' 0m/s. Vector-averaged wind speeds will always be lower than
+##' scalar-averaged values.
 ##' @export
 ##' @return Returns a data frame with date in class \code{POSIXct} and will
 ##'   remove any non-numeric columns except a column "site".
@@ -96,12 +110,13 @@
 ##'
 ##'
 timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
-                        statistic = "mean", percentile = NA, start.date = NA) {
+                        statistic = "mean", percentile = NA, start.date = NA,
+                        vector.ws = FALSE) {
 
     ## extract variables of interest
     vars <- names(mydata)
 
-    mydata <- checkPrep(mydata, vars, type = "default", remove.calm = FALSE)
+    mydata <- openair:::checkPrep(mydata, vars, type = "default", remove.calm = FALSE)
 
     ## time zone of data
     TZ <- attr(mydata$date, "tzone")
@@ -129,10 +144,11 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
     calc.mean <- function(mydata, start.date) { ## function to calculate means
 
         ## pad out missing data
-        mydata <- date.pad(mydata)
-
+     #   mydata <- date.pad(mydata)
+       # mydata <- date.pad2(mydata, interval = avg.time)
         ## time diff in seconds of orginal data
-        timeDiff <-  as.numeric(strsplit(find.time.interval(mydata$date), " ")[[1]][1])
+        timeDiff <-  as.numeric(strsplit(openair:::find.time.interval(mydata$date),
+                                         " ")[[1]][1])
 
         ## time diff of new interval
         by2 <- strsplit(avg.time, " ", fixed = TRUE)[[1]]
@@ -147,9 +163,8 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
         if (units == "hour") int <- 3600
         if (units == "day") int <- 3600 * 24
         if (units == "week") int <- 3600 * 24 * 7
-        if (units == "month") int <- 3600 * 24 * 30 ## approx
-        if (units == "month") int <- 3600 * 24 * 30 ## approx
-        if (units == "quarter") int <- 3600 * 24 * 30 * 3 ## approx
+        if (units == "month") int <- 3600 * 24 * 31 ## approx
+        if (units == "quarter" || units == "season") int <- 3600 * 24 * 31 * 3 ## approx
         if (units == "year") int <- 3600 * 8760 ## approx
 
         seconds <- seconds * int ## interval in seconds
@@ -162,7 +177,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
             theDates <- mydata$date
 
             ## need to add a date to the end when expanding times
-            interval <- find.time.interval(mydata$date)
+            interval <- openair:::find.time.interval(mydata$date)
             allDates <- seq(min(mydata$date), max(mydata$date), by = interval)
             allDates <- c(allDates, max(allDates) + timeDiff)
 
@@ -198,7 +213,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
             firstLine <- data.frame(date = as.POSIXct(start.date))
 
             mydata <- rbind.fill(firstLine, mydata)
-            mydata <- date.pad(mydata)
+        #    mydata <- date.pad2(mydata)
             ## for cutting data must ensure it is in GMT because combining
             ## data frames when system is not GMT puts it in local time!...
             ## and then cut makes a string/factor levels with tz lost...
@@ -207,16 +222,39 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
 
         }
 
-        if (all(c("wd", "wd") %in% names(mydata))) {
+        if (all(c("ws", "wd") %in% names(mydata))) {
             if (is.numeric(mydata$wd)) {
                 mydata$u <- mydata$ws * sin(2 * pi * mydata$wd / 360)
                 mydata$v <- mydata$ws * cos(2 * pi * mydata$wd / 360)
             }
         }
 
+        if (avg.time == "season") {
+            ## special case for season
+            ## need to group specific months: Dec/Jan/Feb etc
 
-        ## cut into sections dependent on period
-        mydata$cuts <- cut(mydata$date, avg.time)
+            mydata <- cutData(mydata, type = "season")
+            ## remove any missing seasons e.g. through type = "season"
+            mydata <- mydata[!is.na(mydata$season), ]
+
+            ## calculate year
+            mydata <- transform(mydata, year = as.numeric(format(date, "%Y")),
+                                month = as.numeric(format(date, "%m")))
+
+            ## ids where month = 12, make December part of following year's season
+            ids <- which(mydata$month == 12)
+            mydata$year[ids] <- mydata$year[ids] + 1
+
+            ## find mean date in year-season
+            mydata <- transform(mydata, cuts = ave(date, list(year, season), FUN = mean))
+
+            mydata <- subset(mydata, select = -c(year, month))
+
+
+        } else {
+            ## cut into sections dependent on period
+            mydata$cuts <- cut(mydata$date, avg.time)
+        }
 
 
         if (data.thresh > 0) {
@@ -232,6 +270,9 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
                 }
                 res
             }
+
+            ## need to make sure all data are present..
+            mydata <- openair:::date.pad(mydata)
 
             dailymet <- aggregate(mydata[ , sapply(mydata, class) %in% c("numeric", "integer"),
                                          drop = FALSE], list(date = mydata$cuts), newMethod,
@@ -272,12 +313,19 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
                 ids <- which(dailymet$wd < 0)  ## ids where wd < 0
                 dailymet$wd[ids] <- dailymet$wd[ids] + 360
 
+                ## vector average ws
+                if (vector.ws) dailymet <- within(dailymet, ws <- (u ^ 2 + v ^ 2) ^ 0.5)
+
                 dailymet <- subset(dailymet, select = c(-u, -v))
             }
         }
 
         if ("site" %in% names(mydata)) dailymet$site <- mydata$site[1]
 
+        ## fill missing gaps
+        if (avg.time != "season") {
+            dailymet <- openair:::date.pad2(dailymet, interval = avg.time)
+        }
         dailymet
 
     }

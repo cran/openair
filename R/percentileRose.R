@@ -57,6 +57,8 @@
 ##'   "green", "blue")}.
 ##' @param fill Should the percentile intervals be filled (default) or should
 ##'   lines be drawn (\code{fill = FALSE}).
+##' @param intervals User-supplied intervals for the scale
+##' e.g. \code{intervals = c(0, 10, 30, 50)}
 ##' @param angle.scale The pollutant scale is by default shown at a 45 degree
 ##'   angle. Sometimes the placement of the scale may interfere with an
 ##'   interesting feature. The user can therefore set \code{angle.scale} to
@@ -67,26 +69,27 @@
 ##'   \code{TRUE} titles and axis labels will automatically try and format
 ##'   pollutant names and units properly e.g.  by subscripting the \sQuote{2}
 ##'   in NO2.
-##' @param key.header,key.footer Adds additional text/labels to the scale key.
+##' @param key.header Adds additional text/labels to the scale key.
 ##'   For example, passing options \code{key.header = "header", key.footer =
 ##'   "footer"} adds addition text above and below the scale key. These
 ##'   arguments are passed to \code{drawOpenKey} via \code{quickText}, applying
 ##'   the \code{auto.text} argument, to handle formatting.
+##' @param key.footer \code{key.header}.
 ##' @param key.position Location where the scale key is to plotted.  Allowed
 ##'   arguments currently include \code{"top"}, \code{"right"}, \code{"bottom"}
 ##'   and \code{"left"}.
 ##' @param key Fine control of the scale key via \code{drawOpenKey}. See
 ##'   \code{drawOpenKey} for further details.
-##' @param \dots Other graphical parameters are passed onto \code{cutData} and 
-##'   \code{lattice:xyplot}. For example, \code{percentileRose} passes the option 
-##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern 
+##' @param ... Other graphical parameters are passed onto \code{cutData} and
+##'   \code{lattice:xyplot}. For example, \code{percentileRose} passes the option
+##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern
 ##'   (rather than default northern) hemisphere handling of \code{type = "season"}.
-##'   Similarly, common graphical arguments, such as \code{xlim} and \code{ylim} 
-##'   for plotting ranges and \code{lwd} for line thickness when using 
-##'   \code{fill = FALSE}, are passed on \code{xyplot}, although some local 
-##'   modifications may be applied by openair. For example, axis and title 
-##'   labelling options (such as \code{xlab}, \code{ylab} and \code{main}) 
-##'   are passed to \code{xyplot} via \code{quickText} to handle routine formatting. 
+##'   Similarly, common graphical arguments, such as \code{xlim} and \code{ylim}
+##'   for plotting ranges and \code{lwd} for line thickness when using
+##'   \code{fill = FALSE}, are passed on \code{xyplot}, although some local
+##'   modifications may be applied by openair. For example, axis and title
+##'   labelling options (such as \code{xlab}, \code{ylab} and \code{main})
+##'   are passed to \code{xyplot} via \code{quickText} to handle routine formatting.
 ##' @export
 ##' @return As well as generating the plot itself, \code{percentileRose} also
 ##'   returns an object of class ``openair''. The object includes three main
@@ -124,6 +127,7 @@
 percentileRose <- function (mydata, pollutant = "nox", type = "default",
                             percentile = c(25, 50, 75, 90, 95), cols = "default",
                             fill = TRUE,
+                            intervals = NULL,
                             angle.scale = 45,
                             auto.text = TRUE,  key.header = NULL,
                             key.footer = "percentile", key.position = "bottom",
@@ -275,13 +279,16 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
     newdata <- results.grid ## data to return
 
     ## nice intervals for pollutant concentrations
-    intervals <- pretty(results.grid$pollutant)
+    if (missing(intervals)) intervals <- pretty(results.grid$pollutant)
+
     labs <- intervals ## the labels
 
     ## if negative data, add to make all postive to plot properly
     min.int <- min(intervals)
+    zero <- NA
 
     if (min.int < 0 ) {
+        zero <- which(intervals == 0) ## the zero line
         intervals <- intervals + -1 * min.int
         results$pollutant <- results$pollutant + -1 * min.int
         results.grid <- transform(results, x = pollutant * sin(wd * pi / 180),
@@ -327,6 +334,11 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
                       angles <- seq(0, 2 * pi, length = 360)
                       sapply(intervals, function(x) llines(x * sin(angles), x * cos(angles),
                                                            col = "grey85", lty = 5))
+
+                      ## zero line if needed
+                      if (!is.na(zero)) llines(intervals[zero] * sin(angles),
+                                               intervals[zero] * cos(angles), col = "grey85")
+
 
                       ## add axis lines
                       larrows(max(intervals) * -1, 0, max(intervals), 0, code = 3, length = 0.1)
