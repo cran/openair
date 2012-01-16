@@ -126,7 +126,7 @@ corPlot <- function(mydata, pollutants = NULL, type = "default", cluster = TRUE,
                       unique(c("date", pollutants)) else
                           unique(c(pollutants))
 
-    mydata <- checkPrep(mydata, pollutants, type = type,
+    mydata <- openair:::checkPrep(mydata, pollutants, type = type,
                         remove.calm = FALSE)
 
     ## remove variables where all are NA
@@ -231,7 +231,7 @@ corPlot <- function(mydata, pollutants = NULL, type = "default", cluster = TRUE,
               panel = panel.corrgram,  text.col = text.col, r.thresh = r.thresh, label = TRUE)
 
     #reset for extra.args
-    levelplot.args<- listUpdate(levelplot.args, extra.args)
+    levelplot.args <- openair:::listUpdate(levelplot.args, extra.args)
 
     #plot
     plt <- do.call(levelplot, levelplot.args)

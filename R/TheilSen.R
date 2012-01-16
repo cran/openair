@@ -340,8 +340,8 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
             if (nrow(mydata) < 24) deseason <- FALSE
 
             if (deseason) {
-                ## interpolate missing data using zoo
-                mydata[, pollutant] <- na.approx(mydata[, pollutant])
+                ## interpolate missing data
+                mydata[, pollutant] <- approx(mydata[, pollutant], n = length(mydata[, pollutant]))$y
 
                 myts <- ts(mydata[, pollutant], start = c(start.year, start.month),
                            end = c(end.year, end.month), frequency = 12)

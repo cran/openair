@@ -254,8 +254,12 @@ polarAnnulus <- function(mydata,
 
     ## add extra wds - reduces discontinuity at 0/360
     zero.wd <- subset(mydata, wd == 360)
-    zero.wd$wd <- 0
-    mydata <- rbind(mydata, zero.wd)
+
+    if (nrow(zero.wd) > 0) {
+        zero.wd$wd <- 0
+        mydata <- rbind(mydata, zero.wd)
+    }
+
 
     ## remove NAs
     mydata <- na.omit(mydata)

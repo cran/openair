@@ -117,6 +117,10 @@
 ##'   pollutants a single column can make to key too wide. The user can thus
 ##'   choose to use several columns by setting \code{columns} to be less than
 ##'   the number of pollutants.
+##' @param start.day What day of the week should the plots start on?
+##' The user can change the start day by supplying an integer between
+##' 0 and 6. Sunday = 0, Monday = 1, \ldots For example to start the
+##' weekday plots on a Saturday, choose \code{start.day = 6}.
 ##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
 ##'   \code{TRUE} titles and axis labels will automatically try and format
 ##'   pollutant names and units properly e.g.  by subscripting the `2' in NO2.
@@ -215,7 +219,7 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE, normali
                           xlab = c("hour", "hour", "month", "weekday"),
                           name.pol = pollutant, type = "default", group = NULL,
                           difference = FALSE, B = 500, ci = TRUE, cols = "hue",
-                          key = NULL, key.columns = 1, auto.text = TRUE,
+                          key = NULL, key.columns = 1, start.day = 1, auto.text = TRUE,
                           alpha = 0.4, ...)   {
 
 
@@ -342,10 +346,23 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE, normali
 
     if (normalise) extra.args$ylab <- "normalised level"
 
+    ## get days in right order
+    days <- format(ISOdate(2000, 1, 2:8), "%A")
+    days.abb <- format(ISOdate(2000, 1, 2:8), "%a")
+    if (start.day < 0 || start.day > 6) stop ("start.day must be between 0 and 6.")
+
+    if (start.day > 0) {
+        day.ord <- c(days[(1 + start.day):7], days[1:(1 + start.day - 1)])
+        day.ord.abb <- c(days.abb[(1 + start.day):7], days.abb[1:(1 + start.day - 1)])
+    } else {
+        day.ord <- days
+        day.ord.abb <- days.abb
+    }
+
     ## calculate temporal components
     mydata <- within(mydata, {
         weekday <- format(date, "%A")
-        weekday <- ordered(weekday, levels = format(ISOdate(2000, 1, 3:9), "%A"))
+        weekday <- ordered(weekday, levels = day.ord)
         hour <- as.numeric(format(date, "%H"))
         month <- as.numeric(format(date, "%m"))}
                      )
@@ -474,7 +491,8 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE, normali
 
     if (normalise) data.weekday <-  ddply(data.weekday, .(variable), divide.by.mean)
 
-    data.weekday$weekday <- ordered(data.weekday$weekday, levels = format(ISOdate(2000, 1, 3:9), "%A"))
+ #   data.weekday$weekday <- ordered(data.weekday$weekday, levels = format(ISOdate(2000, 1, 3:9), "%A"))
+    data.weekday$weekday <- ordered(data.weekday$weekday, levels = day.ord)
 
     data.weekday$weekday <- as.numeric(as.factor(data.weekday$weekday))
 
@@ -491,7 +509,7 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE, normali
     xyplot.args <- list(x = myform,  data = data.weekday, groups = data.weekday$variable,
                         as.table = TRUE,
                         par.settings = simpleTheme(col = myColors, pch = 16),
-                        scales = list(x = list(at = 1:7, labels = format(ISOdate(2000, 1, 3:9), "%a"))),
+                        scales = list(x = list(at = 1:7, labels = day.ord.abb)),
                         xlab = xlab[4],
                         strip = strip,
                         par.strip.text = list(cex = 0.8),

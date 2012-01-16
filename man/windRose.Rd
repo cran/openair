@@ -5,15 +5,15 @@
 \usage{
   windRose(mydata, ws = "ws", wd = "wd", ws.int = 2, angle
     = 30, type = "default", cols = "default", grid.line =
-    NULL, width = 1, auto.text = TRUE, breaks = 4, offset =
-    10, paddle = TRUE, key.header = NULL, key.footer =
-    "(m/s)", key.position = "bottom", key = TRUE, dig.lab =
-    5, statistic = "prop.count", pollutant = NULL, annotate
-    = TRUE, ...)
+    NULL, width = 1, seg = NULL, auto.text = TRUE, breaks =
+    4, offset = 10, paddle = TRUE, key.header = NULL,
+    key.footer = "(m/s)", key.position = "bottom", key =
+    TRUE, dig.lab = 5, statistic = "prop.count", pollutant
+    = NULL, annotate = TRUE, ...)
 
   pollutionRose(mydata, pollutant = "nox", key.footer =
-    pollutant, breaks = 6, paddle = FALSE, key.position =
-    "right", ...)
+    pollutant, breaks = 6, paddle = FALSE, seg = 0.9,
+    key.position = "right", ...)
 }
 \arguments{
   \item{mydata}{A data frame containing fields \code{ws}
@@ -75,6 +75,10 @@
   factor for width of wind speed intervals. For example,
   \code{width = 1.5} will make the paddle width 1.5 times
   wider.}
+
+  \item{seg}{For \code{pollutionRose} \code{seg} determines
+  with width of the segments. For example, \code{seg = 0.5}
+  will produce segments 0.5 * \code{angle}.}
 
   \item{auto.text}{Either \code{TRUE} (default) or
   \code{FALSE}. If \code{TRUE} titles and axis labels will

@@ -1,6 +1,6 @@
 pollutionRose <- function(mydata,
                           pollutant = "nox", key.footer = pollutant,
-                          breaks = 6, paddle = FALSE, key.position = "right",
+                          breaks = 6, paddle = FALSE, seg = 0.9, key.position = "right",
                           ...)
 {
     if (is.null(breaks))  breaks <- 6
@@ -12,7 +12,7 @@ pollutionRose <- function(mydata,
         breaks <- breaks[breaks >= min(mydata[ , pollutant], na.rm = TRUE)]
     }
 
-    windRose(mydata, pollutant = pollutant, paddle = paddle,
+    windRose(mydata, pollutant = pollutant, paddle = paddle, seg = seg,
              key.position = key.position, key.footer = key.footer,
              breaks = breaks, ...)
 }
@@ -53,7 +53,7 @@ pollutionRose <- function(mydata,
 ##' using "wedge" style segments and placing the scale key to the right of the
 ##' plot.
 ##' @usage windRose(mydata, ws = "ws", wd = "wd", ws.int = 2, angle = 30, type = "default",
-##'                      cols = "default", grid.line = NULL, width = 1,
+##'                      cols = "default", grid.line = NULL, width = 1, seg = NULL,
 ##'                      auto.text = TRUE, breaks = 4, offset = 10,
 ##'                      paddle = TRUE, key.header = NULL, key.footer = "(m/s)",
 ##'                      key.position = "bottom", key = TRUE, dig.lab = 5,
@@ -62,7 +62,7 @@ pollutionRose <- function(mydata,
 ##'
 ##'
 ##'     pollutionRose(mydata, pollutant = "nox", key.footer = pollutant,
-##'                          breaks = 6, paddle = FALSE, key.position = "right",
+##'                      breaks = 6, paddle = FALSE, seg = 0.9, key.position = "right",
 ##'                          ...)
 ##'
 ##'
@@ -105,6 +105,9 @@ pollutionRose <- function(mydata,
 ##' @param width For \code{paddle = TRUE}, the adjustment factor for width of
 ##'   wind speed intervals. For example, \code{width = 1.5} will make the
 ##'   paddle width 1.5 times wider.
+##' @param seg For \code{pollutionRose} \code{seg} determines with
+##' width of the segments. For example, \code{seg = 0.5} will produce
+##' segments 0.5 * \code{angle}.
 ##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
 ##'   \code{TRUE} titles and axis labels will automatically try and format
 ##'   pollutant names and units properly e.g.  by subscripting the `2' in NO2.
@@ -209,7 +212,7 @@ pollutionRose <- function(mydata,
 ##'
 ##'
 windRose <- function (mydata, ws = "ws", wd = "wd", ws.int = 2, angle = 30, type = "default",
-                      cols = "default", grid.line = NULL, width = 1,
+                      cols = "default", grid.line = NULL, width = 1, seg = NULL,
                       auto.text = TRUE, breaks = 4, offset = 10,
                       paddle = TRUE, key.header = NULL, key.footer = "(m/s)",
                       key.position = "bottom", key = TRUE, dig.lab = 5,
@@ -412,12 +415,16 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws.int = 2, angle = 30, type
                      border = NA)
         }
     } else {
+
+
         poly <- function(wd, len1, len2, width, colour, x.off = 0,
                          y.off = 0) {
+
             len1 <- len1 + off.set
             len2 <- len2 + off.set
-            theta <- seq((wd - (angle/2) + 1), (wd + (angle/2) -
-                                                1), length.out = (angle - 2) * 10)
+
+            theta <- seq((wd - seg * angle / 2), (wd + seg * angle / 2),
+                         length.out = (angle - 2) * 10)
             theta <- ifelse(theta < 1, 360 - theta, theta)
             theta <- theta * pi/180
             x1 <- len1 * sin(theta) + x.off

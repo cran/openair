@@ -22,7 +22,12 @@
 
   \item{latitude,longitude}{The names of the data series in
   \code{mydata} giving the latitudes and longitudes,
-  respectively, of measurements.}
+  respectively, of measurements.  If only one latitude
+  longitude pair are supplied, the function applies a
+  default range to the plot. To override this either set
+  the required range using \code{xlim} and \code{ylim} (see
+  below) or the map \code{zoom} level. (Note: The default
+  is equivalent to \code{zoom = 15}.)}
 
   \item{type}{The type of data conditioning to apply before
   plotting. The default is will produce a single plot using

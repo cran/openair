@@ -694,7 +694,7 @@ bootMean <- function (x, conf.int = 0.95, B = 1000, na.rm = TRUE, reps = FALSE)
     if (n < 2)
         return(c(Mean = xbar, Lower = NA, Upper = NA))
     z <- unlist(lapply(1:B, function(i, x, N)
-                       sum(x[.Internal(sample(N, N, TRUE, NULL))]), x = x, N = n)) / n
+                       sum(x[(sample.int(N, N, TRUE, NULL))]), x = x, N = n)) / n
     quant <- quantile(z, c((1 - conf.int) / 2, (1 + conf.int) / 2))
     names(quant) <- NULL
     res <- c(Mean = xbar, Lower = quant[1], Upper = quant[2])

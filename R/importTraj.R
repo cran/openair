@@ -62,16 +62,25 @@
 ##' }
 ##' @param site Site code of the network site to import
 ##' e.g. "london". Only one site can be imported at a time. The
-##' following sites are available from 1988-2010:
-##' \tabular{llrr}{
-##' SITE CODE \tab SITE NAME        \tab LATITUDE \tab LONGITUDE\cr
-##' birm      \tab Birmigham Centre \tab 52.47972 \tab -1.908078\cr
-##' ed        \tab Edinburgh        \tab 55.95197 \tab -3.195775\cr
-##' london    \tab Central London   \tab 51.5     \tab -0.1     \cr
-##' lh        \tab Lullington Heath \tab 50.7937  \tab 0.18125  \cr
-##' mh        \tab Mace Head        \tab 53.33    \tab -9.9     \cr
-##' sv        \tab Strath Vaich     \tab 57.73446 \tab -4.776583\cr
-##' yw        \tab Yarner Wood      \tab 50.5976  \tab -3.71651
+##' following sites are typically available from 2000-2011, although
+##' some UK ozone sites go back to 1988:
+##'
+##' \tabular{llrrl}{
+##' SITE CODE \tab SITE NAME        \tab LATITUDE \tab LONGITUDE \tab YEARS\cr
+##' ah        \tab Aston Hill       \tab 52.50385 \tab -3.041780 \tab 1988-2011\cr
+##' berlin    \tab Berlin, Germany  \tab 52.52000 \tab 13.400000 \tab 2000-2011\cr
+##' birm      \tab Birmigham Centre \tab 52.47972 \tab -1.908078 \tab 1990-2011\cr
+##' ed        \tab Edinburgh        \tab 55.95197 \tab -3.195775 \tab 1990-2011\cr
+##' esk       \tab Eskdalemuir      \tab 55.31530 \tab -3.206110 \tab 1998-2011\cr
+##' hm        \tab High Muffles     \tab 54.33500 \tab -0.808600 \tab 1988-2011\cr
+##' london    \tab Central London   \tab 51.50000 \tab -0.100000 \tab 1990-2011\cr
+##' lh        \tab Lullington Heath \tab 50.79370 \tab  0.181250 \tab 1988-2011\cr
+##' mh        \tab Mace Head        \tab 53.33000 \tab -9.900000 \tab 1988-2011\cr
+##' paris     \tab Paris, France    \tab 48.86200 \tab  2.339000 \tab 2000-2011\cr
+##' sib       \tab Sibton           \tab 52.29440 \tab  1.463970 \tab 1988-2011\cr
+##' sv        \tab Strath Vaich     \tab 57.73446 \tab -4.776583 \tab 1988-2011\cr
+##' yw        \tab Yarner Wood      \tab 50.59760 \tab -3.716510 \tab 1988-2011\cr
+##' gibraltar \tab Gibraltar        \tab 36.13400 \tab -5.347000 \tab 2005-2010
 ##' }
 ##' @param year Year or years to import. To import a sequence of years from
 ##'   1990 to 2000 use \code{year = 1990:2000}. To import several specfic years
