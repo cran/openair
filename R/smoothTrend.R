@@ -273,9 +273,8 @@ smoothTrend <- function(mydata,
         if (nrow(mydata) < 24) deseason <- FALSE
 
         if (deseason) {
-            ## interpolate missing data using zoo
-
-            mydata[, "value"] <- na.approx(mydata[, "value"])
+            ## interpolate missing data
+            mydata[, "value"] <- approx(mydata[, "value"], n = length(mydata$value))$y
 
             myts <- ts(mydata[, "value"], start = c(start.year, start.month),
                        end = c(end.year, end.month), frequency = 12)

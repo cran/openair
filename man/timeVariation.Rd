@@ -7,8 +7,8 @@
     xlab = c("hour", "hour", "month", "weekday"),
     name.pol = pollutant, type = "default", group = NULL,
     difference = FALSE, B = 500, ci = TRUE, cols = "hue",
-    key = NULL, key.columns = 1, auto.text = TRUE,
-    alpha = 0.4, ...)
+    key = NULL, key.columns = 1, start.day = 1,
+    auto.text = TRUE, alpha = 0.4, ...)
 }
 \arguments{
   \item{mydata}{A data frame of hourly (or higher temporal
@@ -106,6 +106,12 @@
   too wide. The user can thus choose to use several columns
   by setting \code{columns} to be less than the number of
   pollutants.}
+
+  \item{start.day}{What day of the week should the plots
+  start on? The user can change the start day by supplying
+  an integer between 0 and 6. Sunday = 0, Monday = 1,
+  \ldots For example to start the weekday plots on a
+  Saturday, choose \code{start.day = 6}.}
 
   \item{auto.text}{Either \code{TRUE} (default) or
   \code{FALSE}. If \code{TRUE} titles and axis labels will

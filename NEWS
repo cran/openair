@@ -1,3 +1,19 @@
+
+Changes in openair 0.5-18 [2012-01-16]
+*	Update trajectory files to 2011 and add Berlin, Paris
+*	Add option seg to pollutionRose to control the width of the
+	segments
+*	Add option start.day to timeVariation to control the order of
+	weekdays.
+*	Fixed bug in polarAnnulus where 360 degree winds were absent.
+*	Remove dependency on zoo and proto.
+
+Changes in openair 0.5-17 [2012-01-12]
+=====================================
+
+*	Update to [IN DEVELOPMENT] GoogleMapsPlot.
+        (1 lat,lon default handling)
+
 Changes in openair 0.5-15 [2011-12-08]
 =====================================
 

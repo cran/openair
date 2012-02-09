@@ -87,7 +87,11 @@
 ##' @param mydata The openair data frame to use to generate the
 ##'   \code{GoogleMapsPlot} plot.
 ##' @param latitude,longitude The names of the data series in \code{mydata}
-##'   giving the latitudes and longitudes, respectively, of measurements.
+##'   giving the latitudes and longitudes, respectively, of measurements.  
+##'   If only one latitude longitude pair are supplied, the function applies 
+##'   a default range to the plot. To override this either set the required range 
+##'   using \code{xlim} and \code{ylim} (see below) or the map \code{zoom} 
+##'   level. (Note: The default is equivalent to \code{zoom = 15}.)   
 ##' @param type The type of data conditioning to apply before plotting. The
 ##'   default is will produce a single plot using the entire data. Other type
 ##'   options include "hour" (for hour of the day), "weekday" (for day of the
@@ -541,6 +545,7 @@ GoogleMapsPlot <- function(mydata,
         #override some RgoogleMaps defaults
         map <- list(lon = temp2$lonR, lat = temp2$latR, destfile = "XtempX.png",
                      maptype = "terrain", size = c(640,640))
+        if(length(temp.y)==1) map$zoom <- 15
 
         ##update my defaults with relevant ones in call
         map <- listUpdate(map, extra.args, subset.b = temp)
