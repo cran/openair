@@ -113,7 +113,6 @@
 ##'   \code{statistic = "percentile"} and a vector of \code{percentile} values,
 ##'   see examples below.
 ##' @export
-##' @import zoo
 ##' @return As well as generating the plot itself, \code{smoothTrend} also
 ##'   returns an object of class ``openair''. The object includes three main
 ##'   components: \code{call}, the command used to generate the plot;
@@ -171,6 +170,9 @@ smoothTrend <- function(mydata,
                         alpha = 0.2,
                         date.breaks = 7,
                         auto.text = TRUE,...)  {
+
+    ## get rid of R check annoyances
+    variable = NULL
 
     ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {

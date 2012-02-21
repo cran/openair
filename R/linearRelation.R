@@ -130,6 +130,9 @@ linearRelation <- function(mydata,
                             cols = NULL,
                             span = 0.3,...) {
 
+    ## get rid of R check annoyances
+    nox = ox = cond = rsquare = N = r.thresh = NULL
+
     adj <- 1 ## factors for ratios (oxidant is a percentage)
 
     #greyscale handling

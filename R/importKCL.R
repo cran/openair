@@ -465,6 +465,9 @@
 ##'
 importKCL <- function(site = "my1", year = 2009, pollutant = "all", met = FALSE, units = "mass") {
 
+    ## get rid of R check annoyances
+    sites = site = NULL
+
     site <- toupper(site)
 
     ## rows with these site codes

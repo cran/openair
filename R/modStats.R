@@ -24,7 +24,21 @@
 ##'
 ##' \item \eqn{r}, the Pearson correlation coefficient.
 ##'
-##' \item \eqn{IOA}, the Index of Agreement.
+##' \item \eqn{IOA}, the Index of Agreement based on Willmott et
+##' al. (2011), which spans between -1 and +1 with values approaching
+##' +1 representing better model performance.
+##'
+##' An IOA of 0.5, for example, indicates that the sum of the
+##' error-magnitudes is one half of the sum of the observed-deviation
+##' magnitudes.  When IOA = 0.0, it signifies that the sum of the
+##' magnitudes of the errors and the sum of the observed-deviation
+##' magnitudes are equivalent. When IOA = -0.5, it indicates that the
+##' sum of the error-magnitudes is twice the sum of the perfect
+##' model-deviation and observed-deviation magnitudes. Values of IOA
+##' near -1.0 can mean that the model-estimated deviations about O are
+##' poor estimates of the observed deviations; but, they also can mean
+##' that there simply is little observed variability - so some caution
+##' is needed when the IOA approaches -1.
 ##'
 ##' }
 ##'
@@ -55,11 +69,23 @@
 ##'
 ##' More than one type can be considered e.g. \code{type = c("season",
 ##'   "weekday")} will produce statistics split by season and day of the week.
+##' @param rank.name Simple model ranking can be carried out if
+##' \code{rank.name} is supplied. \code{rank.name} will generally
+##' refer to a column representing a model name, which is to
+##' ranked. The ranking is based the Index of Agreement performance,
+##' as that indicator is arguably the best single model performance
+##' indicator available.
+##'
+##'
 ##' @param ... Other aruments to be passed to \code{cutData} e.g.
 ##'   \code{hemisphere = "southern"}
 ##' @export
 ##' @return Returns a data frame with model evaluation statistics.
 ##' @author David Carslaw
+##' @references
+##' Willmott, C.J., Robeson, S.M., Matsuura, K., 2011. A
+##' refined index of model performance. International Journal of
+##' Climatology.
 ##' @keywords methods
 ##' @examples
 ##'
@@ -73,7 +99,7 @@
 ##' modStats(mydata, mod = "no2", obs = "nox", type = "season")
 ##'
 ##'
-modStats <- function(mydata,  mod = "mod", obs = "obs", type = "default", ...) {
+modStats <- function(mydata,  mod = "mod", obs = "obs", type = "default", rank.name = NULL, ...) {
     ## function to calculate model evaluation statistics
     ## the default is to use the entire data set.
     ## Requires a field "date" and optional conditioning variables representing measured and modelled values
@@ -148,8 +174,11 @@ modStats <- function(mydata,  mod = "mod", obs = "obs", type = "default", ...) {
      ##  Index of Agreement
     IOA <- function(x, mod = "mod", obs = "obs") {
         x <- na.omit(x[ , c(mod, obs)])
-        res <- 1 - sum((x[ , obs] - x[ , mod]) ^ 2 )  /
-                    sum((abs(x[ , mod] - mean(x[ , obs])) + abs(x[ , obs] - mean(x[ , obs]))) ^ 2)
+
+        LHS <- sum(abs(x[, mod] - x[, obs]))
+        RHS <- 2 * sum(abs(x[, obs] - mean(x[, obs])))
+
+        if (LHS <= RHS) res <- 1 - LHS / RHS else res <- RHS / LHS - 1
 
         data.frame(IOA = res)
     }
@@ -173,6 +202,20 @@ modStats <- function(mydata,  mod = "mod", obs = "obs", type = "default", ...) {
 
     results <- sortDataFrame(results, key = type)
 
+    ## simple ranking of models?
+    if (!is.null(rank.name)) {
+
+        types <- setdiff(type, rank.name)
+
+        if (length(types) == 0) {
+            results <- rankModels(results, rank.name)
+        } else {
+
+            results <- ddply(results, types, rankModels, rank.name = rank.name)
+        }
+
+    }
+
     results
 
 }
@@ -191,3 +234,9 @@ sortDataFrame <- function(x, key, ...) {
     }
 }
 
+
+rankModels <- function(mydata, rank.name = "group") {
+
+    ## sort by IOA
+    mydata <- sortDataFrame(mydata, "IOA", decreasing = TRUE)
+}

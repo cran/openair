@@ -157,6 +157,9 @@
 polarCluster <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", n.clusters = 6,
                          cols = "Paired", angle.scale = 315, units = x, auto.text = TRUE, ...) {
 
+    ## avoid R check annoyances
+    u = v = z= strip = strip.left = NULL
+
     data.orig <- mydata ## keep original data so cluster can be merged with it
     type <- "default"
     vars <- c("wd", x, pollutant)

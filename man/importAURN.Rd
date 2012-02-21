@@ -85,12 +85,13 @@
   Measurement System), which is able to measure the
   volatile component of PM. In cases where the FDMS system
   is in use there will be a separate volatile component
-  recorded as 'v10', which is already included in the
-  absolute PM10 measurement. Prior to the use of FDMS the
-  measurements used TEOM (Tapered Element Oscillating.
-  Microbalance) and these concentrations have been
-  multiplied by 1.3 to provide an estimate of the total
-  mass including the volatile fraction.
+  recorded as 'v10' and non-volatile component 'nv10',
+  which is already included in the absolute PM10
+  measurement. Prior to the use of FDMS the measurements
+  used TEOM (Tapered Element Oscillating. Microbalance) and
+  these concentrations have been multiplied by 1.3 to
+  provide an estimate of the total mass including the
+  volatile fraction.
 
   The few BAM (Beta-Attenuation Monitor) instruments that
   have been incorporated into the network throughout its

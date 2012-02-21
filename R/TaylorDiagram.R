@@ -236,6 +236,8 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
                           key.pos = "right", strip = TRUE, auto.text = TRUE, ...)
 {
 
+    ## get rid of R check annoyances
+    sd.mod = R = NULL
 
     ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {

@@ -138,16 +138,16 @@
 ##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
 ##'   \code{TRUE} titles and axis labels will automatically try and format
 ##'   pollutant names and units properly e.g.  by subscripting the `2' in NO2.
-##' @param \dots Other graphical parameters are passed onto \code{cutData} and 
-##'   \code{lattice:xyplot}. For example, \code{timePlot} passes the option 
-##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern 
+##' @param \dots Other graphical parameters are passed onto \code{cutData} and
+##'   \code{lattice:xyplot}. For example, \code{timePlot} passes the option
+##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern
 ##'   (rather than default northern) hemisphere handling of \code{type = "season"}.
-##'   Similarly, most common plotting parameters, such as \code{layout} for 
-##'   panel arrangement and \code{pch} and \code{cex} for plot symbol type and 
-##'   size and \code{lty} and \code{lwd} for line type and width, as passed 
-##'   to \code{xyplot}, although some maybe locally managed by \code{openair} 
-##'   on route, e.g. axis and title labelling options (such as \code{xlab}, 
-##'   \code{ylab}, \code{main}) are passed via \code{quickText} 
+##'   Similarly, most common plotting parameters, such as \code{layout} for
+##'   panel arrangement and \code{pch} and \code{cex} for plot symbol type and
+##'   size and \code{lty} and \code{lwd} for line type and width, as passed
+##'   to \code{xyplot}, although some maybe locally managed by \code{openair}
+##'   on route, e.g. axis and title labelling options (such as \code{xlab},
+##'   \code{ylab}, \code{main}) are passed via \code{quickText}
 ##'   to handle routine formatting. See examples below.
 ##' @export
 ##' @return As well as generating the plot itself, \code{timePlot} also returns
@@ -246,6 +246,8 @@ timePlot <- function(mydata,
     ## Author: David Carslaw 11 Sep. 09
     ## CHANGES:
 
+    ## get rid of R check annoyances
+    variable = year = NULL
 
 ### EXPERIMENTAL LOG SCALING###############################################
     if(log) nlog <- 10 else nlog <- FALSE
@@ -429,7 +431,7 @@ timePlot <- function(mydata,
         }
 
     }
-    
+
     #set ylab as pollutant(s) if not already set
     if(is.null(extra.args$ylab))
         extra.args$ylab <- quickText(paste(pollutant, collapse = ", "), auto.text)

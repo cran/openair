@@ -222,6 +222,9 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE, normali
                           key = NULL, key.columns = 1, start.day = 1, auto.text = TRUE,
                           alpha = 0.4, ...)   {
 
+     ## get rid of R check annoyances
+    variable = NULL
+
 
     ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
@@ -723,6 +726,9 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE, normali
 }
 
 calc.wd <- function(mydata, vars = "day.hour", pollutant, type, B = B) {
+
+    ## get rid of R check annoyances
+    variable = value = NULL
 
     summary.values <- function(mydata, vars, FUN, type, B = B) {
 

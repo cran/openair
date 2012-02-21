@@ -87,11 +87,11 @@
 ##' @param mydata The openair data frame to use to generate the
 ##'   \code{GoogleMapsPlot} plot.
 ##' @param latitude,longitude The names of the data series in \code{mydata}
-##'   giving the latitudes and longitudes, respectively, of measurements.  
-##'   If only one latitude longitude pair are supplied, the function applies 
-##'   a default range to the plot. To override this either set the required range 
-##'   using \code{xlim} and \code{ylim} (see below) or the map \code{zoom} 
-##'   level. (Note: The default is equivalent to \code{zoom = 15}.)   
+##'   giving the latitudes and longitudes, respectively, of measurements.
+##'   If only one latitude longitude pair are supplied, the function applies
+##'   a default range to the plot. To override this either set the required range
+##'   using \code{xlim} and \code{ylim} (see below) or the map \code{zoom}
+##'   level. (Note: The default is equivalent to \code{zoom = 15}.)
 ##' @param type The type of data conditioning to apply before plotting. The
 ##'   default is will produce a single plot using the entire data. Other type
 ##'   options include "hour" (for hour of the day), "weekday" (for day of the
@@ -104,8 +104,8 @@
 ##'   conditioning, e.g., \code{type = c("weekday", "daylight")}.)
 ##' @param xlim,ylim The x-axis and y-axis size ranges. By default these sized
 ##'   on the basis of \code{latitude} and \code{longitude}, but can be forced
-##'   as part of the plot call [NOTE: This IN DEVELOPMENT option is currently 
-##'   restricted and requested ranges are forced square to maintain map aspect 
+##'   as part of the plot call [NOTE: This IN DEVELOPMENT option is currently
+##'   restricted and requested ranges are forced square to maintain map aspect
 ##'   ratio.].
 ##' @param pollutant If supplied, the name of a pollutant or variable in
 ##'   \code{mydata} that is to be evaluated at the each measurement point.
@@ -145,7 +145,7 @@
 ##'   formatting if enabled (\code{auto.text = TRUE}). By default
 ##'   \code{GoogleMapsPlot} uses \code{latitude} and \code{longitude} names as
 ##'   xlab and ylab, respectively.
-##' @param axes An alternative (short hand) option to add/remove 
+##' @param axes An alternative (short hand) option to add/remove
 ##'   (\code{TRUE}/\code{FALSE}) all x and y axis annotation and labelling.
 ##' @param map If supplied, an \code{RgoogleMaps} output, to be used as a
 ##'   background map. If \code{NULL} (as in default), a map is produced using
@@ -209,11 +209,11 @@
 ##' An openair output can be manipulated using a number of generic operations,
 ##'   including \code{print}, \code{plot} and \code{summary}. See
 ##'   \code{\link{openair.generics}} for further details.
-##' @note IN DEVELOPMENT: HANDLE WITH CARE. 
-##'   
-##'   Users should be aware that Google Maps are flat 2D projections of the 
-##'   Earth's (curved) surface. Latitude and longitude scales are therefore 
-##'   locally modified to account for this. 
+##' @note IN DEVELOPMENT: HANDLE WITH CARE.
+##'
+##'   Users should be aware that Google Maps are flat 2D projections of the
+##'   Earth's (curved) surface. Latitude and longitude scales are therefore
+##'   locally modified to account for this.
 ##' @author Karl Ropkins
 ##' @seealso \code{\link[RgoogleMaps]{MapBackground}},
 ##'   \code{\link[lattice]{xyplot}}, \code{\link[lattice]{panel.xyplot}} and
@@ -236,7 +236,7 @@ GoogleMapsPlot <- function(mydata,
          latitude = "latitude", longitude = "longitude", type = "default",
          xlim, ylim, pollutant = NULL, labels = NULL, cols = "default",
          limits = c(0,100), cex = pollutant, pch = NULL, cex.range =c(2,10),
-         xlab = longitude, ylab = latitude, main = "", axes = TRUE, 
+         xlab = longitude, ylab = latitude, main = "", axes = TRUE,
          map = NULL, map.raster = TRUE, map.cols = NULL,
          aspect = 1, as.table = TRUE, plot.type = "xy",
          plot.transparent = FALSE,
@@ -245,6 +245,9 @@ GoogleMapsPlot <- function(mydata,
          auto.text = TRUE, ...
 ){
 
+
+    ## get rid of R check annoyances
+    strip = strip.left = NULL
 #googleMapsPlot
 #openair flavour
 #karl 2011-08-04
@@ -366,14 +369,14 @@ GoogleMapsPlot <- function(mydata,
         extra.args$scales <- if("scales" %in% names(extra.args)){
                                  if(is.list(extra.args$scales)){
                                      listUpdate(temp, extra.args$scales)
-                                 } else temp 
+                                 } else temp
                              } else temp
 #############
 #this will need changing
 #if we move xlab, ylab to ...
 #############
         xlab <- ""
-        ylab <- ""   
+        ylab <- ""
     }
 
 
@@ -453,7 +456,7 @@ GoogleMapsPlot <- function(mydata,
         }
         col.range <- col2rgb(col.range)
         col.range <- rgb(col.range[1,], col.range[2,], col.range[3,],
-                      alpha = plot.transparent * 255, max = 255)
+                      alpha = plot.transparent * 255, maxColorValue = 255)
     }
 
     if(missing(limits)){
@@ -557,10 +560,10 @@ GoogleMapsPlot <- function(mydata,
 
 #temp.2 <- c(min(temp.y, na.rm = TRUE) + (diff(range(temp.y, na.rm=TRUE))/2),
 #            min(temp.x, na.rm = TRUE) + (diff(range(temp.x, na.rm=TRUE))/2))
-#zoom <- min(MaxZoom(range(temp.y, na.rm=TRUE), 
-#                    range(temp.x, na.rm=TRUE)), 
+#zoom <- min(MaxZoom(range(temp.y, na.rm=TRUE),
+#                    range(temp.x, na.rm=TRUE)),
 #            na.rm=TRUE)
-#map <- list(center = temp.2, zoom = zoom, destfile = "XtempX.png", 
+#map <- list(center = temp.2, zoom = zoom, destfile = "XtempX.png",
 #                     maptype = "terrain")
 #map <- listUpdate(map, extra.args, subset.b = temp)
 #map$size <- c(640, 640)
@@ -592,13 +595,13 @@ GoogleMapsPlot <- function(mydata,
 #using rescale to panel dimensions
 
 #x, ylims
-temp <- LatLon2XY.centered(map, c(map$BBOX$ll[1], map$BBOX$ur[1]), 
+temp <- LatLon2XY.centered(map, c(map$BBOX$ll[1], map$BBOX$ur[1]),
                                 c(map$BBOX$ll[2], map$BBOX$ur[2]))
 xlim <- temp$newX
-ylim <- temp$newY    
+ylim <- temp$newY
 
 #latitude, longitude
-temp <- LatLon2XY.centered(map, mydata[, latitude], 
+temp <- LatLon2XY.centered(map, mydata[, latitude],
                                 mydata[, longitude])
 mydata[, longitude] <- temp$newX
 mydata[, latitude] <- temp$newY

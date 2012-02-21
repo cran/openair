@@ -135,6 +135,9 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
 
 {
 
+    ## get rid of R check annoyances
+    wd = NULL
+
     vars <- c("wd", pollutant)
     if (any(type %in%  openair:::dateTypes)) vars <- c(vars, "date")
 
@@ -196,6 +199,7 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
 
 
     prepare.grid <- function(mydata) {
+        wd = NULL
         ## add zero wind angle = same as 360 for cyclic spline
         ids <- which(mydata$wd == 360)
 

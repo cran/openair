@@ -1,4 +1,10 @@
 
+Changes in openair 0.5-21 [2012-02-21]
+*	Use C++ code for rolling mean calcs. Much faster, more to
+	follow
+*	NEW function trajCluster to carry out cluster analysis on back
+        trajectories
+*	Simple model ranking available in modStats
 Changes in openair 0.5-18 [2012-01-16]
 *	Update trajectory files to 2011 and add Berlin, Paris
 *	Add option seg to pollutionRose to control the width of the
@@ -7,6 +13,8 @@ Changes in openair 0.5-18 [2012-01-16]
 	weekdays.
 *	Fixed bug in polarAnnulus where 360 degree winds were absent.
 *	Remove dependency on zoo and proto.
+* 	Allow importAURN to import new ws/wd from pre-calculated WRF
+	data at AURN sites
 
 Changes in openair 0.5-17 [2012-01-12]
 =====================================

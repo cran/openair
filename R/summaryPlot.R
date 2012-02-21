@@ -86,11 +86,11 @@
 ##'   \code{TRUE} titles and axis labels will automatically try and format
 ##'   pollutant names and units properly e.g.  by subscripting the \sQuote{2}
 ##'   in NO2.
-##' @param ... Other graphical parameters. Commonly used examples include the 
-##'   axis and title labelling options (such as \code{xlab}, \code{ylab} and 
-##'   \code{main}), which are all passed to the plot via \code{quickText} to handle 
-##'   routine formatting. As \code{summaryPlot} has two components, the axis 
-##'   labels may be a vector. For example, the default case (\code{type = "histogram"}) 
+##' @param ... Other graphical parameters. Commonly used examples include the
+##'   axis and title labelling options (such as \code{xlab}, \code{ylab} and
+##'   \code{main}), which are all passed to the plot via \code{quickText} to handle
+##'   routine formatting. As \code{summaryPlot} has two components, the axis
+##'   labels may be a vector. For example, the default case (\code{type = "histogram"})
 ##'   sets y labels equivalent to \code{ylab = c("", "Percent of Total")}.
 ##' @export
 ##' @author David Carslaw
@@ -137,6 +137,9 @@ summaryPlot <- function(mydata,
                       date.breaks = 7,
                       auto.text = TRUE,
                       ...) {
+
+    ## get rid of R check annoyances
+    value = NULL
 
     #greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
