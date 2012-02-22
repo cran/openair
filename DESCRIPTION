@@ -1,14 +1,15 @@
 Package: openair
 Type: Package
 Title: Tools for the analysis of air pollution data
-Version: 0.5-18
-Date: 2012-01-16
+Version: 0.5-21
+Date: 2012-02-21
 ByteCompile: true
 Author: David Carslaw and Karl Ropkins
 Depends: R (>= 2.13.0),
 Imports: Matrix, utils, grid, plyr, reshape2, mgcv, lattice, cluster,
-        boot, RColorBrewer
+        boot, Rcpp, RColorBrewer
 Suggests: latticeExtra, hexbin, RgoogleMaps, ellipse, maps
+LinkingTo: Rcpp
 Maintainer: David Carslaw <david.carslaw@kcl.ac.uk>
 Description: Tools to analyse, interpret and understand air pollution
         data. Data are typically hourly time series and both monitoring
@@ -19,7 +20,7 @@ License: GPL (>= 2)
 URL: http://www.openair-project.org/
 LazyLoad: yes
 LazyData: yes
-Packaged: 2012-02-09 08:17:10 UTC; david
+Packaged: 2012-02-22 07:44:06 UTC; david
 Collate: 'aqStats.R' 'calcFno2.R' 'calcPercentile.R' 'calendarPlot.R'
         'checkPrep.R' 'conditionalQuantile.R' 'corPlot.R' 'cutData.R'
         'date.breaks.R' 'drawOpenKey.R' 'GoogleMapsPlot.R' 'import.2.R'
@@ -32,6 +33,7 @@ Collate: 'aqStats.R' 'calcFno2.R' 'calcPercentile.R' 'calendarPlot.R'
         'summaryPlot.R' 'TaylorDiagram.R' 'timeAverage.R' 'timePlot.R'
         'timeVariation.R' 'trendLevel.R' 'utilities.R' 'windRose.R'
         'trajPlot.R' 'importTraj.R' 'getMeta.R' 'senTheil.R'
-        'TheilSen.R' 'polarCluster.R' 'zzz.R'
+        'TheilSen.R' 'polarCluster.R' 'zzz.R' 'mydata.R'
+        'trajCluster.R'
 Repository: CRAN
-Date/Publication: 2012-02-09 16:08:41
+Date/Publication: 2012-02-22 09:35:24

@@ -97,6 +97,8 @@ calcFno2 <- function(input,
 {
 
 
+    ## get rid of R check annoyances
+    no2 = nox.v = na.locf = NULL
 
     ## function to prepare data ######################################################
     prepare <- function(input) {

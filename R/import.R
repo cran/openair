@@ -554,6 +554,9 @@ if(previous)
 
 date.time.cipher <- function(cipher){
 
+    ## get rid of R check annoyances
+    make.weekday.abbs = make.weekday.names = make.month.abbs = make.month.names = NULL
+
 ###########################
 #cipher handler for date.time format
 ###########################

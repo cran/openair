@@ -113,6 +113,9 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
                         statistic = "mean", percentile = NA, start.date = NA,
                         vector.ws = FALSE) {
 
+    ## get rid of R check annoyances
+    year = season = month = u = v = site = NULL
+
     ## extract variables of interest
     vars <- names(mydata)
 

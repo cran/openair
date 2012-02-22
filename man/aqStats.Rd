@@ -62,6 +62,11 @@
   ug/m3.  \item \bold{hours.gt.200} --- number of hours NO2
   is more than 200 ug/m3.  \item \bold{days.gt.50} ---
   number of days PM10 is more than 50 ug/m3. }
+
+  There can be small discrepancies with the AURN due to the
+  treatment of rounding data. The \code{aqStats} function
+  does not round, whereas AURN data can be rounded at
+  several stages during the calculations.
 }
 \examples{
 ## Statistics for 2004. NOTE! these data are in ppb/ppm so the

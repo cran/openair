@@ -6,6 +6,9 @@
 
 dateBreaks <- function(x, n = 5, min.n = n %/% 2, ...)
 {
+    ## get rid of R check annoyances
+
+
     isDate <- inherits(x, "Date")
     x <- as.POSIXct(x)
     if (isDate) # the timezone *does* matter
@@ -75,7 +78,7 @@ dateBreaks <- function(x, n = 5, min.n = n %/% 2, ...)
             at <- seq(startTime, max(zz), by = "months")
             at2 <- as.POSIXlt(at)
             at2$mday <- 15L
-            at <- structure(sort(c(as.POSIXct(at), as.POSIXct(at2))), 
+            at <- structure(sort(c(as.POSIXct(at), as.POSIXct(at2))),
                             tzone = attr(at, "tzone"))
         } else {
             at <- seq(startTime, max(zz), by = s$spec)
@@ -95,10 +98,11 @@ dateBreaks <- function(x, n = 5, min.n = n %/% 2, ...)
     makeOutput <- function(at, s) {
         flabels <- format(at, s$format)
         ans <-
-            if (isDate) as.Date(round(at, units = "days"))
+         #   if (isDate) as.Date(round(at, units = "days"))
+        if (isDate) as.Date(round(at))
             else as.POSIXct(at)
         attr(ans, "labels") <- flabels
-      
+
         list(major = ans, format = s$format)
       #  ans
     }
@@ -160,8 +164,8 @@ dateTrunc <-
     x
 }
 
-dateCeil <- function (x, units = c("secs", "mins", "hours", "days", "months", 
-    "years"), ...) 
+dateCeil <- function (x, units = c("secs", "mins", "hours", "days", "months",
+    "years"), ...)
 {
     units <- match.arg(units)
     x <- as.POSIXlt(x)

@@ -31,19 +31,21 @@
 ##' Sometimes it is useful to have columns of site data. This can be done using
 ##' the \code{reshape} function --- see examples below.
 ##'
-##' All units are expressed in mass terms for gaseous species (ug/m3 for NO,
-##' NO2, NOx (as NO2), SO2 and hydrocarbons; and mg/m3 for CO). PM10
-##' concentrations are provided in gravimetric units of ug/m3 or scaled to be
-##' comparable with these units. Over the years a variety of instruments have
-##' been used to measure particulate matter and the technical issues of
-##' measuring PM10 are complex. In recent years the measurements rely on FDMS
-##' (Filter Dynamics Measurement System), which is able to measure the volatile
-##' component of PM. In cases where the FDMS system is in use there will be a
-##' separate volatile component recorded as 'v10', which is already included in
-##' the absolute PM10 measurement. Prior to the use of FDMS the measurements
-##' used TEOM (Tapered Element Oscillating. Microbalance) and these
-##' concentrations have been multiplied by 1.3 to provide an estimate of the
-##' total mass including the volatile fraction.
+##' All units are expressed in mass terms for gaseous species (ug/m3
+##' for NO, NO2, NOx (as NO2), SO2 and hydrocarbons; and mg/m3 for
+##' CO). PM10 concentrations are provided in gravimetric units of
+##' ug/m3 or scaled to be comparable with these units. Over the years
+##' a variety of instruments have been used to measure particulate
+##' matter and the technical issues of measuring PM10 are complex. In
+##' recent years the measurements rely on FDMS (Filter Dynamics
+##' Measurement System), which is able to measure the volatile
+##' component of PM. In cases where the FDMS system is in use there
+##' will be a separate volatile component recorded as 'v10' and
+##' non-volatile component 'nv10', which is already included in the
+##' absolute PM10 measurement. Prior to the use of FDMS the
+##' measurements used TEOM (Tapered Element Oscillating. Microbalance)
+##' and these concentrations have been multiplied by 1.3 to provide an
+##' estimate of the total mass including the volatile fraction.
 ##'
 ##' The few BAM (Beta-Attenuation Monitor) instruments that have been
 ##' incorporated into the network throughout its history have been scaled by
@@ -222,6 +224,8 @@ importAURN <- function(site = "my1", year = 2009, pollutant = "all", hc = FALSE)
     if ("pm2.5" %in% names(thedata)) class(thedata$pm2.5) <- "integer"
     if ("v10" %in% names(thedata)) class(thedata$v10) <- "integer"
     if ("v2.5" %in% names(thedata)) class(thedata$v2.5) <- "integer"
+    if ("nv10" %in% names(thedata)) class(thedata$v10) <- "integer"
+    if ("nv2.5" %in% names(thedata)) class(thedata$v2.5) <- "integer"
 
 
     ## should hydrocarbons be imported?
@@ -230,7 +234,7 @@ importAURN <- function(site = "my1", year = 2009, pollutant = "all", hc = FALSE)
          } else {
              ## no hydrocarbons - therefore select conventional pollutants
              theNames <- c("date", "co", "nox", "no2", "no", "o3", "so2", "pm10", "pm2.5",
-                           "v10", "v2.5", "ws", "code", "site")
+                           "v10", "v2.5", "nv10", "nv2.5", "ws", "wd", "code", "site")
 
              thedata <- thedata[,  which(names(thedata) %in% theNames)]
          }

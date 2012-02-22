@@ -50,6 +50,10 @@
 ##' GoogleMapsPlot(annual, pollutant = "no2")
 ##' }
 importMeta <- function(source = "aurn", all = FALSE) {
+
+    ## get rid of R check annoyances
+    site = code = latitude = longitude = site.type = NULL
+
     ## meta data sources
     meta.source <- c("aurn", "kcl", "saqn")
 

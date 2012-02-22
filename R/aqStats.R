@@ -28,6 +28,11 @@
 ##' \bold{hours.gt.200} --- number of hours NO2 is more than 200 ug/m3.  \item
 ##' \bold{days.gt.50} --- number of days PM10 is more than 50 ug/m3. }
 ##'
+##' There can be small discrepancies with the AURN due to the
+##' treatment of rounding data. The \code{aqStats} function does not
+##' round, whereas AURN data can be rounded at several stages during
+##' the calculations.
+##'
 ##' @param mydata A data frame containing a \code{date} field of hourly data.
 ##' @param pollutant The name of a pollutant e.g. \code{pollutant = c("o3",
 ##'   "pm10")}.
@@ -58,57 +63,15 @@
 aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(95, 99),
                     transpose = FALSE, ...) {
 
+    ## get rid of R check annoyances
+    year = site = NULL
+
     ## check data and add 'ste' filed if not there
     if (!"site" %in% names(mydata)) mydata$site <- "site"
 
     vars <- c("date", pollutant, "site")
 
-
-##' Example data for openair
-##'
-##' The mydata dataset is provided as an example dataset as part of the openair
-##' package. The dataset contains hourly measurements of air pollutant
-##' concentrations, wind speed and wind direction collected at the Marylebone
-##' (London) air quality monitoring supersite between 1st January 1998 and 23rd
-##' June 2005.
-##'
-##' \code{mydata} is supplied with the \code{openair} package as an example
-##' dataset for use with documented examples.
-##'
-##' @name mydata
-##' @docType data
-##' @format Data frame with 65533 observations (rows) on the following 10
-##'   variables: \describe{ \item{list("date")}{Observation date/time stamp in
-##'   year-month-day hour:minute:second format (POSIXct). }
-##'   \item{list("ws")}{Wind speed, in m/s, as numeric vector.}
-##'   \item{list("wd")}{Wind direction, in degrees from North, as a numeric
-##'   vector.} \item{list("nox")}{Oxides of nitrogen concentration, in ppb, as
-##'   a numeric vector.} \item{list("no2")}{Nitrogen dioxide concentration, in
-##'   ppb, as a numeric vector.} \item{list("o3")}{Ozone concentration, in ppb,
-##'   as a numeric vector.} \item{list("pm10")}{Particulate PM10 fraction
-##'   measurement, in ug/m3 (raw TEOM), as a numeric vector.}
-##'   \item{list("so2")}{Sulfur dioxide concentration, in ppb, as a numeric
-##'   vector.} \item{list("co")}{Carbon monoxide concentration, in ppm, as a
-##'   numeric vector.} \item{list("pm25")}{Particulate PM2.5 fraction
-##'   measurement, in ug/m3, as a numeric vector.} }
-##' @note \code{openair} functions generally require data frames with a field
-##'   "date" that can be in either \code{POSIXct} or \code{Date} format but
-##'   should be GMT time zone. This can be hourly data or higher resolution
-##'   data.
-##' @source \code{mydata} was compiled from data archived in the London Air
-##'   Quality Archive.  See \url{http://www.londonair.org.uk} for site details.
-##'
-##' The same data is also provide in \code{'.csv'} format via the openair
-##'   project web site \url{http://www.openair-project.org}.
-##' @keywords datasets
-##' @examples
-##'
-##'
-##' #basic structure
-##' head(mydata)
-##'
-##'
-    mydata <- checkPrep(mydata, vars, "default", remove.calm = FALSE)
+    mydata <- openair:::checkPrep(mydata, vars, "default", remove.calm = FALSE)
 
     ## pre-defined lits of pollutants that need special treatment
     thePolls <- c("no2", "o3", "pm10", "co")
@@ -116,11 +79,11 @@ aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(
     calcStats <- function(mydata, pollutant, percentile, ...) {
 
         ## file any missing hours
-        start.date <- as.POSIXct(dateTrunc(min(mydata$date), "year"))
-        end.date <- as.POSIXct(dateCeil(max(mydata$date), "year") - 3600)
+        start.date <- as.POSIXct(openair:::dateTrunc(min(mydata$date), "year"))
+        end.date <- as.POSIXct(openair:::dateCeil(max(mydata$date), "year") - 3600)
 
         ## find time interval of data and pad any missing times
-        interval <- find.time.interval(mydata$date)
+        interval <- openair:::find.time.interval(mydata$date)
         all.dates <- data.frame(date = seq(start.date, end.date, by = interval))
         mydata <- merge(mydata, all.dates, all = TRUE)
         mydata$year <- format(mydata$date, "%Y")
@@ -144,8 +107,9 @@ aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(
 
         ozoneRolling <- function(mydata, ...) {
             ## first calculate rolling hourly means
-            mydata <- rollingMean(mydata, pollutant, hours = 8, new.name = "rolling",
-                                  data.thresh)
+
+            mydata[, "rolling"] <- .Call("rollingMean", mydata[, pollutant], 8, data.thresh,
+                                         PACKAGE = "openair")
             daily <- timeAverage(mydata, avg.time = "day", statistic = "max", data.thresh)
             days <- length(which(daily[ , "rolling"] > 100))
             days
@@ -173,8 +137,9 @@ aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(
         rollMax <- function(mydata, hours = hours, ...) {
             if (all(is.na(mydata[ , pollutant]))) return(NA)
             ## first calculate rolling hourly means
-            mydata <- rollingMean(mydata, pollutant = pollutant, hours = hours, data.thresh,
-                                  new.name = "rolling")
+
+            mydata[, "rolling"] <- .Call("rollingMean", mydata[, pollutant], hours, data.thresh,
+                                         PACKAGE = "openair")
             rollMax <- max(mydata[ , "rolling"], na.rm = TRUE)
             rollMax
         }

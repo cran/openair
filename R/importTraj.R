@@ -109,6 +109,9 @@
 ##' mytraj <- merge(mytraj, theData, by = "date")}
 importTraj <- function(site = "london", year = 2009, local = NA) {
 
+    ## get rid of R check annoyances
+    traj = NULL
+
     if (length(site) > 1) stop("Only one site can be imported at a time.")
     site <- tolower(site)
 

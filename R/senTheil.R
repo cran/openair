@@ -19,6 +19,10 @@ regci <- function(x, y, regfun = tsreg, nboot = 599, alpha = 0.05, autocor = aut
     ##   estimated intercept, the second element contains the estimated of
     ##   the first predictor, etc.
     ##
+
+    ## get rid of R check annoyances
+    out = NULL
+
     x <- as.matrix(x)
     p1 <- ncol(x) + 1
     p <- ncol(x)
@@ -125,6 +129,10 @@ tsreg <- function(x, y, xout = FALSE, outfun = out, iter = 10, varfun = pbvar,
     #  when there is more than one predictor
     #
     #
+
+     ## get rid of R check annoyances
+    out = pbvar = NULL
+
     x <- as.matrix(x)
     xx <- cbind(x, y)
     xx <- elimna(xx)

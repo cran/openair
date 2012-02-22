@@ -300,6 +300,9 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
                       key.header = "", key.footer = pollutant, key.position = "right",
                       key = TRUE, auto.text = TRUE, ...) {
 
+    ## get rid of R check annoyances
+    z = NULL
+
 
     ## initial checks ##########################################################################################
     if (length(type) > 2) {stop("Maximum number of types is 2.")}
@@ -445,7 +448,7 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
 
             ## uncertainties calculated, weighted by number of points in each bin
             Mgam <- gam(binned ^ n ~ s(u, v, k = k), weights = binned.len)
-            pred <- predict.gam(Mgam, input.data, se = TRUE)
+            pred <- predict.gam(Mgam, input.data, se.fit = TRUE)
             uncer <- 2 * as.vector(pred[[2]]) ## for approx 95% CI
             pred <- as.vector(pred[[1]]) ^ (1 / n)
 

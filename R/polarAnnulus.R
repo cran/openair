@@ -207,6 +207,9 @@ polarAnnulus <- function(mydata,
                          key = TRUE,
                          auto.text = TRUE,...) {
 
+    ## get rid of R check annoyances
+    wd = u = v = z = all.dates = NULL
+
 
     ## extract variables of interest
     vars <- c("wd", "date", pollutant)

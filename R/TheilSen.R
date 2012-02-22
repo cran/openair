@@ -256,6 +256,8 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
                      line.col = "red", text.col = "darkgreen", cols = NULL, auto.text = TRUE,
                      autocor = FALSE, slope.percent = FALSE, date.breaks = 7,...)  {
 
+    ## get rid of R check annoyances
+    a = b = lower.a = lower.b = upper.a = upper.b = slope.start = date.end = intercept.start = date.start = lower.start = intercept.lower.start = upper.start = intercept.upper.start = NULL
 
     ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {

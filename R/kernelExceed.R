@@ -89,11 +89,11 @@
 ##'   \code{TRUE} titles and axis labels will automatically try and format
 ##'   pollutant names and units properly e.g.  by subscripting the `2' in NO2.
 ##' @param \dots Other graphical parameters passed onto \code{lattice:levelplot}
-##'   and \code{cutData}. For example, \code{kernelExceed} passes the option 
-##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern 
+##'   and \code{cutData}. For example, \code{kernelExceed} passes the option
+##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern
 ##'   (rather than default northern) hemisphere handling of \code{type = "season"}.
-##'   Similarly, common axis and title labelling options (such as \code{xlab}, 
-##'   \code{ylab}, \code{main}) are passed to \code{levelplot} via \code{quickText} 
+##'   Similarly, common axis and title labelling options (such as \code{xlab},
+##'   \code{ylab}, \code{main}) are passed to \code{levelplot} via \code{quickText}
 ##'   to handle routine formatting.
 ##' @export
 ##' @return To be completed.
@@ -132,6 +132,9 @@ kernelExceed <- function(polar,
                          cols = "default",
                          nbin = 256,
                          auto.text = TRUE, ...) {
+
+    ## get rid of R check annoyances
+    wd = NULL
 
     ## extract variables of interest
     vars <- c(y, x, "date", pollutant)
