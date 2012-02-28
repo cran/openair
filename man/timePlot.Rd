@@ -9,7 +9,7 @@
     plot.type = "l", key = TRUE, log = FALSE,
     smooth = FALSE, ci = TRUE, ref.x = NULL, ref.y = NULL,
     key.columns = 1, name.pol = pollutant, date.breaks = 7,
-    auto.text = TRUE, ...)
+    date.format = NULL, auto.text = TRUE, ...)
 }
 \arguments{
   \item{mydata}{A data frame of time series. Must include a
@@ -52,7 +52,7 @@
   be \code{period = "2 month"}. See function
   \code{timeAverage} for further details on this.}
 
-  \item{data.thresh}{The data capture threshold to use (%)
+  \item{data.thresh}{The data capture threshold to use (\%)
   when aggregating the data using \code{avg.time}. A value
   of zero means that all available data will be used in a
   particular period regardless if of the number of values
@@ -66,11 +66,11 @@
   "max", "min", "median", "frequency", "sd", "percentile".
   Note that "sd" is the standard deviation and "frequency"
   is the number (frequency) of valid records in the period.
-  "percentile" is the percentile level (%) between 0-100,
+  "percentile" is the percentile level (\%) between 0-100,
   which can be set using the "percentile" option - see
   below. Not used if \code{avg.time = "default"}.}
 
-  \item{percentile}{The percentile level in % used when
+  \item{percentile}{The percentile level in \% used when
   \code{statistic = "percentile"} and when aggregating the
   data with \code{avg.time}. More than one percentile level
   is allowed for \code{type = "default"} e.g.
@@ -107,10 +107,13 @@
   \code{timePlot}.}
 
   \item{cols}{Colours to be used for plotting. Options
-  include "default", "increment", "heat", "spectral",
-  "hue", "brewer1" (default) and user defined (see manual
-  for more details). The same line colour can be set for
-  all pollutant e.g. \code{cols = "black"}.}
+  include "default", "increment", "heat", "jet" and
+  \code{RColorBrewer} colours --- see the \code{openair}
+  \code{openColours} function for more details. For user
+  defined the user can supply a list of colour names
+  recognised by R (type \code{colours()} to see the full
+  list). An example would be \code{cols = c("yellow",
+  "green", "blue")}}
 
   \item{plot.type}{The \code{lattice} plot type, which is a
   line (\code{plot.type = "l"}) by default. Another useful
@@ -131,7 +134,7 @@
   data? The default is \code{FALSE}.}
 
   \item{ci}{If a smooth fit line is applied, then \code{ci}
-  determines whether the 95% confidence intervals aer
+  determines whether the 95\% confidence intervals aer
   shown.}
 
   \item{ref.x}{Add a vertical dashed reference line at this
@@ -163,12 +166,19 @@
   therefore increase or decrease the number of intervals by
   adjusting the value of \code{date.breaks} up or down.}
 
+  \item{date.format}{This option controls the date format
+  on the x-axis. While \code{timePlot} generally sets the
+  date format sensibly there can be some situations where
+  the user wishes to have more control. For format types
+  see \code{strptime}. For example, to format the date like
+  "Jan-2012" set \code{date.format = "\%b-\%Y"}.}
+
   \item{auto.text}{Either \code{TRUE} (default) or
   \code{FALSE}. If \code{TRUE} titles and axis labels will
   automatically try and format pollutant names and units
   properly e.g.  by subscripting the `2' in NO2.}
 
-  \item{\dots}{Other graphical parameters are passed onto
+  \item{...}{Other graphical parameters are passed onto
   \code{cutData} and \code{lattice:xyplot}. For example,
   \code{timePlot} passes the option \code{hemisphere =
   "southern"} on to \code{cutData} to provide southern
@@ -237,7 +247,7 @@
 
   By default plots are shown with a colour key at the
   bottom and in teh case of multiple pollutants or sites,
-  strips on teh left of each plot. Sometimes this may be
+  strips on the left of each plot. Sometimes this may be
   overkill and the user can opt to remove the key and/or
   the strip by setting \code{key} and/or \code{strip} to
   \code{FALSE}. One reason to do this is to maximise the

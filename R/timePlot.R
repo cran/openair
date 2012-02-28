@@ -29,7 +29,7 @@
 ##' below.
 ##'
 ##' By default plots are shown with a colour key at the bottom and in teh case
-##' of multiple pollutants or sites, strips on teh left of each plot. Sometimes
+##' of multiple pollutants or sites, strips on the left of each plot. Sometimes
 ##' this may be overkill and the user can opt to remove the key and/or the
 ##' strip by setting \code{key} and/or \code{strip} to \code{FALSE}. One reason
 ##' to do this is to maximise the plotting area and therefore the information
@@ -62,7 +62,7 @@
 ##'   much increased flexibility a number can precede these options followed by
 ##'   a space. For example, a timeAverage of 2 months would be \code{period =
 ##'   "2 month"}. See function \code{timeAverage} for further details on this.
-##' @param data.thresh The data capture threshold to use (%) when aggregating
+##' @param data.thresh The data capture threshold to use (\%) when aggregating
 ##'   the data using \code{avg.time}. A value of zero means that all available
 ##'   data will be used in a particular period regardless if of the number of
 ##'   values available. Conversely, a value of 100 will mean that all data will
@@ -72,10 +72,10 @@
 ##'   is the mean. Can be one of "mean", "max", "min", "median", "frequency",
 ##'   "sd", "percentile". Note that "sd" is the standard deviation and
 ##'   "frequency" is the number (frequency) of valid records in the period.
-##'   "percentile" is the percentile level (%) between 0-100, which can be set
+##'   "percentile" is the percentile level (\%) between 0-100, which can be set
 ##'   using the "percentile" option - see below. Not used if \code{avg.time =
 ##'   "default"}.
-##' @param percentile The percentile level in % used when \code{statistic =
+##' @param percentile The percentile level in \% used when \code{statistic =
 ##'   "percentile"} and when aggregating the data with \code{avg.time}. More
 ##'   than one percentile level is allowed for \code{type = "default"} e.g.
 ##'   \code{percentile = c(50, 95)}. Not used if \code{avg.time = "default"}.
@@ -99,11 +99,13 @@
 ##'   of different variables and how they depend on one another.
 ##'
 ##' Only one \code{type} is currently allowed in \code{timePlot}.
-
-##' @param cols Colours to be used for plotting. Options include "default",
-##'   "increment", "heat", "spectral", "hue", "brewer1" (default) and user
-##'   defined (see manual for more details). The same line colour can be set
-##'   for all pollutant e.g. \code{cols = "black"}.
+##' @param cols Colours to be used for plotting. Options include
+##' "default", "increment", "heat", "jet" and \code{RColorBrewer}
+##' colours --- see the \code{openair} \code{openColours} function for
+##' more details. For user defined the user can supply a list of
+##' colour names recognised by R (type \code{colours()} to see the
+##' full list). An example would be \code{cols = c("yellow", "green",
+##' "blue")}
 ##' @param plot.type The \code{lattice} plot type, which is a line
 ##'   (\code{plot.type = "l"}) by default. Another useful option is
 ##'   \code{plot.type = "h"}, which draws vertical lines.
@@ -116,7 +118,7 @@
 ##' @param smooth Should a smooth line be applied to the data? The default is
 ##'   \code{FALSE}.
 ##' @param ci If a smooth fit line is applied, then \code{ci} determines
-##'   whether the 95% confidence intervals aer shown.
+##'   whether the 95\% confidence intervals aer shown.
 ##' @param ref.x Add a vertical dashed reference line at this value.
 ##' @param ref.y Add a horizontal dashed reference line at this value.
 ##' @param key.columns Number of columns to be used in the key. With many
@@ -135,10 +137,15 @@
 ##'   This does not always work as desired automatically. The user can
 ##'   therefore increase or decrease the number of intervals by adjusting the
 ##'   value of \code{date.breaks} up or down.
+##' @param date.format This option controls the date format on the
+##' x-axis. While \code{timePlot} generally sets the date format
+##' sensibly there can be some situations where the user wishes to
+##' have more control. For format types see \code{strptime}. For
+##' example, to format the date like "Jan-2012" set \code{date.format = "\%b-\%Y"}.
 ##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
 ##'   \code{TRUE} titles and axis labels will automatically try and format
 ##'   pollutant names and units properly e.g.  by subscripting the `2' in NO2.
-##' @param \dots Other graphical parameters are passed onto \code{cutData} and
+##' @param ... Other graphical parameters are passed onto \code{cutData} and
 ##'   \code{lattice:xyplot}. For example, \code{timePlot} passes the option
 ##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern
 ##'   (rather than default northern) hemisphere handling of \code{type = "season"}.
@@ -234,6 +241,7 @@ timePlot <- function(mydata,
                      key.columns = 1,
                      name.pol = pollutant,
                      date.breaks = 7,
+                     date.format = NULL,
                      auto.text = TRUE, ...)   {
 
 
@@ -347,7 +355,7 @@ timePlot <- function(mydata,
 
     theStrip <- strip
 
-    if (date.pad) mydata <- date.pad(mydata, type)
+    if (date.pad) mydata <- date.pad(mydata)
 
     mydata <- cutData(mydata, type, ...)
 
@@ -463,7 +471,13 @@ timePlot <- function(mydata,
     strip.left <- FALSE
 
     dates <- openair:::dateBreaks(mydata$date, date.breaks)$major ## for date scale
-    formats <- openair:::dateBreaks(mydata$date, date.breaks)$format
+
+    ## date axis formating
+    if (is.null(date.format)) {
+        formats <- openair:::dateBreaks(mydata$date, date.breaks)$format
+    } else {
+        formats <- date.format
+    }
 
     scales <- list(x = list(at = dates, format = formats), y = list(log = nlog))
 
@@ -600,7 +614,7 @@ timePlot <- function(mydata,
                   })
 
     #reset for extra.args
-    xyplot.args<- listUpdate(xyplot.args, extra.args)
+    xyplot.args<- openair:::listUpdate(xyplot.args, extra.args)
 
     #plot
     plt <- do.call(xyplot, xyplot.args)

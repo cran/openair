@@ -285,11 +285,9 @@ summaryPlot <- function(mydata,
         percentile <- round(quantile(value, probs = 0.95, na.rm = TRUE), 1)
 
         if (period == "years") format.t <- "%Y" else format.t <- "%Y-%m"
-        all.hours <- aggregate(value, list(year = format(mydata$date, format.t)), length)
-        data.hours <- aggregate(value, list(year = format(mydata$date, format.t)),
-                                function(x) length(na.omit(x)))
 
-        data.cap <- round(100 * data.hours$x / all.hours$x, 1)  ## data capture %
+        data.cap <- round(tapply(value, list(year = format(mydata$date, format.t)),
+                                 function (x) 100 * length(na.omit(x)) / length(x)), 1)
         res <- list(results = c(mis.dat, mis.per, min.dat, max.dat, mean.dat, median.dat,
                     percentile), data.cap = data.cap)
         return(res)
@@ -323,17 +321,6 @@ summaryPlot <- function(mydata,
                    "" else quickText(ylab[1], auto.text)
     my.xlab <- if(is.null(xlab[1]) || is.na(xlab[1]))
                    "date" else quickText(xlab[1], auto.text)
-
-#    if(is.null(ylab[1])) {
-#        ylab[1] <- ""
-#    } else {
-#        if(is.na(ylab[1])) ylab[1] <- ""
-#    }
-#    if(is.null(xlab[1])) {
-#        xlab[1] <- "date"
-#    } else {
-#        if(is.na(xlab[1])) xlab[1] <- "date"
-#    }
 
 
     xyplot.args <- list(x = value ~ date | variable , data = dummy.dat, type = "n",
@@ -392,7 +379,7 @@ summaryPlot <- function(mydata,
                    })
 
     #reset for extra.args
-    xyplot.args<- listUpdate(xyplot.args, extra.args)
+    xyplot.args<- openair:::listUpdate(xyplot.args, extra.args)
 
     #plot
     plt1 <- do.call(xyplot, xyplot.args)
@@ -426,19 +413,8 @@ summaryPlot <- function(mydata,
     my.xlab <- if(is.null(xlab[2]) || is.na(xlab[2]))
                    "value" else quickText(xlab[2], auto.text)
 
-#    if(is.null(xlab[2])) {
-#        xlab[2] <- "value"
-#    } else {
-#        if(is.na(xlab[2])) xlab[2] <- "value"
-#    }
 
     if (type == "histogram") {
-
-#        if(is.null(ylab[2])) {
-#           ylab[2] <- "Percent of Total"
-#        } else {
-#           if(is.na(ylab[2])) ylab[2] <- "Percent of Total"
-#        }
 
         histogram.args <- list(x = ~ value | variable, data = mydata,
                           xlab = my.xlab, ylab = my.ylab,
@@ -453,20 +429,11 @@ summaryPlot <- function(mydata,
                               panel.histogram(x,  col = col.hist, border = NA,...)
                           })
 
-        #reset for extra.args
-##(currently off so like summaryPlot previously)
-##        histogram.args<- listUpdate(histogram.args, extra.args)
 
-        #plot
         plt2 <- do.call(histogram, histogram.args)
 
     } else {
 
-#        if(is.null(ylab[2])) {
-#           ylab[2] <- "Density"
-#        } else {
-#           if(is.na(ylab[2])) ylab[2] <- "Density"
-#        }
 
         densityplot.args <- list(x = ~ value | variable, data = mydata,
                             par.strip.text = list(cex = 0.7),
@@ -481,9 +448,6 @@ summaryPlot <- function(mydata,
                                                   col = col.hist,...)
                             })
 
-        #reset for extra.args
-##(currently off so like summaryPlot previously)
-##        densityplot.args<- listUpdate(densityplot.args, extra.args)
 
         #plot
         plt2 <- do.call(densityplot, densityplot.args)

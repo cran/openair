@@ -147,7 +147,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
     calc.mean <- function(mydata, start.date) { ## function to calculate means
 
         ## pad out missing data
-     #   mydata <- date.pad(mydata)
+    #   mydata <- date.pad(mydata)
        # mydata <- date.pad2(mydata, interval = avg.time)
         ## time diff in seconds of orginal data
         timeDiff <-  as.numeric(strsplit(openair:::find.time.interval(mydata$date),
@@ -327,7 +327,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
 
         ## fill missing gaps
         if (avg.time != "season") {
-            dailymet <- openair:::date.pad2(dailymet, interval = avg.time)
+            dailymet <- date.pad2(dailymet, interval = avg.time)
         }
         dailymet
 
