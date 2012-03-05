@@ -381,7 +381,8 @@ smoothTrend <- function(mydata,
 
                       if (group.number == 1) {  ## otherwise this is called every time
 
-                          panel.shade(split.data, start.year, end.year, ylim = current.panel.limits()$ylim)
+                          openair:::panel.shade(split.data, start.year, end.year,
+                                                ylim = current.panel.limits()$ylim)
                           panel.grid(-1, 0)
 
 
@@ -390,7 +391,7 @@ smoothTrend <- function(mydata,
                                    col.line = myColors[group.number],
                                    col.symbol = myColors[group.number], ...)
 
-                      panel.gam(x, y, col =  myColors[group.number], col.se =  "black",
+                      openair:::panel.gam(x, y, col =  myColors[group.number], col.se =  "black",
                                 simulate = simulate, n.sim = n,
                                 autocor = autocor, lty = 1, lwd = 1, se = ci, ...)
 

@@ -1,3 +1,17 @@
+Changes in openair 0.5-23 [2012-02-28]
+=====================================
+*	Fix bug in windRose when paddle = FALSE
+
+Changes in openair 0.5-22 [2012-01-12]
+=====================================
+*	Fix scaling bug that could sometime affect polarPlot grid
+	lines
+*	Fix regression in importKCL that was intruduced in 0.5-21
+*	Make sure wd data are rounded to 10 degrees in polarFreq
+*	Fix date padding issue in smoothTrend when type = "site"
+*	windRose now gives mean ws in each panel rather than count
+*	add otion date.format to timePlot for more control over date
+	format on axis
 
 Changes in openair 0.5-21 [2012-02-21]
 *	Use C++ code for rolling mean calcs. Much faster, more to

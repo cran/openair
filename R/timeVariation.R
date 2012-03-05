@@ -218,7 +218,7 @@
 timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE, normalise = FALSE,
                           xlab = c("hour", "hour", "month", "weekday"),
                           name.pol = pollutant, type = "default", group = NULL,
-                          difference = FALSE, B = 500, ci = TRUE, cols = "hue",
+                          difference = FALSE, B = 100, ci = TRUE, cols = "hue",
                           key = NULL, key.columns = 1, start.day = 1, auto.text = TRUE,
                           alpha = 0.4, ...)   {
 

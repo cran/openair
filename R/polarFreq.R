@@ -115,11 +115,11 @@
 ##'   pollutant names and units properly e.g.  by subscripting the \sQuote{2}
 ##'   in NO2.
 ##' @param \dots Other graphical parameters passed onto \code{lattice:xyplot}
-##'   and \code{cutData}. For example, \code{polarFreq} passes the option 
-##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern 
+##'   and \code{cutData}. For example, \code{polarFreq} passes the option
+##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern
 ##'   (rather than default northern) hemisphere handling of \code{type = "season"}.
-##'   Similarly, common axis and title labelling options (such as \code{xlab}, 
-##'   \code{ylab}, \code{main}) are passed to \code{xyplot} via \code{quickText} 
+##'   Similarly, common axis and title labelling options (such as \code{xlab},
+##'   \code{ylab}, \code{main}) are passed to \code{xyplot} via \code{quickText}
 ##'   to handle routine formatting.
 ##' @export
 ##' @return As well as generating the plot itself, \code{polarFreq} also
@@ -190,7 +190,7 @@ polarFreq <- function(mydata,
 
     ## extract necessary data
     vars <- c("wd", "ws")
-    if (any(type %in%  dateTypes)) vars <- c(vars, "date")
+    if (any(type %in%  openair:::dateTypes)) vars <- c(vars, "date")
 
     ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
@@ -213,7 +213,7 @@ polarFreq <- function(mydata,
     if (!missing(pollutant)) vars <- c(vars, pollutant)
 
     ## data checks
-    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
 
     ## to make first interval easier to work with, set ws = 0 + e
     ids <- which(mydata$ws == 0)
@@ -252,6 +252,9 @@ polarFreq <- function(mydata,
 
     ## offset for "hollow" middle
     offset <- (max.ws * offset) / 5 / 10
+
+    ## make sure wd data are rounded to nearest 10
+    mydata$wd <- 10 * ceiling(mydata$wd / 10 - 0.5)
 
     prepare.grid <- function(mydata)
     {
@@ -370,7 +373,7 @@ polarFreq <- function(mydata,
                    space = key.position,
                    auto.text = auto.text, footer = key.footer, header = key.header,
                    height = 1, width = 1.5, fit = "all")
-    legend <- makeOpenKeyLegend(key, legend, "polarFreq")
+    legend <- openair:::makeOpenKeyLegend(key, legend, "polarFreq")
 
     temp <- paste(type, collapse = "+")
     myform <- formula(paste("ws ~ wd | ", temp, sep = ""))
@@ -429,7 +432,7 @@ polarFreq <- function(mydata,
                   )
 
     #reset for extra.args
-    xyplot.args<- listUpdate(xyplot.args, extra.args)
+    xyplot.args<- openair:::listUpdate(xyplot.args, extra.args)
 
     #plot
     plt <- do.call(xyplot, xyplot.args)

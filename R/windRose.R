@@ -220,6 +220,8 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws.int = 2, angle = 30, type
                       ...)
 {
 
+    if (is.null(seg)) seg <- 0.9
+
     ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
         ## strip
@@ -265,17 +267,17 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws.int = 2, angle = 30, type
             statistic <- "prop.count"
         }
 
-        if(statistic=="prop.count"){
+        if (statistic == "prop.count"){
             stat.fun <- length
             stat.unit <- "%"
             stat.scale <- "all"
             stat.lab <- "Frequency of counts by wind direction (%)"
-            stat.fun2 <- function(x) round(length(x), 1)
-            stat.lab2 <- "count"
+            stat.fun2 <- function(x) signif(mean(x, na.rm = TRUE), 3)
+            stat.lab2 <- "mean"
             stat.labcalm <- function(x) round(x, 1)
         }
 
-        if(statistic=="prop.mean") {
+        if (statistic == "prop.mean") {
             stat.fun <- function(x) sum(x, na.rm = TRUE)
             stat.unit <- "%"
             stat.scale <- "panel"
@@ -285,7 +287,7 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws.int = 2, angle = 30, type
             stat.labcalm <- function(x) round(x, 1)
         }
 
-        if(statistic=="abs.count" | statistic=="frequency") {
+        if (statistic == "abs.count" | statistic == "frequency") {
             stat.fun <- length
             stat.unit <- ""
             stat.scale <- "none"
@@ -371,20 +373,20 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws.int = 2, angle = 30, type
                               stat.fun)
 
         #scaling
-        if(stat.scale=="all"){
+        if (stat.scale == "all"){
               calm <- calm / all
-              weights <- weights/all
+              weights <- weights / all
         }
-        if(stat.scale=="panel"){
+        if (stat.scale == "panel"){
               temp <- stat.fun(stat.fun(weights)) + calm
-              calm <- calm/temp
-              weights <- weights/temp
+              calm <- calm / temp
+              weights <- weights / temp
         }
 
         weights[is.na(weights)] <- 0
         weights <- t(apply(weights, 1, cumsum))
 
-        if(stat.scale=="all" | stat.scale=="panel"){
+        if (stat.scale=="all" | stat.scale=="panel"){
             weights <- weights * 100
             calm <- calm * 100
         }
@@ -441,7 +443,6 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws.int = 2, angle = 30, type
 
     #format
     results.grid$calm <- stat.labcalm(results.grid$calm)
-
     ## proper names of labelling ##############################################################################
     pol.name <- sapply(levels(results.grid[ , type[1]]),
                        function(x) quickText(x, auto.text))
@@ -487,7 +488,7 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws.int = 2, angle = 30, type
     #rethink next bit?
     #error catcher for users setting too big grid.line
     ##########
-    if(myby/mymax > 0.9)
+    if(myby / mymax > 0.9)
           myby <- mymax * 0.9
 
 
@@ -513,6 +514,7 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws.int = 2, angle = 30, type
                                                 col = "grey85", lwd = 1))
 
                       subdata <- results.grid[subscripts, ]
+
                       for (i in 1:nrow(subdata)) {
                           with(subdata, {
                               for (j in 1:length(theLabels)) {
@@ -528,11 +530,13 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws.int = 2, angle = 30, type
                               }
                           })
                       }
+
                   ltext(seq((myby + off.set), mymax,
                       myby) * sin(pi/4), seq((myby +
                       off.set), mymax, myby) * cos(pi / 4),
                       paste(seq(myby, mymax, by = myby), stat.unit,
                       sep = ""), cex = 0.7)
+
                   if (annotate)
                       ltext(max.freq, -max.freq, label = paste(stat.lab2, " = ",
                           subdata$panel.fun[1], "\ncalm = ", subdata$calm[1], stat.unit,

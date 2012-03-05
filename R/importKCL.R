@@ -466,7 +466,7 @@
 importKCL <- function(site = "my1", year = 2009, pollutant = "all", met = FALSE, units = "mass") {
 
     ## get rid of R check annoyances
-    sites = site = NULL
+    sites  = NULL
 
     site <- toupper(site)
 
@@ -500,6 +500,8 @@ importKCL <- function(site = "my1", year = 2009, pollutant = "all", met = FALSE,
 
     if (is.null(thedata)) stop("No data to import - check site codes and year.", call. = FALSE)
 
+    ## pad missing data
+    thedata <- date.pad(thedata)
 
     thedata$code <- thedata$site
 
