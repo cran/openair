@@ -83,12 +83,12 @@
 ##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
 ##'   \code{TRUE} titles and axis labels etc. will automatically try and format
 ##'   pollutant names and units properly e.g.  by subscripting the `2' in NO2.
-##' @param \dots Other graphical parameters passed onto \code{cutData} and 
-##'   \code{lattice:xyplot}. For example, \code{conditionalQuantile} passes the option 
-##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern 
+##' @param \dots Other graphical parameters passed onto \code{cutData} and
+##'   \code{lattice:xyplot}. For example, \code{conditionalQuantile} passes the option
+##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern
 ##'   (rather than default northern) hemisphere handling of \code{type = "season"}.
-##'   Similarly, common axis and title labelling options (such as \code{xlab}, 
-##'   \code{ylab}, \code{main}) are passed to \code{xyplot} via \code{quickText} 
+##'   Similarly, common axis and title labelling options (such as \code{xlab},
+##'   \code{ylab}, \code{main}) are passed to \code{xyplot} via \code{quickText}
 ##'   to handle routine formatting.
 ##' @export
 ##' @author David Carslaw
@@ -171,15 +171,16 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
 
     vars <- c(mod, obs)
 
-    if (any(type %in%  dateTypes)) vars <- c("date", vars)
+    if (any(type %in%  openair:::dateTypes)) vars <- c("date", vars)
 
     ## check the data
-    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
     mydata <- na.omit(mydata)
     mydata <- cutData(mydata, type)
 
     procData <- function(mydata){
-        mydata <- mydata[ , sapply(mydata, class) %in% c("numeric", "integer"), drop = FALSE]
+        mydata <- mydata[ , sapply(mydata, class) %in% c("numeric", "integer"),
+                         drop = FALSE]
 
         obs <- mydata[ , obs]
         pred <- mydata[ , mod]
@@ -195,25 +196,23 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
                        labels = labs)
         obs.cut[is.na(obs.cut)] <- labs[1]
         obs.cut <- as.numeric(as.character(obs.cut))
-        frcst.cut <- cut(pred, breaks = bins, include.lowest = TRUE,
+        pred.cut <- cut(pred, breaks = bins, include.lowest = TRUE,
                          labels = labs)
-        frcst.cut[is.na(frcst.cut)] <- labs[1]
-        frcst.cut <- as.numeric(as.character(frcst.cut))
+        pred.cut[is.na(pred.cut)] <- labs[1]
+        pred.cut <- as.numeric(as.character(pred.cut))
         n <- length(labs)
-        lng <- aggregate(obs, by = list(length = frcst.cut), length)
-        med <- aggregate(obs, by = list(med = frcst.cut), median)
-        q1 <- aggregate(obs, by = list(q1 = frcst.cut), quantile, 0.25)
-        q2 <- aggregate(obs, by = list(q2 = frcst.cut), quantile, 0.75)
-        q1$x[lng$x <= min.bin[1]] <- NA
-        q2$x[lng$x <= min.bin[1]] <- NA
-        q3 <- aggregate(obs, by = list(q3 = frcst.cut), quantile, 0.1)
-        q4 <- aggregate(obs, by = list(q4 = frcst.cut), quantile, 0.9)
-        q3$x[lng$x <= min.bin[2]] <- NA
-        q4$x[lng$x <= min.bin[2]] <- NA
-
-        results <- data.frame(x = med$med, lng = lng$x, med = med$x, q1 = q1$x, q2 = q2$x,
-                              q3 = q3$x, q4 = q4$x)
-        results.cut <- data.frame(frcst.cut = frcst.cut)
+        lng <- tapply(obs, pred.cut, length)
+        med <- tapply(obs, pred.cut, median)
+        q1 <- tapply(obs, pred.cut, quantile, probs = 0.25)
+        q2 <- tapply(obs, pred.cut, quantile, probs = 0.75)
+        q1[lng <= min.bin[1]] <- NA
+        q2[lng <= min.bin[1]] <- NA
+        q3 <- tapply(obs, pred.cut, quantile, probs = 0.1)
+        q4 <- tapply(obs, pred.cut, quantile, probs = 0.9)
+        q3[lng <= min.bin[2]] <- NA
+        q4[lng <= min.bin[2]] <- NA
+        results <- data.frame(x = sort(unique(pred.cut)), lng, med, q1, q2, q3, q4)
+        results.cut <- data.frame(pred.cut = pred.cut, obs.cut = obs)
 
         ## range taken by observations
         results.obs <- data.frame(min = min(obs), max = max(obs))
@@ -276,7 +275,7 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
                                                                "perfect model")),
                       space = key.position,
                       columns = key.columns),
-                      par.strip.text = list(cex = 0.8), 
+                      par.strip.text = list(cex = 0.8),
                       panel = function(x, subscripts,  ...){
                           panel.grid (-1, -1, col = "grey95")
 
@@ -303,21 +302,23 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
 
                           panel.lines(c(theSubset$min, theSubset$max), c(theSubset$min,
                                                                          theSubset$max),
-                                      col = ideal.col, lwd = 1)
+                                      col = ideal.col, lwd = 1.5)
                           panel.lines(results$x[subscripts], results$med[subscripts],
                                       col = col.5, lwd = 2)
 
                       })
 
     #reset for extra.args
-    xyplot.args<- listUpdate(xyplot.args, extra.args)
+    xyplot.args <- openair:::listUpdate(xyplot.args, extra.args)
 
     #plot
     scatter <- do.call(xyplot, xyplot.args)
 
     temp <- paste(type, collapse = "+")
-    myform <- formula(paste(" ~ frcst.cut | ", temp, sep = ""))
+    myform <- formula(paste(" ~ pred.cut | ", temp, sep = ""))
     bins <- seq(floor(lo), ceiling(hi), length = bins)
+
+    pred.cut <- NULL ## avoid R NOTES
 
     histo <- histogram(myform, data = hist.results, breaks = bins, type = "count",
                        as.table = TRUE,
@@ -325,7 +326,19 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
                        strip.left = strip.left,
                        col = "black", alpha = 0.1, border = NA,
                        par.strip.text = list(cex = 0.8),
-                       ylab = "sample size")
+                       ylab = "sample size for histograms",
+                       panel = function (x = pred.cut, col = "black", border = NA,
+                       alpha = 0.2,
+                       subscripts, ...) {
+                           ## histogram of observations
+                           panel.histogram(x = hist.results[subscripts, "obs.cut"],
+                                           col = NA, alpha = 0.5, lwd = 0.5,
+                                           border = ideal.col, ...)
+                           ## histogram of modelled values
+                           panel.histogram(x = x, col = "black", border, alpha = 0.2, ...)
+
+                       }
+                       )
 
     thePlot <- doubleYScale(scatter, histo, add.ylab2 = TRUE)
     thePlot <- update(thePlot, par.settings = simpleTheme(col = c("black", "black")))
@@ -339,5 +352,8 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
 
     invisible(trellis.last.object())
 
+    output <- list(plot = thePlot, data = results, call = match.call())
+    class(output) <- "openair"
+    invisible(output)
 }
 

@@ -127,6 +127,9 @@ ans <- gsub("ch4","' 'CH' [4] * '", ans)
 	ans <- gsub("degreesC", "' * degree * 'C' '", ans)
 	ans <- gsub("degrees", "' * degree *'", ans)
 
+        ans <- gsub("Delta", "' * Delta *'", ans)
+        ans <- gsub("delta", "' * Delta *'", ans)
+
 
 #ug/m3, mg/m3, ng/m3 variants
 	ans <- gsub("ug/m3", "' * mu * 'g m' ^-3 *'", ans)

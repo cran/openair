@@ -114,13 +114,13 @@
 
   \item{map}{If supplied, an \code{RgoogleMaps} output, to
   be used as a background map. If \code{NULL} (as in
-  default), a map is produced using the \code{RgoogleMaps}
-  function \code{MapBackground}, the supplied
-  \code{latitude} and \code{longitude} ranges, and any
-  additional \code{RgoogleMaps} arguments supplied as part
-  of the plot call.  (Note: the \code{map} object currently
-  used in \code{panel...} functions is a modified form of
-  this output, details to be confirmed.)}
+  default), a map is produced using the
+  \code{RgoogleMaps-package} function \code{MapBackground},
+  the supplied \code{latitude} and \code{longitude} ranges,
+  and any additional \code{RgoogleMaps-package} arguments
+  supplied as part of the plot call.  (Note: the \code{map}
+  object currently used in \code{panel...} functions is a
+  modified form of this output, details to be confirmed.)}
 
   \item{map.raster}{Should the map be plotted as a raster
   object? The default \code{TRUE} uses
@@ -220,7 +220,7 @@
   to produce map-based data visualisations.
 
   It provides lattice-style conditioning/handling for
-  \code{\link[RgoogleMaps]{RgoogleMaps}} outputs.
+  \code{RgoogleMaps} outputs.
 }
 \note{
   IN DEVELOPMENT: HANDLE WITH CARE.
@@ -250,8 +250,7 @@
   978-0-387-75968-5
 }
 \seealso{
-  \code{\link[RgoogleMaps]{MapBackground}},
-  \code{\link[lattice]{xyplot}},
+  \code{RgoogleMaps}, \code{\link[lattice]{xyplot}},
   \code{\link[lattice]{panel.xyplot}} and
   \code{\link[lattice]{panel.levelplot}}
 }
