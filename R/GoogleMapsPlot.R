@@ -81,7 +81,7 @@
 ##' map-based data visualisations.
 ##'
 ##' It provides lattice-style conditioning/handling for
-##' \code{\link[RgoogleMaps]{RgoogleMaps}} outputs.
+##' \code{RgoogleMaps} outputs.
 ##'
 ##' @aliases GoogleMapsPlot panel.GoogleMapsRaster panel.GoogleMaps
 ##' @param mydata The openair data frame to use to generate the
@@ -149,9 +149,9 @@
 ##'   (\code{TRUE}/\code{FALSE}) all x and y axis annotation and labelling.
 ##' @param map If supplied, an \code{RgoogleMaps} output, to be used as a
 ##'   background map. If \code{NULL} (as in default), a map is produced using
-##'   the \code{RgoogleMaps} function \code{MapBackground}, the supplied
+##'   the \code{RgoogleMaps-package} function \code{MapBackground}, the supplied
 ##'   \code{latitude} and \code{longitude} ranges, and any additional
-##'   \code{RgoogleMaps} arguments supplied as part of the plot call.  (Note:
+##'   \code{RgoogleMaps-package} arguments supplied as part of the plot call.  (Note:
 ##'   the \code{map} object currently used in \code{panel...} functions is a
 ##'   modified form of this output, details to be confirmed.)
 ##' @param map.raster Should the map be plotted as a raster object? The default
@@ -215,7 +215,7 @@
 ##'   Earth's (curved) surface. Latitude and longitude scales are therefore
 ##'   locally modified to account for this.
 ##' @author Karl Ropkins
-##' @seealso \code{\link[RgoogleMaps]{MapBackground}},
+##' @seealso \code{RgoogleMaps},
 ##'   \code{\link[lattice]{xyplot}}, \code{\link[lattice]{panel.xyplot}} and
 ##'   \code{\link[lattice]{panel.levelplot}}
 ##' @references This function makes extensive use of code developed by others.

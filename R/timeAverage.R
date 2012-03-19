@@ -225,10 +225,17 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
 
         }
 
-        if (all(c("ws", "wd") %in% names(mydata))) {
-            if (is.numeric(mydata$wd)) {
-                mydata$u <- mydata$ws * sin(2 * pi * mydata$wd / 360)
-                mydata$v <- mydata$ws * cos(2 * pi * mydata$wd / 360)
+        ## calculate wind components
+        if ("wd" %in% names(mydata)) {
+            if (is.numeric(mydata$wd) && "ws" %in% names(mydata)) {
+                mydata <- transform(mydata,  u = ws * sin(2 * pi * wd / 360),
+                                    v = ws * cos(2 * pi * wd / 360))
+
+            }
+
+            if (is.numeric(mydata$wd) && !"ws" %in% names(mydata)) {
+               mydata <- transform(mydata,  u = sin(2 * pi * wd / 360),
+                                    v = cos(2 * pi * wd / 360))
             }
         }
 
@@ -317,7 +324,9 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
                 dailymet$wd[ids] <- dailymet$wd[ids] + 360
 
                 ## vector average ws
-                if (vector.ws) dailymet <- within(dailymet, ws <- (u ^ 2 + v ^ 2) ^ 0.5)
+                if ("ws" %in% names(mydata)) {
+                    if (vector.ws) dailymet <- within(dailymet, ws <- (u ^ 2 + v ^ 2) ^ 0.5)
+                }
 
                 dailymet <- subset(dailymet, select = c(-u, -v))
             }

@@ -287,10 +287,13 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
         }
 
         if (type == "wd") {
+            ## could be missing data
+            id <- which(is.na(x$wd))
 
             x[ , type] <- cut(x$wd, breaks = seq(22.5, 382.5, 45),
                               labels = c("NE", "E", "SE", "S", "SW", "W", "NW", "N"))
             x[ , type][is.na(x[ , type])] <- "N" # for wd < 22.5
+            if (length(id) > 0) x$wd[id] <- NA ## deal with missings
             x[ , type] <- ordered(x[ , type], levels = c("N", "NE", "E", "SE", "S", "SW", "W", "NW"))}
 
 
