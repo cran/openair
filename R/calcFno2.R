@@ -22,8 +22,8 @@
 ##' Test data is provided at \url{http://www.openair-project.org}.
 ##'
 ##' @param input A data frame with the following fields. \code{nox}
-##'   and\code{no2} (roadside NOX and NO2 concentrations), \code{backnox},
-##'   \code{backno2} and \code{backo3} (hourly background concentrations of
+##'   and\code{no2} (roadside NOX and NO2 concentrations), \code{back_nox},
+##'   \code{back_no2} and \code{back_o3} (hourly background concentrations of
 ##'   each pollutant). In addition \code{temp} (temperature in degrees Celsius)
 ##'   and \code{cl} (cloud cover in Oktas). Note that if \code{temp} and
 ##'   \code{cl} are not available, typical means values of 11 deg. C and cloud
@@ -223,7 +223,8 @@ calcFno2 <- function(input,
         input.all <- merge(input.all, results, all = TRUE)
 
         ## copy down f-NO2 for each month
-        input.all$fno2 <- na.locf(input.all$fno2, na.rm = FALSE)
+
+        input.all$fno2 <- approx(input.all$fno2, n = length(input.all$fno2))$y
         input.all$fno2<- input.all$fno2 / 100
 
         ## now calculate o3

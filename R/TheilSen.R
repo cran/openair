@@ -259,10 +259,13 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
     ## get rid of R check annoyances
     a = b = lower.a = lower.b = upper.a = upper.b = slope.start = date.end = intercept.start = date.start = lower.start = intercept.lower.start = upper.start = intercept.upper.start = NULL
 
+    ## reset strip color on exit
+    current.strip <- trellis.par.get("strip.background")
+    on.exit(trellis.par.set("strip.background", current.strip))
+
     ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
-        ## strip
-        current.strip <- trellis.par.get("strip.background")
+
         trellis.par.set(list(strip.background = list(col = "white")))
         ## other local colours
         line.col <- "black"
@@ -533,10 +536,6 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
     newdata <- list(main.data = split.data, res2 = res2, subsets = c("main.data", "res2"))
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
-
-    ## reset if greyscale
-    if (length(cols) == 1 && cols == "greyscale")
-        trellis.par.set("strip.background", current.strip)
 
     invisible(output)
 

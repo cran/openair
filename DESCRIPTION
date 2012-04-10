@@ -1,8 +1,8 @@
 Package: openair
 Type: Package
 Title: Tools for the analysis of air pollution data
-Version: 0.5-25
-Date: 2012-03-16
+Version: 0.6-0
+Date: 2012-04-10
 ByteCompile: true
 Author: David Carslaw and Karl Ropkins
 Depends: R (>= 2.13.0),
@@ -20,7 +20,7 @@ License: GPL (>= 2)
 URL: http://www.openair-project.org/
 LazyLoad: yes
 LazyData: yes
-Packaged: 2012-03-19 07:31:36 UTC; david
+Packaged: 2012-05-10 19:22:29 UTC; david
 Collate: 'aqStats.R' 'calcFno2.R' 'calcPercentile.R' 'calendarPlot.R'
         'checkPrep.R' 'conditionalQuantile.R' 'corPlot.R' 'cutData.R'
         'date.breaks.R' 'drawOpenKey.R' 'GoogleMapsPlot.R' 'import.2.R'
@@ -34,6 +34,6 @@ Collate: 'aqStats.R' 'calcFno2.R' 'calcPercentile.R' 'calendarPlot.R'
         'timeVariation.R' 'trendLevel.R' 'utilities.R' 'windRose.R'
         'trajPlot.R' 'importTraj.R' 'getMeta.R' 'senTheil.R'
         'TheilSen.R' 'polarCluster.R' 'zzz.R' 'mydata.R'
-        'trajCluster.R'
+        'trajCluster.R' 'conditionalEval.R'
 Repository: CRAN
-Date/Publication: 2012-03-19 11:12:34
+Date/Publication: 2012-05-11 05:13:52

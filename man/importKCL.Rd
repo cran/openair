@@ -95,6 +95,12 @@
   example "MY1" will be TEOM with VCM applied and "MY7" is
   the FDMS data.
 
+  Where FDMS data are used the volatile and non-volatile
+  components are separately reported i.e. v10 = volatile
+  PM10, v2.5 = volatile PM2.5, nv10 = non-volatile PM10 and
+  nv2.5 = non-volatile PM2.5. Therefore, PM10 = v10 + nv10
+  and PM2.5 = v2.5 + nv2.5.
+
   For the assessment of the EU Limit Values, PM10 needs to
   be measured using the reference method or one shown to be
   equivalent to the reference method. Defra carried out

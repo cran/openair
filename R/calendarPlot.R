@@ -42,12 +42,12 @@
 ##'   a data frame should be supplied e.g. \code{pollutant = "nox". }
 ##' @param year Year to plot e.g. \code{year = 2003}.
 ##' @param type Not yet implemented.
-##' @param annotate This option controls what appears on each day of the
-##'   calendar. Can be: "date" - shows day of the month; "wd" - shows
-##'   vector-averaged wind direction, or "ws" - shows vector-averaged wind
-##'   direction scaled by wind speed.
-##' @param statistic Not currently implemented - only mean is currently
-##'   calculated.
+##' @param annotate This option controls what appears on each day of
+##' the calendar. Can be: "date" - shows day of the month; "wd" -
+##' shows vector-averaged wind direction, or "ws" - shows
+##' vector-averaged wind direction scaled by wind speed. Finally it
+##' can be "value" which shows the daily mean value.
+##' @param statistic Statistic passed to \code{timeAverage}.
 ##' @param cols Colours to be used for plotting. Options include "default",
 ##'   "increment", "heat", "jet" and user defined. For user defined the user
 ##'   can supply a list of colour names recognised by R (type \code{colours()}
@@ -59,12 +59,32 @@
 ##'   range of the data for all plots of interest. For example, if one plot had
 ##'   data covering 0--60 and another 0--100, then set \code{limits = c(0,
 ##'   100)}. Note that data will be ignored if outside the limits range.
+##' @param lim A threshold value to help differentiate values above
+##' and below \code{lim}. It is used when \code{annotate =
+##' "value"}. See next few options for control over the labels used.
+##' @param col.lim For the annotation of concentration labels on each
+##' day. The first sets the colour of the text below \code{lim} and
+##' the second sets the colour of the text above \code{lim}.
+##' @param font.lim For the annotation of concentration labels on each
+##' day. The first sets the font of the text below \code{lim} and the
+##' second sets the font of the text above \code{lim}. Note that font
+##' = 1 is normal text and font = 2 is bold text.
+##' @param cex.lim For the annotation of concentration labels on each
+##' day. The first sets the size of the text below \code{lim} and
+##' the second sets the size of the text above \code{lim}.
+##' @param digits The number of digits used to display concentration
+##' values when \code{annotate = "value"}.
+##' @param data.thresh Data capture threshold passed to
+##' \code{timeAverage}. For example, \code{data.thresh = 75} means
+##' that at least 75\% of the data must be available in a day for the
+##' value to be calculate, else the data is removed.
 ##' @param main The plot title; default is pollutant and year.
-##' @param key.header,key.footer Adds additional text/labels to the scale key.
+##' @param key.header Adds additional text/labels to the scale key.
 ##'   For example, passing \code{calendarPlot(mydata, key.header = "header",
 ##'   key.footer = "footer")} adds addition text above and below the scale key.
 ##'   These arguments are passed to \code{drawOpenKey} via \code{quickText},
 ##'   applying the \code{auto.text} argument, to handle formatting.
+##' @param key.footer see \code{key.header}.
 ##' @param key.position Location where the scale key is to plotted.  Allowed
 ##'   arguments currently include \code{"top"}, \code{"right"}, \code{"bottom"}
 ##'   and \code{"left"}.
@@ -73,7 +93,7 @@
 ##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
 ##'   \code{TRUE} titles and axis labels will automatically try and format
 ##'   pollutant names and units properly e.g.  by subscripting the `2' in NO2.
-##' @param \dots Other graphical parameters are passed onto the \code{lattice}
+##' @param ... Other graphical parameters are passed onto the \code{lattice}
 ##'   function \code{lattice:levelplot}, with common axis and title labelling
 ##'   options (such as \code{xlab}, \code{ylab}, \code{main}) being passed to
 ##'   via \code{quickText} to handle routine formatting.
@@ -117,62 +137,68 @@
 ##'
 ##'
 calendarPlot <- function(mydata,
-                          pollutant = "nox",
-                          year = 2003,
-                          type = "default",
-                          annotate = "date",
-                          statistic = "mean",
-                          cols = "heat",
-                          limits = c(0, 100),
-                          main = paste(pollutant, "in", year),
-                          key.header = "", key.footer = "",
-                          key.position = "right", key = TRUE,
-                          auto.text = TRUE,
-                          ...) {
+                         pollutant = "nox",
+                         year = 2003,
+                         type = "default",
+                         annotate = "date",
+                         statistic = "mean",
+                         cols = "heat",
+                         limits = c(0, 100),
+                         lim = NULL,
+                         col.lim = c("grey30", "black"),
+                         font.lim = c(1, 2),
+                         cex.lim = c(0.6, 1),
+                         digits = 0,
+                         data.thresh = 0,
+                         main = paste(pollutant, "in", year),
+                         key.header = "", key.footer = "",
+                         key.position = "right", key = TRUE,
+                         auto.text = TRUE,
+                         ...) {
 
     ##international keyboard
     ##first letter and ordered Sun to Sat
-    #weekday.abb <- substr(make.weekday.abbs(), 1, 1)[c(7, 1:6)]
+                                        #weekday.abb <- substr(make.weekday.abbs(), 1, 1)[c(7, 1:6)]
     weekday.abb <- substr(format(ISOdate(2000, 1, 2:8), "%A"), 1, 1)[c(7, 1:6)]
 
     ##extra args
     extra.args <- list(...)
 
-    #label controls
-    #(main currently handled in formals)
+                                        #label controls
+                                        #(main currently handled in formals)
     extra.args$xlab <- if("xlab" %in% names(extra.args))
-                           quickText(extra.args$xlab, auto.text) else quickText("", auto.text)
+        quickText(extra.args$xlab, auto.text) else quickText("", auto.text)
     extra.args$ylab <- if("ylab" %in% names(extra.args))
-                           quickText(extra.args$ylab, auto.text) else quickText("", auto.text)
+        quickText(extra.args$ylab, auto.text) else quickText("", auto.text)
 
     ## extract variables of interest
-    if (annotate == "date") vars <- c("date", pollutant)
+    if (annotate %in% c("date", "value")) vars <- c("date", pollutant)
     if (annotate == "wd") vars <- c("wd", "ws", "date", pollutant)
     if (annotate == "ws") vars <- c("wd", "ws", "date", pollutant)
 
     ## select year first, then check variables
     mydata <- selectByDate(mydata, year = year)
     if (nrow(mydata) == 0 ) stop("No data to plot - check year chosen")
-    mydata <- checkPrep(mydata, vars, "default", remove.calm = FALSE)
+    mydata <- openair:::checkPrep(mydata, vars, "default", remove.calm = FALSE)
 
     main <- quickText(main, auto.text)
 
     ## themes for calendarPlot
     def.theme  <- list(strip.background = list(col = "#ffe5cc"),
-                     strip.border = list(col = "black"),
-                     axis.line = list(col = "black"),
-                     par.strip.text = list(cex =1))
+                       strip.border = list(col = "black"),
+                       axis.line = list(col = "black"),
+                       par.strip.text = list(cex =1))
 
     cal.theme <- list(strip.background = list(col = "grey90"),
-                     strip.border = list(col = "transparent"),
-                     axis.line = list(col = "transparent"),
-                     par.strip.text = list(cex = 0.8))
+                      strip.border = list(col = "transparent"),
+                      axis.line = list(col = "transparent"),
+                      par.strip.text = list(cex = 0.8))
 
     lattice.options(default.theme = cal.theme)
 
     ## all the days in the year
     all.dates <- seq(as.Date(paste(year, "-01-01", sep = "")),
-                             as.Date(paste(year, "-12-31", sep = "")), by = "day")
+                     as.Date(paste(year, "-12-31", sep = "")), by = "day")
 
     prepare.grid <- function(mydata, pollutant) {
 
@@ -226,15 +252,15 @@ calendarPlot <- function(mydata,
 
         grid <- data.frame(expand.grid(x = 1:7, y = 1:6))
         results <- suppressWarnings(data.frame(x = grid$x, y = grid$y, conc.mat,
-                              month = format(mydata$date[1], "%B"),
-                              date.mat = date.mat, dateColour = colour.mat))
+                                               month = format(mydata$date[1], "%B"),
+                                               date.mat = date.mat, dateColour = colour.mat))
 
         results
     }
 
     ## calculate daily means
     if ("POSIXt" %in% class(mydata$date)) {
-        mydata <- timeAverage(mydata, "day")
+        mydata <- timeAverage(mydata, "day", statistic= statistic, data.thresh = data.thresh)
         mydata$date <- as.Date(mydata$date)
     }
 
@@ -244,6 +270,7 @@ calendarPlot <- function(mydata,
     baseData <- mydata
 
     mydata <- ddply(mydata, type, function(x) prepare.grid(x, pollutant))
+
 
     if (annotate == "wd") {
         baseData$wd <- baseData$wd * 2 * pi / 360
@@ -260,76 +287,109 @@ calendarPlot <- function(mydata,
 
     ## set up scales
     nlev <- 200
-     if(missing(limits)) breaks <- pretty(mydata$conc.mat, n = nlev) else breaks <- pretty(limits,n = nlev)
+    if(missing(limits)) breaks <- pretty(mydata$conc.mat, n = nlev) else breaks <- pretty(limits,n = nlev)
     nlev2 <- length(breaks)
     col <- openColours(cols, (nlev2 - 1))
     col.scale <- breaks
 
-    #################
-    #scale key setup
-    #################
+#################
+                                        #scale key setup
+#################
     legend <- list(col = col, at = col.scale, space = key.position,
-         auto.text = auto.text, footer = key.footer, header = key.header,
-         height = 1, width = 1.5, fit = "all")
-    legend <- makeOpenKeyLegend(key, legend, "calendarPlot")
+                   auto.text = auto.text, footer = key.footer, header = key.header,
+                   height = 1, width = 1.5, fit = "all")
+    legend <- openair:::makeOpenKeyLegend(key, legend, "calendarPlot")
 
     levelplot.args <- list(x = conc.mat ~ x * y | month, data = mydata,
-              par.settings = cal.theme,
-              main = main,
-              at = col.scale,
-              col.regions = col,
-              as.table = TRUE,
-              scales = list(y = list(draw = FALSE),
-              x = list(at = 1:7, labels = weekday.abb, tck = 0),
-              par.strip.text = list(cex = 0.8),
-              alternating = 1, relation = "free"),
-              aspect = 6/7,
-              between = list(x = 1),
-              colorkey = FALSE, legend = legend,
-              panel = function(x, y, subscripts,...) {
-                  panel.levelplot(x, y,subscripts,...)
-                  panel.abline(v=c(0.5: 7.5), col = "grey90")
-                  panel.abline(h=c(0.5: 7.5), col = "grey90")
+                           par.settings = cal.theme,
+                           main = main,
+                           at = col.scale,
+                           col.regions = col,
+                           as.table = TRUE,
+                           scales = list(y = list(draw = FALSE),
+                           x = list(at = 1:7, labels = weekday.abb, tck = 0),
+                           par.strip.text = list(cex = 0.8),
+                           alternating = 1, relation = "free"),
+                           aspect = 6/7,
+                           between = list(x = 1),
+                           colorkey = FALSE, legend = legend,
+                           panel = function(x, y, subscripts,...) {
+                               panel.levelplot(x, y, subscripts,...)
+                               panel.abline(v=c(0.5: 7.5), col = "grey90")
+                               panel.abline(h=c(0.5: 7.5), col = "grey90")
 
-                  if (annotate == "date") {
-                      ltext(x, y, labels = mydata$date.mat[subscripts], cex = 0.6,
-                        col = as.character(mydata$dateColour[subscripts]))
-                  }
+                               if (annotate == "date") {
+                                   ltext(x, y, labels = mydata$date.mat[subscripts], cex = 0.6,
+                                         col = as.character(mydata$dateColour[subscripts]))
+                               }
 
-                  if (annotate == "wd") {
-                       larrows(x + 0.5 * sin(wd$conc.mat[subscripts]),
-                              y +  0.5 * cos(wd$conc.mat[subscripts]),
-                              x +  -0.5 * sin(wd$conc.mat[subscripts]),
-                              y +  -0.5 * cos(wd$conc.mat[subscripts]),
-                              angle = 20, length = 0.07, lwd = 0.5)
-                  }
+                               if (annotate == "value") {
+                                   ## add some dates for navigation
+                                   date.col <- as.character(mydata$dateColour[subscripts])
+                                   ids <- which(date.col == "black")
+                                   date.col[ids] <- "transparent"
+                                   ltext(x, y, labels = mydata$date.mat[subscripts], cex = 0.6,
+                                         col = date.col)
 
-                  if (annotate == "ws") {
-                      larrows(x + (0.5 * sin(wd$conc.mat[subscripts]) *
-                                   ws$conc.mat[subscripts]),
-                              y +  (0.5 * cos(wd$conc.mat[subscripts]) *
-                                    ws$conc.mat[subscripts]) ,
-                              x +  (-0.5 * sin(wd$conc.mat[subscripts]) *
-                                    ws$conc.mat[subscripts]) ,
-                              y +  (-0.5 * cos(wd$conc.mat[subscripts]) *
-                                    ws$conc.mat[subscripts]),
-                              angle = 20, length = 0.07, lwd = 0.5)
-                  }
+                                   concs <- mydata$conc.mat[subscripts]
 
-              })
+                                   ## deal with values above/below threshold
+                                   ids <- seq_along(concs)
+                                   the.cols <- rep(col.lim[1], length(ids))
+                                   the.font <- rep(font.lim[1], length(ids))
+                                   the.cex <- rep(cex.lim[1], length(ids))
+                                   if (!is.null(lim)) {
+                                       ## ids where conc is >= lim
+                                       ids <- which(concs >= lim)
+                                       the.cols[ids] <- col.lim[2]
+                                       the.font[ids] <- font.lim[2]
+                                       the.cex[ids] <- cex.lim[2]
+                                   }
 
-    #reset for extra.args
-    levelplot.args<- listUpdate(levelplot.args, extra.args)
+                                   the.labs <- round(concs, digits = digits)
+                                   id <- which(is.na(the.labs))
+                                   if (length(id) > 0) {
+                                       the.labs <- as.character(the.labs)
+                                       the.labs[id] <- ""
+                                   }
+                                   ltext(x, y, labels = the.labs, cex = the.cex,
+                                         font = the.font, col = the.cols)
+                               }
 
-    #plot
+                               if (annotate == "wd") {
+                                   larrows(x + 0.5 * sin(wd$conc.mat[subscripts]),
+                                           y +  0.5 * cos(wd$conc.mat[subscripts]),
+                                           x +  -0.5 * sin(wd$conc.mat[subscripts]),
+                                           y +  -0.5 * cos(wd$conc.mat[subscripts]),
+                                           angle = 20, length = 0.07, lwd = 0.5)
+                               }
+
+                               if (annotate == "ws") {
+                                   larrows(x + (0.5 * sin(wd$conc.mat[subscripts]) *
+                                                ws$conc.mat[subscripts]),
+                                           y +  (0.5 * cos(wd$conc.mat[subscripts]) *
+                                                 ws$conc.mat[subscripts]) ,
+                                           x +  (-0.5 * sin(wd$conc.mat[subscripts]) *
+                                                 ws$conc.mat[subscripts]) ,
+                                           y +  (-0.5 * cos(wd$conc.mat[subscripts]) *
+                                                 ws$conc.mat[subscripts]),
+                                           angle = 20, length = 0.07, lwd = 0.5)
+                               }
+
+                           })
+
+                                        #reset for extra.args
+    levelplot.args <- openair:::listUpdate(levelplot.args, extra.args)
+
+                                        #plot
     print(do.call(levelplot, levelplot.args))
 
     ## reset theme
     lattice.options(default.theme = def.theme)
 
-    #################
-    #output
-    #################
+#################
+                                        #output
+#################
     plt <- trellis.last.object()
     newdata <- mydata
     output <- list(plot = plt, data = newdata, call = match.call())

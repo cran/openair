@@ -145,7 +145,7 @@ summaryPlot <- function(mydata,
     if (length(cols) == 1 && cols == "greyscale") {
         #strip
         current.strip <- trellis.par.get("strip.background")
-        trellis.par.set(list(strip.background = list(col = "white")))
+        suppressWarnings(trellis.par.set(list(strip.background = list(col = "white"))))
         #other local colours
         col.trend <- "lightgrey"
         col.data <- "lightgrey"
@@ -165,12 +165,15 @@ summaryPlot <- function(mydata,
     xlab <- if("xlab" %in% names(extra.args))
                 extra.args$xlab else NULL
     ylab <- if("ylab" %in% names(extra.args))
-                extra.args$xlab else NULL
+                extra.args$ylab else NULL
     main <- if("main" %in% names(extra.args))
-                extra.args$main else ""
+                extra.args$main else NULL
 
     #drop main, xlab, ylab from extra.args
     extra.args <- extra.args[!names(extra.args) %in% c("xlab", "ylab", "main")]
+
+    ## set panel strip to white
+    trellis.par.set(list(strip.background = list(col = "white")))
 
 #the above might be a better retro fix for more complex functions?
 
@@ -384,7 +387,12 @@ summaryPlot <- function(mydata,
     #plot
     plt1 <- do.call(xyplot, xyplot.args)
 
-    print(plt1, position = c(0, 0, 0.7, 1), more = TRUE)
+    ## this adjusts the space for the title to 2 lines (approx) if \n in title
+    if (!is.null(main)) main <- quickText(main, auto.text)
+    if (length(grep("atop", main) == 1)) y.upp <- 0.95 else y.upp <- 0.975
+    if (is.null(main)) y.upp <- 1
+
+    print(plt1, position = c(0, 0, 0.7, y.upp), more = TRUE)
 
     ## clip data to help show interesting part of distribution
     if (clip) {
@@ -396,18 +404,18 @@ summaryPlot <- function(mydata,
         row.names(mydata) <- NULL
     }
 
-    #xlab, ylab handling for plt2
+                                        #xlab, ylab handling for plt2
     #(so user inputs go through quicktext)
     #(and unique histogram/density naming is handled)
-    my.ylab <- if(is.null(ylab[2]) || is.na(ylab[2]))
+    my.ylab <- if (is.null(ylab[2]) || is.na(ylab[2]))
                    "" else ylab[2]
-    if(my.ylab == ""){
+    if (my.ylab == "") {
 
         if(type == "histogram") my.ylab <- "Percent of Total"
         if(type == "density") my.ylab <- "Density"
 
     } else {
-        my.lab <- quickText(my.lab, auto.text)
+        my.ylab <- quickText(my.ylab, auto.text)
     }
 
     my.xlab <- if(is.null(xlab[2]) || is.na(xlab[2]))
@@ -455,14 +463,14 @@ summaryPlot <- function(mydata,
         plt2 <- densityplot()
     }
 
-    print(plt2, position = c(0.7, 0, 1, 0.975))
+    print(plt2, position = c(0.7, 0, 1, 0.975 * y.upp))
 
     #reset if greyscale
     if (length(cols) == 1 && cols == "greyscale")
         trellis.par.set("strip.background", current.strip)
 
     ## use grid to add an overall title
-    grid.text(quickText(main, auto.text), 0.5, 0.975, gp = gpar(fontsize = 14))
+    grid.text(main, 0.5, y.upp, gp = gpar(fontsize = 14))
 
 }
 

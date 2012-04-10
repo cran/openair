@@ -95,9 +95,15 @@
 ##' @seealso See \code{\link{modStats}} for model evaluation statistics and the
 ##'   package \code{verification} for comprehensive functions for forecast
 ##'   verification.
-##' @references Wilks, D. S., 2005. Statistical Methods in the Atmospheric
-##'   Sciences, Volume 91, Second Edition (International Geophysics), 2nd
-##'   Edition. Academic Press.
+##' @references
+##'
+##' Murphy, A. H., B.G. Brown and Y. Chen. (1989) Diagnostic
+##' Verification of Temperature Forecasts, Weather and Forecasting,
+##' Volume: 4, Issue: 4, Pages: 485-501.
+##'
+##' Wilks, D. S., 2005. Statistical Methods in the
+##' Atmospheric Sciences, Volume 91, Second Edition (International
+##' Geophysics), 2nd Edition. Academic Press.
 ##' @keywords methods
 ##' @examples
 ##'
@@ -151,10 +157,13 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
     extra.args$main <- if("main" %in% names(extra.args))
                            quickText(extra.args$main, auto.text) else quickText("", auto.text)
 
-    #greyscale handling
+    ## greyscale handling
+    ## reset strip color on exit
+    current.strip <- trellis.par.get("strip.background")
+    on.exit(trellis.par.set("strip.background", current.strip))
+
     if (length(col) == 1 && col == "greyscale") {
-        #strip
-        current.strip <- trellis.par.get("strip.background")
+
         trellis.par.set(list(strip.background = list(col = "white")))
         #other local colours
         ideal.col <- "black"
@@ -199,7 +208,7 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
         pred.cut <- cut(pred, breaks = bins, include.lowest = TRUE,
                          labels = labs)
         pred.cut[is.na(pred.cut)] <- labs[1]
-        pred.cut <- as.numeric(as.character(pred.cut))
+
         n <- length(labs)
         lng <- tapply(obs, pred.cut, length)
         med <- tapply(obs, pred.cut, median)
@@ -211,8 +220,10 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
         q4 <- tapply(obs, pred.cut, quantile, probs = 0.9)
         q3[lng <= min.bin[2]] <- NA
         q4[lng <= min.bin[2]] <- NA
-        results <- data.frame(x = sort(unique(pred.cut)), lng, med, q1, q2, q3, q4)
-        results.cut <- data.frame(pred.cut = pred.cut, obs.cut = obs)
+
+        results <- data.frame(x = as.numeric(levels(pred.cut)), lng, med, q1, q2, q3, q4)
+
+        results.cut <- data.frame(pred.cut = as.numeric(as.character(pred.cut)), obs.cut = obs)
 
         ## range taken by observations
         results.obs <- data.frame(min = min(obs), max = max(obs))
@@ -259,8 +270,8 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
     myform <- formula(paste("x ~ med | ", temp, sep = ""))
 
     xyplot.args <- list(x = myform, data = results,
-                      xlim = c(lo, hi),
-                      ylim = c(lo, hi),
+                      xlim = c(lo, hi * 1.05),
+                      ylim = c(lo, hi * 1.05),
                       ylab = quickText(ylab, auto.text),
                       xlab = quickText(xlab, auto.text),
                       as.table = TRUE,
@@ -335,7 +346,7 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
                                            col = NA, alpha = 0.5, lwd = 0.5,
                                            border = ideal.col, ...)
                            ## histogram of modelled values
-                           panel.histogram(x = x, col = "black", border, alpha = 0.2, ...)
+                           panel.histogram(x = x, col = "black", border, alpha = 0.15, ...)
 
                        }
                        )
@@ -345,10 +356,6 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
 
     if (length(type) == 1) plot(thePlot) else plot(useOuterStrips(thePlot, strip = strip,
               strip.left = strip.left))
-
-    #reset if greyscale
-    if (length(col) == 1 && col == "greyscale")
-        trellis.par.set("strip.background", current.strip)
 
     invisible(trellis.last.object())
 

@@ -240,9 +240,13 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
     sd.mod = R = NULL
 
     ## greyscale handling
+
+    ## reset strip color on exit
+    current.strip <- trellis.par.get("strip.background")
+    on.exit(trellis.par.set("strip.background", current.strip))
+
     if (length(cols) == 1 && cols == "greyscale") {
-        ## strip
-        current.strip <- trellis.par.get("strip.background")
+
         trellis.par.set(list(strip.background = list(col = "white")))
         ## other local colours
         method.col <- "greyscale"
@@ -475,9 +479,6 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
 
-    ## reset if greyscale
-    if (length(cols) == 1 && cols == "greyscale")
-        trellis.par.set("strip.background", current.strip)
 
     invisible(output)
 

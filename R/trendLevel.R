@@ -219,12 +219,15 @@ trendLevel <- function(mydata,
     #setup
     ###############################
 
-    #greyscale handling
+    ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
-        #strip only
-        current.strip <- trellis.par.get("strip.background")
+
         trellis.par.set(list(strip.background = list(col = "white")))
     }
+
+    ## reset strip color on exit
+    current.strip <- trellis.par.get("strip.background")
+    on.exit(trellis.par.set("strip.background", current.strip))
 
     ##check.valid function
     check.valid <- function(a, x, y){
@@ -474,7 +477,7 @@ trendLevel <- function(mydata,
     }
 
     temp <- if(is.factor(newdata[ , type[1]]))
-                levels(newdata[ , type[1]]) else unique(newdata[ , type[1]])  
+                levels(newdata[ , type[1]]) else unique(newdata[ , type[1]])
     temp <- sapply(temp, function(x) quickText(x, auto.text))
     if(is.factor(temp)) temp <- as.character(temp)
     strip <- strip.custom(factor.levels = temp, strip.levels=c(TRUE, FALSE), strip.names=FALSE)
@@ -537,7 +540,7 @@ trendLevel <- function(mydata,
     levelplot.args <- list(x = myform, data = newdata, as.table = TRUE,
                       legend = legend, colorkey = colorkey,
                       at = breaks, col.regions=col.regions,
-                      scales = scales, 
+                      scales = scales,
                       yscale.components = yscale.lp,
                       xscale.components = xscale.lp,
                       par.strip.text = list(cex = 0.8),
@@ -557,9 +560,7 @@ trendLevel <- function(mydata,
     #openair output
     ##############################
     plot(plt)
-    #reset if greyscale
-    if (length(cols) == 1 && cols == "greyscale")
-        trellis.par.set("strip.background", current.strip)
+
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
     invisible(output)
