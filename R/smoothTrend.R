@@ -9,7 +9,7 @@
 ##' of a seasonal cycle.
 ##'
 ##' \code{smoothTrend} uses a Generalized Additive Model (GAM) from the
-##' \code{\link{mgcv}} package to find the most appropriate level of smoothing.
+##' \code{\link{gam}} package to find the most appropriate level of smoothing.
 ##' The function is particularly suited to situations where trends are not
 ##' monotonic (see discussion with \code{\link{MannKendall}} for more details
 ##' on this). The \code{smoothTrend} function is particularly useful as an
@@ -176,10 +176,13 @@ smoothTrend <- function(mydata,
 
     ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
-        ## strip only
-        current.strip <- trellis.par.get("strip.background")
+
         trellis.par.set(list(strip.background = list(col = "white")))
     }
+
+    ## reset strip color on exit
+    current.strip <- trellis.par.get("strip.background")
+    on.exit(trellis.par.set("strip.background", current.strip))
 
     ##extra.args setup
     extra.args <- list(...)
@@ -410,9 +413,7 @@ smoothTrend <- function(mydata,
     newdata <- split.data
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
-    ## reset if greyscale
-    if (length(cols) == 1 && cols == "greyscale")
-        trellis.par.set("strip.background", current.strip)
+
     invisible(output)
 
 }

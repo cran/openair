@@ -34,10 +34,15 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE) {
     ## just select data needed
     mydata <- mydata[, Names]
 
+
+
     ## check to see if there are any missing dates, stop if there are
     if ("date" %in% names(mydata)) {
-        if (any(is.na(mydata$date))) {
-            stop (cat("There are some missing dates on line(s)", which(is.na(mydata$date))),"\n")
+        ids <- which(is.na(mydata$date))
+        if (length(ids) > 0) {
+
+            mydata <- mydata[-ids, ]
+            warning(paste("Missing dates detected, removing", length(ids), "lines"), call. = FALSE)
         }
     }
 
@@ -112,6 +117,9 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE) {
 
         }
     }
+
+    ## set panel strip to white
+    suppressWarnings(trellis.par.set(list(strip.background = list(col = "white"))))
 
     ## return data frame
     mydata

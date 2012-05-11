@@ -5,9 +5,12 @@
   calendarPlot(mydata, pollutant = "nox", year = 2003,
     type = "default", annotate = "date",
     statistic = "mean", cols = "heat", limits = c(0, 100),
-    main = paste(pollutant, "in", year), key.header = "",
-    key.footer = "", key.position = "right", key = TRUE,
-    auto.text = TRUE, ...)
+    lim = NULL, col.lim = c("grey30", "black"),
+    font.lim = c(1, 2), cex.lim = c(0.6, 1), digits = 0,
+    data.thresh = 0, main = paste(pollutant, "in", year),
+    key.header = "", key.footer = "",
+    key.position = "right", key = TRUE, auto.text = TRUE,
+    ...)
 }
 \arguments{
   \item{mydata}{A data frame minimally containing
@@ -27,10 +30,10 @@
   day of the calendar. Can be: "date" - shows day of the
   month; "wd" - shows vector-averaged wind direction, or
   "ws" - shows vector-averaged wind direction scaled by
-  wind speed.}
+  wind speed. Finally it can be "value" which shows the
+  daily mean value.}
 
-  \item{statistic}{Not currently implemented - only mean is
-  currently calculated.}
+  \item{statistic}{Statistic passed to \code{timeAverage}.}
 
   \item{cols}{Colours to be used for plotting. Options
   include "default", "increment", "heat", "jet" and user
@@ -48,16 +51,48 @@
   then set \code{limits = c(0, 100)}. Note that data will
   be ignored if outside the limits range.}
 
+  \item{lim}{A threshold value to help differentiate values
+  above and below \code{lim}. It is used when
+  \code{annotate = "value"}. See next few options for
+  control over the labels used.}
+
+  \item{col.lim}{For the annotation of concentration labels
+  on each day. The first sets the colour of the text below
+  \code{lim} and the second sets the colour of the text
+  above \code{lim}.}
+
+  \item{font.lim}{For the annotation of concentration
+  labels on each day. The first sets the font of the text
+  below \code{lim} and the second sets the font of the text
+  above \code{lim}. Note that font = 1 is normal text and
+  font = 2 is bold text.}
+
+  \item{cex.lim}{For the annotation of concentration labels
+  on each day. The first sets the size of the text below
+  \code{lim} and the second sets the size of the text above
+  \code{lim}.}
+
+  \item{digits}{The number of digits used to display
+  concentration values when \code{annotate = "value"}.}
+
+  \item{data.thresh}{Data capture threshold passed to
+  \code{timeAverage}. For example, \code{data.thresh = 75}
+  means that at least 75\% of the data must be available in
+  a day for the value to be calculate, else the data is
+  removed.}
+
   \item{main}{The plot title; default is pollutant and
   year.}
 
-  \item{key.header,key.footer}{Adds additional text/labels
-  to the scale key.  For example, passing
+  \item{key.header}{Adds additional text/labels to the
+  scale key.  For example, passing
   \code{calendarPlot(mydata, key.header = "header",
   key.footer = "footer")} adds addition text above and
   below the scale key.  These arguments are passed to
   \code{drawOpenKey} via \code{quickText}, applying the
   \code{auto.text} argument, to handle formatting.}
+
+  \item{key.footer}{see \code{key.header}.}
 
   \item{key.position}{Location where the scale key is to
   plotted.  Allowed arguments currently include
@@ -73,9 +108,9 @@
   automatically try and format pollutant names and units
   properly e.g.  by subscripting the `2' in NO2.}
 
-  \item{\dots}{Other graphical parameters are passed onto
-  the \code{lattice} function \code{lattice:levelplot},
-  with common axis and title labelling options (such as
+  \item{...}{Other graphical parameters are passed onto the
+  \code{lattice} function \code{lattice:levelplot}, with
+  common axis and title labelling options (such as
   \code{xlab}, \code{ylab}, \code{main}) being passed to
   via \code{quickText} to handle routine formatting.}
 }

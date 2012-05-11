@@ -160,6 +160,16 @@ polarCluster <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", n.clust
     ## avoid R check annoyances
     u = v = z= strip = strip.left = NULL
 
+    ## greyscale handling
+    if (length(cols) == 1 && cols == "greyscale") {
+
+        trellis.par.set(list(strip.background = list(col = "white")))
+    }
+
+    ## reset strip color on exit
+    current.strip <- trellis.par.get("strip.background")
+    on.exit(trellis.par.set("strip.background", current.strip))
+
     data.orig <- mydata ## keep original data so cluster can be merged with it
     type <- "default"
     vars <- c("wd", x, pollutant)

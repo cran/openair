@@ -215,24 +215,26 @@
 ##' ## tail(myplot, subset = "month") #tail/top of month data set
 ##'
 ##'
-timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE, normalise = FALSE,
-                          xlab = c("hour", "hour", "month", "weekday"),
-                          name.pol = pollutant, type = "default", group = NULL,
-                          difference = FALSE, B = 100, ci = TRUE, cols = "hue",
-                          key = NULL, key.columns = 1, start.day = 1, auto.text = TRUE,
-                          alpha = 0.4, ...)   {
+##'
+timeVariation <- function(mydata, pollutant = "nox", local.time =
+FALSE, normalise = FALSE, xlab = c("hour", "hour", "month",
+"weekday"), name.pol = pollutant, type = "default", group = NULL,
+difference = FALSE, B = 100, ci = TRUE, cols = "hue", key = NULL,
+key.columns = 1, start.day = 1, auto.text = TRUE,
+alpha = 0.4, ...)  {
 
      ## get rid of R check annoyances
     variable = NULL
 
-
     ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
-                                        #strip only
-        current.strip <- trellis.par.get("strip.background")
+
         trellis.par.set(list(strip.background = list(col = "white")))
     }
 
+    ## reset strip color on exit
+    current.strip <- trellis.par.get("strip.background")
+    on.exit(trellis.par.set("strip.background", current.strip))
 
     ## extra.args setup
     extra.args <- list(...)
@@ -319,8 +321,6 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE, normali
                                            quickText(pollutant[x], auto.text))
 
 
-  #  if (difference && !missing(name.pol)) name.pol <- c(name.pol, paste(pollutant[2], "-", pollutant[1]))
-
     if (!missing(name.pol)) mylab <- sapply(seq_along(name.pol), function(x)
                                             quickText(name.pol[x], auto.text))
 
@@ -370,14 +370,6 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE, normali
         month <- as.numeric(format(date, "%m"))}
                      )
 
-    ## polygon that can deal with missing data
-    poly.na <- function(x1, y1, x2, y2, group.number) {
-        for(i in seq(2, length(x1)))
-            if (!any(is.na(y2[c(i - 1, i)])))
-                lpolygon(c(x1[i - 1], x1[i], x2[i], x2[i - 1]),
-                         c(y1[i - 1], y1[i], y2[i], y2[i - 1]),
-                         col = myColors[group.number], border = NA, alpha = alpha)
-    }
 
     ## y range taking account of expanded uncertainties
     rng <- function(x) {
@@ -415,8 +407,8 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE, normali
 
     ## for individual plot keys - useful if only one of the plots is extracted after printing
     if (!is.null(key)) {
-        key <- list(rectangles = list(col = myColors[1:npol], border = NA),
-                    text = list(lab = mylab),  space = "bottom", columns = key.columns)
+        key <- list(rectangles = list(col = myColors[1:npol], border = NA), title = "",
+                    text = list(lab = mylab),  space = "bottom", columns = key.columns, lines.title = 1)
 
         extra.args$main <- overall.main
     }
@@ -448,7 +440,7 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE, normali
     myform <- formula(paste("Mean ~ hour | ", temp, sep = ""))
 
     ## ylim hander
-    if(ylim.handler)
+    if (ylim.handler)
         extra.args$ylim <- rng(data.hour)
 
     ## plot
@@ -472,8 +464,8 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE, normali
 
                             panel.xyplot(x, y, type = "l", col.line = myColors[group.number],...)
 
-                            if (ci) {poly.na(x, data.hour$Lower[subscripts], x,
-                                             data.hour$Upper[subscripts], group.number)}
+                            if (ci) {openair:::poly.na(x, data.hour$Lower[subscripts], x,
+                                             data.hour$Upper[subscripts], group.number, myColors)}
 
                         })
 
@@ -527,7 +519,7 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE, normali
                             if (difference) panel.abline(h = 0, lty = 5)
 
                             panel.xyplot(x, y, type = "l", col.line = myColors[group.number],...)
-                            panel.xyplot(x, y, type = "p", col.point = myColors[group.number],...)
+                         #   panel.xyplot(x, y, type = "p", col.point = myColors[group.number],...)
 
                             if (ci) {panel.rect(x - 0.3, data.weekday$Lower[subscripts], x + 0.3,
                                                 data.weekday$Upper[subscripts],
@@ -581,7 +573,7 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE, normali
                             }
                             if (difference) panel.abline(h = 0, lty = 5)
 
-                            panel.xyplot(x, y, type = "p", col.point = myColors[group.number],...)
+                       #     panel.xyplot(x, y, type = "p", col.point = myColors[group.number],...)
 
                             panel.xyplot(x, y, type = "l", col.line = myColors[group.number],...)
 
@@ -669,8 +661,8 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE, normali
 
                             panel.xyplot(x, y, type = "l", col.line = myColors[group.number],...)
 
-                            if (ci) {poly.na(x, data.day.hour$Lower[subscripts], x,
-                                             data.day.hour$Upper[subscripts], group.number)}
+                            if (ci) {openair:::poly.na(x, data.day.hour$Lower[subscripts], x,
+                                             data.day.hour$Upper[subscripts], group.number, myColors)}
                         })
 
     ## reset for extra.args
@@ -681,24 +673,28 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE, normali
 
     subsets = c("day.hour", "hour", "day", "month")
 
+    ## this adjusts the space for the title to 2 lines (approx) if \n in title
+    if (length(grep("atop", overall.main) == 1)) y.upp <- 0.95 else y.upp <- 0.975
+
     main.plot <- function(...) {
         if (type == "default") {
             print(update(day.hour, key = list(rectangles = list(col = myColors[1:npol], border = NA),
                                    text = list(lab = mylab), space = "bottom", columns = key.columns,
                                    title = "", lines.title = 1)
-                         ), position = c(0, 0.5, 1, 1), more = TRUE)
+                         ), position = c(0, 0.5, 1, y.upp), more = TRUE)
         } else {
             print(update(useOuterStrips(day.hour, strip = strip, strip.left = strip.left),
                          key = list(rectangles = list(col = myColors[1:npol], border = NA),
                          text = list(lab = mylab), space = "bottom", columns = key.columns,
                          title = "", lines.title = 1)
-                         ), position = c(0, 0.5, 1, 1), more = TRUE)
+                         ), position = c(0, 0.5, 1, y.upp), more = TRUE)
         }
         print(hour, position = c(0, 0, 0.33, 0.53), more = TRUE)
         print(month, position = c(0.33, 0, 0.66, 0.53), more = TRUE)
         print(day, position = c(0.66, 0, 1, 0.53))
         ## use grid to add an overall title
-        grid.text(overall.main, 0.5, 0.975, gp = gpar(fontsize = 14))
+      #  grid.text(overall.main, 0.5, 0.975, gp = gpar(fontsize = 14))
+        grid.text(overall.main, 0.5, y.upp, gp = gpar(fontsize = 14))
     }
 
     ind.plot = function(x, ...){
@@ -717,10 +713,6 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE, normali
     names(output$data)[1:4] <- subsets
     names(output$plot)[1:4] <- subsets
     class(output) <- "openair"
-
-                                        #reset if greyscale
-    if (length(cols) == 1 && cols == "greyscale")
-        trellis.par.set("strip.background", current.strip)
 
     invisible(output)
 }

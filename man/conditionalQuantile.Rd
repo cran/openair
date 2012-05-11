@@ -172,6 +172,10 @@ conditionalQuantile(mydata, obs = "nox", mod = "mod")
   David Carslaw
 }
 \references{
+  Murphy, A. H., B.G. Brown and Y. Chen. (1989) Diagnostic
+  Verification of Temperature Forecasts, Weather and
+  Forecasting, Volume: 4, Issue: 4, Pages: 485-501.
+
   Wilks, D. S., 2005. Statistical Methods in the
   Atmospheric Sciences, Volume 91, Second Edition
   (International Geophysics), 2nd Edition. Academic Press.

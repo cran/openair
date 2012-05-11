@@ -7,8 +7,9 @@
     data.thresh = 0, statistic = "mean", percentile = NA,
     date.pad = FALSE, type = "default", cols = "brewer1",
     plot.type = "l", key = TRUE, log = FALSE,
-    smooth = FALSE, ci = TRUE, ref.x = NULL, ref.y = NULL,
-    key.columns = 1, name.pol = pollutant, date.breaks = 7,
+    smooth = FALSE, ci = TRUE, y.relation = "same",
+    ref.x = NULL, ref.y = NULL, key.columns = 1,
+    name.pol = pollutant, date.breaks = 7,
     date.format = NULL, auto.text = TRUE, ...)
 }
 \arguments{
@@ -136,6 +137,12 @@
   \item{ci}{If a smooth fit line is applied, then \code{ci}
   determines whether the 95\% confidence intervals aer
   shown.}
+
+  \item{y.relation}{This determines how the y-axis scale is
+  plotted. "same" ensures all panels use the same scale and
+  "free" will use panel-specfic scales. The latter is a
+  useful setting when plotting data with very different
+  values.}
 
   \item{ref.x}{Add a vertical dashed reference line at this
   value.}

@@ -172,8 +172,8 @@
   data if there is evidence of a seasonal cycle.
 
   \code{smoothTrend} uses a Generalized Additive Model
-  (GAM) from the \code{\link{mgcv}} package to find the
-  most appropriate level of smoothing. The function is
+  (GAM) from the \code{\link{gam}} package to find the most
+  appropriate level of smoothing. The function is
   particularly suited to situations where trends are not
   monotonic (see discussion with \code{\link{MannKendall}}
   for more details on this). The \code{smoothTrend}

@@ -224,14 +224,17 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws.int = 2, angle = 30, type
 
     ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
-        ## strip
-        current.strip <- trellis.par.get("strip.background")
+
         trellis.par.set(list(strip.background = list(col = "white")))
         ## other local colours
         calm.col <- "black"
     } else {
         calm.col <- "forestgreen"
     }
+
+    ## reset strip color on exit
+    current.strip <- trellis.par.get("strip.background")
+    on.exit(trellis.par.set("strip.background", current.strip))
 
 
     if (360 / angle != round(360 / angle)) {
@@ -555,9 +558,6 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws.int = 2, angle = 30, type
     if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip,
               strip.left = strip.left))
 
-    ## reset if greyscale
-    if (length(cols) == 1 && cols == "greyscale")
-        trellis.par.set("strip.background", current.strip)
 
     newdata <- results.grid
 

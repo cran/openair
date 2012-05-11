@@ -88,8 +88,10 @@
 ##' corPlot(hc)
 ##' }
 ##'
-corPlot <- function(mydata, pollutants = NULL, type = "default", cluster = TRUE, cols = "default", r.thresh = 0.8,
-                         text.col = c("black", "black"), auto.text = TRUE, ...) {
+##'
+corPlot <- function(mydata, pollutants = NULL, type = "default",
+                    cluster = TRUE, cols = "default", r.thresh = 0.8, text.col =
+                    c("black", "black"), auto.text = TRUE, ...) {
 
     if (length(type) > 1) stop ("Only one 'type' allowed in this function.")
 
@@ -97,6 +99,16 @@ corPlot <- function(mydata, pollutants = NULL, type = "default", cluster = TRUE,
     if (any(type %in% openair:::dateTypes)) {
         if (!"date" %in% names(mydata)) stop ("Need a field 'date'")
     }
+
+    ## greyscale handling
+    if (length(cols) == 1 && cols == "greyscale") {
+
+        trellis.par.set(list(strip.background = list(col = "white")))
+    }
+
+    ## reset strip color on exit
+    current.strip <- trellis.par.get("strip.background")
+    on.exit(trellis.par.set("strip.background", current.strip))
 
     ##extra.args setup
     extra.args <- list(...)

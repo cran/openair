@@ -36,15 +36,22 @@
 ##' pollutant(s). Sometimes it is useful to have columns of site data. This can
 ##' be done using the \code{reshape} function --- see examples below.
 ##'
-##' The situation for particle measurements is not straightforward given the
-##' variety of methods used to measure particle mass and changes in their use
-##' over time. The \code{importKCL} function imports two measures of PM10 where
-##' available. \code{PM10_raw} are TEOM measurements with a 1.3 factor applied
-##' to take account of volatile losses. The \code{PM10} data is a current best
-##' estimate of a gravimetric equivalent measure as described below. NOTE! many
-##' sites have several instruments that measure PM10 or PM2.5. In the case of
-##' FDMS measurements, these are given as separate site codes (see below). For
-##' example "MY1" will be TEOM with VCM applied and "MY7" is the FDMS data.
+##' The situation for particle measurements is not straightforward
+##' given the variety of methods used to measure particle mass and
+##' changes in their use over time. The \code{importKCL} function
+##' imports two measures of PM10 where available. \code{PM10_raw} are
+##' TEOM measurements with a 1.3 factor applied to take account of
+##' volatile losses. The \code{PM10} data is a current best estimate
+##' of a gravimetric equivalent measure as described below. NOTE! many
+##' sites have several instruments that measure PM10 or PM2.5. In the
+##' case of FDMS measurements, these are given as separate site codes
+##' (see below). For example "MY1" will be TEOM with VCM applied and
+##' "MY7" is the FDMS data.
+##'
+##' Where FDMS data are used the volatile and non-volatile components
+##' are separately reported i.e. v10 = volatile PM10, v2.5 = volatile
+##' PM2.5, nv10 = non-volatile PM10 and nv2.5 = non-volatile
+##' PM2.5. Therefore, PM10 = v10 + nv10 and PM2.5 = v2.5 + nv2.5.
 ##'
 ##' For the assessment of the EU Limit Values, PM10 needs to be measured using
 ##' the reference method or one shown to be equivalent to the reference method.
@@ -466,7 +473,7 @@
 importKCL <- function(site = "my1", year = 2009, pollutant = "all", met = FALSE, units = "mass") {
 
     ## get rid of R check annoyances
-    sites  = NULL
+    sites <- NULL; v10 <- NULL; v2.5 <- NULL
 
     site <- toupper(site)
 
@@ -529,6 +536,22 @@ importKCL <- function(site = "my1", year = 2009, pollutant = "all", met = FALSE,
 
         unitMessage <- "NOTE - mass units are used \nug/m3 for NOx, NO2, SO2, O3; mg/m3 for CO\nPM10_raw is raw data multiplied by 1.3\n"
     }
+
+    ## rename PM volatile/non volatile components if present
+
+    if ("pmfr" %in% names(thedata)) {
+        thedata <- rename(thedata, c(pmfr = "v10"))
+        thedata <- transform(thedata, v10 = -1 * v10)
+    }
+
+    if ("p2fr" %in% names(thedata)) {
+        thedata <- rename(thedata, c(p2fr = "v2.5"))
+        thedata <- transform(thedata, v2.5 = -1 * v2.5)
+    }
+
+    if ("pmfb" %in% names(thedata)) thedata <- rename(thedata, c(pmfb = "nv10"))
+    if ("p2fb" %in% names(thedata)) thedata <- rename(thedata, c(p2fb = "nv2.5"))
+
 
     if (units != "mass")  {
         if ("pm10" %in% names(thedata)) thedata$pm10_raw <- thedata$pm10_raw* 1.30
