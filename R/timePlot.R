@@ -49,7 +49,7 @@
 ##'   difficult to see much detail when plotted on a single plot.
 ##' @param normalise Should variables be normalised? The default is is not to
 ##'   normalise the data. \code{normalise} can take two values, either
-##'   \code{"mean"} or a string representing a date in UK format e.g.
+##'   \dQuote{mean} or a string representing a date in UK format e.g.
 ##'   "1/1/1998" (in the format dd/mm/YYYY). If \code{normalise = "mean"} then
 ##'   each time series is divided by its mean value.  If a date is chosen, then
 ##'   values at that date are set to 100 and the rest of the data scaled
@@ -57,24 +57,28 @@
 ##'   very useful for showing how trends diverge over time. Setting \code{group
 ##'   = TRUE} is often useful too to show all time series together in one
 ##'   panel.
-##' @param avg.time This defines the time period to average to. Can be "sec",
-##'   "min", "hour", "day", "DSTday", "week", "month", "quarter" or "year". For
-##'   much increased flexibility a number can precede these options followed by
-##'   a space. For example, a timeAverage of 2 months would be \code{period =
-##'   "2 month"}. See function \code{timeAverage} for further details on this.
+##' @param avg.time This defines the time period to average to. Can be
+##' \dQuote{sec}, \dQuote{min}, \dQuote{hour}, \dQuote{day},
+##' \dQuote{DSTday}, \dQuote{week}, \dQuote{month}, \dQuote{quarter}
+##' or \dQuote{year}. For much increased flexibility a number can
+##' precede these options followed by a space. For example, a
+##' timeAverage of 2 months would be \code{period = "2 month"}. See
+##' function \code{timeAverage} for further details on this.
 ##' @param data.thresh The data capture threshold to use (\%) when aggregating
 ##'   the data using \code{avg.time}. A value of zero means that all available
 ##'   data will be used in a particular period regardless if of the number of
 ##'   values available. Conversely, a value of 100 will mean that all data will
 ##'   need to be present for the average to be calculated, else it is recorded
 ##'   as \code{NA}. Not used if \code{avg.time = "default"}.
-##' @param statistic The statistic to apply when aggregating the data; default
-##'   is the mean. Can be one of "mean", "max", "min", "median", "frequency",
-##'   "sd", "percentile". Note that "sd" is the standard deviation and
-##'   "frequency" is the number (frequency) of valid records in the period.
-##'   "percentile" is the percentile level (\%) between 0-100, which can be set
-##'   using the "percentile" option - see below. Not used if \code{avg.time =
-##'   "default"}.
+##' @param statistic The statistic to apply when aggregating the data;
+##' default is the mean. Can be one of \dQuote{mean}, \dQuote{max},
+##' \dQuote{min}, \dQuote{median}, \dQuote{frequency}, \dQuote{sd},
+##' \dQuote{percentile}. Note that \dQuote{sd} is the standard
+##' deviation and \dQuote{frequency} is the number (frequency) of
+##' valid records in the period.  \dQuote{percentile} is the
+##' percentile level (\%) between 0-100, which can be set using the
+##' \dQuote{percentile} option - see below. Not used if \code{avg.time
+##' = "default"}.
 ##' @param percentile The percentile level in \% used when \code{statistic =
 ##'   "percentile"} and when aggregating the data with \code{avg.time}. More
 ##'   than one percentile level is allowed for \code{type = "default"} e.g.
@@ -85,11 +89,12 @@
 ##'   chunks are shown properly, rather than with a line connecting each chunk.
 ##'   For irregular data, set to \code{FALSE}. Note, this should not be set for
 ##'   \code{type} other than \code{default}.
-##' @param type \code{type} determines how the data are split i.e. conditioned,
-##'   and then plotted. The default is will produce a single plot using the
-##'   entire data. Type can be one of the built-in types as detailed in
-##'   \code{cutData} e.g. "season", "year", "weekday" and so on. For example,
-##'   \code{type = "season"} will produce four plots --- one for each season.
+##' @param type \code{type} determines how the data are split
+##' i.e. conditioned, and then plotted. The default is will produce a
+##' single plot using the entire data. Type can be one of the built-in
+##' types as detailed in \code{cutData} e.g. \dQuote{season},
+##' \dQuote{year}, \dQuote{weekday} and so on. For example, \code{type
+##' = "season"} will produce four plots --- one for each season.
 ##'
 ##' It is also possible to choose \code{type} as another variable in the data
 ##'   frame. If that variable is numeric, then the data will be split into four
@@ -100,12 +105,12 @@
 ##'
 ##' Only one \code{type} is currently allowed in \code{timePlot}.
 ##' @param cols Colours to be used for plotting. Options include
-##' "default", "increment", "heat", "jet" and \code{RColorBrewer}
-##' colours --- see the \code{openair} \code{openColours} function for
-##' more details. For user defined the user can supply a list of
-##' colour names recognised by R (type \code{colours()} to see the
-##' full list). An example would be \code{cols = c("yellow", "green",
-##' "blue")}
+##' \dQuote{default}, \dQuote{increment}, \dQuote{heat}, \dQuote{jet}
+##' and \code{RColorBrewer} colours --- see the \code{openair}
+##' \code{openColours} function for more details. For user defined the
+##' user can supply a list of colour names recognised by R (type
+##' \code{colours()} to see the full list). An example would be
+##' \code{cols = c("yellow", "green", "blue")}
 ##' @param plot.type The \code{lattice} plot type, which is a line
 ##'   (\code{plot.type = "l"}) by default. Another useful option is
 ##'   \code{plot.type = "h"}, which draws vertical lines.
@@ -129,12 +134,13 @@
 ##'   pollutants a single column can make to key too wide. The user can thus
 ##'   choose to use several columns by setting \code{columns} to be less than
 ##'   the number of pollutants.
-##' @param name.pol This option can be used to give alternative names for the
-##'   variables plotted. Instead of taking the column headings as names, the
-##'   user can supply replacements. For example, if a column had the name "nox"
-##'   and the user wanted a different description, then setting \code{pol.name
-##'   = "nox before change"} can be used. If more than one pollutant is plotted
-##'   then use \code{c} e.g. \code{pol.name = c("nox here", "o3 there")}.
+##' @param name.pol This option can be used to give alternative names
+##' for the variables plotted. Instead of taking the column headings
+##' as names, the user can supply replacements. For example, if a
+##' column had the name \dQuote{nox} and the user wanted a different
+##' description, then setting \code{pol.name = "nox before change"}
+##' can be used. If more than one pollutant is plotted then use
+##' \code{c} e.g. \code{pol.name = c("nox here", "o3 there")}.
 ##' @param date.breaks Number of major x-axis intervals to use. The function
 ##'   will try and choose a sensible number of dates/times as well as
 ##'   formatting the date/time appropriately to the range being considered.
@@ -145,10 +151,12 @@
 ##' x-axis. While \code{timePlot} generally sets the date format
 ##' sensibly there can be some situations where the user wishes to
 ##' have more control. For format types see \code{strptime}. For
-##' example, to format the date like "Jan-2012" set \code{date.format = "\%b-\%Y"}.
+##' example, to format the date like \dQuote{Jan-2012} set
+##' \code{date.format = "\%b-\%Y"}.
 ##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
-##'   \code{TRUE} titles and axis labels will automatically try and format
-##'   pollutant names and units properly e.g.  by subscripting the `2' in NO2.
+##' \code{TRUE} titles and axis labels will automatically try and
+##' format pollutant names and units properly e.g.  by subscripting
+##' the \sQuote{2} in NO2.
 ##' @param ... Other graphical parameters are passed onto \code{cutData} and
 ##'   \code{lattice:xyplot}. For example, \code{timePlot} passes the option
 ##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern
@@ -186,42 +194,48 @@
 ##' timePlot(mydata, pollutant = "nox")
 ##'
 ##' # two pollutants in separate panels
-##' timePlot(mydata, pollutant = c("nox", "no2"))
+##' \dontrun{timePlot(mydata, pollutant = c("nox", "no2"))}
 ##'
 ##' # two pollutants in the same panel with the same scale
-##' timePlot(mydata, pollutant = c("nox", "no2"), group = TRUE)
+##' \dontrun{timePlot(mydata, pollutant = c("nox", "no2"), group = TRUE)}
 ##'
 ##' # alternative by normalising concentrations and plotting on the same
 ##'   scale
+##' \dontrun{
 ##' timePlot(mydata, pollutant = c("nox", "co", "pm10", "so2"), group = TRUE, avg.time =
 ##'   "year", normalise = "1/1/1998", lwd = 3, lty = 1)
+##' }
 ##'
 ##' # examples of selecting by date
 ##'
 ##' # plot for nox in 1999
-##' timePlot(selectByDate(mydata, year = 1999), pollutant = "nox")
+##' \dontrun{timePlot(selectByDate(mydata, year = 1999), pollutant = "nox")}
 ##'
 ##' # select specific date range for two pollutants
+##' \dontrun{
 ##' timePlot(selectByDate(mydata, start = "6/8/2003", end = "13/8/2003"),
 ##' pollutant = c("no2", "o3"))
+##' }
 ##'
 ##' # choose different line styles etc
-##' timePlot(mydata, pollutant = c("nox", "no2"), lty = 1)
+##' \dontrun{timePlot(mydata, pollutant = c("nox", "no2"), lty = 1)}
 ##'
 ##' # choose different line styles etc
+##' \dontrun{
 ##' timePlot(selectByDate(mydata, year = 2004, month = 6), pollutant =
 ##' c("nox", "no2"), lwd = c(1, 2), col = "black")
+##' }
 ##'
 ##' # different averaging times
 ##'
 ##' #daily mean O3
-##' timePlot(mydata, pollutant = "o3", avg.time = "day")
+##' \dontrun{timePlot(mydata, pollutant = "o3", avg.time = "day")}
 ##'
 ##' # daily mean O3 ensuring each day has data capture of at least 75%
-##' timePlot(mydata, pollutant = "o3", avg.time = "day", data.thresh = 75)
+##' \dontrun{timePlot(mydata, pollutant = "o3", avg.time = "day", data.thresh = 75)}
 ##'
 ##' # 2-week average of O3 concentrations
-##' timePlot(mydata, pollutant = "o3", avg.time = "2 week")
+##' \dontrun{timePlot(mydata, pollutant = "o3", avg.time = "2 week")}
 ##'
 timePlot <- function(mydata,
                      pollutant = "nox",

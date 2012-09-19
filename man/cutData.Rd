@@ -4,7 +4,7 @@
 \title{Function to split data in different ways for conditioning}
 \usage{
   cutData(x, type = "default", hemisphere = "northern",
-    n.levels = 4, is.axis = FALSE, ...)
+    n.levels = 4, start.day, is.axis = FALSE, ...)
 
   cutDaylight(x, local.hour.offset = 0, latitude =
     51.522393, longitude = -0.154700, ...)
@@ -13,10 +13,11 @@
   \item{x}{A data frame containing a field \code{date}.}
 
   \item{type}{A string giving the way in which the data
-  frame should be split. Pre-defined values are: "default",
-  "year", "hour", "month", "season", "weekday", "ws",
-  "site", "weekend", "monthyear", "daylight", "gmtbst" or
-  "bstgmt".
+  frame should be split. Pre-defined values are:
+  \dQuote{default}, \dQuote{year}, \dQuote{hour},
+  \dQuote{month}, \dQuote{season}, \dQuote{weekday},
+  \dQuote{site}, \dQuote{weekend}, \dQuote{monthyear},
+  \dQuote{daylight}, \dQuote{gmtbst} or \dQuote{bstgmt}.
 
   \code{type} can also be the name of a numeric or factor.
   If a numeric column name is supplied \code{cutData} will
@@ -29,8 +30,22 @@
   \item{n.levels}{Number of quantiles to split numeric data
   into.}
 
+  \item{start.day}{What day of the week should the
+  \code{type = "weekday"} start on?  The user can change
+  the start day by supplying an integer between 0 and 6.
+  Sunday = 0, Monday = 1, \ldots For example to start the
+  weekday plots on a Saturday, choose \code{start.day =
+  6}.}
+
   \item{is.axis}{A logical (\code{TRUE}/\code{FALSE}), used
   to request shortened cut labels for axes.}
+
+  \item{...}{All additional parameters are passed on to
+  next function(s).  For example, with \code{cutData} all
+  additional parameters are passed on to \code{cutDaylight}
+  allowing direct access to \code{cutDaylight} via either
+  \code{cutData} or any \code{openair} using \code{cutData}
+  for \code{type} conditioning.}
 
   \item{local.hour.offset,latitude,longitude}{Parameters
   used by \code{cutDaylight} to estimate if the measurement
@@ -42,13 +57,6 @@
   AURN site associated with the \code{mydata} example data
   set. See \code{\dots{}} and Details below for further
   information.}
-
-  \item{\dots}{All additional parameters are passed on to
-  next function(s).  For example, with \code{cutData} all
-  additional parameters are passed on to \code{cutDaylight}
-  allowing direct access to \code{cutDaylight} via either
-  \code{cutData} or any \code{openair} using \code{cutData}
-  for \code{type} conditioning.}
 }
 \value{
   Returns a data frame with a column \code{cond} that is

@@ -11,15 +11,15 @@
   . Can be class \code{POSIXct} or \code{Date}.}
 
   \item{avg.time}{This defines the time period to average
-  to. Can be "sec", "min", "hour", "day", "DSTday", "week",
-  "month", "quarter" or "year". For much increased
-  flexibility a number can precede these options followed
-  by a space. For example, a time average of 2 months would
-  be \code{avg.time = "2 month"}. See \code{cut.POSIXt} for
-  further details on this. In addition, \code{avg.time} can
-  equal "season", in which case 3-month seasonal values are
-  calculated with spring defined as March, April, May and
-  so on.
+  to. Can be \dQuote{sec}, \dQuote{min}, \dQuote{hour},
+  \dQuote{day}, \dQuote{DSTday}, \dQuote{week},
+  \dQuote{month}, \dQuote{quarter} or \dQuote{year}. For
+  much increased flexibility a number can precede these
+  options followed by a space. For example, a timeAverage
+  of 2 months would be \code{period = "2 month"}. In
+  addition, \code{avg.time} can equal \dQuote{season}, in
+  which case 3-month seasonal values are calculated with
+  spring defined as March, April, May and so on.
 
   Note that \code{avg.time} can be \emph{less} than the
   time interval of the original series, in which case the
@@ -30,37 +30,45 @@
   expanding data in this way it is necessary to ensure that
   the time interval of the original series is an exact
   multiple of \code{avg.time} e.g. hour to 10 minutes, day
-  to hour.}
+  to hour. Also, the input time series must have consistent
+  time gaps between successive intervals so that
+  \code{timeAverage} can work out how much \sQuote{padding}
+  to apply.}
 
-  \item{data.thresh}{The data capture threshold to use (%).
-  A value of zero means that all available data will be
-  used in a particular period regardless if of the number
-  of values available. Conversely, a value of 100 will mean
-  that all data will need to be present for the average to
-  be calculated, else it is recorded as \code{NA}.}
+  \item{data.thresh}{The data capture threshold to use
+  (\%). A value of zero means that all available data will
+  be used in a particular period regardless if of the
+  number of values available. Conversely, a value of 100
+  will mean that all data will need to be present for the
+  average to be calculated, else it is recorded as
+  \code{NA}.}
 
   \item{statistic}{The statistic to apply when aggregating
-  the data; default is the mean. Can be one of "mean",
-  "max", "min", "median", "sum", "frequency", "sd",
-  "percentile". Note that "sd" is the standard deviation
-  and "frequency" is the number (frequency) of valid
-  records in the period.  "percentile" is the percentile
-  level (%) between 0-100, which can be set using the
-  "percentile" option - see below.}
+  the data; default is the mean. Can be one of
+  \dQuote{mean}, \dQuote{max}, \dQuote{min},
+  \dQuote{median}, \dQuote{frequency}, \dQuote{sd},
+  \dQuote{percentile}. Note that \dQuote{sd} is the
+  standard deviation and \dQuote{frequency} is the number
+  (frequency) of valid records in the period.
+  \dQuote{percentile} is the percentile level (\%) between
+  0-100, which can be set using the \dQuote{percentile}
+  option --- see below. Not used if \code{avg.time =
+  "default"}.}
 
-  \item{percentile}{The percentile level in % used when
+  \item{percentile}{The percentile level in \% used when
   \code{statistic = "percentile"}. The default is 95.}
 
   \item{start.date}{A string giving a start date to use.
   This is sometimes useful if a time series starts between
   obvious intervals. For example, for a 1-minute time
-  series that starts "2009-11-29 12:07:00" that needs to be
-  averaged up to 15-minute means, the intervals would be
-  "2009-11-29 12:07:00", "2009-11-29 12:22:00" etc. Often,
-  however, it is better to round down to a more obvious
-  start point e.g. "2009-11-29 12:00:00" such that the
-  sequence is then "2009-11-29 12:00:00", "2009-11-29
-  12:15:00" \ldots{} \code{start.date} is therefore used to
+  series that starts \dQuote{2009-11-29 12:07:00} that
+  needs to be averaged up to 15-minute means, the intervals
+  would be \dQuote{2009-11-29 12:07:00}, \dQuote{2009-11-29
+  12:22:00} etc. Often, however, it is better to round down
+  to a more obvious start point e.g. \dQuote{2009-11-29
+  12:00:00} such that the sequence is then
+  \dQuote{2009-11-29 12:00:00}, \dQuote{2009-11-29
+  12:15:00} \ldots{} \code{start.date} is therefore used to
   force this type of sequence.}
 
   \item{vector.ws}{Should vector averaging be carried out
@@ -117,10 +125,10 @@ daily <- timeAverage(mydata, avg.time = "day")
 
 ## daily average values ensuring at least 75 \% data capture
 ## i.e. at least 18 valid hours
-daily <- timeAverage(mydata, avg.time = "day", data.thresh = 75)
+\dontrun{daily <- timeAverage(mydata, avg.time = "day", data.thresh = 75)}
 
 ## 2-weekly averages
-fortnight <- timeAverage(mydata, avg.time = "2 week")
+\dontrun{fortnight <- timeAverage(mydata, avg.time = "2 week")}
 
 ## make a 15-minute time series from an hourly one
 \dontrun{

@@ -39,7 +39,7 @@
 ##' and a column of predictions. The observations are split up into \code{bins}
 ##' according to values of the predictions. The median prediction line together
 ##' with the 25/75th and 10/90th quantile values are plotted together with a
-##' line showing a "perfect" model. Also shown is a histogram of predicted
+##' line showing a \dQuote{perfect} model. Also shown is a histogram of predicted
 ##' values.
 ##'
 ##' Far more insight can be gained into model performance through conditioning
@@ -53,11 +53,12 @@
 ##'   representing observed and modelled values.
 ##' @param obs The name of the observations in \code{mydata}.
 ##' @param mod The name of the predictions (modelled values) in \code{mydata}.
-##' @param type \code{type} determines how the data are split i.e. conditioned,
-##'   and then plotted. The default is will produce a single plot using the
-##'   entire data. Type can be one of the built-in types as detailed in
-##'   \code{cutData} e.g. "season", "year", "weekday" and so on. For example,
-##'   \code{type = "season"} will produce four plots --- one for each season.
+##' @param type \code{type} determines how the data are split
+##' i.e. conditioned, and then plotted. The default is will produce a
+##' single plot using the entire data. Type can be one of the built-in
+##' types as detailed in \code{cutData} e.g. \dQuote{season},
+##' \dQuote{year}, \dQuote{weekday} and so on. For example, \code{type
+##' = "season"} will produce four plots --- one for each season.
 ##'
 ##' It is also possible to choose \code{type} as another variable in the data
 ##'   frame. If that variable is numeric, then the data will be split into four
@@ -73,13 +74,14 @@
 ##'   levels.
 ##' @param min.bin The minimum number of points required for the estimates of
 ##'   the 25/75th and 10/90th percentiles.
-##' @param xlab label for the x-axis, by default \code{"predicted value"}.
-##' @param ylab label for the y-axis, by default \code{"observed value"}.
+##' @param xlab label for the x-axis, by default \dQuote{predicted value}.
+##' @param ylab label for the y-axis, by default \dQuote{observed value}.
 ##' @param col Colours to be used for plotting the uncertainty bands and median
 ##'   line. Must be of length 5 or more.
 ##' @param key.columns Number of columns to be used in the key.
-##' @param key.position Location of the key e.g. "top", "bottom", "right",
-##'   "left". See \code{lattice} \code{xyplot} for more details.
+##' @param key.position Location of the key e.g. \dQuote{top},
+##' \dQuote{bottom}, \dQuote{right}, \dQuote{left}. See \code{lattice}
+##' \code{xyplot} for more details.
 ##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
 ##'   \code{TRUE} titles and axis labels etc. will automatically try and format
 ##'   pollutant names and units properly e.g.  by subscripting the `2' in NO2.

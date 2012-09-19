@@ -50,10 +50,12 @@ avg.time = "month", percentile = 95)
 head(percentiles)
 
 # 5, 50, 95th percentile monthly o3 concentrations
+\dontrun{
 percentiles <- calcPercentile(mydata, pollutant ="o3",
 avg.time = "month", percentile = c(5, 50, 95))
 
 head(percentiles)
+}
 }
 \author{
   David Carslaw

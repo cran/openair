@@ -77,8 +77,8 @@
 ##' @param type \code{type} determines how the data are split
 ##' i.e. conditioned, and then plotted. The default is will produce a
 ##' single plot using the entire data. Type can be one of the built-in
-##' types as detailed in \code{cutData} e.g. "season", "year",
-##' "weekday" and so on. For example, \code{type = "season"} will
+##' types as detailed in \code{cutData} e.g. \dQuote{season}, \dQuote{year},
+##' \dQuote{weekday} and so on. For example, \code{type = "season"} will
 ##' produce four plots --- one for each season.
 ##'
 ##' It is also possible to choose \code{type} as another variable in
@@ -102,7 +102,7 @@
 ##' normalised (and non-dimensionalised) by dividing both the RMS
 ##' difference and the standard deviation of the \code{mod} values by
 ##' the standard deviation of the observations (\code{obs}). In this
-##' case the "observed" point is plotted on the x-axis at unit
+##' case the \dQuote{observed} point is plotted on the x-axis at unit
 ##' distance from the origin. This makes it possible to plot
 ##' statistics for different species (maybe with different units) on
 ##' the same plot. The normalisation is done by each
@@ -110,8 +110,9 @@
 ##' @param cols Colours to be used for plotting. Useful options for
 ##' categorical data are avilable from \code{RColorBrewer} colours ---
 ##' see the \code{openair} \code{openColours} function for more
-##' details. Useful schemes include "Accent", "Dark2", "Paired",
-##' "Pastel1", "Pastel2", "Set1", "Set2", "Set3" --- but see
+##' details. Useful schemes include \dQuote{Accent}, \dQuote{Dark2},
+##' \dQuote{Paired}, \dQuote{Pastel1}, \dQuote{Pastel2},
+##' \dQuote{Set1}, \dQuote{Set2}, \dQuote{Set3} --- but see
 ##' ?\code{brewer.pal} for the maximum useful colours in each. For
 ##' user defined the user can supply a list of colour names recognised
 ##' by R (type \code{colours()} to see the full list). An example
@@ -125,9 +126,9 @@
 ##'   pollutants a single column can make to key too wide. The user can thus
 ##'   choose to use several columns by setting \code{columns} to be less than
 ##'   the number of pollutants.
-##' @param key.pos Position of the key e.g. "top", "bottom", "left" and
-##'   "right". See details in \code{lattice:xyplot} for more details about
-##'   finer control.
+##' @param key.pos Position of the key e.g. \dQuote{top},
+##' \dQuote{bottom}, \dQuote{left} and \dQuote{right}. See details in
+##' \code{lattice:xyplot} for more details about finer control.
 ##' @param strip Should a strip be shown?
 ##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
 ##'   \code{TRUE} titles and axis labels will automatically try and format
@@ -223,10 +224,11 @@
 ##'
 ##' ## do for all models
 ##' TaylorDiagram(mod.dat, obs = "obs", mod = c("mod", "mod2"), group = "model")
-##'
+##' \dontrun{
 ##' ## all models, by season
 ##' TaylorDiagram(mod.dat, obs = "obs", mod = c("mod", "mod2"), group = "model",
 ##' type = "season")
+##' }
 ##'
 ##'
 TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type = "default",

@@ -23,9 +23,9 @@
   i.e. conditioned, and then plotted. The default is will
   produce a single plot using the entire data. Type can be
   one of the built-in types as detailed in \code{cutData}
-  e.g. "season", "year", "weekday" and so on. For example,
-  \code{type = "season"} will produce four plots --- one
-  for each season.
+  e.g. \dQuote{season}, \dQuote{year}, \dQuote{weekday} and
+  so on. For example, \code{type = "season"} will produce
+  four plots --- one for each season.
 
   It is also possible to choose \code{type} as another
   variable in the data frame. If that variable is numeric,
@@ -45,11 +45,13 @@
   be between 0--100.}
 
   \item{cols}{Colours to be used for plotting. Options
-  include "default", "increment", "heat", "jet" and user
-  defined. For user defined the user can supply a list of
-  colour names recognised by R (type \code{colours()} to
-  see the full list). An example would be \code{cols =
-  c("yellow", "green", "blue")}.}
+  include \dQuote{default}, \dQuote{increment},
+  \dQuote{heat}, \dQuote{jet} and \code{RColorBrewer}
+  colours --- see the \code{openair} \code{openColours}
+  function for more details. For user defined the user can
+  supply a list of colour names recognised by R (type
+  \code{colours()} to see the full list). An example would
+  be \code{cols = c("yellow", "green", "blue")}}
 
   \item{fill}{Should the percentile intervals be filled
   (default) or should lines be drawn (\code{fill =
@@ -107,11 +109,11 @@
 \value{
   As well as generating the plot itself,
   \code{percentileRose} also returns an object of class
-  ``openair''. The object includes three main components:
-  \code{call}, the command used to generate the plot;
-  \code{data}, the data frame of summarised information
-  used to make the plot; and \code{plot}, the plot itself.
-  If retained, e.g. using \code{output <-
+  \dQuote{openair}. The object includes three main
+  components: \code{call}, the command used to generate the
+  plot; \code{data}, the data frame of summarised
+  information used to make the plot; and \code{plot}, the
+  plot itself. If retained, e.g. using \code{output <-
   percentileRose(mydata, "nox")}, this output can be used
   to recover the data, reproduce or rework the original
   plot or undertake further analysis.

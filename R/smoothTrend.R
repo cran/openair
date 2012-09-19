@@ -31,11 +31,12 @@
 ##'   the function \code{stl} is used (seasonal trend decomposition using
 ##'   loess). Note that if \code{TRUE} missing data are first linearly
 ##'   interpolated because \code{stl} cannot handle missing data.
-##' @param type \code{type} determines how the data are split i.e. conditioned,
-##'   and then plotted. The default is will produce a single plot using the
-##'   entire data. Type can be one of the built-in types as detailed in
-##'   \code{cutData} e.g. "season", "year", "weekday" and so on. For example,
-##'   \code{type = "season"} will produce four plots --- one for each season.
+##' @param type \code{type} determines how the data are split
+##' i.e. conditioned, and then plotted. The default is will produce a
+##' single plot using the entire data. Type can be one of the built-in
+##' types as detailed in \code{cutData} e.g. \dQuote{season},
+##' \dQuote{year}, \dQuote{weekday} and so on. For example, \code{type
+##' = "season"} will produce four plots --- one for each season.
 ##'
 ##' It is also possible to choose \code{type} as another variable in the data
 ##'   frame. If that variable is numeric, then the data will be split into four
@@ -48,12 +49,12 @@
 ##'   produce a 2x2 plot split by season and day of the week. Note, when two
 ##'   types are provided the first forms the columns and the second the rows.
 ##' @param statistic Statistic used for calculating monthly values. Default is
-##'   \code{"mean"}, but can also be \code{"percentile"}. See
+##'   \dQuote{mean}, but can also be \dQuote{percentile}. See
 ##'   \code{timeAverage} for more details.
-##' @param avg.time  Can be "month" (the default), "season" or
-##' "year". Determines the time over which data should be
-##' averaged. Note that for "year", six or more years are
-##' required. For "season" the data are plit up into spring: March,
+##' @param avg.time  Can be \dQuote{month} (the default), \dQuote{season} or
+##' \dQuote{year}. Determines the time over which data should be
+##' averaged. Note that for \dQuote{year}, six or more years are
+##' required. For \dQuote{season} the data are plit up into spring: March,
 ##' April, May etc. Note that December is considered as belonging to
 ##' winter of the following year.
 ##' @param percentile Percentile value(s) to use if \code{statistic =
@@ -78,7 +79,7 @@
 ##' @param cols Colours to use. Can be a vector of colours e.g. \code{cols =
 ##'   c("black", "green")} or pre-defined openair colours --- see
 ##'   \code{openColours} for more details.
-##' @param xlab x-axis label, by default \code{"year"}.
+##' @param xlab x-axis label, by default \dQuote{year}.
 ##' @param y.relation This determines how the y-axis scale is plotted. "same"
 ##'   ensures all panels use the same scale and "free" will use panel-specfic
 ##'   scales. The latter is a useful setting when plotting data with very
@@ -320,22 +321,12 @@ smoothTrend <- function(mydata,
     if(!"skip" %in% names(extra.args))
          extra.args$skip <- FALSE
 
+    ## proper names of labelling ###################################################
+    strip.dat <- strip.fun(split.data, type, auto.text)
+    strip <- strip.dat[[1]]
+    strip.left <- strip.dat[[2]]
+    pol.name <- strip.dat[[3]]
 
-    ## proper names of labelling ##############################################################################
-    pol.name <- sapply(levels(factor(split.data[ , type[1]])), function(x) quickText(x, auto.text))
-    strip <- strip.custom(factor.levels = pol.name)
-
-    if (length(type) == 1 ) {
-
-        strip.left <- FALSE
-
-    } else { ## two conditioning variables
-
-        pol.name <- sapply(levels(factor(split.data[ , type[2]])), function(x) quickText(x, auto.text))
-        strip.left <- strip.custom(factor.levels = pol.name)
-    }
-    ## ########################################################################################################
-    if (length(type) == 1 & type[1] == "default") strip <- FALSE ## remove strip
 
     ## colours according to number of percentiles
     npol <- max(length(percentile), length(pollutant)) ## number of pollutants

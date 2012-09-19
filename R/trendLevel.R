@@ -47,8 +47,8 @@ trendLevelWd <- function(mydata,
 ##' @param x The name of the data series to use as the \code{trendLevel}
 ##'   x-axis. This is used with the \code{y} and \code{type} options to bin the
 ##'   data before applying \code{statistic} (see below). Allowed options
-##'   currently include \code{"hour"}, \code{"month"}, \code{"year"}, and
-##'   \code{"wd"}. Other data series in \code{mydata} can also be used. (Note:
+##'   currently include \dQuote{hour}, \dQuote{month}, \dQuote{year}, and
+##'   \dQuote{wd}. Other data series in \code{mydata} can also be used. (Note:
 ##'   \code{trendLevel} does not allow duplication in \code{x}, \code{y} and
 ##'   \code{type} options within a call.)
 ##' @param y,type The names of the data series to use as the \code{trendLevel}
@@ -86,13 +86,13 @@ trendLevelWd <- function(mydata,
 ##'   automatically adds statistic function names or defaults to \code{"level"}
 ##'   when unnamed functions are requested via \code{statistic}.
 ##' @param key.position Location where the scale key should be plotted.
-##'   Allowed arguments currently include \code{"top"}, \code{"right"},
-##'   \code{"bottom"} and \code{"left"}.
+##'   Allowed arguments currently include \dQuote{top}, \dQuote{right},
+##'   \dQuote{bottom} and \dQuote{left}.
 ##' @param key Fine control of the scale key via \code{drawOpenKey}. See
 ##'   \code{?drawOpenKey} for further details.
 ##' @param statistic The statistic method to be use to summarise locally binned
 ##'   \code{pollutant} measurements with. Three options are currently encoded:
-##'   \code{"mean"} (default), \code{"max"} and \code{"frequency"}. (Note:
+##'   \dQuote{mean} (default), \dQuote{max} and \dQuote{frequency}. (Note:
 ##'   Functions can also be sent directly via \code{statistic}.  However, this
 ##'   option is still in development and should be used with caution. See
 ##'   Details below.)

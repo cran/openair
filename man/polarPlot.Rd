@@ -6,17 +6,18 @@
     type = "default", statistic = "mean",
     resolution = "normal", limits = NA,
     exclude.missing = TRUE, uncertainty = FALSE,
-    cols = "default", min.bin = 1, upper = NA,
-    angle.scale = 315, units = x, force.positive = TRUE,
-    k = 100, normalise = FALSE, key.header = "",
-    key.footer = pollutant, key.position = "right",
-    key = TRUE, auto.text = TRUE, ...)
+    percentile = NA, cols = "default", min.bin = 1,
+    upper = NA, angle.scale = 315, units = x,
+    force.positive = TRUE, k = 100, normalise = FALSE,
+    key.header = "", key.footer = pollutant,
+    key.position = "right", key = TRUE, auto.text = TRUE,
+    ...)
 }
 \arguments{
   \item{mydata}{A data frame minimally containing
   \code{wd}, another variable to plot in polar coordinates
-  (the default is a column "ws" --- wind speed) and a
-  pollutant. Should also contain \code{date} if plots by
+  (the default is a column \dQuote{ws} --- wind speed) and
+  a pollutant. Should also contain \code{date} if plots by
   time period are required.}
 
   \item{pollutant}{Mandatory. A pollutant name
@@ -29,11 +30,12 @@
   saves the user stacking the data and it is possible to
   work with columns of data directly. A typical use would
   be \code{pollutant = c("obs", "mod")} to compare two
-  columns "obs" (the observations) and "mod" (modelled
-  values).}
+  columns \dQuote{obs} (the observations) and \dQuote{mod}
+  (modelled values).}
 
   \item{x}{Name of variable to plot against wind direction
-  in polar coordinates, the default is wind speed, "ws".}
+  in polar coordinates, the default is wind speed,
+  \dQuote{ws}.}
 
   \item{wd}{Name of wind direction field.}
 
@@ -41,9 +43,9 @@
   i.e. conditioned, and then plotted. The default is will
   produce a single plot using the entire data. Type can be
   one of the built-in types as detailed in \code{cutData}
-  e.g. "season", "year", "weekday" and so on. For example,
-  \code{type = "season"} will produce four plots --- one
-  for each season.
+  e.g. \dQuote{season}, \dQuote{year}, \dQuote{weekday} and
+  so on. For example, \code{type = "season"} will produce
+  four plots --- one for each season.
 
   It is also possible to choose \code{type} as another
   variable in the data frame. If that variable is numeric,
@@ -60,9 +62,10 @@
   first forms the columns and the second the rows.}
 
   \item{statistic}{The statistic that should be applied to
-  each wind speed/direction bin. Can be "mean" (default),
-  "median", "max" (maximum), "frequency". "stdev" (standard
-  deviation) or "weighted.mean". Because of the smoothing
+  each wind speed/direction bin. Can be \dQuote{mean}
+  (default), \dQuote{median}, \dQuote{max} (maximum),
+  \dQuote{frequency}. \dQuote{stdev} (standard deviation)
+  or \dQuote{weighted.mean}. Because of the smoothing
   involved, the colour scale for some of these statistics
   is only to provide an indication of overall pattern and
   should not be interpreted in concentration units e.g. for
@@ -76,10 +79,11 @@
   dominate the overall mean.}
 
   \item{resolution}{Two plot resolutions can be set:
-  "normal" (the default) and "fine", for a smoother plot.
-  It should be noted that plots with a "fine" resolution
-  can take longer to render and the default option should
-  be sufficient or most circumstances.}
+  \dQuote{normal} (the default) and \dQuote{fine}, for a
+  smoother plot. It should be noted that plots with a
+  \dQuote{fine} resolution can take longer to render and
+  the default option should be sufficient or most
+  circumstances.}
 
   \item{limits}{The function does its best to choose
   sensible limits automatically. However, there are
@@ -112,14 +116,23 @@
   bin. Note that if uncertainties are calculated then the
   type is set to "default".}
 
+  \item{percentile}{If \code{statistic = "percentile"} then
+  \code{percentile} is used, expressed from 0 to 100. Note
+  that the percentile value is calculated in the wind
+  speed, wind direction \sQuote{bins}. For this reason it
+  can also be useful to set \code{min.bin} to ensure there
+  are a sufficient number of points available to estimate a
+  percentile. See \code{quantile} for more details of how
+  percentiles are calculated.}
+
   \item{cols}{Colours to be used for plotting. Options
-  include "default", "increment", "heat", "jet" and
-  \code{RColorBrewer} colours --- see the \code{openair}
-  \code{openColours} function for more details. For user
-  defined the user can supply a list of colour names
-  recognised by R (type \code{colours()} to see the full
-  list). An example would be \code{cols = c("yellow",
-  "green", "blue")}}
+  include \dQuote{default}, \dQuote{increment},
+  \dQuote{heat}, \dQuote{jet} and \code{RColorBrewer}
+  colours --- see the \code{openair} \code{openColours}
+  function for more details. For user defined the user can
+  supply a list of colour names recognised by R (type
+  \code{colours()} to see the full list). An example would
+  be \code{cols = c("yellow", "green", "blue")}}
 
   \item{min.bin}{The minimum number of points allowed in a
   wind speed/wind direction bin.  The default is 1. A value
@@ -331,7 +344,7 @@ polarPlot(mydata, pollutant = "nox")
 \dontrun{polarPlot(mydata, pollutant = "so2", type = "year", main = "polarPlot of so2")}
 
 # set minimum number of bins to be used to see if pattern remains similar
-polarPlot(mydata, pollutant = "nox", min.bin = 3)
+\dontrun{polarPlot(mydata, pollutant = "nox", min.bin = 3)}
 
 # plot by day of the week
 

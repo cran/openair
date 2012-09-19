@@ -10,7 +10,7 @@
     limits = c(0, 100), cex = pollutant, pch = NULL,
     cex.range = c(2, 10), xlab = longitude,
     ylab = latitude, main = "", axes = TRUE, map = NULL,
-    map.raster = TRUE, map.cols = NULL, aspect = 1,
+    map.raster = TRUE, map.cols = NULL, aspect = NULL,
     as.table = TRUE, plot.type = "xy",
     plot.transparent = FALSE, key = NULL,
     key.position = "right", key.header = "",
@@ -31,25 +31,25 @@
 
   \item{type}{The type of data conditioning to apply before
   plotting. The default is will produce a single plot using
-  the entire data. Other type options include "hour" (for
-  hour of the day), "weekday" (for day of the week) and
-  "month" (for month of the year), "year", "season"
-  (string, summer, autumn or winter) and "daylight"
-  (daylight or nighttime hour).  But it is also possible to
-  set \code{type} to the name of another variable in
-  \code{mydata}, in which case the plotted data will be
-  divided into quantiles based on that data series. See
-  \code{cutData} for further details.(NOTE: type
-  conditioning currently allows up to two levels of
-  conditioning, e.g., \code{type = c("weekday",
-  "daylight")}.)}
+  the entire data. Other type options include \dQuote{hour}
+  (for hour of the day), \dQuote{weekday} (for day of the
+  week) and \dQuote{month} (for month of the year),
+  \dQuote{year}, \dQuote{season} (string, summer, autumn or
+  winter) and \dQuote{daylight} (daylight or nighttime
+  hour).  But it is also possible to set \code{type} to the
+  name of another variable in \code{mydata}, in which case
+  the plotted data will be divided into quantiles based on
+  that data series. See \code{cutData} for further
+  details.(NOTE: type conditioning currently allows up to
+  two levels of conditioning, e.g., \code{type =
+  c("weekday", "daylight")}.)}
 
   \item{xlim,ylim}{The x-axis and y-axis size ranges. By
   default these sized on the basis of \code{latitude} and
   \code{longitude}, but can be forced as part of the plot
-  call [NOTE: This IN DEVELOPMENT option is currently
-  restricted and requested ranges are forced square to
-  maintain map aspect ratio.].}
+  call. (NOTE: This are in-development and should be used
+  with care. The RgoogleMaps argument \code{size = c(640,
+  640)} can be use to force map dimensions to square.)}
 
   \item{pollutant}{If supplied, the name of a pollutant or
   variable in \code{mydata} that is to be evaluated at the
@@ -135,7 +135,10 @@
   (NOTE: If set, this will override \code{cols =
   "greyscale"}.)}
 
-  \item{aspect}{The aspect ratio of the plot.}
+  \item{aspect}{The aspect ratio of the plot. If
+  \code{NULL} (default), this is calculated by the function
+  based on the data and \code{xlim} and \code{ylim}
+  ranges.}
 
   \item{as.table}{\code{as.table} is a \code{lattice}
   option that controls the order in which multiple panels

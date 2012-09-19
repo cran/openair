@@ -26,41 +26,41 @@
   saves the user stacking the data and it is possible to
   work with columns of data directly. A typical use would
   be \code{pollutant = c("obs", "mod")} to compare two
-  columns "obs" (the observations) and "mod" (modelled
-  values).}
+  columns \dQuote{obs} (the observations) and \dQuote{mod}
+  (modelled values).}
 
   \item{resolution}{Two plot resolutions can be set:
-  \code{"normal"} and \code{"fine"} (the default).}
+  \dQuote{normal} and \dQuote{fine} (the default).}
 
   \item{local.time}{Should the results be calculated in
-  local time? The default is \code{TRUE}. Emissions
+  local time? The default is \code{FALSE}. Emissions
   activity tends to occur at local time e.g. rush hour is
   at 8 am every day. When the clocks go forward in spring,
   the emissions are effectively released into the
-  atmosphere at BST - 1 hour during the summer. When
+  atmosphere at BST --- 1 hour during the summer. When
   plotting diurnal profiles, this has the effect of
-  "smearing-out" the concentrations. A better approach is
-  to express time as local time, which here is defined as
-  BST (British Summer Time). This correction tends to
-  produce better-defined diurnal profiles of concentration
-  (or other variables) and allows a better comparison to be
-  made with emissions/activity data. If set to \code{FALSE}
-  then GMT is used.}
+  \dQuote{smearing-out} the concentrations. A better
+  approach is to express time as local time, which here is
+  defined as BST (British Summer Time). This correction
+  tends to produce better-defined diurnal profiles of
+  concentration (or other variables) and allows a better
+  comparison to be made with emissions/activity data. If
+  set to \code{FALSE} then GMT is used.}
 
   \item{period}{This determines the temporal period to
-  consider. Options are "hour" (the default, to plot
-  diurnal variations), "season" to plot variation
-  throughout the year, "weekday" to plot day of the week
-  variation and "trend" to plot the trend by wind
-  direction.}
+  consider. Options are \dQuote{hour} (the default, to plot
+  diurnal variations), \dQuote{season} to plot variation
+  throughout the year, \dQuote{weekday} to plot day of the
+  week variation and \dQuote{trend} to plot the trend by
+  wind direction.}
 
   \item{type}{\code{type} determines how the data are split
   i.e. conditioned, and then plotted. The default is will
   produce a single plot using the entire data. Type can be
   one of the built-in types as detailed in \code{cutData}
-  e.g. "season", "year", "weekday" and so on. For example,
-  \code{type = "season"} will produce four plots --- one
-  for each season.
+  e.g. \dQuote{season}, \dQuote{year}, \dQuote{weekday} and
+  so on. For example, \code{type = "season"} will produce
+  four plots --- one for each season.
 
   It is also possible to choose \code{type} as another
   variable in the data frame. If that variable is numeric,
@@ -88,14 +88,16 @@
   \item{limits}{Limits for colour scale.}
 
   \item{cols}{Colours to be used for plotting. Options
-  include "default", "increment", "heat", "jet" and user
-  defined. For user defined the user can supply a list of
-  colour names recognised by R (type \code{colours()} to
-  see the full list). An example would be \code{cols =
-  c("yellow", "green", "blue")}}
+  include \dQuote{default}, \dQuote{increment},
+  \dQuote{heat}, \dQuote{jet} and user defined. For user
+  defined the user can supply a list of colour names
+  recognised by R (type \code{colours()} to see the full
+  list). An example would be \code{cols = c("yellow",
+  "green", "blue")}}
 
-  \item{width}{The width of the annulus; can be "normal"
-  (the default), "thin" or "fat".}
+  \item{width}{The width of the annulus; can be
+  \dQuote{normal} (the default), \dQuote{thin} or
+  \dQuote{fat}.}
 
   \item{min.bin}{The minimum number of points allowed in a
   wind speed/wind direction bin.  The default is 1. A value
@@ -166,9 +168,9 @@
   \item{key.footer}{see \code{key.header}.}
 
   \item{key.position}{Location where the scale key is to
-  plotted.  Allowed arguments currently include
-  \code{"top"}, \code{"right"}, \code{"bottom"} and
-  \code{"left"}.}
+  plotted. Allowed arguments currently include
+  \dQuote{top}, \dQuote{right}, \dQuote{bottom} and
+  \dQuote{left}.}
 
   \item{key}{Fine control of the scale key via
   \code{drawOpenKey}. See \code{drawOpenKey} for further

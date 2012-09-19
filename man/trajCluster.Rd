@@ -12,7 +12,7 @@
 
   \item{method}{Method used to calculate the distance
   matrix for the back trajectories. There are two methods
-  available: "Euclid" and "Angle".}
+  available: \dQuote{Euclid} and \dQuote{Angle}.}
 
   \item{n.cluster}{Number of clusters to calculate.}
 
@@ -22,25 +22,26 @@
   i.e. conditioned, and then plotted. The default is will
   produce a single plot using the entire data. Type can be
   one of the built-in types as detailed in \code{cutData}
-  e.g. "season", "year", "weekday" and so on. For example,
-  \code{type = "season"} will produce four plots --- one
-  for each season. Note that the cluster calculations are
-  separately made of each level of "type".}
+  e.g. \dQuote{season}, \dQuote{year}, \dQuote{weekday} and
+  so on. For example, \code{type = "season"} will produce
+  four plots --- one for each season. Note that the cluster
+  calculations are separately made of each level of
+  "type".}
 
   \item{cols}{Colours to be used for plotting. Options
-  include "default", "increment", "heat", "jet" and
-  \code{RColorBrewer} colours --- see the \code{openair}
-  \code{openColours} function for more details. For user
-  defined the user can supply a list of colour names
-  recognised by R (type \code{colours()} to see the full
-  list). An example would be \code{cols = c("yellow",
-  "green", "blue")}.}
+  include \dQuote{default}, \dQuote{increment},
+  \dQuote{heat}, \dQuote{jet} and \code{RColorBrewer}
+  colours --- see the \code{openair} \code{openColours}
+  function for more details. For user defined the user can
+  supply a list of colour names recognised by R (type
+  \code{colours()} to see the full list). An example would
+  be \code{cols = c("yellow", "green", "blue")}}
 
-  \item{split.after}{For \code{type} other than "default"
-  e.g. season, the trajectories can either be calculated
-  for each level of \code{type} independently or extracted
-  after the cluster calculations have been applied to the
-  whole data set.}
+  \item{split.after}{For \code{type} other than
+  \dQuote{default} e.g. \dQuote{season}, the trajectories
+  can either be calculated for each level of \code{type}
+  independently or extracted after the cluster calculations
+  have been applied to the whole data set.}
 
   \item{...}{Other graphical parameters passed onto
   \code{lattice:levelplot} and \code{cutData}. Similarly,

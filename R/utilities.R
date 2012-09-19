@@ -335,7 +335,8 @@ one more label than date")
 ##' @param mydata A data frame containing a \code{date} field in hourly or high
 ##'   resolution format.
 ##' @param start A start date string in the form d/m/yyyy
-##' e.g. "1/2/1999" or in 'R' format i.e. "YYYY-mm-dd", "1999-02-01"
+##' e.g. \dQuote{1/2/1999} or in \sQuote{R} format
+##' i.e. \dQuote{YYYY-mm-dd}, \dQuote{1999-02-01}
 ##' @param end See \code{start} for format.
 ##' @param year A year or years to select e.g. \code{year = 1998:2004} to
 ##'   select 1998-2004 inclusive or \code{year = c(1998, 2004)} to select 1998
@@ -344,10 +345,10 @@ one more label than date")
 ##'   \code{month = 1:6} to select months 1-6 (January to June), or by name
 ##'   e.g. \code{month = c("January", "December")}. Names can be abbreviated to
 ##'   3 letters and be in lower or upper case.
-##' @param day A day name or or days to select. For example \code{day = c("Monday",
-##'   "Wednesday")}. Names can be abbreviated to 3 letters and be in lower or
-##'   upper case. Also accepts "weekday" (Monday - Friday) and "weekend" for
-##'   convenience.
+##' @param day A day name or or days to select. For example \code{day
+##' = c("Monday", "Wednesday")}. Names can be abbreviated to 3 letters
+##' and be in lower or upper case. Also accepts \dQuote{weekday}
+##' (Monday - Friday) and \dQuote{weekend} for convenience.
 ##' @param hour An hour or hours to select from 0-23 e.g. \code{hour = 0:12} to
 ##'   select hours 0 to 12 inclusive.
 ##' @export
@@ -757,3 +758,25 @@ makeOpenKeyLegend <- function(key, default.key, fun.name = "function"){
                          c(y1[i - 1], y1[i], y2[i], y2[i - 1]),
                          col = myColors[group.number], border = NA, alpha = 0.4)
     }
+
+
+## gives names of lattice strips
+strip.fun <- function(results.grid, type, auto.text) {
+    ## proper names of labelling ###################################################
+    pol.name <- sapply(levels(factor(results.grid[ , type[1]])),
+                       function(x) quickText(x, auto.text))
+    strip <- strip.custom(factor.levels = pol.name)
+
+    if (length(type) == 1 ) {
+
+        strip.left <- FALSE
+
+    } else { ## two conditioning variables
+
+        pol.name <- sapply(levels(factor(results.grid[ , type[2]])),
+                           function(x) quickText(x, auto.text))
+        strip.left <- strip.custom(factor.levels = pol.name)
+    }
+    if (length(type) == 1 & type[1] == "default") strip <- FALSE ## remove strip
+    list(strip, strip.left, pol.name)
+}

@@ -13,15 +13,15 @@
   \item{pollutants}{the names of data-series in
   \code{mydata} to be plotted by \code{corPlot}. The
   default option \code{NULL} and the alternative
-  \code{"all"} use all available valid (numeric) data.}
+  \dQuote{all} use all available valid (numeric) data.}
 
   \item{type}{\code{type} determines how the data are split
   i.e. conditioned, and then plotted. The default is will
   produce a single plot using the entire data. Type can be
   one of the built-in types as detailed in \code{cutData}
-  e.g. "season", "year", "weekday" and so on. For example,
-  \code{type = "season"} will produce four plots --- one
-  for each season.
+  e.g. \dQuote{season}, \dQuote{year}, \dQuote{weekday} and
+  so on. For example, \code{type = "season"} will produce
+  four plots --- one for each season.
 
   It is also possible to choose \code{type} as another
   variable in the data frame. If that variable is numeric,
@@ -40,8 +40,9 @@
   interpretation.}
 
   \item{cols}{Colours to be used for plotting. Options
-  include "default", "increment", "heat", "spectral",
-  "hue", "brewer1", "greyscale" and user defined (see
+  include \dQuote{default}, \dQuote{increment},
+  \dQuote{heat}, \dQuote{spectral}, \dQuote{hue},
+  \dQuote{greyscale} and user defined (see
   \code{openColours} for more details).}
 
   \item{r.thresh}{Values of greater than \code{r.thresh}

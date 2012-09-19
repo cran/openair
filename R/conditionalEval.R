@@ -348,7 +348,7 @@ conditionalEval <- function(mydata, obs = "obs", mod = "mod",
             pol.name <- sapply(levels(clust.results[ , type[1]]), function(x) quickText(x, auto.text))
             strip.left <- strip.custom(factor.levels = pol.name)
         }
-        ## #####################################################################################
+        ## ###################################################################################
 
         cols <-  openColours(col.var, length(unique(clust.results$Var1)))
         temp <- "statistic"

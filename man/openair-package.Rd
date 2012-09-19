@@ -7,13 +7,13 @@
 \description{ This is a UK Natural Environment Research Council (NERC)
 funded knowledge exchange project that aims to make available innovative
 analysis tools for air pollution data; with additional support from
-Defra.  The tools have generally been developed to analyse data of at
-least hourly resolution both for air pollution monitoring and dispersion
-modelling. The availability of meteorological data at the same time
-resolution greatly enhances the capabilities of these tools.
+Defra.  The tools have generally been developed to analyse data of
+hourly resolution (or at least a regular time series) both for air
+pollution monitoring and dispersion modelling. The availability of
+meteorological data at the same time resolution greatly enhances the
+capabilities of these tools.
 
-The project itself is currently funded until October 2011. Up until that
-time the development will carried out on R-Forge
+The project code is also developed using R-Forge
 (\url{http://r-forge.r-project.org/projects/openair/}).}
 
 \details{
@@ -47,12 +47,8 @@ other people to function properly.
 
 To ensure that these other packages are available, they need to be
 installed, and this requires a connection to the internet. Other
-packages required come with the R base system. This can be done by
-pasting the text below into R.
-
-install.packages(c("zoo", "reshape2", "plyr", "RColorBrewer", "proto"))
-
-If there are problems with the automatic download of these packages, see
+packages required come with the R base system.  If there are problems
+with the automatic download of these packages, see
 \url{http://www.openair-project.org} for more details.
 
 NOTE: openair assumes that data are not expressed in local time where
@@ -63,8 +59,7 @@ functions.
 
 To check to see if \code{openair} has been correctly installed, try some
 of the examples below. In case of any problems, contact David Carslaw
-\url{mailto: david.carslaw@kcl.ac.uk} or Karl Ropkins \url{mailto:
-k.ropkins@its.leeds.ac.uk} directly.
+\url{mailto: david.carslaw@kcl.ac.uk} directly.
 
 }
 \author{
@@ -74,10 +69,13 @@ Maintainer: David Carslaw <david.carslaw@kcl.ac.uk>
 
 }
 \references{
-Most reference details are given under the specific functions.
+Most reference details are given under the specific functions. The
+principal reference is below but users may also wish to cite the manual
+(details for doing this are contained in the manual itself).
 
-Carslaw, D.C. and K. Ropkins (2011). Open-source tools for analysing air
-pollution data. King's College London and the University of Leeds.  }
+Carslaw, D.C. and K. Ropkins, (2012) openair --- an R package for air
+  quality data analysis.  Environmental Modelling & Software. Volume
+  27-28, 52-61.  }
 \keyword{methods}
 
 \seealso{See \url{http://www.openair-project.org} for up to date information on

@@ -32,10 +32,10 @@
   coloured according to a continuous colour scale, whereas
   for \code{method = "level"} the surface is coloured.}
 
-  \item{method}{Methods include \code{"scatter"}
-  (conventional scatter plot), \code{"hexbin"} (hexagonal
-  binning using the \code{hexbin} package).  \code{level}
-  for a binned or smooth surface plot and \code{"density"}
+  \item{method}{Methods include \dQuote{scatter}
+  (conventional scatter plot), \dQuote{hexbin} (hexagonal
+  binning using the \code{hexbin} package).  \dQuote{level}
+  for a binned or smooth surface plot and \dQuote{density}
   (2D kernel density estimates).}
 
   \item{group}{The grouping variable to use, if any.
@@ -47,14 +47,15 @@
   variable, it will split that variable in to quantiles.}
 
   \item{avg.time}{This defines the time period to average
-  to. Can be "sec", "min", "hour", "day", "DSTday", "week",
-  "month", "quarter" or "year". For much increased
-  flexibility a number can precede these options followed
-  by a space. For example, a timeAverage of 2 months would
-  be \code{period = "2 month"}. See function
-  \code{timeAverage} for further details on this.  This
-  option se useful as one method by which the number of
-  points plotted is reduced i.e. by choosing a longer
+  to. Can be \dQuote{sec}, \dQuote{min}, \dQuote{hour},
+  \dQuote{day}, \dQuote{DSTday}, \dQuote{week},
+  \dQuote{month}, \dQuote{quarter} or \dQuote{year}. For
+  much increased flexibility a number can precede these
+  options followed by a space. For example, a timeAverage
+  of 2 months would be \code{period = "2 month"}. See
+  function \code{timeAverage} for further details on this.
+  This option se useful as one method by which the number
+  of points plotted is reduced i.e. by choosing a longer
   averaging time.}
 
   \item{data.thresh}{The data capture threshold to use (%)
@@ -75,7 +76,7 @@
   which can be set using the "percentile" option - see
   below. Not used if \code{avg.time = "default"}.}
 
-  \item{percentile}{The percentile level in % used when
+  \item{percentile}{The percentile level in \% used when
   \code{statistic = "percentile"} and when aggregating the
   data with \code{avg.time}. The default is 95. Not used if
   \code{avg.time = "default"}.}
@@ -84,24 +85,26 @@
   i.e. conditioned, and then plotted. The default is will
   produce a single plot using the entire data. Type can be
   one of the built-in types as detailed in \code{cutData}
-  e.g. "season", "year", "weekday" and so on. For example,
-  \code{type = "season"} will produce four plots --- one
-  for each season. \cr\cr It is also possible to choose
-  \code{type} as another variable in the data frame. If
-  that variable is numeric, then the data will be split
-  into four quantiles (if possible) and labelled
-  accordingly. If type is an existing character or factor
-  variable, then those categories/levels will be used
-  directly. This offers great flexibility for understanding
-  the variation of different variables and how they depend
-  on one another.  \cr\cr Type can be up length two e.g.
-  \code{type = c("season", "weekday")} will produce a 2x2
-  plot split by season and day of the week. Note, when two
-  types are provided the first forms the columns and the
-  second the rows.}
+  e.g. \dQuote{season}, \dQuote{year}, \dQuote{weekday} and
+  so on. For example, \code{type = "season"} will produce
+  four plots --- one for each season.
+
+  It is also possible to choose \code{type} as another
+  variable in the data frame. If that variable is numeric,
+  then the data will be split into four quantiles (if
+  possible) and labelled accordingly. If type is an
+  existing character or factor variable, then those
+  categories/levels will be used directly. This offers
+  great flexibility for understanding the variation of
+  different variables and how they depend on one another.
+
+  Type can be up length two e.g. \code{type = c("season",
+  "weekday")} will produce a 2x2 plot split by season and
+  day of the week. Note, when two types are provided the
+  first forms the columns and the second the rows.}
 
   \item{smooth}{A smooth line is fitted to the data if
-  \code{TRUE}; optionally with 95% confidence intervals
+  \code{TRUE}; optionally with 95\% confidence intervals
   shown. For \code{method = "level"} a smooth surface will
   be fitted to binned data.}
 
@@ -111,7 +114,7 @@
   sequence of points is required.}
 
   \item{linear}{A linear model is fitted to the data if
-  \code{TRUE}; optionally with 95% confidence intervals
+  \code{TRUE}; optionally with 95\% confidence intervals
   shown. The equation of the line and R2 value is also
   shown.}
 
@@ -129,14 +132,17 @@
   evaluation statistics will be considered.}
 
   \item{cols}{Colours to be used for plotting. Options
-  include "default", "increment", "heat", "spectral",
-  "hue", "brewer1" and user defined (see manual for more
-  details). The same line colour can be set for all
-  pollutant e.g. \code{cols = "black"}.}
+  include \dQuote{default}, \dQuote{increment},
+  \dQuote{heat}, \dQuote{jet} and \code{RColorBrewer}
+  colours --- see the \code{openair} \code{openColours}
+  function for more details. For user defined the user can
+  supply a list of colour names recognised by R (type
+  \code{colours()} to see the full list). An example would
+  be \code{cols = c("yellow", "green", "blue")}}
 
-  \item{plot.type}{\code{lattice} plot type. Can be "p"
-  (points --- default), "l" (lines) or "b" (lines and
-  points).}
+  \item{plot.type}{\code{lattice} plot type. Can be
+  \dQuote{p} (points --- default), \dQuote{l} (lines) or
+  \dQuote{b} (lines and points).}
 
   \item{key}{Should a key be drawn? The default is
   \code{TRUE}.}
@@ -151,8 +157,8 @@
 
   \item{key.position}{Location where the scale key is to
   plotted.  Allowed arguments currently include
-  \code{"top"}, \code{"right"}, \code{"bottom"} and
-  \code{"left"}}
+  \dQuote{top}, \dQuote{right}, \dQuote{bottom} and
+  \dQuote{left}.}
 
   \item{strip}{Should a strip be drawn? The default is
   \code{TRUE}.}
@@ -174,16 +180,16 @@
   when \code{method = "level"}.}
 
   \item{y.relation}{This determines how the y-axis scale is
-  plotted. "same" ensures all panels use the same scale and
-  "free" will use panel-specfic scales. The latter is a
-  useful setting when plotting data with very different
-  values.}
+  plotted. \dQuote{same} ensures all panels use the same
+  scale and \dQuote{free} will use panel-specfic scales.
+  The latter is a useful setting when plotting data with
+  very different values.}
 
-  \item{x.relation}{This determines how the y-axis scale is
-  plotted. "same" ensures all panels use the same scale and
-  "free" will use panel-specfic scales. The latter is a
-  useful setting when plotting data with very different
-  values.}
+  \item{x.relation}{This determines how the x-axis scale is
+  plotted. \dQuote{same} ensures all panels use the same
+  scale and \dQuote{free} will use panel-specfic scales.
+  The latter is a useful setting when plotting data with
+  very different values.}
 
   \item{ref.x}{Add a vertical dashed reference line at this
   value.}
@@ -206,7 +212,7 @@
   \item{auto.text}{Either \code{TRUE} (default) or
   \code{FALSE}. If \code{TRUE} titles and axis labels will
   automatically try and format pollutant names and units
-  properly e.g.  by subscripting the `2' in NO2.}
+  properly e.g.  by subscripting the \sQuote{2} in NO2.}
 
   \item{\dots}{Other graphical parameters are passed onto
   \code{cutData} and an appropriate \code{lattice} plot

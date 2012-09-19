@@ -69,7 +69,7 @@
 ##'
 ##' @param mydata A data frame minimally containing \code{wd}, another
 ##' variable to plot in polar coordinates (the default is a column
-##' "ws" --- wind speed) and a pollutant. Should also contain \code{date}
+##' \dQuote{ws} --- wind speed) and a pollutant. Should also contain \code{date}
 ##' if plots by time period are required.
 ##' @param pollutant Mandatory. A pollutant name corresponding to a variable in
 ##'   a data frame should be supplied e.g. \code{pollutant = "nox"}. There can
@@ -78,16 +78,16 @@
 ##'   evaluation where two species would be expected to have similar
 ##'   concentrations. This saves the user stacking the data and it is possible
 ##'   to work with columns of data directly. A typical use would be
-##'   \code{pollutant = c("obs", "mod")} to compare two columns "obs" (the
-##'   observations) and "mod" (modelled values).
+##'   \code{pollutant = c("obs", "mod")} to compare two columns \dQuote{obs} (the
+##'   observations) and \dQuote{mod} (modelled values).
 ##' @param x Name of variable to plot against wind direction in polar
-##' coordinates, the default is wind speed, "ws".
+##' coordinates, the default is wind speed, \dQuote{ws}.
 ##' @param wd Name of wind direction field.
 ##' @param type \code{type} determines how the data are split
 ##' i.e. conditioned, and then plotted. The default is will produce a
 ##' single plot using the entire data. Type can be one of the built-in
-##' types as detailed in \code{cutData} e.g. "season", "year",
-##' "weekday" and so on. For example, \code{type = "season"} will
+##' types as detailed in \code{cutData} e.g. \dQuote{season}, \dQuote{year},
+##' \dQuote{weekday} and so on. For example, \code{type = "season"} will
 ##' produce four plots --- one for each season.
 ##'
 ##' It is also possible to choose \code{type} as another variable in
@@ -103,10 +103,11 @@
 ##' week. Note, when two types are provided the first forms the
 ##' columns and the second the rows.
 ##' @param statistic The statistic that should be applied to each wind
-##' speed/direction bin. Can be "mean" (default), "median", "max"
-##' (maximum), "frequency". "stdev" (standard deviation) or
-##' "weighted.mean". Because of the smoothing involved, the colour
-##' scale for some of these statistics is only to provide an
+##' speed/direction bin. Can be \dQuote{mean} (default),
+##' \dQuote{median}, \dQuote{max} (maximum),
+##' \dQuote{frequency}. \dQuote{stdev} (standard deviation) or
+##' \dQuote{weighted.mean}. Because of the smoothing involved, the
+##' colour scale for some of these statistics is only to provide an
 ##' indication of overall pattern and should not be interpreted in
 ##' concentration units e.g. for \code{statistic = "weighted.mean"}
 ##' where the bin mean is multiplied by the bin frequency and divided
@@ -115,9 +116,9 @@
 ##' useful because it provides an indication of the concentration *
 ##' frequency of occurrence and will highlight the wind
 ##' speed/direction conditions that dominate the overall mean.
-##' @param resolution Two plot resolutions can be set: "normal" (the
-##' default) and "fine", for a smoother plot. It should be noted that
-##' plots with a "fine" resolution can take longer to render and the
+##' @param resolution Two plot resolutions can be set: \dQuote{normal} (the
+##' default) and \dQuote{fine}, for a smoother plot. It should be noted that
+##' plots with a \dQuote{fine} resolution can take longer to render and the
 ##' default option should be sufficient or most circumstances.
 ##' @param limits The function does its best to choose sensible limits
 ##' automatically. However, there are circumstances when the user will
@@ -143,13 +144,20 @@
 ##' GAM and weighting is done by the frequency of measurements in each
 ##' wind speed-direction bin. Note that if uncertainties are
 ##' calculated then the type is set to "default".
+##' @param percentile If \code{statistic = "percentile"} then
+##' \code{percentile} is used, expressed from 0 to 100. Note that the
+##' percentile value is calculated in the wind speed, wind direction
+##' \sQuote{bins}. For this reason it can also be useful to set
+##' \code{min.bin} to ensure there are a sufficient number of points
+##' available to estimate a percentile. See \code{quantile} for more
+##' details of how percentiles are calculated.
 ##' @param cols Colours to be used for plotting. Options include
-##' "default", "increment", "heat", "jet" and \code{RColorBrewer}
-##' colours --- see the \code{openair} \code{openColours} function for
-##' more details. For user defined the user can supply a list of
-##' colour names recognised by R (type \code{colours()} to see the
-##' full list). An example would be \code{cols = c("yellow", "green",
-##' "blue")}
+##' \dQuote{default}, \dQuote{increment}, \dQuote{heat}, \dQuote{jet}
+##' and \code{RColorBrewer} colours --- see the \code{openair}
+##' \code{openColours} function for more details. For user defined the
+##' user can supply a list of colour names recognised by R (type
+##' \code{colours()} to see the full list). An example would be
+##' \code{cols = c("yellow", "green", "blue")}
 ##' @param min.bin The minimum number of points allowed in a wind
 ##' speed/wind direction bin.  The default is 1. A value of two
 ##' requires at least 2 valid records in each bin an so on; bins with
@@ -282,7 +290,7 @@
 ##' \dontrun{polarPlot(mydata, pollutant = "so2", type = "year", main = "polarPlot of so2")}
 ##'
 ##' # set minimum number of bins to be used to see if pattern remains similar
-##' polarPlot(mydata, pollutant = "nox", min.bin = 3)
+##' \dontrun{polarPlot(mydata, pollutant = "nox", min.bin = 3)}
 ##'
 ##' # plot by day of the week
 ##'
@@ -294,7 +302,7 @@
 ##'
 polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "default",
                       statistic = "mean", resolution = "normal", limits = NA,
-                      exclude.missing = TRUE, uncertainty = FALSE, cols = "default",
+                      exclude.missing = TRUE, uncertainty = FALSE, percentile = NA, cols = "default",
                       min.bin = 1, upper = NA, angle.scale = 315, units = x,
                       force.positive = TRUE, k = 100, normalise = FALSE,
                       key.header = "", key.footer = pollutant, key.position = "right",
@@ -303,6 +311,10 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
     ## get rid of R check annoyances
     z = NULL
 
+    if (statistic == "percentile" & is.na(percentile)) {
+        warning("percentile value missing,  using 50")
+        percentile <- 50
+    }
 
     ## initial checks ##########################################################################################
     if (length(type) > 2) {stop("Maximum number of types is 2.")}
@@ -311,12 +323,13 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
 
     if (uncertainty & length(pollutant) > 1) stop("Can only have one pollutant when uncertainty = TRUE")
 
-    if (!statistic %in% c("mean", "median", "frequency", "max", "stdev", "weighted.mean")) {
+    if (!statistic %in% c("mean", "median", "frequency", "max", "stdev", "weighted.mean", "percentile")) {
         stop (paste("statistic '", statistic, "' not recognised", sep = ""))
     }
 
     if (missing(key.header)) key.header <- statistic
     if (key.header == "weighted.mean") key.header <- c("weighted", "mean")
+    if (key.header == "percentile") key.header <- c(paste(percentile, "th", sep = ""), "percentile")
 
     ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
@@ -371,7 +384,12 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
         mydata <- melt(mydata, measure.vars = pollutant)
         ## now set pollutant to "value"
         pollutant <- "value"
-        type <- c(type, "variable")
+
+        if (type == "default") {
+            type <- "variable"
+        } else {
+            type <- c(type, "variable")
+        }
     }
 
     ## ##########################################################################################################
@@ -425,7 +443,10 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
                          stdev = tapply(mydata[, pollutant], list(wd, x), function(x)
                          sd(x, na.rm = TRUE)),
                          weighted.mean = tapply(mydata[, pollutant], list(wd, x),
-                         function(x) (mean(x) * length(x) / nrow(mydata)))
+                         function(x) (mean(x) * length(x) / nrow(mydata))),
+                         percentile = tapply(mydata[, pollutant], list(wd, x), function(x)
+                         quantile(x, probs = percentile / 100, na.rm = TRUE))
+
                          )
 
         binned <- as.vector(t(binned))
@@ -441,11 +462,18 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
 
         ## no uncertainty to calculate
         if (!uncertainty) {
-            Mgam <- gam(binned ^ n ~ s(u, v, k = k))
-            pred <- predict.gam(Mgam, input.data)
-            pred <- pred ^ (1 / n)
-            pred <- as.vector(pred)
-            results <- data.frame(u = input.data$u, v = input.data$v, z = pred)
+            ## catch errors when not enough data to calculate surface
+            Mgam <- try(gam(binned ^ n ~ s(u, v, k = k)), TRUE)
+            if (!inherits(Mgam, "try-error")) {
+                pred <- predict.gam(Mgam, input.data)
+                pred <- pred ^ (1 / n)
+                pred <- as.vector(pred)
+                results <- data.frame(u = input.data$u, v = input.data$v, z = pred)
+            } else {
+                results <- data.frame(u = u, v = v, z = binned)
+                exclude.missing <- FALSE
+                warning(call. = FALSE, paste("Not enough data to fit surface.\nTry reducing the value of the smoothing parameter, k to less than ", k, ".",  sep = ""))
+            }
 
         } else {
 
@@ -495,29 +523,18 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
         results
     }
 
-    ## ########################################################################################################
+    ## #################################################################
 
     results.grid <- ddply(mydata, type, prepare.grid)
 
     ## remove wind speeds > upper to make a circle
     if (clip) results.grid$z[(results.grid$u ^ 2 + results.grid$v ^ 2) ^ 0.5 > upper] <- NA
 
-    ## proper names of labelling ##############################################################################
-    pol.name <- sapply(levels(results.grid[ , type[1]]), function(x) quickText(x, auto.text))
-    strip <- strip.custom(factor.levels = pol.name)
-
-    if (length(type) == 1 ) {
-
-        strip.left <- FALSE
-
-    } else { ## two conditioning variables
-
-        pol.name <- sapply(levels(results.grid[ , type[2]]), function(x) quickText(x, auto.text))
-        strip.left <- strip.custom(factor.levels = pol.name)
-    }
-    ## ########################################################################################################
-
-    if (length(type) == 1 & type[1] == "default") strip <- FALSE ## remove strip
+    ## proper names of labelling ###################################################
+    strip.dat <- openair:::strip.fun(results.grid, type, auto.text)
+    strip <- strip.dat[[1]]
+    strip.left <- strip.dat[[2]]
+    pol.name <- strip.dat[[3]]
     if (uncertainty) strip <- TRUE
 
     ## normalise by divining by mean conditioning value if needed
@@ -618,7 +635,7 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
 
                            })
 
-                                        #reset for extra.args
+     ## reset for extra.args
     levelplot.args<- openair:::listUpdate(levelplot.args, extra.args)
 
                                         #plot

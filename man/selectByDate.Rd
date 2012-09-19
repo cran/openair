@@ -11,8 +11,8 @@
   in hourly or high resolution format.}
 
   \item{start}{A start date string in the form d/m/yyyy
-  e.g. "1/2/1999" or in 'R' format i.e. "YYYY-mm-dd",
-  "1999-02-01"}
+  e.g. \dQuote{1/2/1999} or in \sQuote{R} format i.e.
+  \dQuote{YYYY-mm-dd}, \dQuote{1999-02-01}}
 
   \item{end}{See \code{start} for format.}
 
@@ -29,8 +29,8 @@
   \item{day}{A day name or or days to select. For example
   \code{day = c("Monday", "Wednesday")}. Names can be
   abbreviated to 3 letters and be in lower or upper case.
-  Also accepts "weekday" (Monday - Friday) and "weekend"
-  for convenience.}
+  Also accepts \dQuote{weekday} (Monday - Friday) and
+  \dQuote{weekend} for convenience.}
 
   \item{hour}{An hour or hours to select from 0-23 e.g.
   \code{hour = 0:12} to select hours 0 to 12 inclusive.}

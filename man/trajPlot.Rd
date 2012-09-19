@@ -4,14 +4,15 @@
 \title{Trajectory plots with conditioning}
 \usage{
   trajLevel(mydata, lon = "lon", lat = "lat",
-    pollutant = "pm10", type = "default", method = "level",
-    smooth = FALSE, map = TRUE, lon.inc = 1.5,
-    lat.inc = 1.5, ...)
+    pollutant = "pm10", type = "default", smooth = FALSE,
+    statistic = "mean", percentile = 90, map = TRUE,
+    lon.inc = 1.5, lat.inc = 1.5, min.bin = 1, ...)
 
   trajPlot(mydata, lon = "lon", lat = "lat",
-    pollutant = "pm10", type = "default",
-    method = "scatter", smooth = FALSE, map = TRUE,
-    lon.inc = 1.5, lat.inc = 1.5, group = NA, ...)
+    pollutant = "pm10", type = "default", smooth = FALSE,
+    statistic = "mean", percentile = 90, map = TRUE,
+    lon.inc = 1.5, lat.inc = 1.5, min.bin = 1, group = NA,
+    ...)
 }
 \arguments{
   \item{mydata}{Data frame, the result of importing a
@@ -47,20 +48,42 @@
   provided the first forms the columns and the second the
   rows.}
 
-  \item{method}{For trajectory plots, either "scatter" or
-  "level". The latter option bins the data according to the
-  values of \code{x.inc} and \code{y.inc}.}
-
   \item{smooth}{Should the trajectory surface be smoothed?}
+
+  \item{statistic}{For \code{trajLevel}. By default the
+  function will plot the mean concentration of a pollutant.
+  If \code{statistic = "frequency"}, a plot will be shown
+  for gridded trajectory frequencies. This is useful to
+  understand where air masses tend to orginate.
+
+  It is also possible to set \code{statistic =
+  "difference"}. In this case trajectories where the
+  associated concentration is greater than
+  \code{percentile} are compared with the the full set of
+  trajectories to understand the differences in freqeuncies
+  of the origin of air masses. The comparsion is made by
+  comparing the percentage change in gridded frequencies.
+  For example, such a plot could show that the top 10\% of
+  concentrations of PM10 tend to orginate from air-mass
+  origins to the east.}
+
+  \item{percentile}{For \code{trajLevel}. The percentile
+  concentration of \code{pollutant} against which the all
+  trajectories are compared.}
 
   \item{map}{Should a base map be drawn? If \code{TRUE} the
   world base map from the \code{maps} package is used.}
 
   \item{lon.inc}{The longitude-interval to be used for
-  binning data when \code{method = "level"}.}
+  binning data for \code{trajLevel}.}
 
   \item{lat.inc}{The latitude-interval to be used for
-  binning data when \code{method = "level"}.}
+  binning data when \code{trajLevel}.}
+
+  \item{min.bin}{For \code{trajLevel} the minimum number of
+  unique \emph{trajectories} in a grid cell. Counts below
+  \code{min.bin} are set as missing. For \code{statistic =
+  "frequency"} or \code{statistic = "frequency"}}
 
   \item{...}{other arguments are passed to \code{cutData}
   and \code{scatterPlot}. This provides access to arguments

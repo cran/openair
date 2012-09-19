@@ -9,8 +9,8 @@
 \arguments{
   \item{mydata}{A data frame minimally containing
   \code{wd}, another variable to plot in polar coordinates
-  (the default is a column "ws" --- wind speed) and a
-  pollutant. Should also contain \code{date} if plots by
+  (the default is a column \dQuote{ws} --- wind speed) and
+  a pollutant. Should also contain \code{date} if plots by
   time period are required.}
 
   \item{pollutant}{Mandatory. A pollutant name
@@ -19,7 +19,8 @@
   pollutant can be chosen.}
 
   \item{x}{Name of variable to plot against wind direction
-  in polar coordinates, the default is wind speed, "ws".}
+  in polar coordinates, the default is wind speed,
+  \dQuote{ws}.}
 
   \item{wd}{Name of wind direction field.}
 
@@ -32,8 +33,9 @@
   options for categorical data are avilable from
   \code{RColorBrewer} colours --- see the \code{openair}
   \code{openColours} function for more details. Useful
-  schemes include "Accent", "Dark2", "Paired", "Pastel1",
-  "Pastel2", "Set1", "Set2", "Set3" --- but see
+  schemes include \dQuote{Accent}, \dQuote{Dark2},
+  \dQuote{Paired}, \dQuote{Pastel1}, \dQuote{Pastel2},
+  \dQuote{Set1}, \dQuote{Set2}, \dQuote{Set3} --- but see
   ?\code{brewer.pal} for the maximum useful colours in
   each. For user defined the user can supply a list of
   colour names recognised by R (type \code{colours()} to
@@ -143,7 +145,7 @@
   these issues in more detail.
 
   Note that unlike most other \code{openair} functions only
-  a single \code{type} "default" is allowed.
+  a single \code{type} \dQuote{default} is allowed.
 }
 \examples{
 \dontrun{
