@@ -18,9 +18,10 @@
   i.e. conditioned, and then plotted. The default is will
   produce statistics using the entire data. \code{type} can
   be one of the built-in types as detailed in
-  \code{cutData} e.g. "season", "year", "weekday" and so
-  on. For example, \code{type = "season"} will produce four
-  sets of statistics --- one for each season.
+  \code{cutData} e.g. \dQuote{season}, \dQuote{year},
+  \dQuote{weekday} and so on. For example, \code{type =
+  "season"} will produce four sets of statistics --- one
+  for each season.
 
   It is also possible to choose \code{type} as another
   variable in the data frame. If that variable is numeric,

@@ -81,15 +81,16 @@
 ##' "site" splits the data by site and therefore requires a column \code{site}.
 ##'
 ##' @aliases cutData cutDaylight
-##' @usage cutData(x, type = "default", hemisphere = "northern", n.levels = 4, is.axis = FALSE, ...)
+##' @usage cutData(x, type = "default", hemisphere = "northern", n.levels = 4, start.day, is.axis = FALSE, ...)
 ##'
 ##' cutDaylight(x, local.hour.offset = 0,
 ##'                  latitude = 51.522393, longitude = -0.154700, ...)
 ##' @param x A data frame containing a field \code{date}.
-##' @param type A string giving the way in which the data frame should be
-##'   split. Pre-defined values are: "default", "year", "hour", "month",
-##'   "season", "weekday", "ws", "site", "weekend", "monthyear", "daylight",
-##'   "gmtbst" or "bstgmt".
+##' @param type A string giving the way in which the data frame should
+##' be split. Pre-defined values are: \dQuote{default}, \dQuote{year},
+##' \dQuote{hour}, \dQuote{month}, \dQuote{season}, \dQuote{weekday},
+##' \dQuote{site}, \dQuote{weekend}, \dQuote{monthyear},
+##' \dQuote{daylight}, \dQuote{gmtbst} or \dQuote{bstgmt}.
 ##'
 ##' \code{type} can also be the name of a numeric or factor. If a numeric
 ##'   column name is supplied \code{cutData} will split the data into four
@@ -98,8 +99,18 @@
 ##' @param hemisphere Can be \code{"northern"} or \code{"southern"}, used to
 ##'   split data into seasons.
 ##' @param n.levels Number of quantiles to split numeric data into.
+##' @param start.day What day of the week should the \code{type =
+##' "weekday"} start on?  The user can change the start day by
+##' supplying an integer between 0 and 6. Sunday = 0, Monday = 1,
+##' \ldots For example to start the weekday plots on a Saturday,
+##' choose \code{start.day = 6}.
 ##' @param is.axis A logical (\code{TRUE}/\code{FALSE}), used to request
 ##'   shortened cut labels for axes.
+##' @param ... All additional parameters are passed on to next function(s).
+##'   For example, with \code{cutData} all additional parameters are passed on
+##'   to \code{cutDaylight} allowing direct access to \code{cutDaylight} via
+##'   either \code{cutData} or any \code{openair} using \code{cutData} for
+##'   \code{type} conditioning.
 ##' @param local.hour.offset,latitude,longitude Parameters used by
 ##'   \code{cutDaylight} to estimate if the measurement was collected during
 ##'   daylight or nighttime hours.  \code{local.hour.offset} gives the
@@ -108,11 +119,6 @@
 ##'   parameters are the London Marylebone Road AURN site associated with the
 ##'   \code{mydata} example data set. See \code{\dots{}} and Details below for
 ##'   further information.
-##' @param \dots All additional parameters are passed on to next function(s).
-##'   For example, with \code{cutData} all additional parameters are passed on
-##'   to \code{cutDaylight} allowing direct access to \code{cutDaylight} via
-##'   either \code{cutData} or any \code{openair} using \code{cutData} for
-##'   \code{type} conditioning.
 ##' @export
 ##' @return Returns a data frame with a column \code{cond} that is defined by
 ##'   \code{type}.
@@ -124,7 +130,8 @@
 ##' mydata <- cutData(mydata, type = "weekday")
 ##'
 ##'
-cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, is.axis = FALSE, ...) {
+cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, start.day = 1,
+                    is.axis = FALSE, ...) {
 
     ## function to cutData depending on choice of variable
     ## pre-defined types and user-defined types
@@ -278,11 +285,16 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
 
         if (type == "weekday") {
             x[ , type] <- format(x$date, "%A")
-            weekday.names <-  format(ISOdate(2000, 1, 3:9), "%A")
+           # weekday.names <-  format(ISOdate(2000, 1, 3:9), "%A")
+            weekday.names <- format(ISOdate(2000, 1, 2:8), "%A")
+
+            if (start.day < 0 || start.day > 6) stop ("start.day must be between 0 and 6.")
+            day.ord <- c(weekday.names[(1 + start.day):7], weekday.names[1:(1 + start.day - 1)])
 
             ## might only be certain days available...
             ids <- which(weekday.names %in% unique(x$weekday))
-            the.days <- weekday.names[ids]
+           # the.days <- weekday.names[ids]
+            the.days <- day.ord[ids]
             x[ , type] <- ordered(x[ , type], levels = the.days)
         }
 

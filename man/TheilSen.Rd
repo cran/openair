@@ -33,9 +33,9 @@
   i.e. conditioned, and then plotted. The default is will
   produce a single plot using the entire data. Type can be
   one of the built-in types as detailed in \code{cutData}
-  e.g. "season", "year", "weekday" and so on. For example,
-  \code{type = "season"} will produce four plots --- one
-  for each season.
+  e.g. \dQuote{season}, \dQuote{year}, \dQuote{weekday} and
+  so on. For example, \code{type = "season"} will produce
+  four plots --- one for each season.
 
   It is also possible to choose \code{type} as another
   variable in the data frame. If that variable is numeric,
@@ -51,16 +51,17 @@
   day of the week. Note, when two types are provided the
   first forms the columns and the second the rows.}
 
-  \item{avg.time}{Can be "month" (the default), "season" or
-  "year". Determines the time over which data should be
-  averaged. Note that for "year", six or more years are
-  required. For "season" the data are plit up into spring:
-  March, April, May etc. Note that December is considered
-  as belonging to winter of the following year.}
+  \item{avg.time}{Can be \dQuote{month} (the default),
+  \dQuote{season} or \dQuote{year}. Determines the time
+  over which data should be averaged. Note that for
+  \dQuote{year}, six or more years are required. For
+  \dQuote{season} the data are split up into spring: March,
+  April, May etc. Note that December is considered as
+  belonging to winter of the following year.}
 
   \item{statistic}{Statistic used for calculating monthly
-  values. Default is \code{"mean"}, but can also be
-  \code{"percentile"}. See \code{timeAverage} for more
+  values. Default is \dQuote{mean}, but can also be
+  \dQuote{percentile}. See \code{timeAverage} for more
   details.}
 
   \item{percentile}{Single percentile value to use if
@@ -75,7 +76,7 @@
   calculated, else it is recorded as \code{NA}.}
 
   \item{alpha}{For the confidence interval calculations of
-  the slope. The default is 0.05. To show 99% confidence
+  the slope. The default is 0.05. To show 99\% confidence
   intervals for the value of the trend, choose alpha = 0.01
   etc.}
 
@@ -90,16 +91,16 @@
   \item{lab.cex}{Size of text for trend information.}
 
   \item{x.relation}{This determines how the x-axis scale is
-  plotted. "same" ensures all panels use the same scale and
-  "free" will use panel-specfic scales. The latter is a
-  useful setting when plotting data with very different
-  values.}
+  plotted. \dQuote{same} ensures all panels use the same
+  scale and \dQuote{free} will use panel-specfic scales.
+  The latter is a useful setting when plotting data with
+  very different values.}
 
   \item{y.relation}{This determines how the y-axis scale is
-  plotted. "same" ensures all panels use the same scale and
-  "free" will use panel-specfic scales. The latter is a
-  useful setting when plotting data with very different
-  values.}
+  plotted. \dQuote{same} ensures all panels use the same
+  scale and \dQuote{free} will use panel-specfic scales.
+  The latter is a useful setting when plotting data with
+  very different values.}
 
   \item{data.col}{Colour name for the data}
 

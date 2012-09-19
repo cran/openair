@@ -3,7 +3,7 @@
                                         # Author: DCC
 ###############################################################################
 
-checkPrep <- function(mydata, Names, type, remove.calm = TRUE) {
+checkPrep <- function(mydata, Names, type, remove.calm = TRUE, remove.neg = TRUE) {
 
     ## deal with conditioning variable if present, if user-defined, must exist in data
     ## pre-defined types
@@ -55,8 +55,10 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE) {
         ## check for negative wind speeds
         if (any(sign(mydata$ws[!is.na(mydata$ws)]) == -1)) {
 
-            warning("Wind speed <0; removing negative data")
-            mydata$ws[mydata$ws < 0] <- NA
+            if (remove.neg) { ## remove negative ws only if TRUE
+                warning("Wind speed <0; removing negative data")
+                mydata$ws[mydata$ws < 0] <- NA
+            }
         }
     }
 

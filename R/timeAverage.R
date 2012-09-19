@@ -36,44 +36,53 @@
 ##' @param mydata A data frame containing a \code{date} field . Can be class
 ##'   \code{POSIXct} or \code{Date}.
 ##' @param avg.time This defines the time period to average to. Can be
-##' "sec", "min", "hour", "day", "DSTday", "week", "month", "quarter"
-##' or "year". For much increased flexibility a number can precede
-##' these options followed by a space. For example, a time average of
-##' 2 months would be \code{avg.time = "2 month"}. See
-##' \code{cut.POSIXt} for further details on this. In addition,
-##' \code{avg.time} can equal "season", in which case 3-month seasonal
-##' values are calculated with spring defined as March, April, May and
-##' so on.
+##' \dQuote{sec}, \dQuote{min}, \dQuote{hour}, \dQuote{day},
+##' \dQuote{DSTday}, \dQuote{week}, \dQuote{month}, \dQuote{quarter}
+##' or \dQuote{year}. For much increased flexibility a number can
+##' precede these options followed by a space. For example, a
+##' timeAverage of 2 months would be \code{period = "2 month"}. In
+##' addition, \code{avg.time} can equal \dQuote{season}, in which case
+##' 3-month seasonal values are calculated with spring defined as
+##' March, April, May and so on.
 ##'
-##' Note that \code{avg.time} can be \emph{less} than the time interval of the
-##'   original series, in which case the series is expanded to the new time
-##'   interval. This is useful, for example, for calculating a 15-minute time
-##'   series from an hourly one where an hourly value is repeated for each new
-##'   15-minute period. Note that when expanding data in this way it is
-##'   necessary to ensure that the time interval of the original series is an
-##'   exact multiple of \code{avg.time} e.g. hour to 10 minutes, day to hour.
-##' @param data.thresh The data capture threshold to use (%). A value of zero
+##' Note that \code{avg.time} can be \emph{less} than the time
+##' interval of the original series, in which case the series is
+##' expanded to the new time interval. This is useful, for example,
+##' for calculating a 15-minute time series from an hourly one where
+##' an hourly value is repeated for each new 15-minute period. Note
+##' that when expanding data in this way it is necessary to ensure
+##' that the time interval of the original series is an exact multiple
+##' of \code{avg.time} e.g. hour to 10 minutes, day to hour. Also, the
+##' input time series must have consistent time gaps between successive
+##' intervals so that \code{timeAverage} can work out how much
+##' \sQuote{padding} to apply.
+##' @param data.thresh The data capture threshold to use (\%). A value of zero
 ##'   means that all available data will be used in a particular period
 ##'   regardless if of the number of values available. Conversely, a value of
 ##'   100 will mean that all data will need to be present for the average to be
 ##'   calculated, else it is recorded as \code{NA}.
-##' @param statistic The statistic to apply when aggregating the data; default
-##'   is the mean. Can be one of "mean", "max", "min", "median", "sum",
-##'   "frequency", "sd", "percentile". Note that "sd" is the standard deviation
-##'   and "frequency" is the number (frequency) of valid records in the period.
-##'   "percentile" is the percentile level (%) between 0-100, which can be set
-##'   using the "percentile" option - see below.
-##' @param percentile The percentile level in % used when \code{statistic =
+##' @param statistic The statistic to apply when aggregating the data;
+##' default is the mean. Can be one of \dQuote{mean}, \dQuote{max},
+##' \dQuote{min}, \dQuote{median}, \dQuote{frequency}, \dQuote{sd},
+##' \dQuote{percentile}. Note that \dQuote{sd} is the standard
+##' deviation and \dQuote{frequency} is the number (frequency) of
+##' valid records in the period.  \dQuote{percentile} is the
+##' percentile level (\%) between 0-100, which can be set using the
+##' \dQuote{percentile} option --- see below. Not used if \code{avg.time
+##' = "default"}.
+##' @param percentile The percentile level in \% used when \code{statistic =
 ##'   "percentile"}. The default is 95.
-##' @param start.date A string giving a start date to use. This is sometimes
-##'   useful if a time series starts between obvious intervals. For example,
-##'   for a 1-minute time series that starts "2009-11-29 12:07:00" that needs
-##'   to be averaged up to 15-minute means, the intervals would be "2009-11-29
-##'   12:07:00", "2009-11-29 12:22:00" etc. Often, however, it is better to
-##'   round down to a more obvious start point e.g. "2009-11-29 12:00:00" such
-##'   that the sequence is then "2009-11-29 12:00:00", "2009-11-29 12:15:00"
-##'   \ldots{} \code{start.date} is therefore used to force this type of
-##'   sequence.
+##' @param start.date A string giving a start date to use. This is
+##' sometimes useful if a time series starts between obvious
+##' intervals. For example, for a 1-minute time series that starts
+##' \dQuote{2009-11-29 12:07:00} that needs to be averaged up to
+##' 15-minute means, the intervals would be \dQuote{2009-11-29
+##' 12:07:00}, \dQuote{2009-11-29 12:22:00} etc. Often, however, it is
+##' better to round down to a more obvious start point
+##' e.g. \dQuote{2009-11-29 12:00:00} such that the sequence is then
+##' \dQuote{2009-11-29 12:00:00}, \dQuote{2009-11-29 12:15:00} \ldots{}
+##' \code{start.date} is therefore used to force this type of
+##' sequence.
 ##' @param vector.ws Should vector averaging be carried out on wind
 ##' speed if available? The default is \code{FALSE} and scalar
 ##' averages are calculated. Vector averaging of the wind speed is
@@ -98,10 +107,10 @@
 ##'
 ##' ## daily average values ensuring at least 75 % data capture
 ##' ## i.e. at least 18 valid hours
-##' daily <- timeAverage(mydata, avg.time = "day", data.thresh = 75)
+##' \dontrun{daily <- timeAverage(mydata, avg.time = "day", data.thresh = 75)}
 ##'
 ##' ## 2-weekly averages
-##' fortnight <- timeAverage(mydata, avg.time = "2 week")
+##' \dontrun{fortnight <- timeAverage(mydata, avg.time = "2 week")}
 ##'
 ##' ## make a 15-minute time series from an hourly one
 ##' \dontrun{
@@ -114,7 +123,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
                         vector.ws = FALSE) {
 
     ## get rid of R check annoyances
-    year = season = month = u = v = site = NULL
+    year = season = month = Uu = Vv = site = NULL
 
     ## extract variables of interest
     vars <- names(mydata)
@@ -146,9 +155,6 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
 
     calc.mean <- function(mydata, start.date) { ## function to calculate means
 
-        ## pad out missing data
-    #   mydata <- date.pad(mydata)
-       # mydata <- date.pad2(mydata, interval = avg.time)
         ## time diff in seconds of orginal data
         timeDiff <-  as.numeric(strsplit(openair:::find.time.interval(mydata$date),
                                          " ")[[1]][1])
@@ -192,7 +198,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
 
             ## number of additional lines to fill
             inflateFac <-  timeDiff / seconds
-            if (timeDiff %% seconds != 0) stop("Non-regular time expansion selected.")
+            if (timeDiff %% seconds != 0) stop("Non-regular time expansion selected, or non-regular input time series.")
 
             ## ids of orginal dates in new dates
             ids <- which(mydata$date %in% theDates)
@@ -216,7 +222,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
             firstLine <- data.frame(date = as.POSIXct(start.date))
 
             mydata <- rbind.fill(firstLine, mydata)
-        #    mydata <- date.pad2(mydata)
+
             ## for cutting data must ensure it is in GMT because combining
             ## data frames when system is not GMT puts it in local time!...
             ## and then cut makes a string/factor levels with tz lost...
@@ -228,14 +234,14 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
         ## calculate wind components
         if ("wd" %in% names(mydata)) {
             if (is.numeric(mydata$wd) && "ws" %in% names(mydata)) {
-                mydata <- transform(mydata,  u = ws * sin(2 * pi * wd / 360),
-                                    v = ws * cos(2 * pi * wd / 360))
+                mydata <- transform(mydata,  Uu = ws * sin(2 * pi * wd / 360),
+                                    Vv = ws * cos(2 * pi * wd / 360))
 
             }
 
             if (is.numeric(mydata$wd) && !"ws" %in% names(mydata)) {
-               mydata <- transform(mydata,  u = sin(2 * pi * wd / 360),
-                                    v = cos(2 * pi * wd / 360))
+               mydata <- transform(mydata,  Uu = sin(2 * pi * wd / 360),
+                                    Vv = cos(2 * pi * wd / 360))
             }
         }
 
@@ -317,7 +323,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
         if ("wd" %in% names(mydata)) {
             if (is.numeric(mydata$wd)) {
                 ## mean wd
-                dailymet <- within(dailymet, wd <- as.vector(atan2(u, v) * 360 / 2 / pi))
+                dailymet <- within(dailymet, wd <- as.vector(atan2(Uu, Vv) * 360 / 2 / pi))
 
                 ## correct for negative wind directions
                 ids <- which(dailymet$wd < 0)  ## ids where wd < 0
@@ -325,10 +331,10 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
 
                 ## vector average ws
                 if ("ws" %in% names(mydata)) {
-                    if (vector.ws) dailymet <- within(dailymet, ws <- (u ^ 2 + v ^ 2) ^ 0.5)
+                    if (vector.ws) dailymet <- within(dailymet, ws <- (Uu ^ 2 + Vv ^ 2) ^ 0.5)
                 }
 
-                dailymet <- subset(dailymet, select = c(-u, -v))
+                dailymet <- subset(dailymet, select = c(-Uu, -Vv))
             }
         }
 

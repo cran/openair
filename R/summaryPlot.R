@@ -460,7 +460,7 @@ summaryPlot <- function(mydata,
         #plot
         plt2 <- do.call(densityplot, densityplot.args)
 
-        plt2 <- densityplot()
+     #   plt2 <- densityplot()
     }
 
     print(plt2, position = c(0.7, 0, 1, 0.975 * y.upp))

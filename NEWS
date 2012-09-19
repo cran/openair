@@ -1,3 +1,31 @@
+Changes in openair 0.7-0 [2012-05-30]
+=====================================
+*	Allow more flexible layout when two or more pollutants
+	are used with polarPlot and type is default
+*	Fix colour scale problem for windRose when interval does not
+	exist
+*	Added 'nativeRaster' class handler for GoogleMapsPlots
+*	(test) Fix for GoogleMapsPlot xlim, ylim
+*	Do not remove missing data from timeVariation
+*	Fix bug in FAC2 in modStats when observations = 0 (exclude
+	from calculation because indeterminate)
+*	Fix bug in windRose for empty panels and panel labelling when
+	data missing
+*	New option start.day in cutData that affects most plots;
+	allows users to set start day when type = "weekday"
+*	Allow categorical scales in calendarPlot
+*	Allow two met data sets to be compared in pollutionRose
+*	Allow statistic = "percentile" to be used with polarPlot
+*	Allow 'method' to be passed to cor in corPlot
+*	Added more back trajectory locations.
+*	Try harder to plot polarPlots when there is insufficent data
+	to calculate a smooth surface.
+* 	Rename some variables in timeAverage to avoid variable clash.
+*	Add gridded frequency capability to trajLevel
+*	Fix bug in colour scaling in polarFreq when statistic =
+	"stdev" (0 would not be plotted)
+*	Fix bug in summaryPlot: type = "density" broken in recent versions
+
 Changes in openair 0.6-0 [2012-04-10]
 =====================================
 *	Add y.relation option to timePlot

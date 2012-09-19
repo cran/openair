@@ -56,17 +56,17 @@
 ##' Beevers (2012) paper discusses these issues in more detail.
 ##'
 ##' Note that unlike most other \code{openair} functions only a single
-##' \code{type} "default" is allowed.
+##' \code{type} \dQuote{default} is allowed.
 ##'
 ##' @param mydata A data frame minimally containing \code{wd}, another
 ##' variable to plot in polar coordinates (the default is a column
-##' "ws" --- wind speed) and a pollutant. Should also contain
+##' \dQuote{ws} --- wind speed) and a pollutant. Should also contain
 ##' \code{date} if plots by time period are required.
 ##' @param pollutant Mandatory. A pollutant name corresponding to a
 ##' variable in a data frame should be supplied e.g. \code{pollutant =
 ##' "nox"}. Only one pollutant can be chosen.
 ##' @param x Name of variable to plot against wind direction in polar
-##' coordinates, the default is wind speed, "ws".
+##' coordinates, the default is wind speed, \dQuote{ws}.
 ##' @param wd Name of wind direction field.
 ##' @param n.clusters Number of clusters to use. If \code{n.clusters}
 ##' is more than length 1, then a \code{lattice} panel plot will be
@@ -75,8 +75,9 @@
 ##' @param cols Colours to be used for plotting. Useful options for
 ##' categorical data are avilable from \code{RColorBrewer} colours ---
 ##' see the \code{openair} \code{openColours} function for more
-##' details. Useful schemes include "Accent", "Dark2", "Paired",
-##' "Pastel1", "Pastel2", "Set1", "Set2", "Set3" --- but see
+##' details. Useful schemes include \dQuote{Accent}, \dQuote{Dark2},
+##' \dQuote{Paired}, \dQuote{Pastel1}, \dQuote{Pastel2},
+##' \dQuote{Set1}, \dQuote{Set2}, \dQuote{Set3} --- but see
 ##' ?\code{brewer.pal} for the maximum useful colours in each. For
 ##' user defined the user can supply a list of colour names recognised
 ##' by R (type \code{colours()} to see the full list). An example

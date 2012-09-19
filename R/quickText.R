@@ -35,12 +35,12 @@
 ##'
 quickText <- function(text, auto.text = TRUE){
 
-                                        #the lookup table version
+    ## the lookup table version
 
-###return if auto.text false
+    ## #return if auto.text false
     if (!auto.text) return(ans <- text)
 
-###return if already expression
+    ## #return if already expression
     if (is.expression(text)) return(ans <- text)
 
     ans <- paste("expression(paste('", text, " ", sep = "")
@@ -110,56 +110,58 @@ quickText <- function(text, auto.text = TRUE){
     ans <- gsub("m s-1", "' 'm s' ^-1 *'", ans)
     ans <- gsub("g/km", "' 'g km' ^-1 *'", ans)
     ans <- gsub("g/s", "' 'g s' ^-1 *'", ans)
+    ans <- gsub("km/hr/s", "' 'km hr' ^-1 * ' s' ^-1 *'", ans)
+    ans <- gsub("km/hour/s", "' 'km hr' ^-1 * ' s' ^-1 *'", ans)
+    ans <- gsub("km/h/s", "km hr' ^-1 * ' s' ^-1 *'", ans)
     ans <- gsub("km/hr", "' 'km hr' ^-1 *'", ans)
     ans <- gsub("km/h", "' 'km hr' ^-1 *'", ans)
     ans <- gsub("km/hour", "' 'km hr' ^-1 *'", ans)
-    ans <- gsub("km/hr/s", "' 'km hr' ^-1 ' s' ^-1 *'", ans)
-    ans <- gsub("km/h/s", "km hr' ^-1 * ' s' ^-1 *'", ans)
-    ans <- gsub("km/hour/s", "' 'km hr' ^-1 ' s' ^-1 *'", ans)
+
     ans <- gsub("r2", "R' ^2 *'", ans)
     ans <- gsub("R2", "R' ^2 *'", ans)
-    ans <- gsub("Delta", "' * Delta *'", ans)
-    ans <- gsub("delta", "' * Delta *'", ans)
+
+    ans <- gsub("tau ", "' * tau * '", ans)
+
+    ans <- gsub("umol/m2/s", "' * mu * 'mol m' ^-2 * ' s' ^-1 *'", ans)
+    ans <- gsub("umol/m2", "' * mu * 'mol m' ^-2 *'", ans)
 
     ans <- paste(ans, "'))", sep = "")
-    if (substr(ans, 21, 21) == "*") {
-        a <- ans
-        ans <- paste(substr(a, 1, 20), substr(a, 22, nchar(a)),
-                     sep = "")
-    }
+
+    ## commands to strip unecessary * etc...
+
     if (substr(ans, (nchar(ans) - 8), (nchar(ans) - 6)) == "] *") {
         a <- ans
-        ans <- paste(substr(a, 1, (nchar(a) - 7)), substr(a,
-                                                          (nchar(a) - 5), nchar(a)), sep = "")
+        ans <- paste(substr(a, 1, (nchar(a) - 7)),
+                     substr(a, (nchar(a) - 5), nchar(a)), sep = "")
     }
+
     ans <- gsub("''", "", ans)
     ans <- gsub("' '", "", ans)
     ans <- gsub("\\*  \\*", "~", ans)
-    ans <- gsub("^expression\\(paste\\( \\*", "expression(paste(",
-                ans)
-    ans <- gsub("^expression\\(paste\\(\\*", "expression(paste(",
-                ans)
+    ans <- gsub("^expression\\(paste\\( \\*", "expression(paste(", ans)
+    ans <- gsub("^expression\\(paste\\(\\*", "expression(paste(", ans)
+
     if (substr(ans, (nchar(ans) - 2), (nchar(ans) - 2)) == "*") {
         a <- ans
-        ans <- paste(substr(a, 1, (nchar(a) - 2)), " ' ' ", substr(a,
-                                                                   (nchar(a) - 1), nchar(a)), sep = "")
+        ans <- paste(substr(a, 1, (nchar(a) - 2)), " ' ' ",
+                     substr(a, (nchar(a) - 1), nchar(a)), sep = "")
     }
 
 
-#####################
+    ## ###################
     ## new bit
     ## replace a \n b with atop(a,b)
     ## one newline only
 
-    if(grepl("\n", ans)){
+    if (grepl("\n", ans)) {
         a <- ans
-        ans <- paste(substr(a, 1, 17), "atop(", substr(a,18,nchar(a)), sep="")
+        ans <- paste(substr(a, 1, 17), "atop(", substr(a, 18, nchar(a)), sep = "")
         ans <- gsub("\n", "' , '", ans)
-        temp <- paste(")", sep="", collapse="")
+        temp <- paste(")", sep = "", collapse = "")
         ans <- paste(ans, temp, sep="")
     }
 
-##########################
+    ## ########################
 
 
     if (inherits(try(eval(parse(text = ans)), TRUE), "try-error") ==

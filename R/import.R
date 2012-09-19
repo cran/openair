@@ -18,10 +18,10 @@
 ##'   file.choose()}, opens browser. Alternatively, the use of
 ##'   \code{read.table} (in \code{utils}) also allows this to be a character
 ##'   vector of a file path, connection or url.
-##' @param file.type The file format, defaults to common "csv" (comma
-##'   delimited) format, but also allows "txt" (tab delimited).
-##' @param sep Allows user to specify a delimiter if not "," (csv) or
-##' TAB (txt). For example ";" is sometimes used to delineate separate
+##' @param file.type The file format, defaults to common \sQuote{csv} (comma
+##'   delimited) format, but also allows \sQuote{txt} (tab delimited).
+##' @param sep Allows user to specify a delimiter if not \sQuote{,} (csv) or
+##' TAB (txt). For example \sQuote{;} is sometimes used to delineate separate
 ##' columns.
 ##' @param header.at The file row holding header information or \code{NULL} if
 ##'   no header to be used.
@@ -30,18 +30,18 @@
 ##'   attempt to include all data from this row onwards.
 ##' @param date Name of the field containing the date. This can be a
 ##' date e.g. 10/12/2012 or a date-time format e.g. 10/12/2012 01:00.
-##' @param date.format The format of the date. This is given in 'R'
+##' @param date.format The format of the date. This is given in \sQuote{R}
 ##' format according to \code{strptime}. For example, a date format
 ##' such as 1/11/2000 12:00 (day/month/year hour:minutes) is given the
-##' format "\%d/\%m/\%Y \%H:\%M". See examples below and \code{strptime}
+##' format \dQuote{\%d/\%m/\%Y \%H:\%M}. See examples below and \code{strptime}
 ##' for more details.
 ##' @param time The name of the column containing a time --- if there
 ##' is one. This is used when a time is given in a separate column and
 ##' \code{date} contains no information about time.
 ##' @param time.format If there is a column for \code{time} then the
-##' time format must be supplied. Common examples include "\%H:\%M"
+##' time format must be supplied. Common examples include \dQuote{\%H:\%M}
 ##' (like 07:00) or an integer giving the hour, in which case the
-##' format is "\%H". Again, see examples below.
+##' format is \dQuote{\%H}. Again, see examples below.
 ##' @param tz.in The time zone of the data being read. Most of the
 ##' time this field can be ignored. However, one situation where it is
 ##' useful to supply \code{tz.in} is if the original data considered
@@ -51,12 +51,12 @@
 ##' @param tz.out The time zone of the output to be used by
 ##' \code{openair} functions.
 ##' @param na.strings Strings of any terms that are to be interpreted
-##' as missing (\code{NA}). For example, this might be "-999", or
-##' "n/a" and can be of several items.
+##' as missing (\code{NA}). For example, this might be \dQuote{-999}, or
+##' \dQuote{n/a} and can be of several items.
 ##' @param quote String of characters (or character equivalents) the imported
 ##'   file may use to represent a character field.
 ##' @param ws Name of wind speed field if present if different from
-##' "ws" e.g. \code{ws = "WSPD"}.
+##' \dQuote{ws} e.g. \code{ws = "WSPD"}.
 ##' @param wd Name of wind direction field if present if different
 ##' from "wd" e.g. \code{wd = "WDIR"}.
 ##' @param correct.time Numerical correction (in seconds) for imported
@@ -117,9 +117,10 @@ import <- function (file = file.choose(), file.type = "csv", sep = ",", header.a
 
     ## read data
     thedata <- read.table(file, skip = (data.at - 1), sep = sep, na.strings = na.strings,
-                          quote = quote, stringsAsFactors = FALSE, ...)
+                          quote = quote, ...)
 
     names(thedata) <- Names
+
 
     ## rename date field
     if (!date %in% Names) stop (paste("Can't find variable", date))

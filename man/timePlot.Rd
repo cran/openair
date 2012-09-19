@@ -34,7 +34,7 @@
 
   \item{normalise}{Should variables be normalised? The
   default is is not to normalise the data. \code{normalise}
-  can take two values, either \code{"mean"} or a string
+  can take two values, either \dQuote{mean} or a string
   representing a date in UK format e.g.  "1/1/1998" (in the
   format dd/mm/YYYY). If \code{normalise = "mean"} then
   each time series is divided by its mean value.  If a date
@@ -46,12 +46,13 @@
   series together in one panel.}
 
   \item{avg.time}{This defines the time period to average
-  to. Can be "sec", "min", "hour", "day", "DSTday", "week",
-  "month", "quarter" or "year". For much increased
-  flexibility a number can precede these options followed
-  by a space. For example, a timeAverage of 2 months would
-  be \code{period = "2 month"}. See function
-  \code{timeAverage} for further details on this.}
+  to. Can be \dQuote{sec}, \dQuote{min}, \dQuote{hour},
+  \dQuote{day}, \dQuote{DSTday}, \dQuote{week},
+  \dQuote{month}, \dQuote{quarter} or \dQuote{year}. For
+  much increased flexibility a number can precede these
+  options followed by a space. For example, a timeAverage
+  of 2 months would be \code{period = "2 month"}. See
+  function \code{timeAverage} for further details on this.}
 
   \item{data.thresh}{The data capture threshold to use (\%)
   when aggregating the data using \code{avg.time}. A value
@@ -63,13 +64,16 @@
   \code{avg.time = "default"}.}
 
   \item{statistic}{The statistic to apply when aggregating
-  the data; default is the mean. Can be one of "mean",
-  "max", "min", "median", "frequency", "sd", "percentile".
-  Note that "sd" is the standard deviation and "frequency"
-  is the number (frequency) of valid records in the period.
-  "percentile" is the percentile level (\%) between 0-100,
-  which can be set using the "percentile" option - see
-  below. Not used if \code{avg.time = "default"}.}
+  the data; default is the mean. Can be one of
+  \dQuote{mean}, \dQuote{max}, \dQuote{min},
+  \dQuote{median}, \dQuote{frequency}, \dQuote{sd},
+  \dQuote{percentile}. Note that \dQuote{sd} is the
+  standard deviation and \dQuote{frequency} is the number
+  (frequency) of valid records in the period.
+  \dQuote{percentile} is the percentile level (\%) between
+  0-100, which can be set using the \dQuote{percentile}
+  option - see below. Not used if \code{avg.time =
+  "default"}.}
 
   \item{percentile}{The percentile level in \% used when
   \code{statistic = "percentile"} and when aggregating the
@@ -91,9 +95,9 @@
   i.e. conditioned, and then plotted. The default is will
   produce a single plot using the entire data. Type can be
   one of the built-in types as detailed in \code{cutData}
-  e.g. "season", "year", "weekday" and so on. For example,
-  \code{type = "season"} will produce four plots --- one
-  for each season.
+  e.g. \dQuote{season}, \dQuote{year}, \dQuote{weekday} and
+  so on. For example, \code{type = "season"} will produce
+  four plots --- one for each season.
 
   It is also possible to choose \code{type} as another
   variable in the data frame. If that variable is numeric,
@@ -108,13 +112,13 @@
   \code{timePlot}.}
 
   \item{cols}{Colours to be used for plotting. Options
-  include "default", "increment", "heat", "jet" and
-  \code{RColorBrewer} colours --- see the \code{openair}
-  \code{openColours} function for more details. For user
-  defined the user can supply a list of colour names
-  recognised by R (type \code{colours()} to see the full
-  list). An example would be \code{cols = c("yellow",
-  "green", "blue")}}
+  include \dQuote{default}, \dQuote{increment},
+  \dQuote{heat}, \dQuote{jet} and \code{RColorBrewer}
+  colours --- see the \code{openair} \code{openColours}
+  function for more details. For user defined the user can
+  supply a list of colour names recognised by R (type
+  \code{colours()} to see the full list). An example would
+  be \code{cols = c("yellow", "green", "blue")}}
 
   \item{plot.type}{The \code{lattice} plot type, which is a
   line (\code{plot.type = "l"}) by default. Another useful
@@ -159,11 +163,12 @@
   \item{name.pol}{This option can be used to give
   alternative names for the variables plotted. Instead of
   taking the column headings as names, the user can supply
-  replacements. For example, if a column had the name "nox"
-  and the user wanted a different description, then setting
-  \code{pol.name = "nox before change"} can be used. If
-  more than one pollutant is plotted then use \code{c} e.g.
-  \code{pol.name = c("nox here", "o3 there")}.}
+  replacements. For example, if a column had the name
+  \dQuote{nox} and the user wanted a different description,
+  then setting \code{pol.name = "nox before change"} can be
+  used. If more than one pollutant is plotted then use
+  \code{c} e.g. \code{pol.name = c("nox here", "o3
+  there")}.}
 
   \item{date.breaks}{Number of major x-axis intervals to
   use. The function will try and choose a sensible number
@@ -178,12 +183,12 @@
   date format sensibly there can be some situations where
   the user wishes to have more control. For format types
   see \code{strptime}. For example, to format the date like
-  "Jan-2012" set \code{date.format = "\%b-\%Y"}.}
+  \dQuote{Jan-2012} set \code{date.format = "\%b-\%Y"}.}
 
   \item{auto.text}{Either \code{TRUE} (default) or
   \code{FALSE}. If \code{TRUE} titles and axis labels will
   automatically try and format pollutant names and units
-  properly e.g.  by subscripting the `2' in NO2.}
+  properly e.g.  by subscripting the \sQuote{2} in NO2.}
 
   \item{...}{Other graphical parameters are passed onto
   \code{cutData} and \code{lattice:xyplot}. For example,
@@ -265,42 +270,48 @@
 timePlot(mydata, pollutant = "nox")
 
 # two pollutants in separate panels
-timePlot(mydata, pollutant = c("nox", "no2"))
+\dontrun{timePlot(mydata, pollutant = c("nox", "no2"))}
 
 # two pollutants in the same panel with the same scale
-timePlot(mydata, pollutant = c("nox", "no2"), group = TRUE)
+\dontrun{timePlot(mydata, pollutant = c("nox", "no2"), group = TRUE)}
 
 # alternative by normalising concentrations and plotting on the same
   scale
+\dontrun{
 timePlot(mydata, pollutant = c("nox", "co", "pm10", "so2"), group = TRUE, avg.time =
   "year", normalise = "1/1/1998", lwd = 3, lty = 1)
+}
 
 # examples of selecting by date
 
 # plot for nox in 1999
-timePlot(selectByDate(mydata, year = 1999), pollutant = "nox")
+\dontrun{timePlot(selectByDate(mydata, year = 1999), pollutant = "nox")}
 
 # select specific date range for two pollutants
+\dontrun{
 timePlot(selectByDate(mydata, start = "6/8/2003", end = "13/8/2003"),
 pollutant = c("no2", "o3"))
+}
 
 # choose different line styles etc
-timePlot(mydata, pollutant = c("nox", "no2"), lty = 1)
+\dontrun{timePlot(mydata, pollutant = c("nox", "no2"), lty = 1)}
 
 # choose different line styles etc
+\dontrun{
 timePlot(selectByDate(mydata, year = 2004, month = 6), pollutant =
 c("nox", "no2"), lwd = c(1, 2), col = "black")
+}
 
 # different averaging times
 
 #daily mean O3
-timePlot(mydata, pollutant = "o3", avg.time = "day")
+\dontrun{timePlot(mydata, pollutant = "o3", avg.time = "day")}
 
 # daily mean O3 ensuring each day has data capture of at least 75\%
-timePlot(mydata, pollutant = "o3", avg.time = "day", data.thresh = 75)
+\dontrun{timePlot(mydata, pollutant = "o3", avg.time = "day", data.thresh = 75)}
 
 # 2-week average of O3 concentrations
-timePlot(mydata, pollutant = "o3", avg.time = "2 week")
+\dontrun{timePlot(mydata, pollutant = "o3", avg.time = "2 week")}
 }
 \author{
   David Carslaw

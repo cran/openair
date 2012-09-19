@@ -17,12 +17,12 @@
   of a file path, connection or url.}
 
   \item{file.type}{The file format, defaults to common
-  "csv" (comma delimited) format, but also allows "txt"
-  (tab delimited).}
+  \sQuote{csv} (comma delimited) format, but also allows
+  \sQuote{txt} (tab delimited).}
 
-  \item{sep}{Allows user to specify a delimiter if not ","
-  (csv) or TAB (txt). For example ";" is sometimes used to
-  delineate separate columns.}
+  \item{sep}{Allows user to specify a delimiter if not
+  \sQuote{,} (csv) or TAB (txt). For example \sQuote{;} is
+  sometimes used to delineate separate columns.}
 
   \item{header.at}{The file row holding header information
   or \code{NULL} if no header to be used.}
@@ -37,10 +37,11 @@
   10/12/2012 01:00.}
 
   \item{date.format}{The format of the date. This is given
-  in 'R' format according to \code{strptime}. For example,
-  a date format such as 1/11/2000 12:00 (day/month/year
-  hour:minutes) is given the format "\%d/\%m/\%Y \%H:\%M".
-  See examples below and \code{strptime} for more details.}
+  in \sQuote{R} format according to \code{strptime}. For
+  example, a date format such as 1/11/2000 12:00
+  (day/month/year hour:minutes) is given the format
+  \dQuote{\%d/\%m/\%Y \%H:\%M}. See examples below and
+  \code{strptime} for more details.}
 
   \item{time}{The name of the column containing a time ---
   if there is one. This is used when a time is given in a
@@ -49,9 +50,9 @@
 
   \item{time.format}{If there is a column for \code{time}
   then the time format must be supplied. Common examples
-  include "\%H:\%M" (like 07:00) or an integer giving the
-  hour, in which case the format is "\%H". Again, see
-  examples below.}
+  include \dQuote{\%H:\%M} (like 07:00) or an integer
+  giving the hour, in which case the format is
+  \dQuote{\%H}. Again, see examples below.}
 
   \item{tz.in}{The time zone of the data being read. Most
   of the time this field can be ignored. However, one
@@ -66,14 +67,15 @@
 
   \item{na.strings}{Strings of any terms that are to be
   interpreted as missing (\code{NA}). For example, this
-  might be "-999", or "n/a" and can be of several items.}
+  might be \dQuote{-999}, or \dQuote{n/a} and can be of
+  several items.}
 
   \item{quote}{String of characters (or character
   equivalents) the imported file may use to represent a
   character field.}
 
   \item{ws}{Name of wind speed field if present if
-  different from "ws" e.g. \code{ws = "WSPD"}.}
+  different from \dQuote{ws} e.g. \code{ws = "WSPD"}.}
 
   \item{wd}{Name of wind direction field if present if
   different from "wd" e.g. \code{wd = "WDIR"}.}

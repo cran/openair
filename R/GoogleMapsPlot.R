@@ -92,25 +92,29 @@
 ##'   a default range to the plot. To override this either set the required range
 ##'   using \code{xlim} and \code{ylim} (see below) or the map \code{zoom}
 ##'   level. (Note: The default is equivalent to \code{zoom = 15}.)
-##' @param type The type of data conditioning to apply before plotting. The
-##'   default is will produce a single plot using the entire data. Other type
-##'   options include "hour" (for hour of the day), "weekday" (for day of the
-##'   week) and "month" (for month of the year), "year", "season" (string,
-##'   summer, autumn or winter) and "daylight" (daylight or nighttime hour).
-##'   But it is also possible to set \code{type} to the name of another
-##'   variable in \code{mydata}, in which case the plotted data will be divided
-##'   into quantiles based on that data series. See \code{cutData} for further
-##'   details.(NOTE: type conditioning currently allows up to two levels of
-##'   conditioning, e.g., \code{type = c("weekday", "daylight")}.)
-##' @param xlim,ylim The x-axis and y-axis size ranges. By default these sized
-##'   on the basis of \code{latitude} and \code{longitude}, but can be forced
-##'   as part of the plot call [NOTE: This IN DEVELOPMENT option is currently
-##'   restricted and requested ranges are forced square to maintain map aspect
-##'   ratio.].
-##' @param pollutant If supplied, the name of a pollutant or variable in
-##'   \code{mydata} that is to be evaluated at the each measurement point.
-##'   Depending on settings, nominally \code{cols} and \code{cex}, the
-##'   evaluation can be by colour, size or both.
+##' @param type The type of data conditioning to apply before
+##' plotting. The default is will produce a single plot using the
+##' entire data. Other type options include \dQuote{hour} (for hour of
+##' the day), \dQuote{weekday} (for day of the week) and
+##' \dQuote{month} (for month of the year), \dQuote{year},
+##' \dQuote{season} (string, summer, autumn or winter) and
+##' \dQuote{daylight} (daylight or nighttime hour).  But it is also
+##' possible to set \code{type} to the name of another variable in
+##' \code{mydata}, in which case the plotted data will be divided into
+##' quantiles based on that data series. See \code{cutData} for
+##' further details.(NOTE: type conditioning currently allows up to
+##' two levels of conditioning, e.g., \code{type = c("weekday",
+##' "daylight")}.)
+##' @param xlim,ylim The x-axis and y-axis size ranges. By default
+##' these sized on the basis of \code{latitude} and \code{longitude},
+##' but can be forced as part of the plot call. (NOTE: This are
+##' in-development and should be used with care. The RgoogleMaps
+##' argument \code{size = c(640, 640)} can be use to force map
+##' dimensions to square.)
+##' @param pollutant If supplied, the name of a pollutant or variable
+##' in \code{mydata} that is to be evaluated at the each measurement
+##' point.  Depending on settings, nominally \code{cols} and
+##' \code{cex}, the evaluation can be by colour, size or both.
 ##' @param labels If supplied, either the name of \code{mydata} column/field
 ##'   containing the labels to be used or a list, containing that field name
 ##'   (as \code{labels}), and any other label properties, e.g. \code{cex},
@@ -162,7 +166,9 @@
 ##' @param map.cols Like \code{cols} a colour scale, but, if supplied, used to
 ##'   recolour the map layer before plotting. (NOTE: If set, this will override
 ##'   \code{cols = "greyscale"}.)
-##' @param aspect The aspect ratio of the plot.
+##' @param aspect The aspect ratio of the plot. If \code{NULL} (default), this
+##'   is calculated by the function based on the data and \code{xlim} and
+##'   \code{ylim} ranges.
 ##' @param as.table \code{as.table} is a \code{lattice} option that controls
 ##'   the order in which multiple panels are displayed. The default
 ##'   (\code{TRUE}) produces layouts similar to other openair plot.
@@ -238,7 +244,7 @@ GoogleMapsPlot <- function(mydata,
          limits = c(0,100), cex = pollutant, pch = NULL, cex.range =c(2,10),
          xlab = longitude, ylab = latitude, main = "", axes = TRUE,
          map = NULL, map.raster = TRUE, map.cols = NULL,
-         aspect = 1, as.table = TRUE, plot.type = "xy",
+         aspect = NULL, as.table = TRUE, plot.type = "xy",
          plot.transparent = FALSE,
          key = NULL, key.position = "right",
          key.header = "", key.footer = pollutant,
@@ -537,7 +543,7 @@ GoogleMapsPlot <- function(mydata,
                          names(formals(GetMap.bbox)),
                          names(formals(GetMap))))
 
-######temp til RgoogleMaps Fixed
+######test fix
 
         temp2 <- try(qbbox(lat = temp.y, lon = temp.x), silent = TRUE)
         if(is(temp2)[1] == "try-error")
@@ -545,10 +551,27 @@ GoogleMapsPlot <- function(mydata,
                        "\n\t[check call settings and data source]", sep = ""),
                  call.=FALSE)
 
+my.y <- diff(range(temp2$latR, na.rm=TRUE))
+my.x <- diff(range(temp2$lonR, na.rm=TRUE))
+
+#was c(640, 640)
+my.size <- if(my.y > my.x)
+               c(ceiling((my.x/my.y) * 640), 640) else
+               c(640, ceiling((my.y/my.x) * 640))
+
         #override some RgoogleMaps defaults
         map <- list(lon = temp2$lonR, lat = temp2$latR, destfile = "XtempX.png",
-                     maptype = "terrain", size = c(640,640))
-        if(length(temp.y)==1) map$zoom <- 15
+                     maptype = "terrain", size = my.size)
+
+        #catch all missing x/y dimensions
+        if(my.x==0 | my.y==0){
+            if(is.null(map$zoom))
+                map$zoom <- 15
+            map$size <- c(640,640)
+        }
+        if(any(is.na(map$size)))
+            map$size[is.na(map$size)] <- 64
+        map$size[map$size < 1] <- 64
 
         ##update my defaults with relevant ones in call
         map <- listUpdate(map, extra.args, subset.b = temp)
@@ -581,13 +604,12 @@ GoogleMapsPlot <- function(mydata,
     #(is larger than data range
     #and already done by RgoogleMaps!)
 
-#Currently disabled because
-#issue with RgoogleMaps
+#re-enabled as part of test fix
 
-##    if(missing(xlim))
-##        xlim <- c(map$BBOX$ll[2], map$BBOX$ur[2])
-##    if(missing(ylim))
-##        ylim <- c(map$BBOX$ll[1], map$BBOX$ur[1])
+    if(missing(xlim))
+        xlim <- c(map$BBOX$ll[2], map$BBOX$ur[2])
+    if(missing(ylim))
+        ylim <- c(map$BBOX$ll[1], map$BBOX$ur[1])
 
 ###############
 #new bit
@@ -599,6 +621,10 @@ temp <- LatLon2XY.centered(map, c(map$BBOX$ll[1], map$BBOX$ur[1]),
                                 c(map$BBOX$ll[2], map$BBOX$ur[2]))
 xlim <- temp$newX
 ylim <- temp$newY
+
+if(is.null(extra.args$aspect))
+    extra.args$aspect <- diff(ylim)/diff(xlim)
+
 
 #latitude, longitude
 temp <- LatLon2XY.centered(map, mydata[, latitude],
@@ -777,6 +803,19 @@ mydata[, latitude] <- temp$newY
 
 openairMapManager <- function(map){
 
+    #######################
+    #native raster handler
+    #######################
+
+    if("nativeRaster" %in% class(map$myTile) & require(png)){
+
+        #do to png native output
+        writePNG(map$myTile, "XtempX.png")
+        map$myTile <- readPNG("XtempX.png", native = FALSE)
+        attr(map$myTile, "type") <- "rgb"
+
+    }
+
     #set up
     ra <- dim(map$myTile)
 
@@ -824,6 +863,17 @@ openairMapManager <- function(map){
 
         if(ra[3] == 1 & attr(map$myTile, "type") == "grey"){
             map$myTile <- grey(map$myTile[, , 1])
+            dim(map$myTile) <- ra[1:2]
+            attr(map$myTile, "type") <- "openair"
+            return(map)
+        }
+    }
+
+
+    if(length(ra) == 2){
+
+        if(is.character(attr(map$myTile, "type")) && attr(map$myTile, "type") == "grey"){
+            map$myTile <- grey(map$myTile[,])
             dim(map$myTile) <- ra[1:2]
             attr(map$myTile, "type") <- "openair"
             return(map)

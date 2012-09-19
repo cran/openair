@@ -27,28 +27,31 @@
 ##' @param mydata A data frame which should consist of some numeric columns.
 ##' @param pollutants the names of data-series in \code{mydata} to be
 ##'   plotted by \code{corPlot}. The default option \code{NULL} and the alternative
-##'   \code{"all"} use all available valid (numeric) data.
-##' @param type \code{type} determines how the data are split i.e. conditioned,
-##'   and then plotted. The default is will produce a single plot using the
-##'   entire data. Type can be one of the built-in types as detailed in
-##'   \code{cutData} e.g. "season", "year", "weekday" and so on. For example,
-##'   \code{type = "season"} will produce four plots --- one for each season.
+##'   \dQuote{all} use all available valid (numeric) data.
+##' @param type \code{type} determines how the data are split
+##' i.e. conditioned, and then plotted. The default is will produce a
+##' single plot using the entire data. Type can be one of the built-in
+##' types as detailed in \code{cutData} e.g. \dQuote{season},
+##' \dQuote{year}, \dQuote{weekday} and so on. For example, \code{type
+##' = "season"} will produce four plots --- one for each season.
 ##'
-##' It is also possible to choose \code{type} as another variable in the data
-##'   frame. If that variable is numeric, then the data will be split into four
-##'   quantiles (if possible) and labelled accordingly. If type is an existing
-##'   character or factor variable, then those categories/levels will be used
-##'   directly. This offers great flexibility for understanding the variation
-##'   of different variables and how they depend on one another.
+##' It is also possible to choose \code{type} as another variable in
+##' the data frame. If that variable is numeric, then the data will be
+##' split into four quantiles (if possible) and labelled
+##' accordingly. If type is an existing character or factor variable,
+##' then those categories/levels will be used directly. This offers
+##' great flexibility for understanding the variation of different
+##' variables and how they depend on one another.
 ##'
 
 ##' @param cluster Should the data be ordered according to cluster analysis. If
 ##'   \code{TRUE} hierarchical clustering is applied to the correlation
 ##'   matrices using \code{hclust} to group similar variables together. With
 ##'   many variables clustering can greatly assist interpretation.
-##' @param cols Colours to be used for plotting. Options include "default",
-##'   "increment", "heat", "spectral", "hue", "brewer1", "greyscale" and user
-##'   defined (see \code{openColours} for more details).
+##' @param cols Colours to be used for plotting. Options include
+##' \dQuote{default}, \dQuote{increment}, \dQuote{heat},
+##' \dQuote{spectral}, \dQuote{hue}, \dQuote{greyscale} and user
+##' defined (see \code{openColours} for more details).
 ##' @param r.thresh Values of greater than \code{r.thresh} will be shown in
 ##'   bold type. This helps to highlight high correlations.
 ##' @param text.col The colour of the text used to show the correlation values.
@@ -160,7 +163,7 @@ corPlot <- function(mydata, pollutants = NULL, type = "default",
     prepare.cond <- function(mydata) {
         ## calculate the correlations
         thedata <- suppressWarnings(cor(mydata[, sapply(mydata, is.numeric)],
-                                        use = "pairwise.complete.obs" ))
+                                        use = "pairwise.complete.obs", ...))
 
         ## remove columns/rows where all are NA
         therows <- apply(thedata, 1, function(x) !all(is.na(x)))

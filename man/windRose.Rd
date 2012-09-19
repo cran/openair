@@ -3,13 +3,14 @@
 \alias{windRose}
 \title{Traditional wind rose plot and pollution rose variation}
 \usage{
-  windRose(mydata, ws = "ws", wd = "wd", ws.int = 2, angle
-    = 30, type = "default", cols = "default", grid.line =
-    NULL, width = 1, seg = NULL, auto.text = TRUE, breaks =
-    4, offset = 10, paddle = TRUE, key.header = NULL,
-    key.footer = "(m/s)", key.position = "bottom", key =
-    TRUE, dig.lab = 5, statistic = "prop.count", pollutant
-    = NULL, annotate = TRUE, ...)
+  windRose(mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 =
+    NA, ws.int = 2, angle = 30, type = "default", cols =
+    "default", grid.line = NULL, width = 1, seg = NULL,
+    auto.text = TRUE, breaks = 4, offset = 10, paddle =
+    TRUE, key.header = NULL, key.footer = "(m/s)",
+    key.position = "bottom", key = TRUE, dig.lab = 5,
+    statistic = "prop.count", pollutant = NULL, annotate =
+    TRUE, border = NA, ...)
 
   pollutionRose(mydata, pollutant = "nox", key.footer =
     pollutant, breaks = 6, paddle = FALSE, seg = 0.9,
@@ -24,24 +25,30 @@
   \item{wd}{Name of the column representing wind
   direction.}
 
+  \item{ws2}{The user can supply a second set of wind speed
+  and wind direction values with which the first can be
+  compared. See details below for full explanation.}
+
+  \item{wd2}{see \code{ws2}.}
+
   \item{ws.int}{The Wind speed interval. Default is 2 m/s
   but for low met masts with low mean wind speeds a value
   of 1 or 0.5 m/s may be better.  Note, this argument is
   superseded in \code{pollutionRose}. See \code{breaks}
   below.}
 
-  \item{angle}{Default angle of "spokes" is 30. Other
-  potentially useful angles are 45 and 10. Note that the
-  width of the wind speed interval may need adjusting using
-  \code{width}.}
+  \item{angle}{Default angle of \dQuote{spokes} is 30.
+  Other potentially useful angles are 45 and 10. Note that
+  the width of the wind speed interval may need adjusting
+  using \code{width}.}
 
   \item{type}{\code{type} determines how the data are split
   i.e. conditioned, and then plotted. The default is will
   produce a single plot using the entire data. Type can be
   one of the built-in types as detailed in \code{cutData}
-  e.g. "season", "year", "weekday" and so on. For example,
-  \code{type = "season"} will produce four plots --- one
-  for each season.
+  e.g. \dQuote{season}, \dQuote{year}, \dQuote{weekday} and
+  so on. For example, \code{type = "season"} will produce
+  four plots --- one for each season.
 
   It is also possible to choose \code{type} as another
   variable in the data frame. If that variable is numeric,
@@ -58,12 +65,12 @@
   first forms the columns and the second the rows.}
 
   \item{cols}{Colours to be used for plotting. Options
-  include \code{default}, \code{increment}, \code{heat},
-  \code{jet}, \code{hue} and user defined. For user defined
-  the user can supply a list of colour names recognised by
-  R (type \code{colours()} to see the full list). An
-  example would be \code{cols = c("yellow", "green",
-  "blue", "black")}.}
+  include \dQuote{default}, \dQuote{increment},
+  \dQuote{heat}, \dQuote{jet}, \dQuote{hue} and user
+  defined. For user defined the user can supply a list of
+  colour names recognised by R (type \code{colours()} to
+  see the full list). An example would be \code{cols =
+  c("yellow", "green", "blue", "black")}.}
 
   \item{grid.line}{Grid line interval to use. If
   \code{NULL}, as in default, this is assigned by
@@ -83,7 +90,7 @@
   \item{auto.text}{Either \code{TRUE} (default) or
   \code{FALSE}. If \code{TRUE} titles and axis labels will
   automatically try and format pollutant names and units
-  properly e.g.  by subscripting the `2' in NO2.}
+  properly e.g.  by subscripting the \sQuote{2} in NO2.}
 
   \item{breaks}{Most commonly, the number of break points
   for wind speed in \code{windRose} or pollutant in
@@ -116,9 +123,9 @@
   \item{key.footer}{see \code{key.footer}.}
 
   \item{key.position}{Location where the scale key is to
-  plotted.  Allowed arguments currently include
-  \code{"top"}, \code{"right"}, \code{"bottom"} and
-  \code{"left"}.}
+  plotted. Allowed arguments currently include
+  \dQuote{top}, \dQuote{right}, \dQuote{bottom} and
+  \dQuote{left}.}
 
   \item{key}{Fine control of the scale key via
   \code{drawOpenKey}. See \code{drawOpenKey} for further
@@ -130,12 +137,12 @@
 
   \item{statistic}{The \code{statistic} to be applied to
   each data bin in the plot. Options currently include
-  \code{"prop.count"}, \code{"prop.mean"} and
-  \code{"abs.count"}. The default \code{"prop.count"} sizes
+  \dQuote{prop.count}, \dQuote{prop.mean} and
+  \dQuote{abs.count}. The default \dQuote{prop.count} sizes
   bins according to the proportion of the frequency of
-  measurements.  Similarly, \code{prop.mean} sizes bins
+  measurements.  Similarly, \dQuote{prop.mean} sizes bins
   according to their relative contribution to the mean.
-  \code{"abs.count"} provides the absolute count of
+  \dQuote{abs.count} provides the absolute count of
   measurements in each bin.}
 
   \item{pollutant}{Alternative data series to be sampled
@@ -144,6 +151,9 @@
 
   \item{annotate}{If \code{TRUE} then the percentage calm
   and mean values are printed in each panel.}
+
+  \item{border}{Border colour for shaded areas. Default is
+  no border.}
 
   \item{...}{For \code{pollutionRose} other parameters that
   are passed on to \code{windRose}. For \code{windRose}
@@ -157,11 +167,11 @@
 \value{
   As well as generating the plot itself, \code{windRose}
   and \code{pollutionRose} also return an object of class
-  ``openair''. The object includes three main components:
-  \code{call}, the command used to generate the plot;
-  \code{data}, the data frame of summarised information
-  used to make the plot; and \code{plot}, the plot itself.
-  If retained, e.g. using \code{output <-
+  \dQuote{openair}. The object includes three main
+  components: \code{call}, the command used to generate the
+  plot; \code{data}, the data frame of summarised
+  information used to make the plot; and \code{plot}, the
+  plot itself. If retained, e.g. using \code{output <-
   windRose(mydata)}, this output can be used to recover the
   data, reproduce or rework the original plot or undertake
   further analysis.
@@ -221,6 +231,21 @@
   By default, \code{pollutionRose} will plot a pollution
   rose of \code{nox} using "wedge" style segments and
   placing the scale key to the right of the plot.
+
+  It is possible to compare two wind speed-direction data
+  sets using \code{pollutionRose}. There are many reasons
+  for doing so e.g. to see how one site compares with
+  another or for meteorological model evaluation. In this
+  case, \code{ws} and \code{wd} are considered to the the
+  reference data sets with which a second set of wind speed
+  and wind directions are to be compared (\code{ws2} and
+  \code{wd2}). The second set of values is subtracted from
+  the first and the differences compared. If for example,
+  \code{wd2} was biased positive compared with \code{wd}
+  then \code{pollutionRose} will show the bias in polar
+  coordinates. In its default use, wind direction bias is
+  colour-coded to show negative bias in one colour and
+  positive bias in another.
 }
 \note{
   \code{windRose} and \code{pollutionRose} both use
@@ -236,7 +261,9 @@ windRose(mydata)
 windRose(mydata,type = "year")
 
 # windRose in 10 degree intervals with gridlines and width adjusted
+\dontrun{
 windRose(mydata, angle = 10, width = 0.2, grid.line = 1)
+}
 
 # pollutionRose of nox
 pollutionRose(mydata, pollutant = "nox")
@@ -245,6 +272,18 @@ pollutionRose(mydata, pollutant = "nox")
 \dontrun{
 pollutionRose(mydata, pollutant = "pm10", type = "year", statistic = "prop.mean")
 }
+
+## example of comparing 2 met sites
+## first we will make some new ws/wd data with a postive bias
+mydata$ws2 = mydata$ws + 2 * rnorm(nrow(mydata)) + 1
+mydata$wd2 = mydata$wd + 30 * rnorm(nrow(mydata)) + 30
+
+## need to correct negative wd
+id <- which(mydata$wd2 < 0)
+mydata$wd2[id] <- mydata$wd2[id] + 360
+
+## results show postive bias in wd and ws
+pollutionRose(mydata, ws = "ws", wd = "wd", ws2 = "ws2", wd2 = "wd2")
 }
 \author{
   David Carslaw (with some additional contributions by Karl

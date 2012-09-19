@@ -50,9 +50,9 @@
 ##'   "scatter"} or \code{method = "level"}. Note that for \code{method =
 ##'   "scatter"} points will be coloured according to a continuous colour
 ##'   scale, whereas for \code{method = "level"} the surface is coloured.
-##' @param method Methods include \code{"scatter"} (conventional scatter plot),
-##'   \code{"hexbin"} (hexagonal binning using the \code{hexbin} package).
-##'   \code{level} for a binned or smooth surface plot and \code{"density"} (2D
+##' @param method Methods include \dQuote{scatter} (conventional scatter plot),
+##'   \dQuote{hexbin} (hexagonal binning using the \code{hexbin} package).
+##'   \dQuote{level} for a binned or smooth surface plot and \dQuote{density} (2D
 ##'   kernel density estimates).
 ##' @param group The grouping variable to use, if any. Setting this to a
 ##'   variable in the data frame has the effect of plotting several series in
@@ -60,13 +60,15 @@
 ##'   that is a character or factor, those categories or factor levels will be
 ##'   used directly. If set to a numeric variable, it will split that variable
 ##'   in to quantiles.
-##' @param avg.time This defines the time period to average to. Can be "sec",
-##'   "min", "hour", "day", "DSTday", "week", "month", "quarter" or "year". For
-##'   much increased flexibility a number can precede these options followed by
-##'   a space. For example, a timeAverage of 2 months would be \code{period =
-##'   "2 month"}. See function \code{timeAverage} for further details on this.
-##'   This option se useful as one method by which the number of points plotted
-##'   is reduced i.e. by choosing a longer averaging time.
+##' @param avg.time This defines the time period to average to. Can be
+##' \dQuote{sec}, \dQuote{min}, \dQuote{hour}, \dQuote{day},
+##' \dQuote{DSTday}, \dQuote{week}, \dQuote{month}, \dQuote{quarter}
+##' or \dQuote{year}. For much increased flexibility a number can
+##' precede these options followed by a space. For example, a
+##' timeAverage of 2 months would be \code{period = "2 month"}. See
+##' function \code{timeAverage} for further details on this.  This
+##' option se useful as one method by which the number of points
+##' plotted is reduced i.e. by choosing a longer averaging time.
 ##' @param data.thresh The data capture threshold to use (%) when aggregating
 ##'   the data using \code{avg.time}. A value of zero means that all available
 ##'   data will be used in a particular period regardless if of the number of
@@ -80,33 +82,37 @@
 ##'   "percentile" is the percentile level (%) between 0-100, which can be set
 ##'   using the "percentile" option - see below. Not used if \code{avg.time =
 ##'   "default"}.
-##' @param percentile The percentile level in % used when \code{statistic =
+##' @param percentile The percentile level in \% used when \code{statistic =
 ##'   "percentile"} and when aggregating the data with \code{avg.time}. The
 ##'   default is 95. Not used if \code{avg.time = "default"}.
 ##' @param type \code{type} determines how the data are split
 ##' i.e. conditioned, and then plotted. The default is will produce a
 ##' single plot using the entire data. Type can be one of the built-in
-##' types as detailed in \code{cutData} e.g. "season", "year",
-##' "weekday" and so on. For example, \code{type = "season"} will
-##' produce four plots --- one for each season. \cr\cr It is also
-##' possible to choose \code{type} as another variable in the data
-##' frame. If that variable is numeric, then the data will be split
-##' into four quantiles (if possible) and labelled accordingly. If
-##' type is an existing character or factor variable, then those
-##' categories/levels will be used directly. This offers great
-##' flexibility for understanding the variation of different variables
-##' and how they depend on one another.  \cr\cr Type can be up length
-##' two e.g. \code{type = c("season", "weekday")} will produce a 2x2
-##' plot split by season and day of the week. Note, when two types are
-##' provided the first forms the columns and the second the rows.
+##' types as detailed in \code{cutData} e.g. \dQuote{season},
+##' \dQuote{year}, \dQuote{weekday} and so on. For example, \code{type
+##' = "season"} will produce four plots --- one for each
+##' season.
+##'
+##' It is also possible to choose \code{type} as another variable in
+##' the data frame. If that variable is numeric, then the data will be
+##' split into four quantiles (if possible) and labelled
+##' accordingly. If type is an existing character or factor variable,
+##' then those categories/levels will be used directly. This offers
+##' great flexibility for understanding the variation of different
+##' variables and how they depend on one another.
+##'
+##' Type can be up length two e.g. \code{type = c("season",
+##' "weekday")} will produce a 2x2 plot split by season and day of the
+##' week. Note, when two types are provided the first forms the
+##' columns and the second the rows.
 ##' @param smooth A smooth line is fitted to the data if \code{TRUE};
-##'   optionally with 95% confidence intervals shown. For \code{method =
+##'   optionally with 95\% confidence intervals shown. For \code{method =
 ##'   "level"} a smooth surface will be fitted to binned data.
 ##' @param spline A smooth spline is fitted to the data if \code{TRUE}. This is
 ##'   particularly useful when there are fewer data points or when a connection
 ##'   line between a sequence of points is required.
 ##' @param linear A linear model is fitted to the data if \code{TRUE};
-##'   optionally with 95% confidence intervals shown. The equation of the line
+##'   optionally with 95\% confidence intervals shown. The equation of the line
 ##'   and R2 value is also shown.
 ##' @param ci Should the confidence intervals for the smooth/linear fit be
 ##'   shown?
@@ -117,12 +123,16 @@
 ##'   a factor of two (FAC2). Also, for \code{method = "scatter"} (the default)
 ##'   the scales are made to be isometric. In time, more comprehensive model
 ##'   evaluation statistics will be considered.
-##' @param cols Colours to be used for plotting. Options include "default",
-##'   "increment", "heat", "spectral", "hue", "brewer1" and user defined (see
-##'   manual for more details). The same line colour can be set for all
-##'   pollutant e.g. \code{cols = "black"}.
-##' @param plot.type \code{lattice} plot type. Can be "p" (points --- default),
-##'   "l" (lines) or "b" (lines and points).
+##' @param cols Colours to be used for plotting. Options include
+##' \dQuote{default}, \dQuote{increment}, \dQuote{heat}, \dQuote{jet}
+##' and \code{RColorBrewer} colours --- see the \code{openair}
+##' \code{openColours} function for more details. For user defined the
+##' user can supply a list of colour names recognised by R (type
+##' \code{colours()} to see the full list). An example would be
+##' \code{cols = c("yellow", "green", "blue")}
+##' @param plot.type \code{lattice} plot type. Can be \dQuote{p}
+##' (points --- default), \dQuote{l} (lines) or \dQuote{b} (lines and
+##' points).
 ##' @param key Should a key be drawn? The default is \code{TRUE}.
 ##' @param key.title The title of the key (if used).
 ##' @param key.columns Number of columns to be used in the key. With many
@@ -130,8 +140,8 @@
 ##'   choose to use several columns by setting \code{columns} to be less than
 ##'   the number of pollutants.
 ##' @param key.position  Location where the scale key is to plotted.  Allowed
-##'   arguments currently include \code{"top"}, \code{"right"}, \code{"bottom"}
-##'   and \code{"left"}
+##'   arguments currently include \dQuote{top}, \dQuote{right}, \dQuote{bottom}
+##'   and \dQuote{left}.
 ##' @param strip Should a strip be drawn? The default is \code{TRUE}.
 ##' @param log.x Should the x-axis appear on a log scale? The default is
 ##'   \code{FALSE}. If \code{TRUE} a well-formatted log10 scale is used. This
@@ -143,12 +153,12 @@
 ##'   "level"}.
 ##' @param y.inc The y-interval to be used for binning data when \code{method =
 ##'   "level"}.
-##' @param y.relation This determines how the y-axis scale is plotted. "same"
-##'   ensures all panels use the same scale and "free" will use panel-specfic
-##'   scales. The latter is a useful setting when plotting data with very
-##'   different values.
-##' @param x.relation This determines how the y-axis scale is plotted. "same"
-##'   ensures all panels use the same scale and "free" will use panel-specfic
+##' @param y.relation This determines how the y-axis scale is
+##' plotted. \dQuote{same} ensures all panels use the same scale and
+##' \dQuote{free} will use panel-specfic scales. The latter is a
+##' useful setting when plotting data with very different values.
+##' @param x.relation This determines how the x-axis scale is plotted. \dQuote{same}
+##'   ensures all panels use the same scale and \dQuote{free} will use panel-specfic
 ##'   scales. The latter is a useful setting when plotting data with very
 ##'   different values.
 ##' @param ref.x Add a vertical dashed reference line at this value.
@@ -162,7 +172,7 @@
 ##' @param map Should a base map be drawn? This option is under development.
 ##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
 ##'   \code{TRUE} titles and axis labels will automatically try and format
-##'   pollutant names and units properly e.g.  by subscripting the `2' in NO2.
+##'   pollutant names and units properly e.g.  by subscripting the \sQuote{2} in NO2.
 ##' @param \dots Other graphical parameters are passed onto \code{cutData} and
 ##'   an appropriate \code{lattice} plot function (\code{xyplot}, \code{levelplot}
 ##'   or \code{hexbinplot} depending on \code{method}). For example,
@@ -340,6 +350,7 @@ scatterPlot <- function(mydata,
          extra.args$lty <- 1
     if(!"layout" %in% names(extra.args))
          extra.args$layout <- NULL
+    if("trajStat" %in% names(extra.args)) trajStat <- extra.args$trajStat else trajStat <- "mean"
 
 
 
@@ -825,6 +836,39 @@ scatterPlot <- function(mydata,
 
         col.scale <- breaks
 
+        ## this is the default
+        if (trajStat == "mean") {
+            legend <- list(col = col, at = col.scale, space = key.position,
+                           auto.text = auto.text, footer = extra.args$key.footer,
+                           header = extra.args$key.header,
+                           height = 1, width = 1.5, fit = "all")
+            legend <- openair:::makeOpenKeyLegend(key, legend, "other")
+        }
+
+        if (trajStat == "frequency" | trajStat == "difference") {
+
+            if (trajStat == "frequency") {
+                breaks <- c(0, 1, 5, 10, 25, 100)
+                labels <- c("0 to 1", "1 to 5", "5 to 10", "10 to 25", "25 to 100")
+            }
+
+            if (trajStat == "difference") {
+                breaks <- c(-15000, -10, -5, -1, 1, 5, 10, 15000)
+                labels <- c("<-10", "-10 to -5", "-5 to -1", "-1 to 1", "1 to 5", "5 to 10", ">10")
+            }
+
+            ## frequency plot
+            n <- 7
+            col <- openColours(cols, n)
+            legend <- list(col = col, space = key.position, auto.text = auto.text,
+                           labels = labels, footer = extra.args$key.footer,
+                           header = extra.args$key.header, height = 0.8, width = 1.5, fit = "scale",
+                           plot.style = "other")
+
+            col.scale <- breaks
+            legend <- openair:::makeOpenKeyLegend(key, legend, "windRose")
+        }
+
 
         #plot byt ... handler
 
@@ -832,18 +876,15 @@ scatterPlot <- function(mydata,
                          strip = strip,
                          as.table = TRUE,
                          region = TRUE,
-                         col.regions = col,
-                         at = col.scale,
+                        col.regions = col,
+                        at = col.scale,
                          par.strip.text = list(cex = 0.8),
-                         colorkey = TRUE,
+                         colorkey = FALSE,
+                               legend = legend,
                          panel = function(x, y, z, subscripts,...) {
                              panel.grid(h = -1, v = -1)
                              panel.levelplot(x, y, z, subscripts,
-                                             interpolate = FALSE,
-                                             at = col.scale,
-                                             pretty = TRUE,
-                                             col.regions = col,
-                                             labels = FALSE)
+                                             labels = FALSE, ...)
 
                              if (mod.line) {
                                  panel.abline(a = c(0, 0.5), lty = 5)

@@ -31,44 +31,49 @@
 ##'
 ##' @param mydata A data frame minimally containing \code{date}, \code{wd} and
 ##'   a pollutant.
-##' @param pollutant Mandatory. A pollutant name corresponding to a variable in
-##'   a data frame should be supplied e.g. \code{pollutant = "nox"}. There can
-##'   also be more than one pollutant specified e.g. \code{pollutant = c("nox",
-##'   "no2")}. The main use of using two or more pollutants is for model
-##'   evaluation where two species would be expected to have similar
-##'   concentrations. This saves the user stacking the data and it is possible
-##'   to work with columns of data directly. A typical use would be
-##'   \code{pollutant = c("obs", "mod")} to compare two columns "obs" (the
-##'   observations) and "mod" (modelled values).
-##' @param resolution Two plot resolutions can be set: \code{"normal"} and
-##'   \code{"fine"} (the default).
-##' @param local.time Should the results be calculated in local time? The
-##'   default is \code{TRUE}. Emissions activity tends to occur at local time
-##'   e.g. rush hour is at 8 am every day. When the clocks go forward in
-##'   spring, the emissions are effectively released into the atmosphere at BST
-##'   - 1 hour during the summer. When plotting diurnal profiles, this has the
-##'   effect of "smearing-out" the concentrations. A better approach is to
-##'   express time as local time, which here is defined as BST (British Summer
-##'   Time). This correction tends to produce better-defined diurnal profiles
-##'   of concentration (or other variables) and allows a better comparison to
-##'   be made with emissions/activity data. If set to \code{FALSE} then GMT is
-##'   used.
-##' @param period This determines the temporal period to consider. Options are
-##'   "hour" (the default, to plot diurnal variations), "season" to plot
-##'   variation throughout the year, "weekday" to plot day of the week
-##'   variation and "trend" to plot the trend by wind direction.
-##' @param type \code{type} determines how the data are split i.e. conditioned,
-##'   and then plotted. The default is will produce a single plot using the
-##'   entire data. Type can be one of the built-in types as detailed in
-##'   \code{cutData} e.g. "season", "year", "weekday" and so on. For example,
-##'   \code{type = "season"} will produce four plots --- one for each season.
+##' @param pollutant Mandatory. A pollutant name corresponding to a
+##' variable in a data frame should be supplied e.g. \code{pollutant =
+##' "nox"}. There can also be more than one pollutant specified
+##' e.g. \code{pollutant = c("nox", "no2")}. The main use of using two
+##' or more pollutants is for model evaluation where two species would
+##' be expected to have similar concentrations. This saves the user
+##' stacking the data and it is possible to work with columns of data
+##' directly. A typical use would be \code{pollutant = c("obs",
+##' "mod")} to compare two columns \dQuote{obs} (the observations) and
+##' \dQuote{mod} (modelled values).
+##' @param resolution Two plot resolutions can be set: \dQuote{normal} and
+##'   \dQuote{fine} (the default).
+##' @param local.time Should the results be calculated in local time?
+##' The default is \code{FALSE}. Emissions activity tends to occur at
+##' local time e.g. rush hour is at 8 am every day. When the clocks go
+##' forward in spring, the emissions are effectively released into the
+##' atmosphere at BST --- 1 hour during the summer. When plotting
+##' diurnal profiles, this has the effect of \dQuote{smearing-out} the
+##' concentrations. A better approach is to express time as local
+##' time, which here is defined as BST (British Summer Time). This
+##' correction tends to produce better-defined diurnal profiles of
+##' concentration (or other variables) and allows a better comparison
+##' to be made with emissions/activity data. If set to \code{FALSE}
+##' then GMT is used.
+##' @param period This determines the temporal period to
+##' consider. Options are \dQuote{hour} (the default, to plot diurnal
+##' variations), \dQuote{season} to plot variation throughout the
+##' year, \dQuote{weekday} to plot day of the week variation and
+##' \dQuote{trend} to plot the trend by wind direction.
+##' @param type \code{type} determines how the data are split
+##' i.e. conditioned, and then plotted. The default is will produce a
+##' single plot using the entire data. Type can be one of the built-in
+##' types as detailed in \code{cutData} e.g. \dQuote{season},
+##' \dQuote{year}, \dQuote{weekday} and so on. For example, \code{type
+##' = "season"} will produce four plots --- one for each season.
 ##'
-##' It is also possible to choose \code{type} as another variable in the data
-##'   frame. If that variable is numeric, then the data will be split into four
-##'   quantiles (if possible) and labelled accordingly. If type is an existing
-##'   character or factor variable, then those categories/levels will be used
-##'   directly. This offers great flexibility for understanding the variation
-##'   of different variables and how they depend on one another.
+##' It is also possible to choose \code{type} as another variable in
+##' the data frame. If that variable is numeric, then the data will be
+##' split into four quantiles (if possible) and labelled
+##' accordingly. If type is an existing character or factor variable,
+##' then those categories/levels will be used directly. This offers
+##' great flexibility for understanding the variation of different
+##' variables and how they depend on one another.
 ##'
 ##' Type can be up length two e.g. \code{type = c("season", "site")} will
 ##'   produce a 2x2 plot split by season and site. The use of two types is
@@ -82,13 +87,14 @@
 ##'   "weekday"} and \code{period = "weekday"}.
 ##'
 ##' @param limits Limits for colour scale.
-##' @param cols Colours to be used for plotting. Options include "default",
-##'   "increment", "heat", "jet" and user defined. For user defined the user
-##'   can supply a list of colour names recognised by R (type \code{colours()}
-##'   to see the full list). An example would be \code{cols = c("yellow",
-##'   "green", "blue")}
-##' @param width The width of the annulus; can be "normal" (the default),
-##'   "thin" or "fat".
+##' @param cols Colours to be used for plotting. Options include
+##' \dQuote{default}, \dQuote{increment}, \dQuote{heat}, \dQuote{jet}
+##' and user defined. For user defined the user can supply a list of
+##' colour names recognised by R (type \code{colours()} to see the
+##' full list). An example would be \code{cols = c("yellow", "green",
+##' "blue")}
+##' @param width The width of the annulus; can be \dQuote{normal} (the
+##' default), \dQuote{thin} or \dQuote{fat}.
 ##' @param min.bin The minimum number of points allowed in a wind speed/wind
 ##'   direction bin.  The default is 1. A value of two requires at least 2
 ##'   valid records in each bin an so on; bins with less than 2 valid records
@@ -135,9 +141,9 @@
 ##'   arguments are passed to \code{drawOpenKey} via \code{quickText}, applying
 ##'   the \code{auto.text} argument, to handle formatting.
 ##' @param key.footer see \code{key.header}.
-##' @param key.position Location where the scale key is to plotted.  Allowed
-##'   arguments currently include \code{"top"}, \code{"right"}, \code{"bottom"}
-##'   and \code{"left"}.
+##' @param key.position Location where the scale key is to plotted.
+##' Allowed arguments currently include \dQuote{top}, \dQuote{right},
+##' \dQuote{bottom} and \dQuote{left}.
 ##' @param key Fine control of the scale key via \code{drawOpenKey}. See
 ##'   \code{drawOpenKey} for further details.
 ##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
@@ -464,22 +470,11 @@ polarAnnulus <- function(mydata,
         if (missing(key.footer)) key.footer <- "normalised \nlevel"
     }
 
-    ## proper names of labelling ##############################################################################
-    pol.name <- sapply(levels(results.grid[ , type[1]]), function(x) quickText(x, auto.text))
-    strip <- strip.custom(factor.levels = pol.name)
-
-    if (length(type) == 1 ) {
-
-        strip.left <- FALSE
-
-    } else { ## two conditioning variables
-
-        pol.name <- sapply(levels(results.grid[ , type[2]]), function(x) quickText(x, auto.text))
-        strip.left <- strip.custom(factor.levels = pol.name)
-    }
-    if (length(type) == 1 & type[1] == "default") strip <- FALSE ## remove strip
-
-########################################################################################################
+    ## proper names of labelling ###################################################
+    strip.dat <- strip.fun(results.grid, type, auto.text)
+    strip <- strip.dat[[1]]
+    strip.left <- strip.dat[[2]]
+    pol.name <- strip.dat[[3]]
 
 
     ## auto-scaling

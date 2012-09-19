@@ -46,12 +46,13 @@
 ##'   relationship e.g. \code{x = "nox"}.
 ##' @param y Second pollutant that when plotted would appear on the y-axis of a
 ##'   relationship e.g. \code{y = "pm10"}.
-##' @param period A range of different time periods can be analysed. "monthly"
-##'   will plot a monthly time series and "weekly" a weekly time series of the
-##'   relationship between \code{x} and \code{y}. "hour" will show the diurnal
-##'   relationship between \code{x} and \code{y} and "weekday" the day of the
-##'   week relationship between \code{x} and \code{y}. "day.hour" will plot the
-##'   relationship by weekday and hour of the day.
+##' @param period A range of different time periods can be
+##' analysed. \dQuote{monthly} will plot a monthly time series and
+##' \dQuote{weekly} a weekly time series of the relationship between
+##' \code{x} and \code{y}. "hour" will show the diurnal relationship
+##' between \code{x} and \code{y} and \dQuote{weekday} the day of the
+##' week relationship between \code{x} and \code{y}. \dQuote{day.hour}
+##' will plot the relationship by weekday and hour of the day.
 ##' @param condition For \code{period = "hour"}, \code{period = "day"} and
 ##'   \code{period = "day.hour"}, setting \code{condition = TRUE} will plot the
 ##'   relationships split by year. This is useful for seeing how the
@@ -75,9 +76,9 @@
 ##'   pollutant names and units properly e.g.  by subscripting the \sQuote{2}
 ##'   in NO2.
 ##' @param cols Predefined colour scheme, currently only enabled for
-##'   \code{"greyscale"}.
+##'   \dQuote{greyscale}.
 ##' @param span span for \code{loess} fit. Controls the fit line: lower values
-##'   produce a more "wiggly" fit.
+##'   produce a more \dQuote{wiggly} fit.
 ##' @param \dots Other graphical parameters. A useful one to remove the strip
 ##'   with the date range on at the top of the plot is to set \code{strip =
 ##'   FALSE}.
@@ -105,16 +106,16 @@
 ##' linearRelation(mydata, x = "nox", y = "so2")
 ##' # monthly relationship between NOx and SO2 - note rapid fall in
 ##' # ratio at the beginning of the series
-##' linearRelation(mydata, x = "nox", y = "ox")
+##' \dontrun{linearRelation(mydata, x = "nox", y = "ox")}
 ##'
 ##' # diurnal oxidant slope by year # clear change in magnitude
 ##' # starting 2003, but the diurnal profile has also changed: the
 ##' # morning and evening peak hours are more important, presumably due
 ##' # to change in certain vehicle types
-##' linearRelation(mydata, x = "nox", y = "ox", period = "hour", condition = TRUE)
+##' \dontrun{linearRelation(mydata, x = "nox", y = "ox", period = "hour", condition = TRUE)}
 ##'
 ##' # PM2.5/PM10 ratio, but only plot where monthly R2 >= 0.8
-##' linearRelation(mydata, x = "pm10", y = "pm25", rsq.thresh = 0.8)
+##' \dontrun{linearRelation(mydata, x = "pm10", y = "pm25", rsq.thresh = 0.8)}
 ##'
 ##'
 linearRelation <- function(mydata,

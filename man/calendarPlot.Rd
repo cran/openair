@@ -7,16 +7,16 @@
     statistic = "mean", cols = "heat", limits = c(0, 100),
     lim = NULL, col.lim = c("grey30", "black"),
     font.lim = c(1, 2), cex.lim = c(0.6, 1), digits = 0,
-    data.thresh = 0, main = paste(pollutant, "in", year),
-    key.header = "", key.footer = "",
-    key.position = "right", key = TRUE, auto.text = TRUE,
-    ...)
+    data.thresh = 0, labels = NA, breaks = NA,
+    main = paste(pollutant, "in", year), key.header = "",
+    key.footer = "", key.position = "right", key = TRUE,
+    auto.text = TRUE, ...)
 }
 \arguments{
   \item{mydata}{A data frame minimally containing
-  \code{date} and at least one other numeric variable and a
-  year. The date should be in either \code{Date} format or
-  class \code{POSIXct}.}
+  \code{date} and at least one other numeric variable. The
+  date should be in either \code{Date} format or class
+  \code{POSIXct}.}
 
   \item{pollutant}{Mandatory. A pollutant name
   corresponding to a variable in a data frame should be
@@ -27,20 +27,22 @@
   \item{type}{Not yet implemented.}
 
   \item{annotate}{This option controls what appears on each
-  day of the calendar. Can be: "date" - shows day of the
-  month; "wd" - shows vector-averaged wind direction, or
-  "ws" - shows vector-averaged wind direction scaled by
-  wind speed. Finally it can be "value" which shows the
-  daily mean value.}
+  day of the calendar. Can be: \dQuote{date} --- shows day
+  of the month; \dQuote{wd} --- shows vector-averaged wind
+  direction, or \dQuote{ws} --- shows vector-averaged wind
+  direction scaled by wind speed. Finally it can be
+  \dQuote{value} which shows the daily mean value.}
 
   \item{statistic}{Statistic passed to \code{timeAverage}.}
 
   \item{cols}{Colours to be used for plotting. Options
-  include "default", "increment", "heat", "jet" and user
-  defined. For user defined the user can supply a list of
-  colour names recognised by R (type \code{colours()} to
-  see the full list). An example would be \code{cols =
-  c("yellow", "green", "blue")}}
+  include \dQuote{default}, \dQuote{increment},
+  \dQuote{heat}, \dQuote{jet} and \code{RColorBrewer}
+  colours --- see the \code{openair} \code{openColours}
+  function for more details. For user defined the user can
+  supply a list of colour names recognised by R (type
+  \code{colours()} to see the full list). An example would
+  be \code{cols = c("yellow", "green", "blue")}}
 
   \item{limits}{Use this option to manually set the colour
   scale limits. This is useful in the case when there is a
@@ -80,6 +82,20 @@
   means that at least 75\% of the data must be available in
   a day for the value to be calculate, else the data is
   removed.}
+
+  \item{labels}{If a categorical scale is required then
+  these labels will be used. Note there is one less label
+  than break. For example, \code{labels = c("good", "bad",
+  "very bad")}. \code{breaks} must also be supplied if
+  labels are given.}
+
+  \item{breaks}{If a categorical scale is required then
+  these breaks will be used. For example, \code{breaks =
+  c(0, 50, 100, 1000)}. In this case \dQuote{good}
+  corresponds to values berween 0 and 50 and so on. Users
+  should set the maximum value of \code{breaks} to exceed
+  the maximum data value to ensure it is within the maximum
+  final range e.g. 100--1000 in this case.}
 
   \item{main}{The plot title; default is pollutant and
   year.}
@@ -142,11 +158,12 @@
   \code{calendarPlot} will plot one year of data in a
   conventional calendar format i.e. by month and day of the
   week. The main purpose of this function is to make it
-  easy to visualise data in a familiar way. Currently the
-  mean value of a variable is plotted using a colour scale.
-  Further statistics will be added in due course.
+  easy to visualise data in a familiar way. Daily
+  statistics are calculated using
+  \code{\link{timeAverage}}, which by default will
+  calculate the daily mean concentration.
 
-  If wind direction are available it is then possible to
+  If wind direction is available it is then possible to
   plot the wind direction vector on each day. This is very
   useful for getting a feel for the meteorological
   conditions that affect pollutant concentrations. Note
@@ -159,6 +176,21 @@
   \code{annotate = "ws"} will plot the wind vectors whose
   length is scaled to the wind speed. Thus information on
   the daily mean wind speed and direction are available.
+
+  It is also possible to plot categorical scales. This is
+  useful where, for example, an air quality index defines
+  concentrations as bands e.g. \dQuote{good},
+  \dQuote{poor}. In these cases users must supply
+  \code{labels} and corresponding \code{breaks}.
+
+  Note that is is possible to pre-calculate concentrations
+  in some way before passing the data to
+  \code{calendarPlot}. For example
+  \code{\link{rollingMean}} could be used to calculate
+  rolling 8-hour mean concentrations. The data can then be
+  passed to \code{calendarPlot} and \code{statistic =
+  "max"} chosen, which will plot maximum daily 8-hour mean
+  concentrations.
 }
 \examples{
 # load example data from package
@@ -177,6 +209,11 @@ cols = "heat")
 # show only specific months with selectByDate
 calendarPlot(selectByDate(mydata, month = c(3,6,10), year = 2003),
 pollutant = "o3", year = 2003, annotate = "ws", cols = "heat")
+
+# categorical scale example
+calendarPlot(mydata, pollutant = "no2", breaks = c(0, 50, 100, 150, 1000),
+labels = c("Very low", "Low", "High", "Very High"),
+cols = c("lightblue", "green", "yellow",  "red"), statistic = "max")
 }
 \author{
   David Carslaw

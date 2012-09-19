@@ -209,3 +209,22 @@ dateCeil <- function (x, units = c("secs", "mins", "hours", "days", "months",
     }
     return(x)
 }
+
+## not overlu useful yet!
+roundDate <- function (dates, avg.time = "hour", start.date = NULL) {
+             TZ <- attr(dates, "tzone")
+             if (is.null(TZ)) TZ <- "GMT" ## as it is on Windows for BST
+
+             if (!missing(start.date)) {
+
+                 dates <- c(as.POSIXct(start.date), dates)
+
+             }
+
+             dates <- cut(dates, avg.time)
+             dates <- as.POSIXct(dates, TZ)
+             attr(dates, "tzone") <- TZ
+             ## start.date only to get nice rounding
+             dates[-1]
+         }
+

@@ -26,8 +26,8 @@
   \code{trendLevel} x-axis. This is used with the \code{y}
   and \code{type} options to bin the data before applying
   \code{statistic} (see below). Allowed options currently
-  include \code{"hour"}, \code{"month"}, \code{"year"}, and
-  \code{"wd"}. Other data series in \code{mydata} can also
+  include \dQuote{hour}, \dQuote{month}, \dQuote{year}, and
+  \dQuote{wd}. Other data series in \code{mydata} can also
   be used. (Note: \code{trendLevel} does not allow
   duplication in \code{x}, \code{y} and \code{type} options
   within a call.)}
@@ -86,8 +86,8 @@
 
   \item{key.position}{Location where the scale key should
   be plotted.  Allowed arguments currently include
-  \code{"top"}, \code{"right"}, \code{"bottom"} and
-  \code{"left"}.}
+  \dQuote{top}, \dQuote{right}, \dQuote{bottom} and
+  \dQuote{left}.}
 
   \item{key}{Fine control of the scale key via
   \code{drawOpenKey}. See \code{?drawOpenKey} for further
@@ -95,8 +95,8 @@
 
   \item{statistic}{The statistic method to be use to
   summarise locally binned \code{pollutant} measurements
-  with. Three options are currently encoded: \code{"mean"}
-  (default), \code{"max"} and \code{"frequency"}. (Note:
+  with. Three options are currently encoded: \dQuote{mean}
+  (default), \dQuote{max} and \dQuote{frequency}. (Note:
   Functions can also be sent directly via \code{statistic}.
   However, this option is still in development and should
   be used with caution. See Details below.)}

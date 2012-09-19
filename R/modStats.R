@@ -53,12 +53,13 @@
 ##'   values.
 ##' @param obs Name of a variable in \code{mydata} that respresents measured
 ##'   values.
-##' @param type \code{type} determines how the data are split i.e. conditioned,
-##'   and then plotted. The default is will produce statistics using the entire
-##'   data. \code{type} can be one of the built-in types as detailed in
-##'   \code{cutData} e.g. "season", "year", "weekday" and so on. For example,
-##'   \code{type = "season"} will produce four sets of statistics --- one for
-##'   each season.
+##' @param type \code{type} determines how the data are split
+##' i.e. conditioned, and then plotted. The default is will produce
+##' statistics using the entire data. \code{type} can be one of the
+##' built-in types as detailed in \code{cutData} e.g. \dQuote{season},
+##' \dQuote{year}, \dQuote{weekday} and so on. For example, \code{type
+##' = "season"} will produce four sets of statistics --- one for each
+##' season.
 ##'
 ##' It is also possible to choose \code{type} as another variable in the data
 ##'   frame. If that variable is numeric, then the data will be split into four
@@ -181,7 +182,13 @@ n <- function(x, mod = "mod", obs = "obs") {
 FAC2 <- function(x, mod = "mod", obs = "obs") {
     x <- na.omit(x[ , c(mod, obs)])
     ratio <- x[, mod] / x[, obs]
-    res <- length(which(ratio >= 0.5 & ratio <= 2)) / nrow(x)
+    ratio <- na.omit(ratio)
+    len <- length(ratio)
+    if (len > 0) {
+        res <- length(which(ratio >= 0.5 & ratio <= 2)) / len
+    } else {
+        res <- NA
+    }
     data.frame(FAC2 = res)
 }
 

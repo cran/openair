@@ -29,9 +29,9 @@
   i.e. conditioned, and then plotted. The default is will
   produce a single plot using the entire data. Type can be
   one of the built-in types as detailed in \code{cutData}
-  e.g. "season", "year", "weekday" and so on. For example,
-  \code{type = "season"} will produce four plots --- one
-  for each season.
+  e.g. \dQuote{season}, \dQuote{year}, \dQuote{weekday} and
+  so on. For example, \code{type = "season"} will produce
+  four plots --- one for each season.
 
   It is also possible to choose \code{type} as another
   variable in the data frame. If that variable is numeric,
@@ -48,16 +48,17 @@
   first forms the columns and the second the rows.}
 
   \item{statistic}{Statistic used for calculating monthly
-  values. Default is \code{"mean"}, but can also be
-  \code{"percentile"}. See \code{timeAverage} for more
+  values. Default is \dQuote{mean}, but can also be
+  \dQuote{percentile}. See \code{timeAverage} for more
   details.}
 
-  \item{avg.time}{Can be "month" (the default), "season" or
-  "year". Determines the time over which data should be
-  averaged. Note that for "year", six or more years are
-  required. For "season" the data are plit up into spring:
-  March, April, May etc. Note that December is considered
-  as belonging to winter of the following year.}
+  \item{avg.time}{Can be \dQuote{month} (the default),
+  \dQuote{season} or \dQuote{year}. Determines the time
+  over which data should be averaged. Note that for
+  \dQuote{year}, six or more years are required. For
+  \dQuote{season} the data are plit up into spring: March,
+  April, May etc. Note that December is considered as
+  belonging to winter of the following year.}
 
   \item{percentile}{Percentile value(s) to use if
   \code{statistic = "percentile"} is chosen. Can be a
@@ -93,7 +94,7 @@
   openair colours --- see \code{openColours} for more
   details.}
 
-  \item{xlab}{x-axis label, by default \code{"year"}.}
+  \item{xlab}{x-axis label, by default \dQuote{year}.}
 
   \item{y.relation}{This determines how the y-axis scale is
   plotted. "same" ensures all panels use the same scale and
