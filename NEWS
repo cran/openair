@@ -1,3 +1,14 @@
+Changes in openair 0.9-0 [2013-02-13]
+=====================================
+*	Fix bug introduced in 0.8-0 for scatterPlot surfaces
+*	Add statistic and percentile option to polarAnnulus; allow
+	Conditional Probability Functions
+*	Allow percentile intervals to be considered in polarPlot when
+	statistic = "cpf"
+*	Correct calculation of AOT40 in aqStats to take account of
+	daylight hours and growing season (Apr. to Sep.). Can use
+	latitude/longitude, if supplied
+
 Changes in openair 0.8-0 [2012-11-30]
 =====================================
 *	make sure missing dates are plotted properly in scatterPlot

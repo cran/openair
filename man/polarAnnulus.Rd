@@ -4,10 +4,10 @@
 \usage{
   polarAnnulus(mydata, pollutant = "nox",
     resolution = "fine", local.time = FALSE,
-    period = "hour", type = "default", limits = c(0, 100),
-    cols = "default", width = "normal", min.bin = 1,
-    exclude.missing = TRUE, date.pad = FALSE,
-    force.positive = TRUE, k = c(20, 10),
+    period = "hour", type = "default", statistic = "mean",
+    percentile = NA, limits = c(0, 100), cols = "default",
+    width = "normal", min.bin = 1, exclude.missing = TRUE,
+    date.pad = FALSE, force.positive = TRUE, k = c(20, 10),
     normalise = FALSE, key.header = "",
     key.footer = pollutant, key.position = "right",
     key = TRUE, auto.text = TRUE, ...)
@@ -84,6 +84,34 @@
   \code{period = "trend"} (which would result in a plot
   with too many gaps in it for sensible smoothing), or
   \code{type = "weekday"} and \code{period = "weekday"}.}
+
+  \item{statistic}{The statistic that should be applied to
+  each wind speed/direction bin. Can be \dQuote{mean}
+  (default), \dQuote{median}, \dQuote{max} (maximum),
+  \dQuote{frequency}. \dQuote{stdev} (standard deviation),
+  \dQuote{weighted.mean} or \dQuote{cpf} (Conditional
+  Probability Function). Because of the smoothing involved,
+  the colour scale for some of these statistics is only to
+  provide an indication of overall pattern and should not
+  be interpreted in concentration units e.g. for
+  \code{statistic = "weighted.mean"} where the bin mean is
+  multiplied by the bin frequency and divided by the total
+  frequency. In many cases using \code{polarFreq} will be
+  better. Setting \code{statistic = "weighted.mean"} can be
+  useful because it provides an indication of the
+  concentration * frequency of occurrence and will
+  highlight the wind speed/direction conditions that
+  dominate the overall mean.}
+
+  \item{percentile}{If \code{statistic = "percentile"} or
+  \code{statistic = "cpf"} then \code{percentile} is used,
+  expressed from 0 to 100. Note that the percentile value
+  is calculated in the wind speed, wind direction
+  \sQuote{bins}. For this reason it can also be useful to
+  set \code{min.bin} to ensure there are a sufficient
+  number of points available to estimate a percentile. See
+  \code{quantile} for more details of how percentiles are
+  calculated.}
 
   \item{limits}{Limits for colour scale.}
 

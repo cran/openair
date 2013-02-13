@@ -138,12 +138,13 @@
 ##' # 50/95th percentiles of ozone, with different colours
 ##' percentileRose(mydata, pollutant = "o3", percentile = c(50, 95), col = "brewer1")
 ##'
+##' \dontrun{
 ##' # percentiles of ozone by year, with different colours
 ##' percentileRose(mydata, type = "year", pollutant = "o3", col = "brewer1")
 ##'
 ##' # percentile concentrations by season and day/nighttime..
 ##' percentileRose(mydata, type = c("season", "daylight"), pollutant = "o3", col = "brewer1")
-##'
+##' }
 ##'
 ##'
 percentileRose <- function (mydata, pollutant = "nox", type = "default",

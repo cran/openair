@@ -86,6 +86,29 @@
 ##'   with too many gaps in it for sensible smoothing), or \code{type =
 ##'   "weekday"} and \code{period = "weekday"}.
 ##'
+##' @param statistic The statistic that should be applied to each wind
+##' speed/direction bin. Can be \dQuote{mean} (default),
+##' \dQuote{median}, \dQuote{max} (maximum),
+##' \dQuote{frequency}. \dQuote{stdev} (standard deviation),
+##' \dQuote{weighted.mean} or \dQuote{cpf} (Conditional Probability
+##' Function). Because of the smoothing involved, the colour scale for
+##' some of these statistics is only to provide an indication of
+##' overall pattern and should not be interpreted in concentration
+##' units e.g. for \code{statistic = "weighted.mean"} where the bin
+##' mean is multiplied by the bin frequency and divided by the total
+##' frequency. In many cases using \code{polarFreq} will be
+##' better. Setting \code{statistic = "weighted.mean"} can be useful
+##' because it provides an indication of the concentration * frequency
+##' of occurrence and will highlight the wind speed/direction
+##' conditions that dominate the overall mean.
+##' @param percentile If \code{statistic = "percentile"} or
+##' \code{statistic = "cpf"} then \code{percentile} is used, expressed
+##' from 0 to 100. Note that the percentile value is calculated in the
+##' wind speed, wind direction \sQuote{bins}. For this reason it can
+##' also be useful to set \code{min.bin} to ensure there are a
+##' sufficient number of points available to estimate a
+##' percentile. See \code{quantile} for more details of how
+##' percentiles are calculated.
 ##' @param limits Limits for colour scale.
 ##' @param cols Colours to be used for plotting. Options include
 ##' \dQuote{default}, \dQuote{increment}, \dQuote{heat}, \dQuote{jet}
@@ -198,6 +221,8 @@ polarAnnulus <- function(mydata,
                          local.time = FALSE,
                          period = "hour",
                          type = "default",
+                         statistic = "mean",
+                         percentile = NA,
                          limits = c(0, 100),
                          cols = "default",
                          width = "normal",
@@ -216,6 +241,20 @@ polarAnnulus <- function(mydata,
     ## get rid of R check annoyances
     wd = u = v = z = all.dates = NULL
 
+    if (!statistic %in% c("mean", "median", "frequency", "max", "stdev",
+                          "weighted.mean", "percentile", "cpf")) {
+        stop (paste("statistic '", statistic, "' not recognised", sep = ""))
+    }
+
+    if (statistic == "percentile" & is.na(percentile & statistic != "cpf")) {
+        warning("percentile value missing,  using 50")
+        percentile <- 50
+    }
+
+    if (missing(key.header)) key.header <- statistic
+    if (key.header == "weighted.mean") key.header <- c("weighted", "mean")
+    if (key.header == "percentile") key.header <- c(paste(percentile, "th", sep = ""), "percentile")
+    if (key.header == "cpf") key.header <- c("CPF", "probability")
 
     ## extract variables of interest
     vars <- c("wd", "date", pollutant)
@@ -286,6 +325,16 @@ polarAnnulus <- function(mydata,
     if (resolution == "ultra.fine") int <- 0.05  # very large files!
 
     len.int <- 20 / int + 1 ## number of x and y points to make up surfacexb
+
+    ## for CPF
+    Pval <- quantile(mydata[, pollutant], probs = percentile / 100, na.rm = TRUE)
+
+    if (statistic == "cpf") {
+        sub <- paste("CPF probability at the ", percentile,
+                     "th percentile (=", round(Pval, 1), ")", sep = "")
+    } else {
+        sub <- NULL
+    }
 
     prepare.grid <- function(mydata) {
 
@@ -370,7 +419,28 @@ polarAnnulus <- function(mydata,
         ## divide-up the data for the annulus
         time.cut <- cut(mydata$trend, seq(0, 10, length = 25), include.lowest = TRUE)
 
-        binned <- tapply(mydata[, pollutant], list(time.cut, wd.cut), mean, na.rm = TRUE)
+     #   binned <- tapply(mydata[, pollutant], list(time.cut, wd.cut), mean, na.rm = TRUE)
+
+        binned <- switch(statistic,
+                         frequency = tapply(mydata[ , pollutant], list(time.cut, wd.cut), function(x)
+                         length(na.omit(x))),
+                         mean =  tapply(mydata[, pollutant], list(time.cut, wd.cut), function(x)
+                         mean(x, na.rm = TRUE)),
+                         median = tapply(mydata[, pollutant], list(time.cut, wd.cut), function(x)
+                         median(x, na.rm = TRUE)),
+                         max = tapply(mydata[, pollutant], list(time.cut, wd.cut), function(x)
+                         max(x, na.rm = TRUE)),
+                         stdev = tapply(mydata[, pollutant], list(time.cut, wd.cut), function(x)
+                         sd(x, na.rm = TRUE)),
+                         cpf =  tapply(mydata[, pollutant], list(time.cut, wd.cut),
+                         function(x) (length(which(x > Pval)) / length(x))),
+                         weighted.mean = tapply(mydata[, pollutant], list(time.cut, wd.cut),
+                         function(x) (mean(x) * length(x) / nrow(mydata))),
+                         percentile = tapply(mydata[, pollutant], list(time.cut, wd.cut), function(x)
+                         quantile(x, probs = percentile / 100, na.rm = TRUE))
+
+                         )
+
         binned <- as.vector(binned)
 
         ## frequency - remove points with freq < min.bin
@@ -471,7 +541,7 @@ polarAnnulus <- function(mydata,
     }
 
     ## proper names of labelling ###################################################
-    strip.dat <- strip.fun(results.grid, type, auto.text)
+    strip.dat <- openair:::strip.fun(results.grid, type, auto.text)
     strip <- strip.dat[[1]]
     strip.left <- strip.dat[[2]]
     pol.name <- strip.dat[[3]]
@@ -507,6 +577,7 @@ polarAnnulus <- function(mydata,
                      par.strip.text = list(cex = 0.8),
                      scales = list(draw = FALSE),
                      strip = strip,
+                           sub = sub,
 
                      len <- upper + d + 3,
                      xlim = c(-len, len), ylim = c(-len, len),

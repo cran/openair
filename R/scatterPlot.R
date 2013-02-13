@@ -681,7 +681,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
 
 
                             if (smooth) panel.gam(x, y, col = "grey20", col.se = "black",
-                                                  lty = 1, lwd = 1, se = ci, ...)
+                                                  lty = 1, lwd = 1, se = ci, Args, ...)
                             if (spline) panel.smooth.spline(x, y, col = myColors[group.number],
                                                             lwd = lwd, ...)
 
@@ -846,7 +846,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
         col.scale <- breaks
 
         ## this is the default
-        if (trajStat %in% c("cwt", "pscf")) {
+        if (trajStat %in% c("cwt", "pscf", "mean")) {
             legend <- list(col = col, at = col.scale, labels = list(labels = labs),
                            space = key.position,
                            auto.text = auto.text, footer = Args$key.footer,
