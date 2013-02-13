@@ -168,26 +168,14 @@
 ##' labels = c("Very low", "Low", "High", "Very High"),
 ##' cols = c("lightblue", "green", "yellow",  "red"), statistic = "max")
 ##'
-calendarPlot <- function(mydata,
-                         pollutant = "nox",
-                         year = 2003,
-                         type = "default",
-                         annotate = "date",
-                         statistic = "mean",
-                         cols = "heat",
-                         limits = c(0, 100),
-                         lim = NULL,
-                         col.lim = c("grey30", "black"),
-                         font.lim = c(1, 2),
-                         cex.lim = c(0.6, 1),
-                         digits = 0,
-                         data.thresh = 0,
-                         labels = NA,
-                         breaks = NA,
-                         main = paste(pollutant, "in", year),
+calendarPlot <- function(mydata, pollutant = "nox", year = 2003, type = "default",
+                         annotate = "date", statistic = "mean", cols = "heat", limits = c(0, 100),
+                         lim = NULL, col.lim = c("grey30", "black"),
+                         font.lim = c(1, 2), cex.lim = c(0.6, 1),
+                         digits = 0, data.thresh = 0, labels = NA,
+                         breaks = NA, main = paste(pollutant, "in", year),
                          key.header = "", key.footer = "",
-                         key.position = "right", key = TRUE,
-                         auto.text = TRUE,
+                         key.position = "right", key = TRUE, auto.text = TRUE,
                          ...) {
 
     conc.mat <- NULL ## keep R check quiet
@@ -306,6 +294,9 @@ calendarPlot <- function(mydata,
     mydata <- cutData(mydata, type = type, ...)
     baseData <- mydata
 
+    strip.dat <- openair:::strip.fun(mydata, type, auto.text)
+    strip <- strip.dat[[1]]
+
     mydata <- ddply(mydata, type, function(x) prepare.grid(x, pollutant))
     mydata$value <- mydata$conc.mat ## actual numerical value (retain for categorical scales)
 
@@ -369,6 +360,7 @@ calendarPlot <- function(mydata,
     lv.args <- list(x = value ~ x * y | month, data = mydata,
                     par.settings = cal.theme,
                     main = main,
+                    strip = strip,
                     at = col.scale,
                     col.regions = col,
                     as.table = TRUE,

@@ -103,6 +103,9 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE, remove.neg = TRUE
 
         }
 
+        ## try and work with a factor date - but probably a problem in original data
+        if (is.factor(mydata$date))  mydata$date <- as.POSIXct(mydata$date, "GMT")
+
         mydata <- mydata[order(mydata$date), ]
 
         ## make sure date is the first field

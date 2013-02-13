@@ -51,7 +51,17 @@
 ##' Type can be up length two e.g. \code{type = c("season", "weekday")} will
 ##'   produce a 2x2 plot split by season and day of the week. Note, when two
 ##'   types are provided the first forms the columns and the second the rows.
-##' @param percentile The percentile value(s) to plot. Must be between 0--100.
+##' @param percentile The percentile value(s) to plot. Must be between
+##' 0--100. If \code{percentile = NA} then only a mean line will be
+##' shown.
+##' @param method When \code{method = "default"} the supplied
+##' percentiles by wind direction are calculated. When \code{method =
+##' "cpf"} the conditional probability function (CPF) is plotted and a
+##' single (usually high) percentile level is supplied. The CPF is
+##' defined as CPF = my/ny, where my is the number of samples in the
+##' wind sector y with mixing ratios greater than the \emph{overall}
+##' percentile concentration, and ny is the total number of samples in
+##' the same wind sector (see Ashbaugh et al., 1985).
 ##' @param cols Colours to be used for plotting. Options include
 ##' \dQuote{default}, \dQuote{increment}, \dQuote{heat}, \dQuote{jet}
 ##' and \code{RColorBrewer} colours --- see the \code{openair}
@@ -59,6 +69,10 @@
 ##' user can supply a list of colour names recognised by R (type
 ##' \code{colours()} to see the full list). An example would be
 ##' \code{cols = c("yellow", "green", "blue")}
+##' @param mean Show the mean by wind direction as a line?
+##' @param mean.lty Line type for mean line.
+##' @param mean.lwd Line width for mean line.
+##' @param mean.col Line colour for mean line.
 ##' @param fill Should the percentile intervals be filled (default) or should
 ##'   lines be drawn (\code{fill = FALSE}).
 ##' @param intervals User-supplied intervals for the scale
@@ -110,9 +124,13 @@
 ##' @author David Carslaw
 ##' @seealso See Also as \code{\link{windRose}}, \code{\link{pollutionRose}},
 ##'   \code{\link{polarFreq}}, \code{\link{polarPlot}}
+##' @references
+##' Ashbaugh, L.L., Malm, W.C., Sadeh, W.Z., 1985. A
+##' residence time probability analysis of sulfur concentrations at
+##' ground canyon national park. Atmospheric Environment 19 (8),
+##' 1263-1270.
 ##' @keywords methods
 ##' @examples
-##'
 ##'
 ##' # basic percentile plot
 ##' percentileRose(mydata, pollutant = "o3")
@@ -129,10 +147,9 @@
 ##'
 ##'
 percentileRose <- function (mydata, pollutant = "nox", type = "default",
-                            percentile = c(25, 50, 75, 90, 95), cols = "default",
-                            fill = TRUE,
-                            intervals = NULL,
-                            angle.scale = 45,
+                            percentile = c(25, 50, 75, 90, 95), method = "default", cols = "default",
+                            mean = TRUE, mean.lty = 1, mean.lwd = 3, mean.col = "grey",
+                            fill = TRUE, intervals = NULL, angle.scale = 45,
                             auto.text = TRUE,  key.header = NULL,
                             key.footer = "percentile", key.position = "bottom",
                             key = TRUE,  ...)
@@ -141,6 +158,19 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
 
     ## get rid of R check annoyances
     wd = NULL
+
+    ## calculate percetiles or just show mean?
+    if (is.na(percentile[1])) {
+        mean.only <- TRUE
+        percentile <- 0
+    } else {
+        mean.only <- FALSE
+    }
+
+    if (tolower(method) == "cpf") {
+        mean <- FALSE
+        if (length(percentile) > 1) stop ("Only one percentile should be supplied when method = 'CPF'.")
+    }
 
     vars <- c("wd", pollutant)
     if (any(type %in%  openair:::dateTypes)) vars <- c(vars, "date")
@@ -166,7 +196,12 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
         mydata <- melt(mydata, measure.vars = pollutant)
         ## now set pollutant to "value"
         pollutant <- "value"
-        type <- c(type, "variable")
+        if (type == "default") {
+            type <- "variable"
+        } else {
+            type <- c(type, "variable")
+        }
+
     }
 
 
@@ -174,15 +209,19 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
     extra.args <- list(...)
 
     #label controls
-    extra.args$xlab <- if("xlab" %in% names(extra.args))
+    extra.args$xlab <- if ("xlab" %in% names(extra.args))
                            quickText(extra.args$xlab, auto.text) else quickText("", auto.text)
-    extra.args$ylab <- if("ylab" %in% names(extra.args))
+    extra.args$ylab <- if ("ylab" %in% names(extra.args))
                            quickText(extra.args$ylab, auto.text) else quickText("", auto.text)
-    extra.args$main <- if("main" %in% names(extra.args))
+    extra.args$main <- if ("main" %in% names(extra.args))
                            quickText(extra.args$main, auto.text) else quickText("", auto.text)
 
-    #lwd handling
-    if(!"lwd" %in% names(extra.args))
+    ## layout default
+    if (!"layout" %in% names(extra.args))
+        extra.args$layout <- NULL
+
+    ## lwd handling
+    if (!"lwd" %in% names(extra.args))
         extra.args$lwd <- 2
 
     mydata <- na.omit(mydata)
@@ -205,7 +244,7 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
     }
 
 
-    prepare.grid <- function(mydata) {
+    prepare.grid <- function(mydata, stat) {
         wd = NULL
         ## add zero wind angle = same as 360 for cyclic spline
         ids <- which(mydata$wd == 360)
@@ -215,11 +254,6 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
             zero.wd$wd <- 0
             mydata <- rbind.fill(mydata, zero.wd)
         }
-
-        ## calculate percentiles
-        percentiles <- ddply(mydata, .(wd), numcolwise(function (x) quantile(x, probs = percentile /
-                                                                             100, na.rm = TRUE)))
-        percentiles$percentile <- percentile
 
         mod.percentiles <- function(i, mydata) {
             ## need to work out how many knots to use in smooth
@@ -243,17 +277,52 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
             pred$pollutant[-ids] <- min(c(0, min(percentiles[ , pollutant], na.rm = TRUE)))
             pred
         }
+        if (method == "default") {
+            ## calculate percentiles
+            percentiles <- ddply(mydata, .(wd), numcolwise(function (x) quantile(x, probs = percentile /
+                                                                                 100, na.rm = TRUE)))
+            percentiles$percentile <- percentile
+        }
+
+        if (tolower(method) == "cpf") {
+
+            ## overall percentile
+            overall.upper <- quantile(mydata[, pollutant], probs = max(percentile) / 100, na.rm = TRUE)
+            overall.lower <- quantile(mydata[, pollutant], probs = min(percentile) / 100, na.rm = TRUE)
+
+            percentiles1 <- ddply(mydata, .(wd), numcolwise(function (x) length(which(x < overall.lower)) / length(x)))
+            percentiles1$percentile <- min(percentile)
+
+            percentiles2 <- ddply(mydata, .(wd), numcolwise(function (x) length(which(x > overall.upper)) / length(x)))
+            percentiles2$percentile <- max(percentile)
+            percentiles <- rbind(percentiles1, percentiles2)
+
+        }
+
 
         results <- ldply(percentile, mod.percentiles)
+
+        ## calculate mean; assume a percentile of 999 to flag it later
+        percentiles <- ddply(mydata, .(wd), numcolwise(function (x) mean(x, na.rm = TRUE)))
+        percentiles$percentile <- 999
+        Mean <- ldply(999, mod.percentiles)
+
+        if (stat == "percentile") results <- results else results <- Mean
         results
     }
 
 
     mydata <- cutData(mydata, type, ...)
-    results.grid <- ddply(mydata, type, prepare.grid)
+    results.grid <- ddply(mydata, type, prepare.grid, stat = "percentile")
+
+    if (mean) {
+        Mean <- ddply(mydata, type, prepare.grid, stat = "mean")
+
+        results.grid <- rbind(results.grid, Mean)
+    }
 
     ## proper names of labelling ###################################################
-    strip.dat <- strip.fun(results.grid, type, auto.text)
+    strip.dat <- openair:::strip.fun(results.grid, type, auto.text)
     strip <- strip.dat[[1]]
     strip.left <- strip.dat[[2]]
     pol.name <- strip.dat[[3]]
@@ -265,6 +334,8 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
                    height = 0.60, width = 1.5, fit = "scale",
                    plot.style =  "other")
     legend <- openair:::makeOpenKeyLegend(key, legend, "percentileRose")
+
+    if (mean.only || tolower(method) == "cpf") legend <- NULL
 
     temp <- paste(type, collapse = "+")
     myform <- formula(paste("y ~ x | ", temp, sep = ""))
@@ -280,7 +351,10 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
     newdata <- results.grid ## data to return
 
     ## nice intervals for pollutant concentrations
-    if (missing(intervals)) intervals <- pretty(results.grid$pollutant)
+    tmp <- (results.grid$x ^ 2 + results.grid$y ^ 2) ^ 0.5
+    if (missing(intervals)) intervals <- pretty(c(min(tmp), max(tmp)))
+
+
 
     labs <- intervals ## the labels
 
@@ -296,6 +370,9 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
                               y = pollutant * cos(wd * pi / 180))
     }
 
+    ## re-label if CPF plot
+    if (tolower(method) == "cpf") pollutant <- "probability"
+
     xyplot.args <- list(x = myform,
                   xlim = c(max(intervals) * -1, max(intervals) * 1),
                   ylim = c(max(intervals) * -1, max(intervals) * 1),
@@ -306,7 +383,7 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
                   as.table = TRUE,
                   aspect = 1,
                   par.strip.text = list(cex = 0.8),
-                  scales = list(draw = FALSE),
+                  scales = list(draw = FALSE),...,
 
                   panel = function(x, y, subscripts, ...) {
 
@@ -366,6 +443,12 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
 
                       }
 
+                      ## add mean line
+                      if (mean) {
+                          subdata <- subset(results.grid[subscripts, ], percentile == 999)
+                          llines(subdata$x, subdata$y, col = mean.col, lwd = mean.lwd, lty = mean.lty)
+                      }
+
                       ltext(intervals * sin(pi * angle.scale / 180),
                             intervals * cos(pi * angle.scale / 180),
                             paste(labs, c("", "", rep("", 7))), cex = 0.7)
@@ -373,8 +456,8 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
 
                   }, legend = legend)
 
-    #reset for extra.args
-    xyplot.args<- listUpdate(xyplot.args, extra.args)
+                                        #reset for extra.args
+    xyplot.args<- openair:::listUpdate(xyplot.args, extra.args)
 
     #plot
     plt <- do.call(xyplot, xyplot.args)

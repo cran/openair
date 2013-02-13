@@ -155,6 +155,9 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
 
     calc.mean <- function(mydata, start.date) { ## function to calculate means
 
+        ## need to check whether avg.time is > or < actual time gap of data
+        ## then data will be expanded or aggregated accordingly
+
         ## time diff in seconds of orginal data
         timeDiff <-  as.numeric(strsplit(openair:::find.time.interval(mydata$date),
                                          " ")[[1]][1])
@@ -219,7 +222,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
          ## start from a particular time, if given
         if (!is.na(start.date)) {
 
-            firstLine <- data.frame(date = as.POSIXct(start.date))
+            firstLine <- data.frame(date = as.POSIXct(start.date, tz = TZ))
 
             mydata <- rbind.fill(firstLine, mydata)
 
@@ -270,6 +273,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
         } else {
             ## cut into sections dependent on period
             mydata$cuts <- cut(mydata$date, avg.time)
+        #    mydata$date <- as.POSIXct(mydata$cuts, tz = TZ)
         }
 
 
@@ -277,7 +281,11 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
 
             ## two methods of calculating stats, one that takes account of data capture (slow), the
             ## other not (faster)
+            ## Note need to know time interval of data to work out data capture, can
+            ## be a problem for non-regular time series...
+
             newMethod <- function(x, data.thresh, na.rm) {
+
                 ## calculate mean only if above data capture threshold
                 if (length(na.omit(x)) >= round(length(x) * data.thresh / 100)) {
                     res <- eval(parse(text = form))
@@ -289,6 +297,9 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
 
             ## need to make sure all data are present..
             mydata <- openair:::date.pad(mydata)
+
+            ## cut into sections dependent on period
+            mydata$cuts <- cut(mydata$date, avg.time)
 
             dailymet <- aggregate(mydata[ , sapply(mydata, class) %in% c("numeric", "integer"),
                                          drop = FALSE], list(date = mydata$cuts), newMethod,
@@ -338,8 +349,6 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
             }
         }
 
-        if ("site" %in% names(mydata)) dailymet$site <- mydata$site[1]
-
         ## fill missing gaps
         if (avg.time != "season") {
             dailymet <- date.pad2(dailymet, interval = avg.time)
@@ -352,9 +361,8 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
     if ("site" %in% names(mydata)) { ## split by site
         mydata$site <- factor(mydata$site)
         mydata <- ddply(mydata, .(site), calc.mean, start.date)
-        mydata
     } else {
         mydata <- calc.mean(mydata, start.date)
-        mydata
     }
+    mydata
 }

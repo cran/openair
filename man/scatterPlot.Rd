@@ -10,10 +10,10 @@
     cols = "hue", plot.type = "p", key = TRUE,
     key.title = group, key.columns = 1,
     key.position = "right", strip = TRUE, log.x = FALSE,
-    log.y = FALSE, x.inc = 10, y.inc = 10,
+    log.y = FALSE, x.inc = 10, y.inc = 10, limits = NULL,
     y.relation = "same", x.relation = "same", ref.x = NULL,
-    ref.y = NULL, k = 100, trans = TRUE, map = FALSE,
-    auto.text = TRUE, ...)
+    ref.y = NULL, k = 100, map = FALSE, auto.text = TRUE,
+    ...)
 }
 \arguments{
   \item{mydata}{A data frame containing at least two
@@ -179,6 +179,13 @@
   \item{y.inc}{The y-interval to be used for binning data
   when \code{method = "level"}.}
 
+  \item{limits}{For \code{method = "level"} the function
+  does its best to choose sensible limits automatically.
+  However, there are circumstances when the user will wish
+  to set different ones. The limits are set in the form
+  \code{c(lower, upper)}, so \code{limits = c(0, 100)}
+  would force the plot limits to span 0-100.}
+
   \item{y.relation}{This determines how the y-axis scale is
   plotted. \dQuote{same} ensures all panels use the same
   scale and \dQuote{free} will use panel-specfic scales.
@@ -200,12 +207,6 @@
   \item{k}{Smoothing parameter supplied to \code{gam} for
   fitting a smooth surface when \code{method = "level"}.}
 
-  \item{trans}{\code{trans} is used when \code{continuous =
-  TRUE}. Often for a good colour scale with skewed data it
-  is a good idea to "compress" the scale. If \code{TRUE} a
-  square root transform is used, if \code{FALSE} a linear
-  scale is used.}
-
   \item{map}{Should a base map be drawn? This option is
   under development.}
 
@@ -214,7 +215,7 @@
   automatically try and format pollutant names and units
   properly e.g.  by subscripting the \sQuote{2} in NO2.}
 
-  \item{\dots}{Other graphical parameters are passed onto
+  \item{...}{Other graphical parameters are passed onto
   \code{cutData} and an appropriate \code{lattice} plot
   function (\code{xyplot}, \code{levelplot} or
   \code{hexbinplot} depending on \code{method}). For

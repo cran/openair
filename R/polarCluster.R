@@ -124,10 +124,10 @@
 ##' large international airport.  Atmospheric Environment. 40/28 pp
 ##' 5424-5434.
 ##'
-##' Carslaw, D.C. and S.D. Beevers (2012). Characterising and
+##' Carslaw, D.C., & Beevers, S.D. (2013). Characterising and
 ##' understanding emission sources using bivariate polar plots and
-##' k-means clustering. Environmental Modelling & Software. Submitted.
-##' @keywords methods
+##' k-means clustering. Environmental Modelling & Software, 40,
+##' 325-329. doi:10.1016/j.envsoft.2012.09.005
 ##' @examples
 ##'
 ##' \dontrun{
@@ -269,6 +269,7 @@ polarCluster <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", n.clust
 
     ## labels for scaling
     labels <- pretty(intervals + min.scale)
+    upper <- max(intervals)
 
     ## offset the lines/labels if necessary
     intervals <- intervals + (min(labels) - min.scale)
@@ -278,6 +279,8 @@ polarCluster <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", n.clust
         labels <- labels[-1]
         intervals <- intervals[-1]
     }
+
+
 
     levelplot.args <- list(x = myform, results.grid, axes = FALSE,
                            as.table = TRUE,
@@ -336,6 +339,8 @@ polarCluster <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", n.clust
 
     if (length(type) == 1L) plot(plt) else plot(useOuterStrips(plt, strip = strip, strip.left = strip.left))
 
+    ## change cluster output to C1, C2 etc
+    mydata$cluster <- paste("C", mydata$cluster, sep = "")
 
     output <- list(plot = plt, data = mydata, call = match.call())
     invisible(output)

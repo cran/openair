@@ -336,7 +336,12 @@ alpha = 0.4, ...)  {
         mydata$variable <- factor(mydata$variable)  ## drop unused factor levels
 
     } else {
-        names(mydata)[2:3] <- c("value", "variable")
+        ## group needs to be 'variable' and pollutant 'value'
+        id <- which(names(mydata) == poll.orig)
+        names(mydata)[id] <- "value"
+        id <- which(names(mydata) == group)
+        names(mydata)[id] <- "variable"
+
         mydata$variable <- factor(mydata$variable)  ## drop unused factor levels
         the.names <- levels(mydata[ , "variable"])
         if (difference) the.names <- c(the.names, paste(levels(mydata$variable)[2], "-",
@@ -371,10 +376,10 @@ alpha = 0.4, ...)  {
 
     ## calculate temporal components
     mydata <- within(mydata, {
-        weekday <- format(date, "%A")
-        weekday <- ordered(weekday, levels = day.ord)
+        wkday <- format(date, "%A")
+        wkday <- ordered(wkday, levels = day.ord)
         hour <- as.numeric(format(date, "%H"))
-        month <- as.numeric(format(date, "%m"))}
+        mnth <- as.numeric(format(date, "%m"))}
                      )
 
 
@@ -399,7 +404,7 @@ alpha = 0.4, ...)  {
         lims
     }
 
-    npol <- length(unique(mydata$variable)) ## number of pollutants
+    npol <- length(levels(mydata$variable)) ## number of pollutants
 
     if (difference) {
         npol <- 3 ## 3 pollutants if difference considered
@@ -485,23 +490,23 @@ alpha = 0.4, ...)  {
     ## weekday ############################################################################
 
     if (difference) {
-        data.weekday <- errorDiff(mydata, vars = "weekday", type = type, poll1 =poll1,
+        data.weekday <- errorDiff(mydata, vars = "wkday", type = type, poll1 =poll1,
                                   poll2 = poll2, B = B)
     } else {
-        data.weekday <- calc.wd(mydata, vars = "weekday", pollutant, type, B = B)
+        data.weekday <- calc.wd(mydata, vars = "wkday", pollutant, type, B = B)
     }
 
     if (normalise) data.weekday <-  ddply(data.weekday, .(variable), divide.by.mean)
 
  #   data.weekday$weekday <- ordered(data.weekday$weekday, levels = format(ISOdate(2000, 1, 3:9), "%A"))
-    data.weekday$weekday <- ordered(data.weekday$weekday, levels = day.ord)
+    data.weekday$wkday <- ordered(data.weekday$wkday, levels = day.ord)
 
-    data.weekday$weekday <- as.numeric(as.factor(data.weekday$weekday))
+    data.weekday$wkday <- as.numeric(as.factor(data.weekday$wkday))
 
     if (is.null(xlab[4]) | is.na(xlab[4])) xlab[4] <- "weekday"
 
     temp <- paste(type, collapse = "+")
-    myform <- formula(paste("Mean ~ weekday | ", temp, sep = ""))
+    myform <- formula(paste("Mean ~ wkday | ", temp, sep = ""))
 
     ## ylim hander
     if (ylim.handler)
@@ -543,10 +548,10 @@ alpha = 0.4, ...)  {
     ## month ############################################################################
 
     if (difference) {
-        data.month <- errorDiff(mydata, vars = "month", type = type, poll1 = poll1,
+        data.month <- errorDiff(mydata, vars = "mnth", type = type, poll1 = poll1,
                                 poll2 = poll2, B = B)
     } else {
-        data.month <- calc.wd(mydata, vars = "month", pollutant, type, B = B)
+        data.month <- calc.wd(mydata, vars = "mnth", pollutant, type, B = B)
     }
 
     if (normalise) data.month <-  ddply(data.month, .(variable), divide.by.mean)
@@ -555,7 +560,7 @@ alpha = 0.4, ...)  {
     if (is.null(xlab[3]) | is.na(xlab[3])) xlab[3] <- "month"
 
     temp <- paste(type, collapse = "+")
-    myform <- formula(paste("Mean ~ month | ", temp, sep = ""))
+    myform <- formula(paste("Mean ~ mnth | ", temp, sep = ""))
 
     ## ylim hander
     if (ylim.handler)
@@ -626,6 +631,7 @@ alpha = 0.4, ...)  {
         layout <- c(7, 1)
 
     } else { ## two conditioning variables
+
         stripName <- sapply(levels(mydata[ , type]), function(x) quickText(x, auto.text))
         strip.left <- strip.custom(factor.levels =  stripName)
         layout <- NULL
@@ -634,9 +640,9 @@ alpha = 0.4, ...)  {
 
     temp <- paste(type, collapse = "+")
     if (type == "default") {
-        myform <- formula("Mean ~ hour | weekday")
+        myform <- formula("Mean ~ hour | wkday")
     } else {
-        myform <- formula(paste("Mean ~ hour | weekday *", temp, sep = ""))
+        myform <- formula(paste("Mean ~ hour | wkday *", temp, sep = ""))
     }
 
     ## ylim hander
@@ -733,11 +739,11 @@ calc.wd <- function(mydata, vars = "day.hour", pollutant, type, B = B) {
 
         if (vars == "hour")  myform <- formula(paste("value ~ variable + hour +", type))
 
-        if (vars == "day.hour")  myform <- formula(paste("value ~ variable + weekday + hour +", type))
+        if (vars == "day.hour")  myform <- formula(paste("value ~ variable + wkday + hour +", type))
 
-        if (vars == "weekday") myform <- formula(paste("value ~ variable + weekday +", type))
+        if (vars == "wkday") myform <- formula(paste("value ~ variable + wkday +", type))
 
-        if (vars == "month") myform <- formula(paste("value ~ variable + month +", type))
+        if (vars == "mnth") myform <- formula(paste("value ~ variable + mnth +", type))
 
         mydata <- aggregate(myform, data = mydata, FUN, B = B)
         mydata
@@ -800,15 +806,11 @@ errorDiff <- function(mydata, vars = "day.hour", poll1, poll2, type, B = B)
     ## rearrange data
     mydata <- dcast(mydata, ... ~ variable)
     if (vars == "hour") splits <- c("hour", type)
-    if (vars == "day.hour") splits <- c("hour", "weekday", type)
-    if (vars == "weekday") splits <- c("weekday", type)
-    if (vars == "month") splits <- c("month", type)
+    if (vars == "day.hour") splits <- c("hour", "wkday", type)
+    if (vars == "wkday") splits <- c("wkday", type)
+    if (vars == "mnth") splits <- c("mnth", type)
 
     res <- ddply(mydata, splits, openair:::bootMeanDiff, x = poll1, y = poll2, B = B)
 
     res
 }
-
-
-
-

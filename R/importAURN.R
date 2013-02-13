@@ -240,7 +240,7 @@ importAURN <- function(site = "my1", year = 2009, pollutant = "all", hc = FALSE)
          }
 
      ## if particular pollutants have been selected
-    if (!missing(pollutant)) thedata <- thedata[, c("date", pollutant, "site", "code")]
+    if (pollutant != "all") thedata <- thedata[, c("date", pollutant, "site", "code")]
 
     rm(list = theObjs, pos = 1)
 

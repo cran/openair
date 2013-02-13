@@ -4,7 +4,8 @@
 \usage{
   trajCluster(traj, method = "Euclid", n.cluster = 5,
     plot = TRUE, type = "default", cols = "Set1",
-    split.after = FALSE, ...)
+    split.after = FALSE, map.fill = TRUE,
+    map.cols = "grey40", map.alpha = 0.4, ...)
 }
 \arguments{
   \item{traj}{An openair trajectory data frame resulting
@@ -42,6 +43,20 @@
   can either be calculated for each level of \code{type}
   independently or extracted after the cluster calculations
   have been applied to the whole data set.}
+
+  \item{map.fill}{Should the base map be a filled polygon?
+  Default is to fill countries.}
+
+  \item{map.cols}{If \code{map.fill = TRUE} \code{map.cols}
+  controls the fill colour. Examples include \code{map.fill
+  = "grey40"} and \code{map.fill = openColours("default",
+  10)}. The latter colours the countries and can help
+  differentiate them.}
+
+  \item{map.alpha}{The transpency level of the filled map
+  which takes values from 0 (full transparency) to 1 (full
+  opacity). Setting it below 1 can help view trajectories,
+  trajectory surfaces etc. \emph{and} a filled base map.}
 
   \item{...}{Other graphical parameters passed onto
   \code{lattice:levelplot} and \code{cutData}. Similarly,

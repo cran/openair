@@ -37,11 +37,15 @@ MannKendall <- function(mydata, ...) {
 ##' Note! that since version 0.5-11 openair uses Theil-Sen to derive
 ##' the p values also. This is to ensure there is consistency between
 ##' the calculated p value and other trend parameters i.e. slope
-##' estimates and uncertianties. This change may slightly affect some
+##' estimates and uncertainties. This change may slightly affect some
 ##' of the p-estimates previously given by openair because the p
 ##' estimates are now calculated using bootstrap resampling by default
 ##' and previously they were not. However, users can still for the
-##' moment call the \code{TheilSen} function using \code{MannKendall}
+##' moment call the \code{TheilSen} function using \code{MannKendall}.
+##'
+##' Note that the symbols shown next to each trend estimate relate to
+##' how statistically significant the trend estimate is: p $<$ 0.001 =
+##' ***, p $<$ 0.01 = **, p $<$ 0.05 = * and p $<$ 0.1 = $+$.
 ##'
 ##' Some of the code used in \code{TheilSen} is based on that from
 ##' Rand Wilcox \url{http://www-rcf.usc.edu/~rwilcox/}. This mostly
@@ -88,7 +92,7 @@ MannKendall <- function(mydata, ...) {
 ##' accordingly. If type is an existing character or factor variable,
 ##' then those categories/levels will be used directly. This offers
 ##' great flexibility for understanding the variation of different
-##' variables and how they dcepend on one another.
+##' variables and how they depend on one another.
 ##'
 ##' Type can be up length two e.g. \code{type = c("season",
 ##' "weekday")} will produce a 2x2 plot split by season and day of the
@@ -403,7 +407,7 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
         extra.args$skip <- FALSE
 
     ## proper names of labelling ###################################################
-    strip.dat <- strip.fun(split.data, type, auto.text)
+    strip.dat <- openair:::strip.fun(split.data, type, auto.text)
     strip <- strip.dat[[1]]
     strip.left <- strip.dat[[2]]
     pol.name <- strip.dat[[3]]
@@ -531,12 +535,12 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
 
 
 panel.shade <- function(split.data, start.year, end.year, ylim) {
-    ## provides annual shaded 'bands' on plots to help show years
 
-    x1 <- as.POSIXct(seq(ISOdate(start.year - 2, 1, 1),
-                         ISOdate(end.year + 1, 1, 1), by = "2 years"), "GMT")
-    x2 <- as.POSIXct(seq(ISOdate(start.year + 1 - 2, 1, 1),
-                         ISOdate(end.year + 2, 1, 1), by = "2 years"), "GMT")
+     x1 <- as.POSIXct(seq(ISOdate(start.year - 6, 1, 1),
+                         ISOdate(end.year + 5, 1, 1), by = "2 years"), "GMT")
+    x2 <- as.POSIXct(seq(ISOdate(start.year + 1 - 6, 1, 1),
+                         ISOdate(end.year + 5, 1, 1), by = "2 years"), "GMT")
+
 
     if (class(split.data$date)[1]  == "Date") {x1 <- as.Date(x1)
                                                x2 <- as.Date(x2)

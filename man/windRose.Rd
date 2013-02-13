@@ -239,8 +239,8 @@
   case, \code{ws} and \code{wd} are considered to the the
   reference data sets with which a second set of wind speed
   and wind directions are to be compared (\code{ws2} and
-  \code{wd2}). The second set of values is subtracted from
-  the first and the differences compared. If for example,
+  \code{wd2}). The first set of values is subtracted from
+  the second and the differences compared. If for example,
   \code{wd2} was biased positive compared with \code{wd}
   then \code{pollutionRose} will show the bias in polar
   coordinates. In its default use, wind direction bias is

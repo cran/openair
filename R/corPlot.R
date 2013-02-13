@@ -65,6 +65,21 @@
 ##'   \code{ylab}, \code{main}) being passed via \code{quickText}
 ##'   to handle routine formatting.
 ##' @export
+##'  @return As well as generating the plot itself, \code{corPlot}
+##' also returns an object of class \dQuote{openair}. The object
+##' includes three main components: \code{call}, the command used to
+##' generate the plot; \code{data}, the data frame of summarised
+##' information used to make the plot; and \code{plot}, the plot
+##' itself. If retained, e.g. using \code{output <- corPlot(mydata)},
+##' this output can be used to recover the data, reproduce or rework
+##' the original plot or undertake further analysis. Note the denogram
+##' when \code{cluster = TRUE} can aslo be returned and plotted. See
+##' examples.
+##'
+##' An openair output can be manipulated using a number of generic operations,
+##'   including \code{print}, \code{plot} and \code{summary}. See
+##'   \code{\link{openair.generics}} for further details.
+##'
 ##' @author David Carslaw --- but mostly based on code contained in Sarkar
 ##'   (2007)
 ##' @seealso \code{taylor.diagram} from the \code{plotrix} package from which
@@ -83,6 +98,9 @@
 ##' corPlot(mydata)
 ##' ## plot by season ... and so on
 ##' corPlot(mydata, type = "season")
+##' ## recover dendogram when cluster = TRUE and plot it
+##' res <-corPlot(mydata)
+##' plot(res$clust)
 ##' \dontrun{
 ##' ## a more interesting are hydrocarbon measurements
 ##' hc <- importAURN(site = "my1", year = 2005, hc = TRUE)
@@ -123,6 +141,8 @@ corPlot <- function(mydata, pollutants = NULL, type = "default",
                            quickText(extra.args$ylab, auto.text) else quickText(NULL, auto.text)
     extra.args$main <- if("main" %in% names(extra.args))
                            quickText(extra.args$main, auto.text) else quickText("", auto.text)
+    extra.args$method <- if("method" %in% names(extra.args))
+                           extra.args$method else "pearson"
 
     #layout default
     if(!"layout" %in% names(extra.args))
@@ -162,8 +182,9 @@ corPlot <- function(mydata, pollutants = NULL, type = "default",
 
     prepare.cond <- function(mydata) {
         ## calculate the correlations
+
         thedata <- suppressWarnings(cor(mydata[, sapply(mydata, is.numeric)],
-                                        use = "pairwise.complete.obs", ...))
+                                        use = "pairwise.complete.obs", method = extra.args$method))
 
         ## remove columns/rows where all are NA
         therows <- apply(thedata, 1, function(x) !all(is.na(x)))
@@ -174,8 +195,11 @@ corPlot <- function(mydata, pollutants = NULL, type = "default",
         thepols <-  pol.name[thecols]
 
         if (cluster) {
+            ## for plotting dendogram
+            clust <- hclust(dist(thedata))
             ord.dat <- order.dendrogram(as.dendrogram(hclust(dist(thedata))))
         } else {
+            clust <- NULL
             ord.dat <- 1:ncol(thedata)
         }
 
@@ -188,12 +212,13 @@ corPlot <- function(mydata, pollutants = NULL, type = "default",
         thedata <- as.vector(thedata)
 
         thedata <- cbind(grid, z = thedata, type = mydata[1, type])
-        thedata <- list(thedata = thedata, pol.name = thepols, pol.ord = ord.dat)
+        thedata <- list(thedata = thedata, pol.name = thepols, pol.ord = ord.dat, clust = clust)
         thedata
 
     }
 
     results.grid <- dlply(mydata, type, prepare.cond)
+    clust <- results.grid[[1]]$clust
 
     ##recover by-type order
     #(re clustering = TRUE)
@@ -270,7 +295,7 @@ corPlot <- function(mydata, pollutants = NULL, type = "default",
     newdata <- cbind(x = x2, y = y2, newdata)
 
     #main handling
-    output <- list(plot = plt, data = newdata, call = match.call())
+    output <- list(plot = plt, data = newdata, call = match.call(), clust = clust)
     class(output) <- "openair"
     invisible(output)
 

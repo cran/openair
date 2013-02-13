@@ -71,15 +71,16 @@
 ##' variable to plot in polar coordinates (the default is a column
 ##' \dQuote{ws} --- wind speed) and a pollutant. Should also contain \code{date}
 ##' if plots by time period are required.
-##' @param pollutant Mandatory. A pollutant name corresponding to a variable in
-##'   a data frame should be supplied e.g. \code{pollutant = "nox"}. There can
-##'   also be more than one pollutant specified e.g. \code{pollutant = c("nox",
-##'   "no2")}. The main use of using two or more pollutants is for model
-##'   evaluation where two species would be expected to have similar
-##'   concentrations. This saves the user stacking the data and it is possible
-##'   to work with columns of data directly. A typical use would be
-##'   \code{pollutant = c("obs", "mod")} to compare two columns \dQuote{obs} (the
-##'   observations) and \dQuote{mod} (modelled values).
+##' @param pollutant Mandatory. A pollutant name corresponding to a
+##' variable in a data frame should be supplied e.g. \code{pollutant =
+##' "nox"}. There can also be more than one pollutant specified
+##' e.g. \code{pollutant = c("nox", "no2")}. The main use of using two
+##' or more pollutants is for model evaluation where two species would
+##' be expected to have similar concentrations. This saves the user
+##' stacking the data and it is possible to work with columns of data
+##' directly. A typical use would be \code{pollutant = c("obs",
+##' "mod")} to compare two columns \dQuote{obs} (the observations) and
+##' \dQuote{mod} (modelled values).
 ##' @param x Name of variable to plot against wind direction in polar
 ##' coordinates, the default is wind speed, \dQuote{ws}.
 ##' @param wd Name of wind direction field.
@@ -105,17 +106,26 @@
 ##' @param statistic The statistic that should be applied to each wind
 ##' speed/direction bin. Can be \dQuote{mean} (default),
 ##' \dQuote{median}, \dQuote{max} (maximum),
-##' \dQuote{frequency}. \dQuote{stdev} (standard deviation) or
-##' \dQuote{weighted.mean}. Because of the smoothing involved, the
-##' colour scale for some of these statistics is only to provide an
-##' indication of overall pattern and should not be interpreted in
-##' concentration units e.g. for \code{statistic = "weighted.mean"}
-##' where the bin mean is multiplied by the bin frequency and divided
-##' by the total frequency. In many cases using \code{polarFreq} will
-##' be better. Setting \code{statistic = "weighted.mean"} can be
-##' useful because it provides an indication of the concentration *
-##' frequency of occurrence and will highlight the wind
-##' speed/direction conditions that dominate the overall mean.
+##' \dQuote{frequency}. \dQuote{stdev} (standard deviation),
+##' \dQuote{weighted.mean} or \dQuote{cpf} (Conditional Probability
+##' Function). Because of the smoothing involved, the colour scale for
+##' some of these statistics is only to provide an indication of
+##' overall pattern and should not be interpreted in concentration
+##' units e.g. for \code{statistic = "weighted.mean"} where the bin
+##' mean is multiplied by the bin frequency and divided by the total
+##' frequency. In many cases using \code{polarFreq} will be
+##' better. Setting \code{statistic = "weighted.mean"} can be useful
+##' because it provides an indication of the concentration * frequency
+##' of occurrence and will highlight the wind speed/direction
+##' conditions that dominate the overall mean.
+##'
+##' When \code{statistic = "cpf"} the conditional probability function
+##' (CPF) is plotted and a single (usually high) percentile level is
+##' supplied. The CPF is defined as CPF = my/ny, where my is the
+##' number of samples in the y bin (by default a wind direction, wind
+##' speed interval) with mixing ratios greater than the \emph{overall}
+##' percentile concentration, and ny is the total number of samples in
+##' the same wind sector (see Ashbaugh et al., 1985).
 ##' @param resolution Two plot resolutions can be set: \dQuote{normal} (the
 ##' default) and \dQuote{fine}, for a smoother plot. It should be noted that
 ##' plots with a \dQuote{fine} resolution can take longer to render and the
@@ -144,13 +154,14 @@
 ##' GAM and weighting is done by the frequency of measurements in each
 ##' wind speed-direction bin. Note that if uncertainties are
 ##' calculated then the type is set to "default".
-##' @param percentile If \code{statistic = "percentile"} then
-##' \code{percentile} is used, expressed from 0 to 100. Note that the
-##' percentile value is calculated in the wind speed, wind direction
-##' \sQuote{bins}. For this reason it can also be useful to set
-##' \code{min.bin} to ensure there are a sufficient number of points
-##' available to estimate a percentile. See \code{quantile} for more
-##' details of how percentiles are calculated.
+##' @param percentile If \code{statistic = "percentile"} or
+##' \code{statistic = "cpf"} then \code{percentile} is used, expressed
+##' from 0 to 100. Note that the percentile value is calculated in the
+##' wind speed, wind direction \sQuote{bins}. For this reason it can
+##' also be useful to set \code{min.bin} to ensure there are a
+##' sufficient number of points available to estimate a
+##' percentile. See \code{quantile} for more details of how
+##' percentiles are calculated.
 ##' @param cols Colours to be used for plotting. Options include
 ##' \dQuote{default}, \dQuote{increment}, \dQuote{heat}, \dQuote{jet}
 ##' and \code{RColorBrewer} colours --- see the \code{openair}
@@ -235,47 +246,63 @@
 ##' @export
 ##' @import lattice
 ##' @import mgcv
-##' @return As well as generating the plot itself, \code{polarPlot} also
-##'   returns an object of class ``openair''. The object includes three main
-##'   components: \code{call}, the command used to generate the plot;
-##'   \code{data}, the data frame of summarised information used to make the
-##'   plot; and \code{plot}, the plot itself. If retained, e.g. using
-##'   \code{output <- polarPlot(mydata, "nox")}, this output can be used to
-##'   recover the data, reproduce or rework the original plot or undertake
-##'   further analysis.
+##' @return As well as generating the plot itself, \code{polarPlot}
+##' also returns an object of class ``openair''. The object includes
+##' three main components: \code{call}, the command used to generate
+##' the plot; \code{data}, the data frame of summarised information
+##' used to make the plot; and \code{plot}, the plot itself. If
+##' retained, e.g. using \code{output <- polarPlot(mydata, "nox")},
+##' this output can be used to recover the data, reproduce or rework
+##' the original plot or undertake further analysis.
 ##'
-##' An openair output can be manipulated using a number of generic operations,
-##'   including \code{print}, \code{plot} and \code{summary}. See
-##'   \code{\link{openair.generics}} for further details.
+##' An openair output can be manipulated using a number of generic
+##' operations, including \code{print}, \code{plot} and
+##' \code{summary}. See \code{\link{openair.generics}} for further
+##' details.
 ##'
-##' \code{polarPlot} surface data can also be extracted directly using the
-##'   \code{results}, e.g.  \code{results(object)} for \code{output <-
-##'   polarPlot(mydata, "nox")}. This returns a data frame with four set
-##'   columns: \code{cond}, conditioning based on \code{type}; \code{u} and
-##'   \code{v}, the translational vectors based on \code{ws} and \code{wd}; and
-##'   the local \code{pollutant} estimate.
+##' \code{polarPlot} surface data can also be extracted directly using
+##' the \code{results}, e.g.  \code{results(object)} for \code{output
+##' <- polarPlot(mydata, "nox")}. This returns a data frame with four
+##' set columns: \code{cond}, conditioning based on \code{type};
+##' \code{u} and \code{v}, the translational vectors based on
+##' \code{ws} and \code{wd}; and the local \code{pollutant} estimate.
 ##' @author David Carslaw
-##' @seealso \code{\link{polarAnnulus}}, \code{\link{polarFreq}}, \code{\link{percentileRose}}
+##' @seealso \code{\link{polarCluster}} for identifying features in
+##' bivairate polar plots and for post processing and
+##' \code{\link{polarAnnulus}}, \code{\link{polarFreq}},
+##' \code{\link{percentileRose}} for other ways of plotting directional data.
 ##' @references
 ##'
-##' Carslaw, D.C., Beevers, S.D, Ropkins, K and M.C. Bell (2006).  Detecting
-##'   and quantifying aircraft and other on-airport contributions to ambient
-##'   nitrogen oxides in the vicinity of a large international airport.
-##'   Atmospheric Environment. 40/28 pp 5424-5434.
+##' Ashbaugh, L.L., Malm, W.C., Sadeh, W.Z., 1985. A
+##' residence time probability analysis of sulfur concentrations at
+##' ground canyon national park. Atmospheric Environment 19 (8),
+##' 1263-1270.
 ##'
-##' Henry, R.C., Chang, Y.S., Spiegelman, C.H., 2002. Locating nearby sources
-##'   of air pollution by nonparametric regression of atmospheric
-##'   concentrations on wind direction. Atmospheric Environment 36 (13),
-##'   2237-2244.
+##' Carslaw, D.C., Beevers, S.D, Ropkins, K and M.C. Bell (2006).
+##' Detecting and quantifying aircraft and other on-airport
+##' contributions to ambient nitrogen oxides in the vicinity of a
+##' large international airport.  Atmospheric Environment. 40/28 pp
+##' 5424-5434.
 ##'
-##' Westmoreland, E.J., N. Carslaw, D.C. Carslaw, A. Gillah and E. Bates
-##'   (2007).  Analysis of air quality within a street canyon using statistical
-##'   and dispersion modelling techniques.  Atmospheric Environment. Vol.
-##'   41(39), pp. 9195-9205.
+##' Carslaw, D.C., & Beevers, S.D. (2013). Characterising and
+##' understanding emission sources using bivariate polar plots and
+##' k-means clustering. Environmental Modelling & Software, 40,
+##' 325-329. doi:10.1016/j.envsoft.2012.09.005
 ##'
-##' Yu, K.N., Cheung, Y.P., Cheung, T., Henry, R.C., 2004.  Identifying the
-##'   impact of large urban airports on local air quality by nonparametric
-##'   regression. Atmospheric Environment 38 (27), 4501-4507.
+##' Henry, R.C., Chang, Y.S., Spiegelman, C.H., 2002. Locating nearby
+##' sources of air pollution by nonparametric regression of
+##' atmospheric concentrations on wind direction. Atmospheric
+##' Environment 36 (13), 2237-2244.
+##'
+##' Westmoreland, E.J., N. Carslaw, D.C. Carslaw, A. Gillah and
+##' E. Bates (2007).  Analysis of air quality within a street canyon
+##' using statistical and dispersion modelling techniques.
+##' Atmospheric Environment. Vol.  41(39), pp. 9195-9205.
+##'
+##' Yu, K.N., Cheung, Y.P., Cheung, T., Henry, R.C., 2004.
+##' Identifying the impact of large urban airports on local air
+##' quality by nonparametric regression. Atmospheric Environment 38
+##' (27), 4501-4507.
 ##' @keywords methods
 ##' @examples
 ##'
@@ -302,34 +329,36 @@
 ##'
 polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "default",
                       statistic = "mean", resolution = "normal", limits = NA,
-                      exclude.missing = TRUE, uncertainty = FALSE, percentile = NA, cols = "default",
-                      min.bin = 1, upper = NA, angle.scale = 315, units = x,
-                      force.positive = TRUE, k = 100, normalise = FALSE,
+                      exclude.missing = TRUE, uncertainty = FALSE, percentile = NA,
+                      cols = "default", min.bin = 1, upper = NA, angle.scale = 315,
+                      units = x, force.positive = TRUE, k = 100, normalise = FALSE,
                       key.header = "", key.footer = pollutant, key.position = "right",
                       key = TRUE, auto.text = TRUE, ...) {
 
     ## get rid of R check annoyances
     z = NULL
 
-    if (statistic == "percentile" & is.na(percentile)) {
+    if (statistic == "percentile" & is.na(percentile & statistic != "cpf")) {
         warning("percentile value missing,  using 50")
         percentile <- 50
     }
 
-    ## initial checks ##########################################################################################
+    ## initial checks ####################################################################
     if (length(type) > 2) {stop("Maximum number of types is 2.")}
 
     if (uncertainty) type <- "default" ## can't have conditioning here
 
     if (uncertainty & length(pollutant) > 1) stop("Can only have one pollutant when uncertainty = TRUE")
 
-    if (!statistic %in% c("mean", "median", "frequency", "max", "stdev", "weighted.mean", "percentile")) {
+    if (!statistic %in% c("mean", "median", "frequency", "max", "stdev",
+                          "weighted.mean", "percentile", "cpf")) {
         stop (paste("statistic '", statistic, "' not recognised", sep = ""))
     }
 
     if (missing(key.header)) key.header <- statistic
     if (key.header == "weighted.mean") key.header <- c("weighted", "mean")
     if (key.header == "percentile") key.header <- c(paste(percentile, "th", sep = ""), "percentile")
+    if (key.header == "cpf") key.header <- c("CPF", "probability")
 
     ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
@@ -341,10 +370,10 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
     current.strip <- trellis.par.get("strip.background")
     on.exit(trellis.par.set("strip.background", current.strip))
 
-    ##extra.args setup
+    ## extra.args setup
     extra.args <- list(...)
 
-                                        #label controls
+    ## label controls
     extra.args$xlab <- if("xlab" %in% names(extra.args))
         quickText(extra.args$xlab, auto.text) else quickText("", auto.text)
     extra.args$ylab <- if("ylab" %in% names(extra.args))
@@ -352,7 +381,7 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
     extra.args$main <- if("main" %in% names(extra.args))
         quickText(extra.args$main, auto.text) else quickText("", auto.text)
 
-                                        #layout default
+    ## layout default
     if(!"layout" %in% names(extra.args))
         extra.args$layout <- NULL
 
@@ -363,11 +392,14 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
 
     mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
 
+    mydata <- na.omit(mydata)
+
     ## this is used later for the 'x' scale
-    min.scale <- floor(min(mydata[[x]], na.rm = TRUE))
+    min.scale <- min(mydata[[x]], na.rm = TRUE)
+
 
     ## scale data by subtracting the min value
-    ## this helps with dealing with data with offsets - scaling
+    ## this helps with dealing with negative data on radial axis (starts from zero, always postive)
     mydata[ , x] <- mydata[ , x] - min(mydata[ , x], na.rm = TRUE)
 
     ## if more than one pollutant, need to stack the data and set type = "variable"
@@ -392,19 +424,19 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
         }
     }
 
-    ## ##########################################################################################################
+    ## ##############################################################################
 
-    mydata <- na.omit(mydata)
+
     ## cutData depending on type
     mydata <- cutData(mydata, type, ...)
 
 
     ## if upper ws not set, set it to the max to display all information
-    max.ws <- ceiling(max(mydata[[x]], na.rm = TRUE))
-    min.ws <- floor(min(mydata[[x]], na.rm = TRUE))
+    max.ws <- max(mydata[[x]], na.rm = TRUE)
+    min.ws <- min(mydata[[x]], na.rm = TRUE)
     clip <- TRUE ## used for removing data where ws > upper
 
-    if(missing(upper)) {
+    if (missing(upper)) {
         upper <- max.ws
         clip <- FALSE
     }
@@ -426,6 +458,16 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
     input.data <- expand.grid(u = seq(-upper, upper, length = int),
                               v = seq(-upper, upper, length = int))
 
+    ## for CPF
+    Pval <- quantile(mydata[, pollutant], probs = percentile / 100, na.rm = TRUE)
+
+    if (statistic == "cpf") {
+        sub <- paste("CPF probability at the ", percentile,
+                     "th percentile (=", round(Pval, 1), ")", sep = "")
+    } else {
+        sub <- NULL
+    }
+
     prepare.grid <- function(mydata) {
         ## identify which ws and wd bins the data belong
         wd <- cut(mydata[ , wd], breaks = seq(0, 360, 10), include.lowest = TRUE)
@@ -442,6 +484,8 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
                          max(x, na.rm = TRUE)),
                          stdev = tapply(mydata[, pollutant], list(wd, x), function(x)
                          sd(x, na.rm = TRUE)),
+                         cpf =  tapply(mydata[, pollutant], list(wd, x),
+                         function(x) (length(which(x > Pval)) / length(x))),
                          weighted.mean = tapply(mydata[, pollutant], list(wd, x),
                          function(x) (mean(x) * length(x) / nrow(mydata))),
                          percentile = tapply(mydata[, pollutant], list(wd, x), function(x)
@@ -548,29 +592,48 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
     nlev <- 200  ## preferred number of intervals
 
     ## handle missing breaks arguments
-    if(missing(limits)) breaks <- pretty(results.grid$z, n = nlev) else breaks <-
-        pretty(limits, n = nlev)
 
-    nlev2 = length(breaks)
+    if (missing(limits)) {
+        breaks <- pretty(results.grid$z, n = nlev)
+        labs <- pretty(breaks, 7)
+        labs <- labs[labs >= min(breaks) & labs <= max(breaks)]
+
+    } else {
+
+        breaks <- pretty(limits, n = nlev)
+        labs <- pretty(breaks, 7)
+        labs <- labs[labs >= min(breaks) & labs <= max(breaks)]
+
+        if (max(limits) < max(results.grid$z, na.rm = TRUE)) {
+            ## if clipping highest, then annotate differently
+            id <- which(results.grid$z > max(limits))
+            results.grid$z[id] <- max(limits)
+            labs <- pretty(breaks, 7)
+            labs <- labs[labs >= min(breaks) & labs <= max(breaks)]
+            labs[length(labs)] <- paste(">", labs[length(labs)])
+        }
+    }
+
+    nlev2 <- length(breaks)
 
     col <- openColours(cols, (nlev2 - 1))
 
-    col.scale = breaks
+    col.scale <- breaks
 
-                                        #special handling of layout for uncertainty
+    ## special handling of layout for uncertainty
     if (uncertainty & is.null(extra.args$layout)) {
         extra.args$layout <- c(3, 1)
     }
 
+    ## scale key setup ##############################################################
 
-    ## scale key setup ######################################################################################
-
-    legend <- list(col = col, at = col.scale, space = key.position,
-                   auto.text = auto.text, footer = key.footer, header = key.header,
+    legend <- list(col = col, at = col.scale, labels = list(labels = labs),
+                   space = key.position, auto.text = auto.text,
+                   footer = key.footer, header = key.header,
                    height = 1, width = 1.5, fit = "all")
     legend <- openair:::makeOpenKeyLegend(key, legend, "polarPlot")
 
-    ## ######################################################################################################
+    ## ##############################################################################
 
     ## scaling
     ## scaling of 'zeroed' data
@@ -591,59 +654,60 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
     temp <- paste(type, collapse = "+")
     myform <- formula(paste("z ~ u * v | ", temp, sep = ""))
 
-    levelplot.args <- list(x = myform, results.grid, axes = FALSE,
-                           as.table = TRUE,
-                           strip = strip,
-                           strip.left = strip.left,
-                           col.regions = col,
-                           region = TRUE,
-                           aspect = 1,
-                           at = col.scale,
-                           par.strip.text = list(cex = 0.8),
-                           scales = list(draw = FALSE),
-                           xlim = c(-upper * 1.025, upper * 1.025),
-                           ylim = c(-upper * 1.025, upper * 1.025),
-                           colorkey = FALSE, legend = legend,
+    Args <- list(x = myform, results.grid, axes = FALSE,
+                 as.table = TRUE,
+                 strip = strip,
+                 strip.left = strip.left,
+                 col.regions = col,
+                 region = TRUE,
+                 aspect = 1,
+                 sub = sub,
+                 at = col.scale,
+                 par.strip.text = list(cex = 0.8),
+                 scales = list(draw = FALSE),
+                 xlim = c(-upper * 1.025, upper * 1.025),
+                 ylim = c(-upper * 1.025, upper * 1.025),
+                 colorkey = FALSE, legend = legend,
 
-                           panel = function(x, y, z,subscripts,...) {
-                               panel.levelplot(x, y, z,
-                                               subscripts,
-                                               at = col.scale,
-                                               pretty = TRUE,
-                                               col.regions = col,
-                                               labels = FALSE)
+                 panel = function(x, y, z,subscripts,...) {
+                     panel.levelplot(x, y, z,
+                                     subscripts,
+                                     at = col.scale,
+                                     pretty = TRUE,
+                                     col.regions = col,
+                                     labels = FALSE)
 
-                               angles <- seq(0, 2 * pi, length = 360)
+                     angles <- seq(0, 2 * pi, length = 360)
 
-                               sapply(intervals, function(x) llines(x * sin(angles), x * cos(angles),
-                                                                    col = "grey", lty = 5))
+                     sapply(intervals, function(x) llines(x * sin(angles), x * cos(angles),
+                                                          col = "grey", lty = 5))
 
 
-                               ltext(1.07 * intervals * sin(pi * angle.scale / 180),
-                                     1.07 * intervals * cos(pi * angle.scale / 180),
-                                     sapply(paste(labels, c("", "", units, rep("", 7))), function(x)
-                                            quickText(x, auto.text)) , cex = 0.7, pos = 4)
+                     ltext(1.07 * intervals * sin(pi * angle.scale / 180),
+                           1.07 * intervals * cos(pi * angle.scale / 180),
+                           sapply(paste(labels, c("", "", units, rep("", 7))), function(x)
+                                  quickText(x, auto.text)) , cex = 0.7, pos = 4)
 
-                               ## add axis line to central polarPlot
-                               larrows(-upper, 0, upper, 0, code = 3, length = 0.1)
-                               larrows(0, -upper, 0, upper, code = 3, length = 0.1)
+                     ## add axis line to central polarPlot
+                     larrows(-upper, 0, upper, 0, code = 3, length = 0.1)
+                     larrows(0, -upper, 0, upper, code = 3, length = 0.1)
 
-                               ltext(upper * -1 * 0.95, 0.07 * upper, "W", cex = 0.7)
-                               ltext(0.07 * upper, upper * -1 * 0.95, "S", cex = 0.7)
-                               ltext(0.07 * upper, upper * 0.95, "N", cex = 0.7)
-                               ltext(upper * 0.95, 0.07 *upper, "E", cex = 0.7)
+                     ltext(upper * -1 * 0.95, 0.07 * upper, "W", cex = 0.7)
+                     ltext(0.07 * upper, upper * -1 * 0.95, "S", cex = 0.7)
+                     ltext(0.07 * upper, upper * 0.95, "N", cex = 0.7)
+                     ltext(upper * 0.95, 0.07 *upper, "E", cex = 0.7)
 
-                           })
+                 })
 
-     ## reset for extra.args
-    levelplot.args<- openair:::listUpdate(levelplot.args, extra.args)
+    ## reset for extra.args
+    Args<- openair:::listUpdate(Args, extra.args)
 
-                                        #plot
-    plt <- do.call(levelplot, levelplot.args)
+    plt <- do.call(levelplot, Args)
 
-    ## output ##############################################################################################
+    ## output #######################################################################
 
-    if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip, strip.left = strip.left))
+    if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip,
+              strip.left = strip.left))
 
     newdata <- results.grid
     output <- list(plot = plt, data = newdata, call = match.call())

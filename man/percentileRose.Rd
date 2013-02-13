@@ -4,8 +4,10 @@
 \usage{
   percentileRose(mydata, pollutant = "nox",
     type = "default", percentile = c(25, 50, 75, 90, 95),
-    cols = "default", fill = TRUE, intervals = NULL,
-    angle.scale = 45, auto.text = TRUE, key.header = NULL,
+    method = "default", cols = "default", mean = TRUE,
+    mean.lty = 1, mean.lwd = 3, mean.col = "grey",
+    fill = TRUE, intervals = NULL, angle.scale = 45,
+    auto.text = TRUE, key.header = NULL,
     key.footer = "percentile", key.position = "bottom",
     key = TRUE, ...)
 }
@@ -42,7 +44,19 @@
   first forms the columns and the second the rows.}
 
   \item{percentile}{The percentile value(s) to plot. Must
-  be between 0--100.}
+  be between 0--100. If \code{percentile = NA} then only a
+  mean line will be shown.}
+
+  \item{method}{When \code{method = "default"} the supplied
+  percentiles by wind direction are calculated. When
+  \code{method = "cpf"} the conditional probability
+  function (CPF) is plotted and a single (usually high)
+  percentile level is supplied. The CPF is defined as CPF =
+  my/ny, where my is the number of samples in the wind
+  sector y with mixing ratios greater than the
+  \emph{overall} percentile concentration, and ny is the
+  total number of samples in the same wind sector (see
+  Ashbaugh et al., 1985).}
 
   \item{cols}{Colours to be used for plotting. Options
   include \dQuote{default}, \dQuote{increment},
@@ -52,6 +66,14 @@
   supply a list of colour names recognised by R (type
   \code{colours()} to see the full list). An example would
   be \code{cols = c("yellow", "green", "blue")}}
+
+  \item{mean}{Show the mean by wind direction as a line?}
+
+  \item{mean.lty}{Line type for mean line.}
+
+  \item{mean.lwd}{Line width for mean line.}
+
+  \item{mean.col}{Line colour for mean line.}
 
   \item{fill}{Should the percentile intervals be filled
   (default) or should lines be drawn (\code{fill =
@@ -173,6 +195,12 @@ percentileRose(mydata, type = c("season", "daylight"), pollutant = "o3", col = "
 }
 \author{
   David Carslaw
+}
+\references{
+  Ashbaugh, L.L., Malm, W.C., Sadeh, W.Z., 1985. A
+  residence time probability analysis of sulfur
+  concentrations at ground canyon national park.
+  Atmospheric Environment 19 (8), 1263-1270.
 }
 \seealso{
   See Also as \code{\link{windRose}},

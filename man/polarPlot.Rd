@@ -64,11 +64,12 @@
   \item{statistic}{The statistic that should be applied to
   each wind speed/direction bin. Can be \dQuote{mean}
   (default), \dQuote{median}, \dQuote{max} (maximum),
-  \dQuote{frequency}. \dQuote{stdev} (standard deviation)
-  or \dQuote{weighted.mean}. Because of the smoothing
-  involved, the colour scale for some of these statistics
-  is only to provide an indication of overall pattern and
-  should not be interpreted in concentration units e.g. for
+  \dQuote{frequency}. \dQuote{stdev} (standard deviation),
+  \dQuote{weighted.mean} or \dQuote{cpf} (Conditional
+  Probability Function). Because of the smoothing involved,
+  the colour scale for some of these statistics is only to
+  provide an indication of overall pattern and should not
+  be interpreted in concentration units e.g. for
   \code{statistic = "weighted.mean"} where the bin mean is
   multiplied by the bin frequency and divided by the total
   frequency. In many cases using \code{polarFreq} will be
@@ -76,7 +77,16 @@
   useful because it provides an indication of the
   concentration * frequency of occurrence and will
   highlight the wind speed/direction conditions that
-  dominate the overall mean.}
+  dominate the overall mean.
+
+  When \code{statistic = "cpf"} the conditional probability
+  function (CPF) is plotted and a single (usually high)
+  percentile level is supplied. The CPF is defined as CPF =
+  my/ny, where my is the number of samples in the y bin (by
+  default a wind direction, wind speed interval) with
+  mixing ratios greater than the \emph{overall} percentile
+  concentration, and ny is the total number of samples in
+  the same wind sector (see Ashbaugh et al., 1985).}
 
   \item{resolution}{Two plot resolutions can be set:
   \dQuote{normal} (the default) and \dQuote{fine}, for a
@@ -116,14 +126,15 @@
   bin. Note that if uncertainties are calculated then the
   type is set to "default".}
 
-  \item{percentile}{If \code{statistic = "percentile"} then
-  \code{percentile} is used, expressed from 0 to 100. Note
-  that the percentile value is calculated in the wind
-  speed, wind direction \sQuote{bins}. For this reason it
-  can also be useful to set \code{min.bin} to ensure there
-  are a sufficient number of points available to estimate a
-  percentile. See \code{quantile} for more details of how
-  percentiles are calculated.}
+  \item{percentile}{If \code{statistic = "percentile"} or
+  \code{statistic = "cpf"} then \code{percentile} is used,
+  expressed from 0 to 100. Note that the percentile value
+  is calculated in the wind speed, wind direction
+  \sQuote{bins}. For this reason it can also be useful to
+  set \code{min.bin} to ensure there are a sufficient
+  number of points available to estimate a percentile. See
+  \code{quantile} for more details of how percentiles are
+  calculated.}
 
   \item{cols}{Colours to be used for plotting. Options
   include \dQuote{default}, \dQuote{increment},
@@ -357,11 +368,21 @@ polarPlot(mydata, pollutant = "nox")
   David Carslaw
 }
 \references{
+  Ashbaugh, L.L., Malm, W.C., Sadeh, W.Z., 1985. A
+  residence time probability analysis of sulfur
+  concentrations at ground canyon national park.
+  Atmospheric Environment 19 (8), 1263-1270.
+
   Carslaw, D.C., Beevers, S.D, Ropkins, K and M.C. Bell
-  (2006).  Detecting and quantifying aircraft and other
+  (2006). Detecting and quantifying aircraft and other
   on-airport contributions to ambient nitrogen oxides in
   the vicinity of a large international airport.
   Atmospheric Environment. 40/28 pp 5424-5434.
+
+  Carslaw, D.C., & Beevers, S.D. (2013). Characterising and
+  understanding emission sources using bivariate polar
+  plots and k-means clustering. Environmental Modelling &
+  Software, 40, 325-329. doi:10.1016/j.envsoft.2012.09.005
 
   Henry, R.C., Chang, Y.S., Spiegelman, C.H., 2002.
   Locating nearby sources of air pollution by nonparametric
@@ -371,7 +392,7 @@ polarPlot(mydata, pollutant = "nox")
   Westmoreland, E.J., N. Carslaw, D.C. Carslaw, A. Gillah
   and E. Bates (2007).  Analysis of air quality within a
   street canyon using statistical and dispersion modelling
-  techniques.  Atmospheric Environment. Vol.  41(39), pp.
+  techniques. Atmospheric Environment. Vol.  41(39), pp.
   9195-9205.
 
   Yu, K.N., Cheung, Y.P., Cheung, T., Henry, R.C., 2004.
@@ -380,8 +401,11 @@ polarPlot(mydata, pollutant = "nox")
   Environment 38 (27), 4501-4507.
 }
 \seealso{
+  \code{\link{polarCluster}} for identifying features in
+  bivairate polar plots and for post processing and
   \code{\link{polarAnnulus}}, \code{\link{polarFreq}},
-  \code{\link{percentileRose}}
+  \code{\link{percentileRose}} for other ways of plotting
+  directional data.
 }
 \keyword{methods}
 

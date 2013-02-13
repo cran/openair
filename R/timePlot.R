@@ -237,31 +237,14 @@
 ##' # 2-week average of O3 concentrations
 ##' \dontrun{timePlot(mydata, pollutant = "o3", avg.time = "2 week")}
 ##'
-timePlot <- function(mydata,
-                     pollutant = "nox",
-                     group = FALSE,
-                     stack = FALSE,
-                     normalise = NULL,
-                     avg.time = "default",
-                     data.thresh = 0,
-                     statistic = "mean",
-                     percentile = NA,
-                     date.pad = FALSE,
-                     type = "default",
-                     cols = "brewer1",
-                     plot.type = "l",
-                     key = TRUE,
-                     log = FALSE,
-                     smooth = FALSE,
-                     ci = TRUE,
-                     y.relation = "same",
-                     ref.x = NULL,
-                     ref.y = NULL,
-                     key.columns = 1,
-                     name.pol = pollutant,
-                     date.breaks = 7,
-                     date.format = NULL,
-                     auto.text = TRUE, ...)   {
+timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
+                     normalise = NULL, avg.time = "default", data.thresh = 0,
+                     statistic = "mean", percentile = NA, date.pad = FALSE,
+                     type = "default", cols = "brewer1", plot.type = "l",
+                     key = TRUE, log = FALSE, smooth = FALSE, ci = TRUE,
+                     y.relation = "same", ref.x = NULL, ref.y = NULL,
+                     key.columns = 1, name.pol = pollutant, date.breaks = 7,
+                     date.format = NULL, auto.text = TRUE, ...)   {
 
 
     ## basic function to plot single/multiple time series in flexible ways
@@ -276,7 +259,7 @@ timePlot <- function(mydata,
     ## get rid of R check annoyances
     variable = year = NULL
 
-### EXPERIMENTAL LOG SCALING###############################################
+    ## # EXPERIMENTAL LOG SCALING###############################################
     if(log) nlog <- 10 else nlog <- FALSE
     yscale.components.log10 <- function(lim, ...) {
         ans <- yscale.components.default(lim = lim, ...)
@@ -293,14 +276,13 @@ timePlot <- function(mydata,
         ans
     }
 
-
     logTicks <- function (lim, loc = c(1, 5)) {
         ii <- floor(log10(range(lim))) + c(-1, 2)
         main <- 10^(ii[1]:ii[2])
         r <- as.numeric(outer(loc, main, "*"))
         r[lim[1] <= r & r <= lim[2]]
     }
-###################################################################################
+    ## #################################################################################
 
     vars <- c("date", pollutant)
 
@@ -314,9 +296,9 @@ timePlot <- function(mydata,
     current.strip <- trellis.par.get("strip.background")
     on.exit(trellis.par.set("strip.background", current.strip))
 
-##################################################################################
+    ## ################################################################################
 
-    ##extra.args setup
+    ## extra.args setup
     extra.args <- list(...)
 
     #label controls
@@ -327,9 +309,9 @@ timePlot <- function(mydata,
                            quickText(extra.args$ylab, auto.text) else NULL
     extra.args$main <- if("main" %in% names(extra.args))
                            quickText(extra.args$main, auto.text) else quickText("", auto.text)
+    xlim <- if ("xlim" %in% names(extra.args))
+        xlim else NULL
 
-    #pch, lty, lwd, etc
-    #(extra handling of all three in code body)
     if(!"pch" %in% names(extra.args))
         extra.args$pch <- NA
     if(!"lwd" %in% names(extra.args))
@@ -337,21 +319,17 @@ timePlot <- function(mydata,
     if(!"lty" %in% names(extra.args))
         extra.args$lty <- NULL
 
-    #layout
-    #(type and group handling in code body)
+    ## layout
+    ## (type and group handling in code body)
     if(!"layout" %in% names(extra.args))
         extra.args$layout <- NULL
 
-    #strip
-    #extensive handling in main code body)
-    #so cheat
+    ## strip
+    ## extensive handling in main code body)
     strip <- if("strip" %in% names(extra.args))
         extra.args$strip else TRUE
 
-
-
-
-##### warning messages and other checks ################################################################
+    ## ### warning messages and other checks ################################################
 
     ## also ckeck that column "site" is present when type set to "default"
     ## but also check to see if dates are duplicated, if not, OK to proceed
@@ -368,7 +346,7 @@ timePlot <- function(mydata,
         message("No averaging time applied, using avg.time ='month'")
         avg.time <- "month"}
 
-#######################################################################################################
+    ## #######################################################################################
 
     ## data checks
     mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
@@ -381,15 +359,15 @@ timePlot <- function(mydata,
 
     mydata <- cutData(mydata, type, ...)
 
-
     ## average the data if necessary (default does nothing)
     if (avg.time != "default") {
         ## deal with mutiple percentile values
 
         if (length(percentile) > 1) {
 
-            mydata <- ddply(mydata, type, calcPercentile, pollutant = pollutant, avg.time = avg.time,
-                            data.thresh = data.thresh, percentile = percentile)
+            mydata <- ddply(mydata, type, calcPercentile, pollutant = pollutant,
+                            avg.time = avg.time, data.thresh = data.thresh,
+                            percentile = percentile)
 
             pollutant <-  paste("percentile.", percentile,  sep = "")
 
@@ -397,20 +375,15 @@ timePlot <- function(mydata,
 
         } else {
 
-            mydata <- ddply(mydata, type, timeAverage, avg.time = avg.time, statistic = statistic,
-                            percentile = percentile, data.thresh = data.thresh)
+            mydata <- ddply(mydata, type, timeAverage, avg.time = avg.time,
+                            statistic = statistic, percentile = percentile,
+                            data.thresh = data.thresh)
         }
-
     }
 
     mydata <- melt(mydata, id.var = c("date", type))
 
-
-    if (type != "default") {
-
-        group <- TRUE ## need to group pollutants if conditioning
-##        if (missing(layout)) layout <- NULL else layout <- layout
-    }
+    if (type != "default")  group <- TRUE ## need to group pollutants if conditioning
 
     ## number of pollutants (or sites for type = "site")
     npol <- length(unique(mydata$variable)) ## number of pollutants
@@ -436,14 +409,10 @@ timePlot <- function(mydata,
         x
     }
 
-
-#need to check the ylab handling below
-#not sure what was meant
+    ## need to check the ylab handling below
+    ## not sure what was meant
 
     if (!missing(normalise)) {
-
-#original code
-#        if (!missing(ylab)) ylab <- "normalised level"
 
         if(is.null(extra.args$ylab))
             extra.args$ylab <- "normalised level"
@@ -459,7 +428,6 @@ timePlot <- function(mydata,
             thedate <- as.POSIXct(strptime(normalise, format = "%d/%m/%Y", tz = "GMT"))
             mydata <- ddply(mydata, .(variable), norm.by.date, thedate = thedate)
         }
-
     }
 
     #set ylab as pollutant(s) if not already set
@@ -474,18 +442,12 @@ timePlot <- function(mydata,
                                              quickText(name.pol[x], auto.text))
                          }
 
-#got earlier
-
-#    ## ylabs for more than one pollutant
-#    if (missing(ylab)) ylab <-  paste(pollutant, collapse = ", ")
-
     ## set up colours
     myColors <- if (length(cols) == 1 && cols == "greyscale")
         openColours(cols, npol + 1)[-1] else openColours(cols, npol)
 
     ## basic function for lattice call + defaults
     myform <- formula(paste("value ~ date |", type))
-
 
     if(is.null(extra.args$strip))
         strip <- TRUE
@@ -501,8 +463,8 @@ timePlot <- function(mydata,
         formats <- date.format
     }
 
-    scales <- list(x = list(at = dates, format = formats), y = list(log = nlog, relation = y.relation,
-                                                           rot = 0))
+    scales <- list(x = list(at = dates, format = formats),
+                   y = list(log = nlog, relation = y.relation, rot = 0))
 
     ## layout changes depening on plot type
 
@@ -525,10 +487,9 @@ timePlot <- function(mydata,
         if (is.null(extra.args$lty)) extra.args$lty <- 1 ## don't need different line types here
     }
 
-    #set lty if not set by this point
+    ## set lty if not set by this point
     if(is.null(extra.args$lty))
         extra.args$lty <- 1:length(pollutant)
-
 
     if (type == "default") strip <- FALSE
 
@@ -547,22 +508,22 @@ timePlot <- function(mydata,
 
         xlim <- dlply(mydata, .(year), function (x) range(x$date))
 
-
     }
 
     if (missing(key.columns)) key.columns <- npol
 
     ## keys and strips - to show or not
 
-
     if (key) {
         ## type of key depends on whether points are plotted or not
         if (any(!is.na(extra.args$pch))) {
-            key <- list(lines = list(col = myColors[1:npol], lty = extra.args$lty, lwd = extra.args$lwd),
-                        points = list(pch = extra.args$pch, col = myColors[1:npol]),
+            key <- list(lines = list(col = myColors[1:npol], lty = extra.args$lty,
+                        lwd = extra.args$lwd), points = list(pch = extra.args$pch,
+                                               col = myColors[1:npol]),
                         text = list(lab = mylab),  space = "bottom", columns = key.columns)
         } else {
-            key <- list(lines = list(col = myColors[1:npol], lty = extra.args$lty, lwd = extra.args$lwd),
+            key <- list(lines = list(col = myColors[1:npol], lty = extra.args$lty,
+                        lwd = extra.args$lwd),
                         text = list(lab = mylab),  space = "bottom", columns = key.columns)
         }
     } else {
@@ -596,55 +557,60 @@ timePlot <- function(mydata,
     if(!"skip" %in% names(extra.args))
          extra.args$skip <- FALSE
 
+    ## allow reasonable gaps at ends, default has too much padding
+    gap <- difftime(max(mydata$date), min(mydata$date), units = "secs") / 80
+    if (is.null(xlim)) xlim <- range(mydata$date) + c(-1 * gap, gap)
 
     #the plot
     xyplot.args <- list(x = myform,  data = mydata, groups = mydata$variable,
-                  as.table = TRUE,
-                  par.strip.text = list(cex = 0.8),
-                  scales = scales,
-                  key = key,
-                  strip = strip,
-                  strip.left = strip.left,
-                  yscale.components = yscale.components.log10,
-                  panel =  panel.superpose,
-                  panel.groups = function(x, y, col.line, col.symbol, col, col.se, type, group.number, lty,
-                  lwd, pch, subscripts,...) {
+                        as.table = TRUE,
+                        par.strip.text = list(cex = 0.8),
+                        scales = scales,
+                        key = key,
+                        xlim = xlim,
+                        strip = strip,
+                        strip.left = strip.left,
+                        yscale.components = yscale.components.log10,
+                        panel =  panel.superpose,
+                        panel.groups = function(x, y, col.line, col.symbol, col, col.se, type,
+                        group.number, lty, lwd, pch, subscripts,...) {
 
-                      if (group.number == 1) {
-                          panel.grid(-1, 0)
-                          panel.abline(v = dates, col = "grey90")
+                            if (group.number == 1) {
+                                panel.grid(-1, 0)
+                                panel.abline(v = dates, col = "grey90")
 
-                      }
-                      if (!group & !stack) {
-                          panel.abline(v = dates, col = "grey90")
-                          panel.grid(-1, 0)
-                      }
+                            }
+                            if (!group & !stack) {
+                                panel.abline(v = dates, col = "grey90")
+                                panel.grid(-1, 0)
+                            }
 
-                      panel.xyplot(x, y, type = plot.type, lty = lty, lwd = lwd,
-                                   col.line = myColors[group.number],...)
-                      ## deal with points separately - useful if missing data where line does not join consequtive points
-                      if (any(!is.na(extra.args$pch))) {
-                          lpoints(x, y, type = "p", pch = extra.args$pch, col.symbol = myColors[group.number],...)
-                      }
-                      if (smooth) panel.gam(x, y, col = myColors[group.number] ,
-                                            col.se =  myColors[group.number],
-                                            lty = 1, lwd = 1, se = ci, ...)
+                            panel.xyplot(x, y, type = plot.type, lty = lty, lwd = lwd,
+                                         col.line = myColors[group.number],...)
+                            ## deal with points separately - useful if missing data where line
+                            ## does not join consequtive points
+                            if (any(!is.na(extra.args$pch))) {
+                                lpoints(x, y, type = "p", pch = extra.args$pch,
+                                        col.symbol = myColors[group.number],...)
+                            }
+                            if (smooth) panel.gam(x, y, col = myColors[group.number] ,
+                                                  col.se =  myColors[group.number],
+                                                  lty = 1, lwd = 1, se = ci, ...)
 
-                      ## add reference lines
-                      panel.abline(v = ref.x, lty = 5)
-                      panel.abline(h = ref.y, lty = 5)
+                            ## add reference lines
+                            panel.abline(v = ref.x, lty = 5)
+                            panel.abline(h = ref.y, lty = 5)
 
-                  })
+                        })
 
-    #reset for extra.args
+    ## reset for extra.args
     xyplot.args<- openair:::listUpdate(xyplot.args, extra.args)
 
     #plot
     plt <- do.call(xyplot, xyplot.args)
 
-#################
     ## output
-#################
+
     plot(plt)
     newdata <- mydata
     output <- list(plot = plt, data = newdata, call = match.call())

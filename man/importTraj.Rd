@@ -10,39 +10,40 @@
   following sites are typically available from 2000-2011,
   although some UK ozone sites go back to 1988:
 
-  \tabular{llrrl}{ SITE CODE \tab SITE NAME \tab LATITUDE
-  \tab LONGITUDE \tab YEARS\cr ah \tab Aston Hill \tab
-  52.50385 \tab -3.041780 \tab 1988-2011\cr auch \tab
-  Auchencorth Moss \tab 55.79283 \tab -3.242568 \tab
-  2006-2011\cr berlin \tab Berlin, Germany \tab 52.52000
-  \tab 13.400000 \tab 2000-2011\cr birm \tab Birmigham
-  Centre \tab 52.47972 \tab -1.908078 \tab 1990-2011\cr bot
-  \tab Bottesford \tab 52.93028 \tab -0.814722 \tab
-  1990-2011\cr ed \tab Edinburgh \tab 55.95197 \tab
-  -3.195775 \tab 1990-2011\cr esk \tab Eskdalemuir \tab
-  55.31530 \tab -3.206110 \tab 1998-2011\cr gibraltar \tab
-  Gibraltar \tab 36.13400 \tab -5.347000 \tab 2005-2010\cr
-  glaz \tab Glazebury \tab 53.46008 \tab -2.472056 \tab
-  1998-2011\cr groningen \tab Groningen \tab 53.40000 \tab
-  6.350000 \tab 2007-2011\cr har \tab Harwell \tab 51.57108
-  \tab -1.325283 \tab 1988-2011\cr hk \tab Hong Kong \tab
+  \tabular{llrrl}{ ah \tab Aston Hill \tab 52.50385 \tab
+  -3.041780 \tab 1988-2011\cr auch \tab Auchencorth Moss
+  \tab 55.79283 \tab -3.242568 \tab 2006-2011\cr berlin
+  \tab Berlin, Germany \tab 52.52000 \tab 13.400000 \tab
+  2000-2011\cr birm \tab Birmigham Centre \tab 52.47972
+  \tab -1.908078 \tab 1990-2011\cr bot \tab Bottesford \tab
+  52.93028 \tab -0.814722 \tab 1990-2011\cr ed \tab
+  Edinburgh \tab 55.95197 \tab -3.195775 \tab 1990-2011\cr
+  elche \tab Elche, Spain \tab 38.27000 \tab -0.690000 \tab
+  2004-2011\cr esk \tab Eskdalemuir \tab 55.31530 \tab
+  -3.206110 \tab 1998-2011\cr gibraltar \tab Gibraltar \tab
+  36.13400 \tab -5.347000 \tab 2005-2010\cr glaz \tab
+  Glazebury \tab 53.46008 \tab -2.472056 \tab 1998-2011\cr
+  groningen \tab Groningen \tab 53.40000 \tab 6.350000 \tab
+  2007-2011\cr har \tab Harwell \tab 51.57108 \tab
+  -1.325283 \tab 1988-2011\cr hk \tab Hong Kong \tab
   22.29000 \tab 114.170000 \tab 1998-2011\cr hm \tab High
-  Muffles \tab 54.33500 \tab -0.808600 \tab 1988-2011\cr lb
-  \tab Ladybower \tab 53.40337 \tab -1.752006 \tab
-  1988-2011\cr london \tab Central London \tab 51.50000
-  \tab -0.100000 \tab 1990-2011\cr lh \tab Lullington Heath
-  \tab 50.79370 \tab 0.181250 \tab 1988-2011\cr ln \tab
-  Lough Navar \tab 54.43951 \tab -7.900328 \tab
-  1988-2011\cr mh \tab Mace Head \tab 53.33000 \tab
-  -9.900000 \tab 1988-2011\cr paris \tab Paris, France \tab
-  48.86200 \tab 2.339000 \tab 2000-2011\cr roch \tab
-  Rochester Stoke \tab 51.45617 \tab 0.634889 \tab
-  1988-2011\cr saopaulo \tab Sao Paulo \tab -23.55000 \tab
-  -46.640000 \tab 2000-2011\cr sib \tab Sibton \tab
-  52.29440 \tab 1.463970 \tab 1988-2011\cr sv \tab Strath
-  Vaich \tab 57.73446 \tab -4.776583 \tab 1988-2011\cr yw
-  \tab Yarner Wood \tab 50.59760 \tab -3.716510 \tab
-  1988-2011 }}
+  Muffles \tab 54.33500 \tab -0.808600 \tab 1988-2011\cr
+  kuwait \tab Kuwait City \tab 29.36700 \tab 47.967000 \tab
+  2008-2011\cr lb \tab Ladybower \tab 53.40337 \tab
+  -1.752006 \tab 1988-2011\cr london \tab Central London
+  \tab 51.50000 \tab -0.100000 \tab 1990-2011\cr lh \tab
+  Lullington Heath \tab 50.79370 \tab 0.181250 \tab
+  1988-2011\cr ln \tab Lough Navar \tab 54.43951 \tab
+  -7.900328 \tab 1988-2011\cr mh \tab Mace Head \tab
+  53.33000 \tab -9.900000 \tab 1988-2011\cr paris \tab
+  Paris, France \tab 48.86200 \tab 2.339000 \tab
+  2000-2011\cr roch \tab Rochester Stoke \tab 51.45617 \tab
+  0.634889 \tab 1988-2011\cr saopaulo \tab Sao Paulo \tab
+  -23.55000 \tab -46.640000 \tab 2000-2011\cr sib \tab
+  Sibton \tab 52.29440 \tab 1.463970 \tab 1988-2011\cr sv
+  \tab Strath Vaich \tab 57.73446 \tab -4.776583 \tab
+  1988-2011\cr yw \tab Yarner Wood \tab 50.59760 \tab
+  -3.716510 \tab 1988-2011 }}
 
   \item{year}{Year or years to import. To import a sequence
   of years from 1990 to 2000 use \code{year = 1990:2000}.
