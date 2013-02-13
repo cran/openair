@@ -5,9 +5,9 @@
   import(file = file.choose(), file.type = "csv",
     sep = ",", header.at = 1, data.at = 2, date = "date",
     date.format = "\%d/\%m/\%Y \%H:\%M", time = NULL,
-    time.format = NULL, tz.in = "GMT", tz.out = "GMT",
-    na.strings = c("", "NA"), quote = "\"", ws = NULL,
-    wd = NULL, correct.time = NULL, ...)
+    time.format = NULL, na.strings = c("", "NA"),
+    quote = "\"", ws = NULL, wd = NULL,
+    correct.time = NULL, ...)
 }
 \arguments{
   \item{file}{The name of the file to be imported. Default,
@@ -54,17 +54,6 @@
   giving the hour, in which case the format is
   \dQuote{\%H}. Again, see examples below.}
 
-  \item{tz.in}{The time zone of the data being read. Most
-  of the time this field can be ignored. However, one
-  situation where it is useful to supply \code{tz.in} is if
-  the original data considered daylight saving time i.e.
-  there is an hour missing in spring and duplicated in
-  autumn. An example for UK data would be \code{tz.in =
-  "Europe/London"}.}
-
-  \item{tz.out}{The time zone of the output to be used by
-  \code{openair} functions.}
-
   \item{na.strings}{Strings of any terms that are to be
   interpreted as missing (\code{NA}). For example, this
   might be \dQuote{-999}, or \dQuote{n/a} and can be of
@@ -104,9 +93,23 @@
   and times. Users should consider the examples for use of
   these formats.
 
+  The function can either deal with combined date-time
+  formats e.g. 10/12/1999 23:00 or with two separate
+  columns that deal with date and time. Often there is a
+  column for the date and another for hour. For the latter,
+  the option \code{time.format = "\%H"} should be supplied.
+  Note that R considers hours 0 to 23. However, if hours 1
+  to 24 are detected \code{import} will correct the hours
+  accordingly.
+
   \code{import} will also ensure wind speed and wind
   direction are correctly labelled (i.e. "ws", "wd") if
   \code{ws} or \code{wd} are given.
+
+  Note that it is assumed that the input data are in GMT
+  (UTC) format and in particular there is no consideration
+  of daylight saving time i.e. where in the input data set
+  an hour is missing in spring and duplicated in autumn.
 }
 \examples{
 ## Note that more examples are given in the openair manual

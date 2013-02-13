@@ -1,3 +1,60 @@
+Changes in openair 0.8-0 [2012-11-30]
+=====================================
+*	make sure missing dates are plotted properly in scatterPlot
+*	fix regression in corPlot - main did not work
+*	remove time zone options in import - users must supply data in
+	GMT (UTC). Too many problems introduced due to daylight saving
+	time
+*	Use Legates and McCabe Coefficient of Efficiency in modStats
+	in place of the Index of Agreement - easier to interpret.
+*	Allow type = "month" etc to be used in timeVariation (was
+	variable clash). Allow more flexibility when group and type
+	are used
+*	Better handling of user-defined limits in polarPlot and
+	scatterPlot (method = "level")
+*	Add optional mean line option to percentileRose.
+*	Correct pollutionRose documentation about comparing 2 data
+	sets (first subtracted from second)
+*	Fix bug in timeVariation that showed extra NA level for
+	certain groups/types
+*	Fix scaling bug in polarCluster when there is negative data
+	e.g. x = "temp"
+*	Allow statistic = "median" in trajLevel
+*	NEW FUNCTION timeProp to plot time series by category as a
+	barchart
+*	Fix windRose bug when wind direction name was not wd
+*	Fix bug in importAURN when pollutant = "all" was specified
+*	Allow minimum value of breaks in ws to be above minimum ws
+	value, but warn.
+*	Allow day to be numeric in selectByDate to select days of the
+	month
+*	Better base maps with trajectory plotting (filled and alpha
+	transparency)
+*	Fix windRose bug where all data are missing
+*	Use higher resolution mapdata not maps package for trajectory
+	plots
+*	Allow method = "hexbin" in trajLevel for hexagonal binning
+	of trajectory frequencies
+*	Refine rollingMean to allow moving window to be aligned
+	centre/center, left or right + better treatment of ends when
+	data capture threshold used. Use option 'width' rather than
+	'hours' because non-hourly data can be considered.
+*	Fix pollutionRose scaling issue, which sometimes missed the
+	lower interval
+*	Fix timeAverage data capture issue - was not always setting
+	data to NA
+*	Output clusters as C1, C2 etc. not 1, 2.
+*	Use same labelling in calendarPlot as other functions (wrong
+	month order in non-English locales)
+*	Export dendogram in corPlot - see example in help file
+*	Fix scaling bug in polarPlot when radial variable was negative
+	and small
+*	Update 'mydata' to set negative data to NA
+*	Add method = CPF to percentile rose and polarPlot
+*	Update trajectory analysis to allow Potential Source
+	Contribution Function (PSCF) and Concentration Weighted
+	Trajectory (CWT) to be considered
+
 Changes in openair 0.7-0 [2012-05-30]
 =====================================
 *	Allow more flexible layout when two or more pollutants

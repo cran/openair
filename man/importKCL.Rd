@@ -3,7 +3,7 @@
 \title{Import data from King's College London networks}
 \usage{
   importKCL(site = "my1", year = 2009, pollutant = "all",
-    met = FALSE, units = "mass")
+    met = FALSE, units = "mass", extra = FALSE)
 }
 \arguments{
   \item{site}{Site code of the network site to import e.g.
@@ -35,6 +35,8 @@
   etc. PM10_raw TEOM data are multiplied by 1.3 and PM2.5
   have no correction applied. See details below concerning
   PM10 concentrations.}
+
+  \item{extra}{Not currently used.}
 }
 \value{
   Returns a data frame of hourly mean values with date in

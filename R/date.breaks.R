@@ -225,6 +225,11 @@ roundDate <- function (dates, avg.time = "hour", start.date = NULL) {
              dates <- as.POSIXct(dates, TZ)
              attr(dates, "tzone") <- TZ
              ## start.date only to get nice rounding
-             dates[-1]
+
+             if (!is.null(start.date)) {
+                 dates[-1]
+             } else {
+                 dates
+             }
          }
 

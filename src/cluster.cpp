@@ -52,4 +52,3 @@ RcppExport SEXP distAngle(SEXP x, SEXP y, SEXP z){
   }
   return Zm;
 }
-

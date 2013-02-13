@@ -437,6 +437,7 @@
 ##'   "volume"} to use ppb etc. PM10_raw TEOM data are multiplied by 1.3 and
 ##'   PM2.5 have no correction applied. See details below concerning PM10
 ##'   concentrations.
+##' @param extra Not currently used.
 ##' @export
 ##' @return Returns a data frame of hourly mean values with date in POSIXct
 ##'   class and time zone GMT.
@@ -470,7 +471,7 @@
 ##'
 ##'
 ##'
-importKCL <- function(site = "my1", year = 2009, pollutant = "all", met = FALSE, units = "mass") {
+importKCL <- function(site = "my1", year = 2009, pollutant = "all", met = FALSE, units = "mass", extra = FALSE) {
 
     ## get rid of R check annoyances
     sites <- NULL; v10 <- NULL; v2.5 <- NULL
@@ -556,6 +557,13 @@ importKCL <- function(site = "my1", year = 2009, pollutant = "all", met = FALSE,
     if (units != "mass")  {
         if ("pm10" %in% names(thedata)) thedata$pm10_raw <- thedata$pm10_raw* 1.30
         unitMessage <- "NOTE - volume units are used \nppbv for NOx, NO2, SO2, O3; ppmv for CO\nPM10_raw is raw data multiplied by 1.3\n"
+    }
+
+    ## don't add additional species
+    if (!extra) {
+        theNames <- c("date", "co", "nox", "no2", "no", "o3", "so2", "pm10", "pm10_raw", "pm25",
+                           "v10", "v2.5", "nv10", "nv2.5", "code", "site")
+        thedata <- thedata[,  which(names(thedata) %in% theNames)]
     }
 
     ## warning about recent, possibly unratified data

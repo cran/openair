@@ -26,10 +26,12 @@
   c("January", "December")}. Names can be abbreviated to 3
   letters and be in lower or upper case.}
 
-  \item{day}{A day name or or days to select. For example
-  \code{day = c("Monday", "Wednesday")}. Names can be
-  abbreviated to 3 letters and be in lower or upper case.
-  Also accepts \dQuote{weekday} (Monday - Friday) and
+  \item{day}{A day name or or days to select. \code{day}
+  can be numeric (1 to 31) or character. For example
+  \code{day = c("Monday", "Wednesday")} or \code{day =
+  1:10} (to select the 1st to 10th of each month). Names
+  can be abbreviated to 3 letters and be in lower or upper
+  case. Also accepts \dQuote{weekday} (Monday - Friday) and
   \dQuote{weekend} for convenience.}
 
   \item{hour}{An hour or hours to select from 0-23 e.g.

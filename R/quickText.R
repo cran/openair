@@ -49,6 +49,8 @@ quickText <- function(text, auto.text = TRUE){
     ans <- gsub("NOX", "' 'NO' [x] * '", ans)
     ans <- gsub("nox", "' 'NO' [x] * '", ans)
     ans <- gsub("NOx", "' 'NO' [x] * '", ans)
+    ans <- gsub("NH3", "' 'NH' [3] * '", ans)
+    ans <- gsub("nh3", "' 'NH' [3] * '", ans)
     ans <- gsub("co ", "' 'CO ' '", ans)
     ans <- gsub("co,", "' 'CO,' '", ans)
     ans <- gsub("no ", "' 'NO ' '", ans)

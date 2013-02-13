@@ -17,11 +17,12 @@ pollutionRose <- function(mydata,
     if (is.null(breaks))  breaks <- 6
 
     if (is.numeric(breaks) & length(breaks) == 1) {
+
         breaks2 <- co.intervals(mydata[ , pollutant][is.finite(mydata[ ,pollutant])],
                                 number = 10, overlap = 0)
-        breaks <- pretty(c(min(mydata[ , pollutant], na.rm = TRUE),
-                           breaks2[nrow(breaks2), 1]), breaks)
-        breaks <- breaks[breaks >= min(mydata[ , pollutant], na.rm = TRUE)]
+        breaks <- unique(pretty(c(min(mydata[ , pollutant], na.rm = TRUE),
+                           breaks2[nrow(breaks2), 1]), breaks))
+
     }
 
     windRose(mydata, pollutant = pollutant, paddle = paddle, seg = seg,
@@ -71,7 +72,7 @@ pollutionRose <- function(mydata,
 ##' evaluation. In this case, \code{ws} and \code{wd} are considered
 ##' to the the reference data sets with which a second set of wind
 ##' speed and wind directions are to be compared (\code{ws2} and
-##' \code{wd2}). The second set of values is subtracted from the first
+##' \code{wd2}). The first set of values is subtracted from the second
 ##' and the differences compared. If for example, \code{wd2} was
 ##' biased positive compared with \code{wd} then \code{pollutionRose}
 ##' will show the bias in polar coordinates. In its default use, wind
@@ -424,7 +425,7 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA, ws.int =
 
     if (max(breaks) < max(mydata$x, na.rm = TRUE)) breaks <- c(breaks, max(mydata$x, na.rm = TRUE))
 
-    if (min(breaks) > min(mydata$x, na.rm = TRUE)) breaks <- c(min(mydata$x, na.rm = TRUE), breaks)
+    if (min(breaks) > min(mydata$x, na.rm = TRUE)) warning ("Some values are below minimum break.")
 
     breaks <- unique(breaks)
     mydata$x <- cut(mydata$x, breaks = breaks, include.lowest = FALSE,
@@ -437,6 +438,8 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA, ws.int =
     ## statistic handling
 
     prepare.grid <- function(mydata) {
+        ## return if there is nothing to plot
+        if (all(is.na(mydata$x))) return()
 
         levels(mydata$x) <- c(paste("x", 1:length(theLabels), sep = ""))
 
@@ -472,12 +475,17 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA, ws.int =
         panel.fun <- stat.fun2(mydata[ , pollutant])
 
         ## calculate mean wd - useful for cases comparing two met data sets
-        u <- mean(sin(2 * pi * mydata$wd / 360))
-        v <- mean(cos(2 * pi * mydata$wd / 360))
+        u <- mean(sin(2 * pi * mydata[, wd] / 360))
+        v <- mean(cos(2 * pi * mydata[, wd] / 360))
         mean.wd <- atan2(u, v) * 360 / 2 / pi
-        if (mean.wd < 0) mean.wd <- mean.wd + 360
-        ## show as a negative (bias)
-        if (mean.wd > 180) mean.wd <- mean.wd - 360
+
+        if (all(is.na(mean.wd))) {
+            mean.wd <- NA
+        } else {
+            if (mean.wd < 0) mean.wd <- mean.wd + 360
+            ## show as a negative (bias)
+            if (mean.wd > 180) mean.wd <- mean.wd - 360
+        }
 
 
         weights <- cbind(data.frame(weights), wd = as.numeric(row.names(weights)),

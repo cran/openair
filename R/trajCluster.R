@@ -44,6 +44,16 @@
 ##' e.g. \dQuote{season}, the trajectories can either be calculated for each
 ##' level of \code{type} independently or extracted after the cluster
 ##' calculations have been applied to the whole data set.
+##' @param map.fill Should the base map be a filled polygon? Default
+##' is to fill countries.
+##' @param map.cols If \code{map.fill = TRUE} \code{map.cols} controls
+##' the fill colour. Examples include \code{map.fill = "grey40"} and
+##' \code{map.fill = openColours("default", 10)}. The latter colours
+##' the countries and can help differentiate them.
+##' @param map.alpha The transpency level of the filled map which
+##' takes values from 0 (full transparency) to 1 (full
+##' opacity). Setting it below 1 can help view trajectories,
+##' trajectory surfaces etc. \emph{and} a filled base map.
 ##' @param ... Other graphical parameters passed onto
 ##' \code{lattice:levelplot} and \code{cutData}. Similarly, common
 ##' axis and title labelling options (such as \code{xlab},
@@ -74,7 +84,8 @@
 ##' traj <- trajCluster(traj, method = "Angle", type = "season", n.clusters = 4)
 ##' }
 trajCluster <- function(traj, method = "Euclid", n.cluster = 5, plot = TRUE, type = "default",
-                        cols = "Set1", split.after = FALSE, ...) {
+                        cols = "Set1", split.after = FALSE, map.fill = TRUE, map.cols = "grey40",
+                        map.alpha = 0.4, ...) {
 
     if (tolower(method) == "euclid")  method <- "distEuclid" else method <- "distAngle"
 
@@ -119,7 +130,7 @@ trajCluster <- function(traj, method = "Euclid", n.cluster = 5, plot = TRUE, typ
         dist.res <- as.dist(res)
         clusters <- pam(dist.res, n.cluster)
         cluster <- rep(clusters$clustering, each = n)
-        traj$cluster <- factor(cluster)
+        traj$cluster <- factor(paste("C", cluster, sep = ""))
         traj
 
     }
@@ -144,7 +155,8 @@ trajCluster <- function(traj, method = "Euclid", n.cluster = 5, plot = TRUE, typ
         attr(agg$date, "tzone") <- "GMT"
 
         plot.args <- list(agg, x = "lon", y ="lat", group = "cluster",
-                    col = cols, type = type, map = TRUE)
+                    col = cols, type = type, map = TRUE, map.fill = map.fill,
+                          map.cols = map.cols, map.alpha = map.alpha)
 
          ## reset for extra.args
         plot.args <- openair:::listUpdate(plot.args, extra.args)

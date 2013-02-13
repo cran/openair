@@ -153,55 +153,91 @@ date.pad2 <- function(mydata, interval = "month") {
     mydata
 }
 
+## unitility function to convert decimal date to POSIXct
+decimalDate <- function(x, date = "date") {
+    thedata <- x
+    x <- x[, date]
+    x.year <- floor(x)
+    ## fraction of the year
+    x.frac <- x - x.year
+    ## number of seconds in each year
+    x.sec.yr <- unclass(ISOdate(x.year + 1, 1, 1, 0, 0, 0)) - unclass(ISOdate(x.year, 1, 1, 0, 0, 0))
+    ## now get the actual time
+    x.actual <- ISOdate(x.year, 1, 1, 0, 0, 0) + x.frac * x.sec.yr
+    x.actual <- as.POSIXct(trunc(x.actual, "hours"), "GMT")
+    thedata$date <- x.actual
+    thedata
+}
+
+
 
 
 ##' Calculate rollingMean values
 ##'
 ##' Calculate rollingMean values taking account of data capture thresholds
 ##'
-##' This is a utility function mostly designed to calculate rolling mean
-##' statistics relevent to some pollutant limits e.g. 8 hour rolling means for
-##' ozone and 24 hour rollingMeans for PM10.
+##' This is a utility function mostly designed to calculate rolling
+##' mean statistics relevant to some pollutant limits e.g. 8 hour
+##' rolling means for ozone and 24 hour rolling means for
+##' PM10. However, the function has a more general use in helping to
+##' display rolling mean values in flexible ways e.g. with the rolling
+##' window width left, right or centre aligned.
 ##'
-##' @param mydata A data frame containing a \code{date} field.
+##' @param mydata A data frame containing a \code{date}
+##' field. \code{mydata} must contain a \code{date} field in
+##' \code{Date} or \code{POSIXct} format. The input time series must
+##' be regular e.g. hourly, daily.
 ##' @param pollutant The name of a pollutant e.g. \code{pollutant = "o3"}.
-##' @param hours The averaging period to use e.g. \code{hours = 8} will
-##'   generate 8-hour rollingMean values.
-##' @param new.name The name given to the new rollingMean variable. If not
-##'   supplied it will create a name based on the name of the pollutant and the
-##'   averaging period used.
+##' @param width The averaging period (rolling window width) to use
+##' e.g. \code{width = 8} will generate 8-hour rolling mean values
+##' when hourly data are analysed.
+##' @param new.name The name given to the new rollingMean variable. If
+##' not supplied it will create a name based on the name of the
+##' pollutant and the averaging period used.
 ##' @param data.thresh The data capture threshold in %. No values are
-##'   calculated if data capture over the period of interest is less than this
-##'   value. For example, with \code{hours = 8} and \code{data.thresh = 75} at
-##'   least 6 hours are required to calculate the mean, else \code{NA} is
-##'   returned.
+##' calculated if data capture over the period of interest is less
+##' than this value. For example, with \code{width = 8} and
+##' \code{data.thresh = 75} at least 6 hours are required to calculate
+##' the mean, else \code{NA} is returned.
+##' @param align specifyies how the moving window should be
+##' aligned. \code{"right"} means that the previous \code{hours}
+##' (including the current) are averaged. This seems to be the default
+##' for UK air quality rolling mean statistics. \code{"left"} means
+##' that the forward \code{hours} are averaged, and \code{"centre"} or
+##' \code{"center"}, which is the default.
+##' @param ... other arguments, currently unused.
 ##' @export
 ##' @author David Carslaw
 ##' @keywords methods
 ##' @examples
 ##'
 ##' ## rolling 8-hour mean for ozone
-##' mydata <- rollingMean(mydata, pollutant = "o3", hours = 8, new.name =
-##' "rollingo3", data.thresh = 75)
+##' mydata <- rollingMean(mydata, pollutant = "o3", width = 8, new.name =
+##' "rollingo3", data.thresh = 75, align = "right")
 ##'
 ##'
-rollingMean <- function(mydata, pollutant = "o3", hours = 8, new.name = "rolling",
-                         data.thresh = 75){
+rollingMean <- function(mydata, pollutant = "o3", width = 8, new.name = "rolling",
+                         data.thresh = 75, align = "centre", ...){
     ## function to calculate rolling means
     ## uses C++ code
 
     ## get rid of R check annoyances
     site = NULL
+    if (!align %in% c("left", "right", "centre", "center")) stop("align should be one of 'right', 'left', 'centre' or 'center'.")
 
 
-    if (missing(new.name)) new.name <- paste("rolling", hours, pollutant, sep = "")
+    if (missing(new.name)) new.name <- paste("rolling", width, pollutant, sep = "")
+    if (data.thresh < 0 | data.thresh > 100) stop("Data threshold must be between 0 and 100.")
 
-    calc.rolling <- function(mydata, pollutant, hours, new.name, data.thresh) {
+    calc.rolling <- function(mydata, ...) {
 
         ## pad missing hours
         mydata <- openair:::date.pad(mydata)
 
-        mydata[, new.name] <- .Call("rollingMean", mydata[, pollutant], hours, data.thresh,
+        ## make sure function is not called with window width longer than data
+        if (width > nrow(mydata)) return(mydata)
+
+        mydata[, new.name] <- .Call("rollingMean", mydata[, pollutant], width, data.thresh, align,
                                     PACKAGE = "openair")
         mydata
     }
@@ -209,15 +245,14 @@ rollingMean <- function(mydata, pollutant = "o3", hours = 8, new.name = "rolling
     ## split if several sites
     if ("site" %in% names(mydata)) { ## split by site
 
-        mydata <- ddply(mydata, .(site), function(x) calc.rolling(x, pollutant, hours,
-                                                           new.name, data.thresh))
+        mydata <- ddply(mydata, .(site), function(x) calc.rolling(x, ...))
         mydata
     } else {
-        mydata <- calc.rolling(mydata, pollutant, hours, new.name, data.thresh)
+        mydata <- calc.rolling(mydata, ...)
         mydata
     }
-}
 
+}
 
 
 
@@ -345,10 +380,12 @@ one more label than date")
 ##'   \code{month = 1:6} to select months 1-6 (January to June), or by name
 ##'   e.g. \code{month = c("January", "December")}. Names can be abbreviated to
 ##'   3 letters and be in lower or upper case.
-##' @param day A day name or or days to select. For example \code{day
-##' = c("Monday", "Wednesday")}. Names can be abbreviated to 3 letters
-##' and be in lower or upper case. Also accepts \dQuote{weekday}
-##' (Monday - Friday) and \dQuote{weekend} for convenience.
+##' @param day A day name or or days to select. \code{day} can be
+##' numeric (1 to 31) or character. For example \code{day =
+##' c("Monday", "Wednesday")} or \code{day = 1:10} (to select the 1st
+##' to 10th of each month). Names can be abbreviated to 3 letters and
+##' be in lower or upper case. Also accepts \dQuote{weekday} (Monday -
+##' Friday) and \dQuote{weekend} for convenience.
 ##' @param hour An hour or hours to select from 0-23 e.g. \code{hour = 0:12} to
 ##'   select hours 0 to 12 inclusive.
 ##' @export
@@ -405,8 +442,10 @@ selectByDate <- function (mydata, start = "1/1/2008", end = "31/12/2008", year =
     if (!missing(year)) {
         mydata <- mydata[as.numeric(format(mydata$date, "%Y")) %in%  year, ]
     }
+
     if (!missing(month)) {
         if (is.numeric(month)) {
+            if (any(month < 1 | month > 12)) stop ("Month must be between 1 to 12.")
             mydata <- mydata[as.numeric(format(mydata$date, "%m")) %in% month, ]
         }
         else {
@@ -415,16 +454,27 @@ selectByDate <- function (mydata, start = "1/1/2008", end = "31/12/2008", year =
         }
     }
     if (!missing(hour)) {
+        if (any(hour < 0 | hour > 23)) stop ("Hour must be between 0 to 23.")
         mydata <- mydata[as.numeric(format(mydata$date, "%H")) %in% hour, ]
     }
+
     if (!missing(day)) {
         days <- day
-        if (day[1] == "weekday")
-            days <- weekday.names[1:5]
-        if (day[1] == "weekend")
-            days <- weekday.names[6:7]
-        mydata <- subset(mydata, substr(tolower(format(date,
-            "%A")), 1, 3) %in% substr(tolower(days), 1, 3))
+
+        if (is.numeric(day)) {
+
+            if (any(day < 1 | day > 31)) stop ("Day must be between 1 to 31.")
+            mydata <- mydata[as.numeric(format(mydata$date, "%d")) %in% day, ]
+
+        } else {
+
+            if (day[1] == "weekday")
+                days <- weekday.names[1:5]
+            if (day[1] == "weekend")
+                days <- weekday.names[6:7]
+            mydata <- subset(mydata, substr(tolower(format(date, "%A")), 1, 3) %in%
+                             substr(tolower(days), 1, 3))
+        }
     }
     mydata
 }
