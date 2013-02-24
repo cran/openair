@@ -125,7 +125,9 @@
 ##' number of samples in the y bin (by default a wind direction, wind
 ##' speed interval) with mixing ratios greater than the \emph{overall}
 ##' percentile concentration, and ny is the total number of samples in
-##' the same wind sector (see Ashbaugh et al., 1985).
+##' the same wind sector (see Ashbaugh et al., 1985). Note that
+##' percentile intervals can also be considered; see \code{percentile}
+##' for details.
 ##' @param resolution Two plot resolutions can be set: \dQuote{normal} (the
 ##' default) and \dQuote{fine}, for a smoother plot. It should be noted that
 ##' plots with a \dQuote{fine} resolution can take longer to render and the
@@ -154,14 +156,20 @@
 ##' GAM and weighting is done by the frequency of measurements in each
 ##' wind speed-direction bin. Note that if uncertainties are
 ##' calculated then the type is set to "default".
-##' @param percentile If \code{statistic = "percentile"} or
-##' \code{statistic = "cpf"} then \code{percentile} is used, expressed
-##' from 0 to 100. Note that the percentile value is calculated in the
+##' @param percentile Note that the percentile value is calculated in the
 ##' wind speed, wind direction \sQuote{bins}. For this reason it can
 ##' also be useful to set \code{min.bin} to ensure there are a
 ##' sufficient number of points available to estimate a
 ##' percentile. See \code{quantile} for more details of how
 ##' percentiles are calculated.
+##'
+##' If \code{statistic = "percentile"} or \code{statistic = "cpf"}
+##' then \code{percentile} is used, expressed from 0 to
+##' 100. \code{percentile} can also be of length two, in which case
+##' the percentile \emph{interval} is considered. For example,
+##' \code{percentile = c(90, 100)} will plot the CPF for
+##' concentrations between the 90 and 100th percentiles. Percentile
+##' intervals can be useful for identifying specific sources.
 ##' @param cols Colours to be used for plotting. Options include
 ##' \dQuote{default}, \dQuote{increment}, \dQuote{heat}, \dQuote{jet}
 ##' and \code{RColorBrewer} colours --- see the \code{openair}
@@ -338,7 +346,7 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
     ## get rid of R check annoyances
     z = NULL
 
-    if (statistic == "percentile" & is.na(percentile & statistic != "cpf")) {
+    if (statistic == "percentile" & is.na(percentile[1] & statistic != "cpf")) {
         warning("percentile value missing,  using 50")
         percentile <- 50
     }
@@ -458,12 +466,23 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
     input.data <- expand.grid(u = seq(-upper, upper, length = int),
                               v = seq(-upper, upper, length = int))
 
-    ## for CPF
-    Pval <- quantile(mydata[, pollutant], probs = percentile / 100, na.rm = TRUE)
 
     if (statistic == "cpf") {
-        sub <- paste("CPF probability at the ", percentile,
-                     "th percentile (=", round(Pval, 1), ")", sep = "")
+        ## can be interval of percentiles or a single (threshold)
+        if (length(percentile) > 1) {
+            statistic <- "cpfi" # CPF interval
+            Pval1 <- quantile(mydata[, pollutant], probs = percentile[1] / 100,
+                             na.rm = TRUE)
+            Pval2 <- quantile(mydata[, pollutant], probs = percentile[2] / 100,
+                             na.rm = TRUE)
+            sub <- paste("CPF for the ", percentile[1], " to ",
+                         percentile[2], "th", " percentile", sep = "")
+
+        } else {
+            Pval <- quantile(mydata[, pollutant], probs = percentile / 100, na.rm = TRUE)
+            sub <- paste("CPF at the ", percentile,
+                         "th percentile (=", round(Pval, 1), ")", sep = "")
+        }
     } else {
         sub <- NULL
     }
@@ -486,6 +505,8 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
                          sd(x, na.rm = TRUE)),
                          cpf =  tapply(mydata[, pollutant], list(wd, x),
                          function(x) (length(which(x > Pval)) / length(x))),
+                         cpfi =  tapply(mydata[, pollutant], list(wd, x),
+                         function(x) (length(which(x > Pval1 & x <= Pval2)) / length(x))),
                          weighted.mean = tapply(mydata[, pollutant], list(wd, x),
                          function(x) (mean(x) * length(x) / nrow(mydata))),
                          percentile = tapply(mydata[, pollutant], list(wd, x), function(x)

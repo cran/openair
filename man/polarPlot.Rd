@@ -86,7 +86,9 @@
   default a wind direction, wind speed interval) with
   mixing ratios greater than the \emph{overall} percentile
   concentration, and ny is the total number of samples in
-  the same wind sector (see Ashbaugh et al., 1985).}
+  the same wind sector (see Ashbaugh et al., 1985). Note
+  that percentile intervals can also be considered; see
+  \code{percentile} for details.}
 
   \item{resolution}{Two plot resolutions can be set:
   \dQuote{normal} (the default) and \dQuote{fine}, for a
@@ -126,15 +128,22 @@
   bin. Note that if uncertainties are calculated then the
   type is set to "default".}
 
-  \item{percentile}{If \code{statistic = "percentile"} or
-  \code{statistic = "cpf"} then \code{percentile} is used,
-  expressed from 0 to 100. Note that the percentile value
-  is calculated in the wind speed, wind direction
+  \item{percentile}{Note that the percentile value is
+  calculated in the wind speed, wind direction
   \sQuote{bins}. For this reason it can also be useful to
   set \code{min.bin} to ensure there are a sufficient
   number of points available to estimate a percentile. See
   \code{quantile} for more details of how percentiles are
-  calculated.}
+  calculated.
+
+  If \code{statistic = "percentile"} or \code{statistic =
+  "cpf"} then \code{percentile} is used, expressed from 0
+  to 100. \code{percentile} can also be of length two, in
+  which case the percentile \emph{interval} is considered.
+  For example, \code{percentile = c(90, 100)} will plot the
+  CPF for concentrations between the 90 and 100th
+  percentiles. Percentile intervals can be useful for
+  identifying specific sources.}
 
   \item{cols}{Colours to be used for plotting. Options
   include \dQuote{default}, \dQuote{increment},

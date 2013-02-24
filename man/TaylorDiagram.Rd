@@ -223,7 +223,7 @@
 \examples{
 ## in the examples below, most effort goes into making some artificial data
 ## the function itself can be run very simply
-
+\dontrun{
 ## dummy model data for 2003
 dat <- selectByDate(mydata, year = 2003)
 dat <- data.frame(date = mydata$date, obs = mydata$nox, mod = mydata$nox)
@@ -268,6 +268,7 @@ mod.dat$mod2 <- mod.dat2$mod
 
 ## do for all models
 TaylorDiagram(mod.dat, obs = "obs", mod = c("mod", "mod2"), group = "model")
+}
 \dontrun{
 ## all models, by season
 TaylorDiagram(mod.dat, obs = "obs", mod = c("mod", "mod2"), group = "model",

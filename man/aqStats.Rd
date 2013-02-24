@@ -48,20 +48,42 @@
   The following statistics are calculated:
 
   \itemize{ \item \bold{data.capture} --- percentage data
-  capture over a full year.  \item \bold{mean} --- annual
-  mean.  \item \bold{minimum} --- minimum hourly value.
-  \item \bold{maximum} --- maximum hourly value.  \item
-  \bold{median} --- median value.  \item \bold{max.daily}
-  --- maximum daily mean.  \item \bold{max.rolling.8} ---
-  maximum 8-hour rolling mean.  \item \bold{max.rolling.24}
-  --- maximum 24-hour rolling mean.  \item
-  \bold{percentile.95} --- 95th percentile. Note that
-  several percentiles can be calculated.  \item
-  \bold{roll.8.O3.gt.100} --- number of days when the daily
-  maximum rolling 8-hour mean ozone concentration is >100
-  ug/m3.  \item \bold{hours.gt.200} --- number of hours NO2
-  is more than 200 ug/m3.  \item \bold{days.gt.50} ---
-  number of days PM10 is more than 50 ug/m3. }
+  capture over a full year.
+
+  \item \bold{mean} --- annual mean.
+
+  \item \bold{minimum} --- minimum hourly value.
+
+  \item \bold{maximum} --- maximum hourly value.
+
+  \item \bold{median} --- median value.
+
+  \item \bold{max.daily} --- maximum daily mean.
+
+  \item \bold{max.rolling.8} --- maximum 8-hour rolling
+  mean.
+
+  \item \bold{max.rolling.24} --- maximum 24-hour rolling
+  mean.
+
+  \item \bold{percentile.95} --- 95th percentile. Note that
+  several percentiles can be calculated.
+
+  \item \bold{roll.8.O3.gt.100} --- number of days when the
+  daily maximum rolling 8-hour mean ozone concentration is
+  >100 ug/m3.
+
+  \item \bold{AOT40} --- is the accumulated amount of ozone
+  over the threshold value of 40 ppb for daylight hours in
+  the growing season (April to September). Note that
+  \code{latitude} and \code{longitude} can also be passed
+  to this calculation.
+
+  \item \bold{hours.gt.200} --- number of hours NO2 is more
+  than 200 ug/m3.
+
+  \item \bold{days.gt.50} --- number of days PM10 is more
+  than 50 ug/m3. }
 
   There can be small discrepancies with the AURN due to the
   treatment of rounding data. The \code{aqStats} function

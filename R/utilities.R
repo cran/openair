@@ -584,7 +584,7 @@ panel.gam <- function (x, y, form = y ~ x, method = "loess", ..., simulate = FAL
     tryCatch({
 
         if (!simulate) {
-            mod <- gam(y ~ s(x), select = TRUE, data = thedata)
+            mod <- gam(y ~ s(x), select = TRUE, data = thedata, ...)
 
 
             lims <- current.panel.limits()
@@ -621,7 +621,7 @@ panel.gam <- function (x, y, form = y ~ x, method = "loess", ..., simulate = FAL
             index <- samp.boot.block(sam.size, n.sim, block.length)
 
             ## predict first
-            mod <- gam(y ~ s(x), data = thedata)
+            mod <- gam(y ~ s(x), data = thedata, ...)
 
             residuals <- residuals(mod) ## residuals of the model
 
@@ -631,7 +631,7 @@ panel.gam <- function (x, y, form = y ~ x, method = "loess", ..., simulate = FAL
                 ## make new data
                 new.data <- data.frame(x = xseq, y = pred.input + residuals[index[, i]])
 
-                mod <- gam(y ~ s(x), data = new.data)
+                mod <- gam(y ~ s(x), data = new.data, ...)
 
                 pred <- predict(mod, new.data)
 
