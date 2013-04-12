@@ -1,6 +1,8 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
+
+
 // This function calculates rolling means taking acount of the window size and a
 // data capture threshold. Means are calculated only when the data capture is >
 // than 'cap' else NA is returned.
@@ -9,14 +11,14 @@ using namespace Rcpp;
 // The ends are then dpecfically dealt with depending how the window is aligned
 
 // Declarations
-NumericVector ends(NumericVector A, LogicalVector NA, NumericVector res, std::string align,
-		   int start, int end, int lenr, double capr);
+NumericVector ends(NumericVector A, LogicalVector NA, NumericVector res, std::string align, 
+int start, int end, double lenr, double capr);
 
 RcppExport SEXP rollingMean(SEXP x, SEXP lenr, SEXP capr, SEXP alignr) {
   NumericVector A(x); // the data
   int n = A.size(); // length of data
-  double cap = as<int>(capr); // data capture %
-  int len = as<int>(lenr); // window size %
+  double cap = as<double>(capr); // data capture %
+  double len = as<double>(lenr); // window size %
   std::string align = as<std::string>(alignr); // window (left, center, right)
 
   NumericVector res(n); // for results
@@ -31,7 +33,7 @@ RcppExport SEXP rollingMean(SEXP x, SEXP lenr, SEXP capr, SEXP alignr) {
 
   // make sure window width is less than data length
   if (len > n) {
-  //  std::cout << "Window width more than length of data, use a smaller window width." ;
+    //  std::cout << "Window width more than length of data, use a smaller window width." ;
     len = 1;
   }
 
@@ -73,7 +75,7 @@ RcppExport SEXP rollingMean(SEXP x, SEXP lenr, SEXP capr, SEXP alignr) {
   if (align == "right") start = 0, end = len - 2;
   if (align == "left") start = n - len, end = n - 1;
 
-  res = ends(A, NA, res, align, start, end, len, cap);
+   res = ends(A, NA, res, align, start, end, len, cap);
 
   // For align = 'centre' need to deal with both ends
   if (align == "centre") {
@@ -83,7 +85,7 @@ RcppExport SEXP rollingMean(SEXP x, SEXP lenr, SEXP capr, SEXP alignr) {
 
     align = "left";
     start = n - floor(len / 2), end = n - 1;
-   res = ends(A, NA, res, align, start, end, len, cap);
+    res = ends(A, NA, res, align, start, end, len, cap);
   }
 
   return(res);
@@ -91,12 +93,13 @@ RcppExport SEXP rollingMean(SEXP x, SEXP lenr, SEXP capr, SEXP alignr) {
 
 // function to deal with ends where there is < len records
 // This makes sure data capture threshold is still taken into account
-NumericVector ends(NumericVector A, LogicalVector NA, NumericVector result, std::string
-		   align, int start, int end, int lenr, double capr) {
+NumericVector ends(NumericVector A, LogicalVector NA, NumericVector res, std::string
+  	   align, int start, int end, double lenr, double capr) {
 
   double sum = 0.0; // sum of values over window
   double sumNA = 0; // number of missings
   int nd = 0; //count of data points
+
 
   if (align == "right") {
 
@@ -119,11 +122,11 @@ NumericVector ends(NumericVector A, LogicalVector NA, NumericVector result, std:
       }
 
       if (1 - sumNA / lenr < capr / 100) {
-	result(i) = NA_REAL;
+	res(i) = NA_REAL;
       }
       else
 	{
-	  result(i) = sum / nd;
+	  res(i) = sum / nd;
 	}
     }
   }
@@ -150,13 +153,13 @@ NumericVector ends(NumericVector A, LogicalVector NA, NumericVector result, std:
       }
 
       if (1 - sumNA / lenr < capr / 100) {
-	result(i) = NA_REAL;
+	res(i) = NA_REAL;
       }
       else
 	{
-	  result(i) = sum / nd;
+	  res(i) = sum / nd;
 	}
     }
   }
-  return(result);
+  return(res);
 }

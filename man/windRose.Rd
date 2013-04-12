@@ -13,8 +13,8 @@
     TRUE, border = NA, ...)
 
   pollutionRose(mydata, pollutant = "nox", key.footer =
-    pollutant, breaks = 6, paddle = FALSE, seg = 0.9,
-    key.position = "right", ...)
+    pollutant, key.position = "right", key = TRUE, breaks =
+    6, paddle = FALSE, seg = 0.9, ...)
 }
 \arguments{
   \item{mydata}{A data frame containing fields \code{ws}

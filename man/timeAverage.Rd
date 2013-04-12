@@ -4,7 +4,7 @@
 \usage{
   timeAverage(mydata, avg.time = "day", data.thresh = 0,
     statistic = "mean", percentile = NA, start.date = NA,
-    vector.ws = FALSE)
+    vector.ws = FALSE, fill = FALSE)
 }
 \arguments{
   \item{mydata}{A data frame containing a \code{date} field
@@ -33,7 +33,8 @@
   to hour. Also, the input time series must have consistent
   time gaps between successive intervals so that
   \code{timeAverage} can work out how much \sQuote{padding}
-  to apply.}
+  to apply. To pad-out data in this way choose \code{fill =
+  TRUE}.}
 
   \item{data.thresh}{The data capture threshold to use
   (\%). A value of zero means that all available data will
@@ -82,6 +83,13 @@
   simply the arithmetic average = 2m/s and the vector
   average is 0m/s. Vector-averaged wind speeds will always
   be lower than scalar-averaged values.}
+
+  \item{fill}{When time series are expanded i.e. when a
+  time interval is less than the original time series, data
+  are \sQuote{padded out} with \code{NA}. To
+  \sQuote{pad-out} the additional data with the first row
+  in each original time interval, choose \code{fill =
+  TRUE}.}
 }
 \value{
   Returns a data frame with date in class \code{POSIXct}
@@ -132,7 +140,7 @@ daily <- timeAverage(mydata, avg.time = "day")
 
 ## make a 15-minute time series from an hourly one
 \dontrun{
-min15 <-  timeAverage(mydata, avg.time = "15 min")
+min15 <-  timeAverage(mydata, avg.time = "15 min", fill = TRUE)
 }
 }
 \author{

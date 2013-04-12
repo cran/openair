@@ -126,10 +126,9 @@
   line is solid and the 1:0.5 and 1:2 lines are dashed.
   Together these lines help show how close a group of
   points are to a 1:1 relationship and also show the points
-  that are within a factor of two (FAC2). Also, for
-  \code{method = "scatter"} (the default) the scales are
-  made to be isometric. In time, more comprehensive model
-  evaluation statistics will be considered.}
+  that are within a factor of two (FAC2). \code{mod.line}
+  is appropriately transformed when x or y axes are on a
+  log scale.}
 
   \item{cols}{Colours to be used for plotting. Options
   include \dQuote{default}, \dQuote{increment},
@@ -230,7 +229,18 @@
   common graphical parameters, e.g. \code{layout} for panel
   arrangement, \code{pch} for plot symbol and \code{lwd}
   and \code{lty} for line width and type, as also available
-  (see examples below).}
+  (see examples below).
+
+  For \code{method = "hexbin"} it can be useful to
+  transform the scale if it is dominated by a few very high
+  values. This is possible by supplying two functions: one
+  that that applies the transformation and the other that
+  inverses it. For log scaling (the default) for example,
+  \code{trans = function(x) log(x)} and \code{inv =
+  function(x) exp(x)}. For a square root transform use
+  \code{trans = sqrt} and \code{inv = function(x) x^2}. To
+  not carry out any transformation the options \code{trans
+  = NULL} and \code{inv = NULL} should be used.}
 }
 \value{
   As well as generating the plot itself, \code{scatterPlot}

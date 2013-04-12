@@ -150,6 +150,7 @@
 ##' Similarly, common axis and title labelling options (such as
 ##' \code{xlab}, \code{ylab}, \code{main}) are passed to \code{xyplot}
 ##' via \code{quickText} to handle routine formatting.
+##' @import latticeExtra
 ##' @export
 ##' @author David Carslaw
 ##' @seealso See \code{\link{conditionalQuantile}} for information on conditional
@@ -179,7 +180,6 @@ conditionalEval <- function(mydata, obs = "obs", mod = "mod",
 
     Var1 <- NULL; current.strip <- NULL; hour.inc <- NULL; .id <- NULL; Freq <- NULL ## keep CRAN check happy
 
-    require(latticeExtra)
 
     ## statistic can be predefined one in modStats, cluster, date-based e.g. "season" or
     ## another field in the data frame
