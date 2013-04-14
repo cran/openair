@@ -7,11 +7,11 @@
     resolution = "normal", limits = NA,
     exclude.missing = TRUE, uncertainty = FALSE,
     percentile = NA, cols = "default", min.bin = 1,
-    upper = NA, angle.scale = 315, units = x,
-    force.positive = TRUE, k = 100, normalise = FALSE,
-    key.header = "", key.footer = pollutant,
-    key.position = "right", key = TRUE, auto.text = TRUE,
-    ...)
+    mis.col = "grey", upper = NA, angle.scale = 315,
+    units = x, force.positive = TRUE, k = 100,
+    normalise = FALSE, key.header = "",
+    key.footer = pollutant, key.position = "right",
+    key = TRUE, auto.text = TRUE, ...)
 }
 \arguments{
   \item{mydata}{A data frame minimally containing
@@ -128,22 +128,31 @@
   bin. Note that if uncertainties are calculated then the
   type is set to "default".}
 
-  \item{percentile}{Note that the percentile value is
-  calculated in the wind speed, wind direction
-  \sQuote{bins}. For this reason it can also be useful to
-  set \code{min.bin} to ensure there are a sufficient
-  number of points available to estimate a percentile. See
-  \code{quantile} for more details of how percentiles are
-  calculated.
+  \item{percentile}{If \code{statistic = "percentile"} then
+  \code{percentile} is used, expressed from 0 to 100. Note
+  that the percentile value is calculated in the wind
+  speed, wind direction \sQuote{bins}. For this reason it
+  can also be useful to set \code{min.bin} to ensure there
+  are a sufficient number of points available to estimate a
+  percentile. See \code{quantile} for more details of how
+  percentiles are calculated.
 
-  If \code{statistic = "percentile"} or \code{statistic =
-  "cpf"} then \code{percentile} is used, expressed from 0
-  to 100. \code{percentile} can also be of length two, in
-  which case the percentile \emph{interval} is considered.
-  For example, \code{percentile = c(90, 100)} will plot the
-  CPF for concentrations between the 90 and 100th
-  percentiles. Percentile intervals can be useful for
-  identifying specific sources.}
+  \code{percentile} is also used for the Conditional
+  Probability Function (CPF) plots. \code{percentile} can
+  be of length two, in which case the percentile
+  \emph{interval} is considered for use with CPF. For
+  example, \code{percentile = c(90, 100)} will plot the CPF
+  for concentrations between the 90 and 100th percentiles.
+  Percentile intervals can be useful for identifying
+  specific sources. In addition, \code{percentile} can also
+  be of length 3. The third value is the \sQuote{trim}
+  value to be applied. When calculating percentile
+  intervals many can cover very low values where there is
+  no useful information. The trim value ensures that values
+  greater than or equal to the trim * mean value are
+  considered \emph{before} the percentile intervals are
+  calculated. The effect is to extract more detail from
+  many source signatures. See the manual for examples.}
 
   \item{cols}{Colours to be used for plotting. Options
   include \dQuote{default}, \dQuote{increment},
@@ -163,6 +172,12 @@
   to consider your data with care. Also, the
   \code{polarFreq} function can be of use in such
   circumstances.}
+
+  \item{mis.col}{When \code{min.bin} is > 1 it can be
+  useful to show where data are removed on the plots. This
+  is done by shading the missing data in \code{mis.col}. To
+  not highlight missing data when \code{min.bin} > 1 choose
+  \code{mis.col = "transparent"}.}
 
   \item{upper}{This sets the upper limit wind speed to be
   used. Often there are only a relatively few data points

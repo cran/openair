@@ -183,6 +183,10 @@ decimalDate <- function(x, date = "date") {
 ##' display rolling mean values in flexible ways e.g. with the rolling
 ##' window width left, right or centre aligned.
 ##'
+##' The function will try and fill in missing time gaps to get a full
+##' time sequence but return a data frame with the same number of rows
+##' supplied.
+##'
 ##' @param mydata A data frame containing a \code{date}
 ##' field. \code{mydata} must contain a \code{date} field in
 ##' \code{Date} or \code{POSIXct} format. The input time series must
@@ -231,14 +235,25 @@ rollingMean <- function(mydata, pollutant = "o3", width = 8, new.name = "rolling
 
     calc.rolling <- function(mydata, ...) {
 
+        ## need to know whether dates added
+        dates <- mydata$date
+
         ## pad missing hours
         mydata <- openair:::date.pad(mydata)
 
         ## make sure function is not called with window width longer than data
         if (width > nrow(mydata)) return(mydata)
 
-        mydata[, new.name] <- .Call("rollingMean", mydata[, pollutant], width, data.thresh, align,
+        mydata[, new.name] <- .Call("rollingMean", mydata[, pollutant],
+                                    width, data.thresh, align,
                                     PACKAGE = "openair")
+
+        if (length(dates) != nrow(mydata)) {
+            ## return what was put in
+            ## avoids adding missing data e.g. for factors
+            mydata <- mydata[mydata$date %in% dates, ]
+        }
+
         mydata
     }
 
@@ -477,53 +492,6 @@ selectByDate <- function (mydata, start = "1/1/2008", end = "31/12/2008", year =
         }
     }
     mydata
-}
-
-
-
-#############################################################################################
-
-useOuterStrips <-function (x, strip = strip.default, strip.left = strip.custom(horizontal = FALSE),
-                           strip.lines = 1, strip.left.lines = strip.lines)
-                                        # direct copy from latticeExtra
-{
-    dimx <- dim(x)
-    stopifnot(inherits(x, "trellis"))
-    stopifnot(length(dimx) == 2)
-    opar <- if (is.null(x$par.settings))
-        list()
-    else x$par.settings
-    par.settings <- modifyList(opar, list(layout.heights = if (x$as.table) list(strip = c(strip.lines,
-                                                                                rep(0, dimx[2] - 1))) else list(strip = c(rep(0, dimx[2] -
-                                                                                                                1), 1)), layout.widths = list(strip.left = c(strip.left.lines,
-                                                                                                                                              rep(0, dimx[1] - 1)))))
-    if (is.character(strip))
-        strip <- get(strip)
-    if (is.logical(strip) && strip)
-        strip <- strip.default
-    new.strip <- if (is.function(strip)) {
-        function(which.given, which.panel, var.name, ...) {
-            if (which.given == 1)
-                strip(which.given = 1, which.panel = which.panel[1],
-                      var.name = var.name[1], ...)
-        }
-    }
-    else strip
-    if (is.character(strip.left))
-        strip.left <- get(strip.left)
-    if (is.logical(strip.left) && strip.left)
-        strip.left <- strip.custom(horizontal = FALSE)
-    new.strip.left <- if (is.function(strip.left)) {
-        function(which.given, which.panel, var.name, ...) {
-            if (which.given == 2)
-                strip.left(which.given = 1, which.panel = which.panel[2],
-                           var.name = var.name[2], ...)
-        }
-    }
-    else strip.left
-    update(x, par.settings = par.settings, strip = new.strip,
-           strip.left = new.strip.left, par.strip.text = list(lines = 0.5),
-           layout = dimx)
 }
 
 

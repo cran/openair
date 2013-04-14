@@ -158,7 +158,7 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
 {
 
     ## get rid of R check annoyances
-    wd = NULL
+    wd <- NULL; sub <- NULL
 
     ## calculate percetiles or just show mean?
     if (is.na(percentile[1])) {
@@ -283,6 +283,7 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
             percentiles <- ddply(mydata, .(wd), numcolwise(function (x) quantile(x, probs = percentile /
                                                                                  100, na.rm = TRUE)))
             percentiles$percentile <- percentile
+
         }
 
         if (tolower(method) == "cpf") {
@@ -296,7 +297,12 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
 
             percentiles2 <- ddply(mydata, .(wd), numcolwise(function (x) length(which(x > overall.upper)) / length(x)))
             percentiles2$percentile <- max(percentile)
-            percentiles <- rbind(percentiles1, percentiles2)
+
+            if (fill) {
+                percentiles <- rbind(percentiles1, percentiles2)
+            } else {
+                percentiles <- percentiles2
+            }
 
         }
 
@@ -315,6 +321,15 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
 
     mydata <- cutData(mydata, type, ...)
     results.grid <- ddply(mydata, type, prepare.grid, stat = "percentile")
+
+    if (method == "cpf") {
+        ## useful labelling
+        sub <- paste("CPF at the ", max(percentile),
+                     "th percentile (=",
+                     round(max(quantile(mydata[, pollutant], probs = percentile / 100,
+                                    na.rm = TRUE)), 1), ")", sep = "")
+    }
+
 
     if (mean) {
         Mean <- ddply(mydata, type, prepare.grid, stat = "mean")
@@ -379,6 +394,7 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
                   ylim = c(max(intervals) * -1, max(intervals) * 1),
                   data = results.grid,
                   type = "n",
+                        sub = sub,
                   strip = strip,
                   strip.left = strip.left,
                   as.table = TRUE,

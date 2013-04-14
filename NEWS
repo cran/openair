@@ -8,6 +8,21 @@ Changes in openair 0.9-0 [2013-02-13]
 *	Correct calculation of AOT40 in aqStats to take account of
 	daylight hours and growing season (Apr. to Sep.). Can use
 	latitude/longitude, if supplied
+*	Fix bug in aqStats when non predefined pollutant used
+*	Allow log10 factor of 2 lines in scatterPlot when x and/or
+	y are on a log scale
+*	Allow users to supply own transform/inverse functions to hexbin
+*	Don't try and pad-out missing data in rollingMean when
+	returning results
+*	Make latticeExtra a 'depends'
+*	Don't copy-down data by default in timeAverage when requested
+	averaging time is < original. Better handling when 'site' is
+	present
+*	Update AURN help file site information; add site type
+*	Show where data removed when min.bin > 1 for polarPlot
+*	Add 'trim' value to percentiles in polarPlot to extract more
+	source information.
+
 
 Changes in openair 0.8-0 [2012-11-30]
 =====================================

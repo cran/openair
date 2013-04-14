@@ -296,8 +296,10 @@ aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(
             results
         }
 
-      #  if (!any(tolower(pollutant) %in% thePolls)) {
-        if (!any(sapply(thePolls, function (x) grep(x, pollutant, ignore.case = TRUE)) >0)) {
+
+        ## see if pollutant string in any pre-defined ones
+        ## if not calculate basic stats
+        if (all(is.na(sapply(thePolls, function (x) grep(x, pollutant, ignore.case = TRUE)) >0))) {
 
             results <- list(dataCapture, Mean, Min, Max, Median, maxDaily, rollMax8, rollMax24,
                             Percentile)

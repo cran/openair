@@ -156,20 +156,28 @@
 ##' GAM and weighting is done by the frequency of measurements in each
 ##' wind speed-direction bin. Note that if uncertainties are
 ##' calculated then the type is set to "default".
-##' @param percentile Note that the percentile value is calculated in the
-##' wind speed, wind direction \sQuote{bins}. For this reason it can
-##' also be useful to set \code{min.bin} to ensure there are a
-##' sufficient number of points available to estimate a
-##' percentile. See \code{quantile} for more details of how
-##' percentiles are calculated.
+##' @param percentile If \code{statistic = "percentile"} then
+##' \code{percentile} is used, expressed from 0 to 100. Note that the
+##' percentile value is calculated in the wind speed, wind direction
+##' \sQuote{bins}. For this reason it can also be useful to set
+##' \code{min.bin} to ensure there are a sufficient number of points
+##' available to estimate a percentile. See \code{quantile} for more
+##' details of how percentiles are calculated.
 ##'
-##' If \code{statistic = "percentile"} or \code{statistic = "cpf"}
-##' then \code{percentile} is used, expressed from 0 to
-##' 100. \code{percentile} can also be of length two, in which case
-##' the percentile \emph{interval} is considered. For example,
-##' \code{percentile = c(90, 100)} will plot the CPF for
-##' concentrations between the 90 and 100th percentiles. Percentile
-##' intervals can be useful for identifying specific sources.
+##' \code{percentile} is also used for the Conditional Probability
+##' Function (CPF) plots. \code{percentile} can be of length two, in
+##' which case the percentile \emph{interval} is considered for use
+##' with CPF. For example, \code{percentile = c(90, 100)} will plot
+##' the CPF for concentrations between the 90 and 100th
+##' percentiles. Percentile intervals can be useful for identifying
+##' specific sources. In addition, \code{percentile} can also be of
+##' length 3. The third value is the \sQuote{trim} value to be
+##' applied. When calculating percentile intervals many can cover very
+##' low values where there is no useful information. The trim value
+##' ensures that values greater than or equal to the trim * mean value
+##' are considered \emph{before} the percentile intervals are
+##' calculated. The effect is to extract more detail from many source
+##' signatures. See the manual for examples.
 ##' @param cols Colours to be used for plotting. Options include
 ##' \dQuote{default}, \dQuote{increment}, \dQuote{heat}, \dQuote{jet}
 ##' and \code{RColorBrewer} colours --- see the \code{openair}
@@ -184,6 +192,10 @@
 ##' using a value > 1 because of the risk of removing real data
 ##' points. It is recommended to consider your data with care. Also,
 ##' the \code{polarFreq} function can be of use in such circumstances.
+##' @param mis.col When \code{min.bin} is > 1 it can be useful to show
+##' where data are removed on the plots. This is done by shading the
+##' missing data in \code{mis.col}. To not highlight missing data when
+##' \code{min.bin} > 1 choose \code{mis.col = "transparent"}.
 ##' @param upper This sets the upper limit wind speed to be
 ##' used. Often there are only a relatively few data points at very
 ##' high wind speeds and plotting all of them can reduce the useful
@@ -338,7 +350,7 @@
 polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "default",
                       statistic = "mean", resolution = "normal", limits = NA,
                       exclude.missing = TRUE, uncertainty = FALSE, percentile = NA,
-                      cols = "default", min.bin = 1, upper = NA, angle.scale = 315,
+                      cols = "default", min.bin = 1, mis.col = "grey", upper = NA, angle.scale = 315,
                       units = x, force.positive = TRUE, k = 100, normalise = FALSE,
                       key.header = "", key.footer = pollutant, key.position = "right",
                       key = TRUE, auto.text = TRUE, ...) {
@@ -466,17 +478,29 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
     input.data <- expand.grid(u = seq(-upper, upper, length = int),
                               v = seq(-upper, upper, length = int))
 
-
+    ## ######################################################################
     if (statistic == "cpf") {
         ## can be interval of percentiles or a single (threshold)
         if (length(percentile) > 1) {
             statistic <- "cpfi" # CPF interval
-            Pval1 <- quantile(mydata[, pollutant], probs = percentile[1] / 100,
-                             na.rm = TRUE)
-            Pval2 <- quantile(mydata[, pollutant], probs = percentile[2] / 100,
-                             na.rm = TRUE)
-            sub <- paste("CPF for the ", percentile[1], " to ",
-                         percentile[2], "th", " percentile", sep = "")
+
+            if (length(percentile) == 3) {
+                ## in this case there is a trim value as a proprtion of the mean
+                Mean <- mean(mydata[, pollutant], na.rm = TRUE)
+                Pval1 <- quantile(subset(mydata[[pollutant]], mydata[[pollutant]] >= Mean * percentile[3]),
+                                  probs = percentile[1] / 100, na.rm = TRUE)
+
+                Pval2 <- quantile(subset(mydata[[pollutant]], mydata[[pollutant]] >= Mean * percentile[3]),
+                                   probs = percentile[2] / 100, na.rm = TRUE)
+
+            } else {
+                Pval1 <- quantile(mydata[, pollutant], probs = percentile[1] / 100,
+                                  na.rm = TRUE)
+                Pval2 <- quantile(mydata[, pollutant], probs = percentile[2] / 100,
+                                  na.rm = TRUE)
+            }
+            sub <- paste("CPF (", Pval1, " to ",
+                         Pval2, ")", sep = "")
 
         } else {
             Pval <- quantile(mydata[, pollutant], probs = percentile / 100, na.rm = TRUE)
@@ -521,6 +545,7 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
         binned.len <- as.vector(bin.len)
 
         ids <- which(binned.len < min.bin)
+
         binned[ids] <- NA
         ## ####################Smoothing#################################################
         if (force.positive) n <- 0.5 else n <- 1
@@ -590,7 +615,29 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
 
     ## #################################################################
 
-    results.grid <- ddply(mydata, type, prepare.grid)
+    ## if min.bin >1 show the missing data. Work this out by running twice:
+    ## first time with no missings, second with min.bin.
+    ## Plot one surface on top of the other.
+
+    if (!missing(min.bin)) {
+        tmp <- min.bin
+        min.bin <- 0
+        results.grid1 <- ddply(mydata, type, prepare.grid)
+
+        min.bin <- tmp
+        results.grid <- ddply(mydata, type, prepare.grid)
+        results.grid$miss <- results.grid1$z
+
+    } else {
+
+        results.grid <- ddply(mydata, type, prepare.grid)
+    }
+
+    ## with CPF make sure not >1 due to surface fitting
+    if (any(results.grid$z > 1, na.rm = TRUE) & statistic %in% c("cpf", "cpfi")) {
+        id <- which(results.grid$z > 1)
+        results.grid$z[id] <- 1
+    }
 
     ## remove wind speeds > upper to make a circle
     if (clip) results.grid$z[(results.grid$u ^ 2 + results.grid$v ^ 2) ^ 0.5 > upper] <- NA
@@ -690,13 +737,21 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
                  ylim = c(-upper * 1.025, upper * 1.025),
                  colorkey = FALSE, legend = legend,
 
-                 panel = function(x, y, z,subscripts,...) {
+                 panel = function(x, y, z, subscripts,...) {
+
+                     ## show missing data due to min.bin
+                     if (min.bin > 1)
+                         panel.levelplot(x, y, results.grid$miss,
+                                         subscripts,
+                                         col.regions = mis.col,
+                                         labels = FALSE)
+
                      panel.levelplot(x, y, z,
                                      subscripts,
                                      at = col.scale,
                                      pretty = TRUE,
                                      col.regions = col,
-                                     labels = FALSE)
+                                    labels = FALSE)
 
                      angles <- seq(0, 2 * pi, length = 360)
 

@@ -113,90 +113,179 @@
   shown in the 'v2.5' column.
 
   While the function is being developed, the following site
-  codes should help with selection. \itemize{ \item A3
-  London A3 Roadside \item ABD Aberdeen \item ABD7 Aberdeen
-  Union Street Roadside \item ACTH Auchencorth Moss \item
-  AH Aston Hill \item BAR2 Barnsley 12 \item BAR3 Barnsley
-  Gawber \item BARN Barnsley \item BATH Bath Roadside \item
-  BEL Belfast East \item BEL2 Belfast Centre \item BEL4
-  Belfast Clara St \item BEX London Bexley \item BHAM
-  Birmingham \item BIL Billingham \item BIR Bircotes \item
-  BIR1 Birmingham Tyburn \item BIR2 Birmingham East \item
-  BIRM Birmingham Centre \item BIRT Birmingham Tyburn
-  Roadside \item BLAC Blackpool \item BLC2 Blackpool Marton
-  \item BLCB Blackburn Darwen Roadside \item BOLT Bolton
-  \item BORN Bournemouth \item BOT Bottesford \item BRAD
-  Bradford Centre \item BREN London Brent \item BRI London
-  Bridge Place \item BRIS Bristol Centre \item BRIT
-  Brighton Roadside \item BRN Brentford Roadside \item BRS2
-  Bristol Old Market \item BRS8 Bristol St Paul's \item
-  BRT3 Brighton Preston Park \item BURY Bury Roadside \item
-  BUSH Bush Estate \item BY1 Bromley Roadside \item BY2
-  London Bromley \item CA1 Camden \item CAM Cambridge
-  Roadside \item CAMB Cambridge \item CAN London Canvey
-  \item CANT Canterbury \item CAR Cardiff \item CARD
-  Cardiff Centre \item CARL Carlisle Roadside \item CHIL
-  Chilworth \item CHP Chepstow A48 \item CHS6 Chesterfield
-  \item CHS7 Chesterfield Roadside \item CLL Central London
-  \item CLL2 London Bloomsbury \item COV2 Coventry Centre
-  \item COV3 Coventry Memorial Park \item CRD London
-  Cromwell Road \item CRD2 London Cromwell Road 2 \item
-  CWMB Cwmbran \item DERY Derry \item DUMF Dumfries \item
-  EAGL Stockton-on-Tees Eaglescliffe \item ECCL Salford
-  Eccles \item ED Edinburgh Centre \item ED3 Edinburgh St
-  Leonards \item EX Exeter Roadside \item FEA Featherstone
-  \item FW Fort William \item GDF Great Dun Fell \item GLA
-  Glasgow City Chambers \item GLA3 Glasgow Centre \item
-  GLA4 Glasgow \item GLAS Glasgow Hope St \item GLAZ
-  Glazebury \item GRA2 Grangemouth Moray \item GRAN
-  Grangemouth \item HAR Harwell \item HARR London Harrow
-  \item HG1 Haringey Roadside \item HG2 London Haringey
-  \item HIL London Hillingdon \item HM High Muffles \item
-  HOPE Stanford-le-Hope Roadside \item HORE Horley \item
-  HORS London Westminster \item HOVE Hove Roadside \item
-  HR3 London Harrow Stanmore \item HRL London Harlington
-  \item HS1 Hounslow Roadside \item HUL2 Hull Freetown
-  \item HULL Hull Centre \item INV2 Inverness \item ISL
-  London Islington \item LB Ladybower \item LEAM Leamington
-  Spa \item LED6 Leeds Headingley \item LEED Leeds Centre
-  \item LEIC Leicester Centre \item LEOM Leominster \item
-  LERW Lerwick \item LH Lullington Heath \item LINC Lincoln
-  Roadside \item LIVR Liverpool Centre \item LN Lough Navar
-  \item LON6 London Eltham \item LV6 Liverpool Queen's
-  Drive Roadside \item LVP Liverpool Speke \item LW1 London
-  Lewisham \item MAN Manchester Town Hall \item MAN3
-  Manchester Piccadilly \item MAN4 Manchester South \item
-  MH Mace Head \item MID Middlesbroug \item MY1 London
-  Marylebone Road \item NCA3 Newcastle Cradlewell Roadside
-  \item NEWC Newcastle Centre \item NO10 Norwich Forum
-  Roadside \item NOR1 Norwich Roadside \item NOR2 Norwich
-  Centre \item NOTT Nottingham Centre \item NPT3 Newport
-  \item NTON Northampton \item OLDB Sandwell Oldbury \item
-  OSY St Osyth \item OX Oxford Centre Roadside \item OX3
-  Oxford St Ebbes \item PEMB Narberth \item PLYM Plymouth
-  Centre \item PMTH Portsmouth \item PRES Preston \item PT
-  Port Talbot \item PT4 Port Talbot Margam \item REA1
-  Reading New Town \item READ Reading \item REDC Redcar
-  \item ROCH Rochester Stoke \item ROTH Rotherham Centre
-  \item RUGE Rugeley \item SALT Saltash Roadside \item SCN2
-  Scunthorpe Town \item SCUN Scunthorpe \item SDY Sandy
-  Roadside \item SEND Southend-on-Sea \item SHE Sheffield
-  Tinsley \item SHE2 Sheffield Centre \item SIB Sibton
-  \item SOM Somerton \item SOUT Southampton Centre \item
-  STE Stevenage \item STEW Stewartby \item STOC Stockport
-  \item SUN2 Sunderland Silksworth \item SUND Sunderland
-  \item SUT1 Sutton Roadside \item SUT3 London Sutton \item
-  SV Strath Vaich \item SWA1 Swansea Roadside \item SWAN
-  Swansea \item TED London Teddington \item TH2 Tower
-  Hamlets Roadside \item THUR Thurrock \item TRAN Wirral
-  Tranmere \item WA2 London Wandsworth \item WAL Walsall
-  Alumwell \item WAL2 Walsall Willenhall \item WAR
-  Warrington \item WBRO Sandwell West Bromwich \item WC
-  Wharleycroft \item WEYB Weybourne \item WFEN Wicken Fen
-  \item WIG3 Wigan Leigh \item WIG5 Wigan Centre \item WL
-  West London \item WOLV Wolverhampton Centre \item WRAY
-  Wray \item WREX Wrexham \item YARM Stockton-on-Tees Yarm
-  \item YW Yarner Wood }
+  codes should help with selection.
+
+  \itemize{ \item A3 | London A3 Roadside | Urban traffic
+  \item ABD | Aberdeen | Urban Background \item ABD7 |
+  Aberdeen Union Street Roadside | Urban traffic \item ACTH
+  | Auchencorth Moss | Rural Background \item AH | Aston
+  Hill | Rural Background \item ARM6 | Armagh Roadside |
+  Urban traffic \item BALM | Ballymena | Urban Background
+  \item BAR2 | Barnsley 12 | Urban Background \item BAR3 |
+  Barnsley Gawber | Urban Background \item BARN | Barnsley
+  | Urban Background \item BATH | Bath Roadside | Urban
+  traffic \item BEL | Belfast East | Urban Background \item
+  BEL2 | Belfast Centre | Urban Background \item BEL4 |
+  Belfast Clara St | Suburban Background \item BEX | London
+  Bexley | Suburban Background \item BHAM | Birmingham
+  Kerbside | Urban traffic \item BIL | Billingham | Urban
+  Industrial \item BIR | Bircotes | Urban Background \item
+  BIR1 | Birmingham Tyburn | Urban Background \item BIR2 |
+  Birmingham East | Urban Background \item BIRM |
+  Birmingham Centre | Urban Background \item BIRT |
+  Birmingham Tyburn Roadside | Urban traffic \item BLAC |
+  Blackpool | Urban Background \item BLC2 | Blackpool
+  Marton | Urban Background \item BLCB | Blackburn Darwen
+  Roadside | Urban traffic \item BOLT | Bolton | Urban
+  Background \item BORN | Bournemouth | Urban Background
+  \item BOT | Bottesford | Rural Background \item BRAD |
+  Bradford Centre | Urban Background \item BREN | London
+  Brent | Urban Background \item BRI | London Bridge Place
+  | Urban Background \item BRIS | Bristol Centre | Urban
+  Background \item BRIT | Brighton Roadside | Urban traffic
+  \item BRN | Brentford Roadside | Urban traffic \item BRS2
+  | Bristol Old Market | Urban traffic \item BRS8 | Bristol
+  St Paul's | Urban Background \item BRT3 | Brighton
+  Preston Park | Urban Background \item BURY | Bury
+  Roadside | Urban traffic \item BUSH | Bush Estate | Rural
+  Background \item BY1 | Bromley Roadside | Urban traffic
+  \item BY2 | London Bromley | Urban traffic \item CA1 |
+  Camden Kerbside | Urban traffic \item CAM | Cambridge
+  Roadside | Urban traffic \item CAMB | Cambridge | Urban
+  traffic \item CAN | London Canvey | Urban Industrial
+  \item CANT | Canterbury | Urban Background \item CAR |
+  Cardiff Kerbside | Urban traffic \item CARD | Cardiff
+  Centre | Urban Background \item CARL | Carlisle Roadside
+  | Urban traffic \item CHAT | Chatham Roadside | Urban
+  traffic \item CHIL | Chilworth | Suburban Background
+  \item CHP | Chepstow A48 | Urban traffic \item CHS6 |
+  Chesterfield | Urban Background \item CHS7 | Chesterfield
+  Roadside | Urban traffic \item CLL | Central London |
+  Urban Background \item CLL2 | London Bloomsbury | Urban
+  Background \item COV2 | Coventry Centre | Urban
+  Background \item COV3 | Coventry Memorial Park | Urban
+  Background \item CRD | London Cromwell Road | Urban
+  traffic \item CRD2 | London Cromwell Road 2 | Urban
+  traffic \item CWMB | Cwmbran | Urban Background \item
+  DERY | Derry | Urban Background \item DUMB | Dumbarton
+  Roadside | Urban traffic \item DUMF | Dumfries | Urban
+  traffic \item EAGL | Stockton-on-Tees Eaglescliffe |
+  Urban traffic \item EB | Eastbourne | Urban Background
+  \item ECCL | Salford Eccles | Urban Industrial \item ED |
+  Edinburgh Centre | Urban Background \item ED3 | Edinburgh
+  St Leonards | Urban Background \item EK | East Kilbride |
+  Suburban Background \item ESK | Eskdalemuir | Rural
+  Background \item EX | Exeter Roadside | Urban traffic
+  \item FEA | Featherstone | Urban Background \item FW |
+  Fort William | Suburban Background \item GDF | Great Dun
+  Fell | Rural Background \item GLA | Glasgow City Chambers
+  | Urban Background \item GLA3 | Glasgow Centre | Urban
+  Background \item GLA4 | Glasgow Kerbside | Urban traffic
+  \item GLAS | Glasgow Hope St | Urban traffic \item GLAZ |
+  Glazebury | Rural Background \item GRA2 | Grangemouth
+  Moray | Rural Background \item GRAN | Grangemouth | Urban
+  Industrial \item HAR | Harwell | Rural Background \item
+  HARR | London Harrow | Suburban Background \item HG1 |
+  Haringey Roadside | Urban traffic \item HG2 | London
+  Haringey | Urban Background \item HIL | London Hillingdon
+  | Urban Background \item HK4 | London Hackney | Urban
+  Background \item HM | High Muffles | Rural Background
+  \item HOPE | Stanford-le-Hope Roadside | Urban traffic
+  \item HORE | Horley | Suburban Background \item HORS |
+  London Westminster | Urban Background \item HOVE | Hove
+  Roadside | Urban traffic \item HR3 | London Harrow
+  Stanmore | Urban Background \item HRL | London Harlington
+  | Urban Industrial \item HS1 | Hounslow Roadside | Urban
+  traffic \item HUL2 | Hull Freetown | Urban Background
+  \item HULL | Hull Centre | Urban Background \item INV2 |
+  Inverness | Urban traffic \item ISL | London Islington |
+  Urban Background \item KC1 | London N. Kensington | Urban
+  Background \item LB | Ladybower | Rural Background \item
+  LDS | Leeds Potternewton | Urban Background \item LEAM |
+  Leamington Spa | Urban Background \item LED6 | Leeds
+  Headingley Kerbside | Urban traffic \item LEED | Leeds
+  Centre | Urban Background \item LEIC | Leicester Centre |
+  Urban Background \item LEOM | Leominster | Suburban
+  Background \item LERW | Lerwick | Suburban Background
+  \item LH | Lullington Heath | Rural Background \item LINC
+  | Lincoln Roadside | Urban traffic \item LIVR | Liverpool
+  Centre | Urban Background \item LN | Lough Navar | Rural
+  Background \item LON6 | London Eltham | Suburban
+  Background \item LON7 | London Eltham (HC) | Urban
+  Background \item LV6 | Liverpool Queen's Drive Roadside |
+  Urban traffic \item LVP | Liverpool Speke | Urban
+  Background \item LW1 | London Lewisham | Urban Background
+  \item MACK | Charlton Mackrell | Rural Background \item
+  MAN | Manchester Town Hall | Urban Background \item MAN3
+  | Manchester Piccadilly | Urban Background \item MAN4 |
+  Manchester South | Suburban Background \item MH | Mace
+  Head | Rural Background \item MID | Middlesbrough | Urban
+  Background \item MKTH | Market Harborough | Rural
+  Background \item MOLD | Mold | Suburban Background \item
+  MY1 | London Marylebone Road | Urban traffic \item NCA3 |
+  Newcastle Cradlewell Roadside | Urban traffic \item NEWC
+  | Newcastle Centre | Urban Background \item NO10 |
+  Norwich Forum Roadside | Urban traffic \item NO12 |
+  Norwich Lakenfields | Urban Background \item NOR1 |
+  Norwich Roadside | Urban traffic \item NOR2 | Norwich
+  Centre | Urban Background \item NOTT | Nottingham Centre
+  | Urban Background \item NPT3 | Newport | Urban
+  Background \item NTON | Northampton | Urban Background
+  \item OLDB | Sandwell Oldbury | Urban Background \item
+  OSY | St Osyth | Rural Background \item OX | Oxford
+  Centre Roadside | Urban traffic \item OX8 | Oxford St
+  Ebbes | Urban Background \item PEEB | Peebles | Urban
+  Background \item PEMB | Narberth | Rural Background \item
+  PLYM | Plymouth Centre | Urban Background \item PMTH |
+  Portsmouth | Urban Background \item PRES | Preston |
+  Urban Background \item PT | Port Talbot | Urban
+  Industrial \item PT4 | Port Talbot Margam | Urban
+  Industrial \item REA1 | Reading New Town | Urban
+  Background \item READ | Reading | Urban Background \item
+  REDC | Redcar | Suburban Background \item ROCH |
+  Rochester Stoke | Rural Background \item ROTH | Rotherham
+  Centre | Urban Background \item RUGE | Rugeley | Urban
+  Background \item SALT | Saltash Roadside | Urban traffic
+  \item SCN2 | Scunthorpe Town | Urban Industrial \item
+  SCUN | Scunthorpe | Urban Industrial \item SDY | Sandy
+  Roadside | Urban traffic \item SEND | Southend-on-Sea |
+  Urban Background \item SHE | Sheffield Tinsley | Urban
+  Background \item SHE2 | Sheffield Centre | Urban
+  Background \item SIB | Sibton | Rural Background \item
+  SK1 | London Southwark | Urban Background \item SK2 |
+  Southwark Roadside | Urban traffic \item SK5 | Southwark
+  A2 Old Kent Road | Urban traffic \item SOM | Somerton |
+  Rural Background \item SOUT | Southampton Centre | Urban
+  Background \item STE | Stevenage | Suburban Background
+  \item STEW | Stewartby | Urban Industrial \item STK4 |
+  Stockport Shaw Heath | Urban Background \item STOC |
+  Stockport | Urban Background \item STOK | Stoke-on-Trent
+  Centre | Urban Background \item STOR | Storrington
+  Roadside | Urban traffic \item SUN2 | Sunderland
+  Silksworth | Urban Background \item SUND | Sunderland |
+  Urban Background \item SUT1 | Sutton Roadside | Urban
+  traffic \item SUT3 | London Sutton | Suburban Background
+  \item SV | Strath Vaich | Rural Background \item SWA1 |
+  Swansea Roadside | Urban traffic \item SWAN | Swansea |
+  Urban Background \item TED | London Teddington | Urban
+  Background \item TH2 | Tower Hamlets Roadside | Urban
+  traffic \item THUR | Thurrock | Urban Background \item
+  TRAN | Wirral Tranmere | Urban Background \item WA2 |
+  London Wandsworth | Urban Background \item WAL | Walsall
+  Alumwell | Urban Background \item WAL2 | Walsall
+  Willenhall | Urban Background \item WAR | Warrington |
+  Urban Background \item WBRO | Sandwell West Bromwich |
+  Urban Background \item WC | Wharleycroft | Rural
+  Background \item WEYB | Weybourne | Rural Background
+  \item WFEN | Wicken Fen | Rural Background \item WIG3 |
+  Wigan Leigh | Urban Background \item WIG5 | Wigan Centre
+  | Urban Background \item WL | West London | Urban
+  Background \item WOLV | Wolverhampton Centre | Urban
+  Background \item WRAY | Wray | Rural Background \item
+  WREX | Wrexham | Urban traffic \item YARM |
+  Stockton-on-Tees Yarm | Urban traffic \item YK10 | York
+  Bootham | Urban Background \item YK11 | York Fishergate |
+  Urban traffic \item YW | Yarner Wood | Rural Background }
 }
 \examples{
 ## import all pollutants from Marylebone Rd from 1990:2009

@@ -1,6 +1,6 @@
-pollutionRose <- function(mydata,
-                          pollutant = "nox", key.footer = pollutant,
-                          breaks = 6, paddle = FALSE, seg = 0.9, key.position = "right",
+pollutionRose <- function(mydata, pollutant = "nox", key.footer = pollutant,
+                          key.position = "right", key = TRUE,
+                          breaks = 6, paddle = FALSE, seg = 0.9,
                           ...)
 {
 
@@ -26,7 +26,7 @@ pollutionRose <- function(mydata,
     }
 
     windRose(mydata, pollutant = pollutant, paddle = paddle, seg = seg,
-             key.position = key.position, key.footer = key.footer,
+             key.position = key.position, key.footer = key.footer, key = key,
              breaks = breaks, ...)
 }
 
@@ -79,23 +79,25 @@ pollutionRose <- function(mydata,
 ##' direction bias is colour-coded to show negative bias in one colour
 ##' and positive bias in another.
 ##'
-##' @usage windRose(mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA, ws.int = 2, angle = 30,
-##' type = "default", cols = "default", grid.line = NULL, width = 1, seg = NULL,
-##' auto.text = TRUE, breaks = 4, offset = 10, paddle = TRUE, key.header = NULL,
-##' key.footer = "(m/s)", key.position = "bottom", key = TRUE, dig.lab = 5,
-##' statistic = "prop.count", pollutant = NULL, annotate = TRUE, border = NA, ...)
+##' @usage windRose(mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA, ws.int = 2,
+##' angle = 30, type = "default", cols = "default", grid.line = NULL, width = 1,
+##' seg = NULL, auto.text = TRUE, breaks = 4, offset = 10, paddle = TRUE,
+##' key.header = NULL, key.footer = "(m/s)", key.position = "bottom",
+##' key = TRUE, dig.lab = 5, statistic = "prop.count", pollutant = NULL,
+##' annotate = TRUE, border = NA, ...)
 ##'
 ##'
 ##'     pollutionRose(mydata, pollutant = "nox", key.footer = pollutant,
-##'                      breaks = 6, paddle = FALSE, seg = 0.9, key.position = "right",
-##'                          ...)
+##'        key.position = "right", key = TRUE, breaks = 6, paddle = FALSE, seg = 0.9, ...)
 ##'
 ##'
 ##' @aliases windRose pollutionRose
 ##' @param mydata A data frame containing fields \code{ws} and \code{wd}
 ##' @param ws Name of the column representing wind speed.
 ##' @param wd Name of the column representing wind direction.
-##' @param ws2 The user can supply a second set of wind speed and wind direction values with which the first can be compared. See details below for full explanation.
+##' @param ws2 The user can supply a second set of wind speed and wind
+##' direction values with which the first can be compared. See details
+##' below for full explanation.
 ##' @param wd2 see \code{ws2}.
 ##' @param ws.int The Wind speed interval. Default is 2 m/s but for low met
 ##'   masts with low mean wind speeds a value of 1 or 0.5 m/s may be better.

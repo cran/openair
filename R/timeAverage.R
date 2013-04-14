@@ -53,9 +53,10 @@
 ##' that when expanding data in this way it is necessary to ensure
 ##' that the time interval of the original series is an exact multiple
 ##' of \code{avg.time} e.g. hour to 10 minutes, day to hour. Also, the
-##' input time series must have consistent time gaps between successive
-##' intervals so that \code{timeAverage} can work out how much
-##' \sQuote{padding} to apply.
+##' input time series must have consistent time gaps between
+##' successive intervals so that \code{timeAverage} can work out how
+##' much \sQuote{padding} to apply. To pad-out data in this way choose
+##' \code{fill = TRUE}.
 ##' @param data.thresh The data capture threshold to use (\%). A value of zero
 ##'   means that all available data will be used in a particular period
 ##'   regardless if of the number of values available. Conversely, a value of
@@ -93,6 +94,11 @@
 ##' arithmetic average = 2m/s and the vector average is
 ##' 0m/s. Vector-averaged wind speeds will always be lower than
 ##' scalar-averaged values.
+##' @param fill When time series are expanded i.e. when a time
+##' interval is less than the original time series, data are
+##' \sQuote{padded out} with \code{NA}. To \sQuote{pad-out} the
+##' additional data with the first row in each original time interval,
+##' choose \code{fill = TRUE}.
 ##' @export
 ##' @return Returns a data frame with date in class \code{POSIXct} and will
 ##'   remove any non-numeric columns except a column "site".
@@ -114,13 +120,13 @@
 ##'
 ##' ## make a 15-minute time series from an hourly one
 ##' \dontrun{
-##' min15 <-  timeAverage(mydata, avg.time = "15 min")
+##' min15 <-  timeAverage(mydata, avg.time = "15 min", fill = TRUE)
 ##' }
 ##'
 ##'
 timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
                         statistic = "mean", percentile = NA, start.date = NA,
-                        vector.ws = FALSE) {
+                        vector.ws = FALSE, fill = FALSE) {
 
     ## get rid of R check annoyances
     year = season = month = Uu = Vv = site = NULL
@@ -199,22 +205,28 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
             ## merge with orginal data, which leaves gaps to fill
             mydata <- merge(mydata, allData, by = "date", all = TRUE)
 
-            ## number of additional lines to fill
-            inflateFac <-  timeDiff / seconds
-            if (timeDiff %% seconds != 0) stop("Non-regular time expansion selected, or non-regular input time series.")
+            if (fill) {
+                ## this will copy-down data to next original row of data
+                ## number of additional lines to fill
+                inflateFac <-  timeDiff / seconds
+                if (timeDiff %% seconds != 0) stop("Non-regular time expansion selected, or non-regular input time series.")
 
-            ## ids of orginal dates in new dates
-            ids <- which(mydata$date %in% theDates)
+                ## ids of orginal dates in new dates
+                ids <- which(mydata$date %in% theDates)
 
-            date <- mydata$date
-            mydata <-subset(mydata, select = -date)
+                date <- mydata$date
+                mydata <-subset(mydata, select = -date)
 
-            for (i in 1:(inflateFac - 1)) {
-                mydata[ids + i, ] <-  mydata[ids, ]
+                for (i in 1:(inflateFac - 1)) {
+                    mydata[ids + i, ] <-  mydata[ids, ]
+                }
+
+                mydata <- cbind(date, mydata)
+                mydata <- mydata[1:nrow(mydata) - 1, ] ## don't need last row
             }
 
-            mydata <- cbind(date, mydata)
-            mydata <- mydata[1:nrow(mydata) - 1, ] ## don't need last row
+            ## when expanding with column 'site' make sure it is added
+            if ("site" %in% names(mydata)) mydata$site <- mydata$site[1]
             return(mydata)
 
         }
@@ -351,8 +363,11 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
 
         ## fill missing gaps
         if (avg.time != "season") {
-            dailymet <- date.pad2(dailymet, interval = avg.time)
+            dailymet <- openair:::date.pad2(dailymet, interval = avg.time)
         }
+
+        ## when expanding with column 'site' make sure it is added
+        if ("site" %in% names(mydata)) mydata$site <- mydata$site[1]
         dailymet
 
     }
@@ -361,6 +376,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
     if ("site" %in% names(mydata)) { ## split by site
         mydata$site <- factor(mydata$site)
         mydata <- ddply(mydata, .(site), calc.mean, start.date)
+
     } else {
         mydata <- calc.mean(mydata, start.date)
     }

@@ -165,9 +165,9 @@
   taking the column headings as names, the user can supply
   replacements. For example, if a column had the name
   \dQuote{nox} and the user wanted a different description,
-  then setting \code{pol.name = "nox before change"} can be
+  then setting \code{name.pol = "nox before change"} can be
   used. If more than one pollutant is plotted then use
-  \code{c} e.g. \code{pol.name = c("nox here", "o3
+  \code{c} e.g. \code{name.pol = c("nox here", "o3
   there")}.}
 
   \item{date.breaks}{Number of major x-axis intervals to

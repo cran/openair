@@ -92,6 +92,7 @@
 ##'   Similarly, common axis and title labelling options (such as \code{xlab},
 ##'   \code{ylab}, \code{main}) are passed to \code{xyplot} via \code{quickText}
 ##'   to handle routine formatting.
+##' @import latticeExtra
 ##' @export
 ##' @author David Carslaw
 ##' @seealso See \code{\link{modStats}} for model evaluation statistics and the
@@ -147,7 +148,7 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
                                 key.position = "bottom",
                                 auto.text = TRUE, ...) {
     ## partly based on from Wilks (2005) and package verification, with many modifications
-    require(latticeExtra)
+
 
     if (length(type) > 2) stop("Only two types can be used with this function")
 

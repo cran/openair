@@ -52,6 +52,10 @@
   use in helping to display rolling mean values in flexible
   ways e.g. with the rolling window width left, right or
   centre aligned.
+
+  The function will try and fill in missing time gaps to
+  get a full time sequence but return a data frame with the
+  same number of rows supplied.
 }
 \examples{
 ## rolling 8-hour mean for ozone
