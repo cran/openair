@@ -117,7 +117,7 @@ corPlot <- function(mydata, pollutants = NULL, type = "default",
     if (length(type) > 1) stop ("Only one 'type' allowed in this function.")
 
     ## make sure date is present for types requiring it
-    if (any(type %in% openair:::dateTypes)) {
+    if (any(type %in% dateTypes)) {
         if (!"date" %in% names(mydata)) stop ("Need a field 'date'")
     }
 
@@ -161,7 +161,7 @@ corPlot <- function(mydata, pollutants = NULL, type = "default",
                       unique(c("date", pollutants)) else
                           unique(c(pollutants))
 
-    mydata <- openair:::checkPrep(mydata, pollutants, type = type,
+    mydata <- checkPrep(mydata, pollutants, type = type,
                         remove.calm = FALSE)
 
     ## remove variables where all are NA
@@ -271,7 +271,7 @@ corPlot <- function(mydata, pollutants = NULL, type = "default",
               panel = panel.corrgram,  text.col = text.col, r.thresh = r.thresh, label = TRUE)
 
     #reset for extra.args
-    levelplot.args <- openair:::listUpdate(levelplot.args, extra.args)
+    levelplot.args <- listUpdate(levelplot.args, extra.args)
 
     #plot
     plt <- do.call(levelplot, levelplot.args)

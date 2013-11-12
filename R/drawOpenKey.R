@@ -444,7 +444,7 @@ drawOpenKey <- function (key, draw = FALSE, vp = NULL) {
             check.overlap = check.overlap, just = if (rot == -90)
                 c("center", "bottom")
             else c("left", "center"), rot = rot, gp = gpar(col = col,
-                cex = cex, fontfamily = fontfamily, fontface = lattice:::chooseFace(fontface,
+                cex = cex, fontfamily = fontfamily, fontface = chooseFace(fontface,
                   font)))
         heights.x <- c(((1 -key$height)/2) - (key$height*s.offsets[1]),
             key$height * h.slots[1], key$height * h.slots[2], key$height * h.slots[3],
@@ -466,7 +466,7 @@ drawOpenKey <- function (key, draw = FALSE, vp = NULL) {
             check.overlap = check.overlap, just = if (rot == -90)
                 c("center", "bottom")
             else c("left", "center"), rot = rot, gp = gpar(col = col,
-                cex = cex, fontfamily = fontfamily, fontface = lattice:::chooseFace(fontface,
+                cex = cex, fontfamily = fontfamily, fontface = chooseFace(fontface,
                   font)))
             placeGrob(key.gf, keyGrob, row = key.row, col = key.col)
         }
@@ -481,7 +481,7 @@ drawOpenKey <- function (key, draw = FALSE, vp = NULL) {
             check.overlap = check.overlap, just = if (rot == -90)
                 c("center", "bottom")
             else c("left", "center"), rot = rot, gp = gpar(col = col,
-                cex = cex, fontfamily = fontfamily, fontface = lattice:::chooseFace(fontface,
+                cex = cex, fontfamily = fontfamily, fontface = chooseFace(fontface,
                 font))), row = 6, col = 3)
         key.gf <- placeGrob(key.gf, rectGrob(x = rep(0.5, length(reccentre)),
             y = reccentre, default.units = "native", vp = viewport(yscale = atrange),
@@ -520,7 +520,7 @@ drawOpenKey <- function (key, draw = FALSE, vp = NULL) {
             check.overlap = check.overlap, just = if (rot == 90)
                 c("center", "bottom")
             else c("right", "center"), rot = rot, gp = gpar(col = col,
-                cex = cex, fontfamily = fontfamily, fontface = lattice:::chooseFace(fontface,
+                cex = cex, fontfamily = fontfamily, fontface = chooseFace(fontface,
                   font)))
         heights.x <- c(((1 -key$height)/2) - (key$height*s.offsets[1]),
             key$height * h.slots[1], key$height * h.slots[2], key$height * h.slots[3],
@@ -542,7 +542,7 @@ drawOpenKey <- function (key, draw = FALSE, vp = NULL) {
             check.overlap = check.overlap, just = if (rot == 90)
                 c("center", "bottom")
             else c("right", "center"), rot = rot, gp = gpar(col = col,
-                cex = cex, fontfamily = fontfamily, fontface = lattice:::chooseFace(fontface,
+                cex = cex, fontfamily = fontfamily, fontface = chooseFace(fontface,
                   font)))
             placeGrob(key.gf, keyGrob, row = key.row, col = key.col)
         }
@@ -558,7 +558,7 @@ drawOpenKey <- function (key, draw = FALSE, vp = NULL) {
             check.overlap = check.overlap, just = if (rot == 90)
                 c("center", "bottom")
             else c("right", "center"), rot = rot, gp = gpar(col = col,
-                cex = cex, fontfamily = fontfamily, fontface = lattice:::chooseFace(fontface,
+                cex = cex, fontfamily = fontfamily, fontface = chooseFace(fontface,
                   font)))
                 , row = 6, col = 1)
         key.gf <- placeGrob(key.gf, rectGrob(x = rep(0.5, length(reccentre)),
@@ -594,21 +594,21 @@ drawOpenKey <- function (key, draw = FALSE, vp = NULL) {
             check.overlap = check.overlap, just = if (rot == 0)
                 c("center", "bottom")
             else c("left", "center"), rot = rot, gp = gpar(col = col,
-                cex = cex, fontfamily = fontfamily, fontface = lattice:::chooseFace(fontface,
+                cex = cex, fontfamily = fontfamily, fontface = chooseFace(fontface,
                   font)))
         keyGrob <- textGrob(label = f.text, y = c(0),
             x = c(0.5), vp = viewport(xscale = c(0,1)), default.units = "native",
             check.overlap = check.overlap, just = if (rot == 0)
                 c("center", "bottom")
             else c("left", "center"), rot = rot, gp = gpar(col = col,
-                cex = cex, fontfamily = fontfamily, fontface = lattice:::chooseFace(fontface,
+                cex = cex, fontfamily = fontfamily, fontface = chooseFace(fontface,
                   font)))
         keyGrob2 <- textGrob(label = h.text, y = c(0),
             x = c(0.5), vp = viewport(xscale = c(0,1)), default.units = "native",
             check.overlap = check.overlap, just = if (rot == 0)
                 c("center", "bottom")
             else c("left", "center"), rot = rot, gp = gpar(col = col,
-                cex = cex, fontfamily = fontfamily, fontface = lattice:::chooseFace(fontface,
+                cex = cex, fontfamily = fontfamily, fontface = chooseFace(fontface,
                   font)))
         widths.x <- c((1 - key$height)/2, key$height, (1 - key$height)/2)
         widths.units <- rep("null", 3)
@@ -677,21 +677,21 @@ drawOpenKey <- function (key, draw = FALSE, vp = NULL) {
             check.overlap = check.overlap, just = if (rot == 0)
                 c("center", "bottom")
             else c("left", "center"), rot = rot, gp = gpar(col = col,
-                cex = cex, fontfamily = fontfamily, fontface = lattice:::chooseFace(fontface,
+                cex = cex, fontfamily = fontfamily, fontface = chooseFace(fontface,
                   font)))
         keyGrob <- textGrob(label = h.text, y = c(0),
             x = c(0.5), vp = viewport(xscale = c(0,1)), default.units = "native",
             check.overlap = check.overlap, just = if (rot == 0)
                 c("center", "bottom")
             else c("left", "center"), rot = rot, gp = gpar(col = col,
-                cex = cex, fontfamily = fontfamily, fontface = lattice:::chooseFace(fontface,
+                cex = cex, fontfamily = fontfamily, fontface = chooseFace(fontface,
                   font)))
         keyGrob2 <- textGrob(label = f.text, y = c(0),
             x = c(0.5), vp = viewport(xscale = c(0,1)), default.units = "native",
             check.overlap = check.overlap, just = if (rot == 0)
                 c("center", "bottom")
             else c("left", "center"), rot = rot, gp = gpar(col = col,
-                cex = cex, fontfamily = fontfamily, fontface = lattice:::chooseFace(fontface,
+                cex = cex, fontfamily = fontfamily, fontface = chooseFace(fontface,
                   font)))
         widths.x <- c((1 - key$height)/2, key$height, (1 - key$height)/2)
         widths.units <- rep("null", 3)

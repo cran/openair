@@ -51,7 +51,7 @@
 ##' @param statistic Statistic used for calculating monthly values. Default is
 ##'   \dQuote{mean}, but can also be \dQuote{percentile}. See
 ##'   \code{timeAverage} for more details.
-##' @param avg.time  Can be \dQuote{month} (the default), \dQuote{season} or
+##' @param avg.time Can be \dQuote{month} (the default), \dQuote{season} or
 ##' \dQuote{year}. Determines the time over which data should be
 ##' averaged. Note that for \dQuote{year}, six or more years are
 ##' required. For \dQuote{season} the data are plit up into spring: March,
@@ -100,7 +100,11 @@
 ##'   \code{TRUE} titles and axis labels will automatically try and format
 ##'   pollutant names and units properly e.g.  by subscripting the \sQuote{2}
 ##'   in NO2.
-##' @param \dots Other graphical parameters are passed onto \code{cutData} and
+##' @param k This is the smoothing parameter used by the \code{gam}
+##' function in package \code{mgcv}. By default it is not used and the
+##' amount of smoothing is optimised automatically. However, sometimes
+##' it is useful to set the smoothing amount manually using \code{k}.
+##' @param ... Other graphical parameters are passed onto \code{cutData} and
 ##'   \code{lattice:xyplot}. For example, \code{smoothTrend} passes the option
 ##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern
 ##'   (rather than default northern) hemisphere handling of \code{type = "season"}.
@@ -152,28 +156,16 @@
 ##' \dontrun{smoothTrend(mydata, pollutant = "o3", statistic = "percentile",
 ##' percentile = c(5, 50, 95), lwd = c(1, 2, 1), lty = c(5, 1, 5))}
 ##'
-smoothTrend <- function(mydata,
-                        pollutant = "nox",
-                        deseason = FALSE,
-                        type = "default",
-                        statistic = "mean",
-                        avg.time = "month",
-                        percentile = NA,
-                        data.thresh = 0,
-                        simulate = FALSE,
-                        n = 200, #bootstrap simulations
-                        autocor = FALSE,
-                        cols = "brewer1",
-                        xlab = "year",
-                        y.relation = "same",
-                        key.columns = length(percentile),
-                        ci = TRUE,
-                        alpha = 0.2,
-                        date.breaks = 7,
-                        auto.text = TRUE,...)  {
+smoothTrend <- function(mydata, pollutant = "nox", deseason = FALSE,
+                        type = "default", statistic = "mean", avg.time = "month",
+                        percentile = NA, data.thresh = 0, simulate = FALSE,
+                        n = 200, autocor = FALSE, cols = "brewer1", xlab = "year",
+                        y.relation = "same", key.columns = length(percentile),
+                        ci = TRUE, alpha = 0.2, date.breaks = 7,
+                        auto.text = TRUE, k = NULL, ...)  {
 
     ## get rid of R check annoyances
-    variable = NULL
+    variable <- NULL
 
     ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
@@ -194,6 +186,9 @@ smoothTrend <- function(mydata,
     extra.args$main <- if("main" %in% names(extra.args))
                            quickText(extra.args$main, auto.text) else quickText("", auto.text)
 
+    xlim <- if ("xlim" %in% names(extra.args))
+        extra.args$xlim else  NULL
+
     #lty, lwd, pch, cex handling
     if(!"lty" %in% names(extra.args))
         extra.args$lty <- 1
@@ -201,7 +196,7 @@ smoothTrend <- function(mydata,
         extra.args$lwd <- 1
     if(!"pch" %in% names(extra.args))
         extra.args$pch <- 1
-    if(!"cex" %in% names(extra.args))
+    if (!"cex" %in% names(extra.args))
         extra.args$cex <- 1
 
     #layout default
@@ -210,7 +205,7 @@ smoothTrend <- function(mydata,
 
     vars <- c("date", pollutant)
 
-    mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
 
     if (!missing(percentile)) statistic <- "percentile"
 
@@ -223,14 +218,14 @@ smoothTrend <- function(mydata,
     if (!avg.time %in% c("year", "season", "month")) stop("Averaging period must be 'month' or 'year'.")
 
     ## for overall data and graph plotting
-    start.year <- openair:::startYear(mydata$date)
-    end.year <-  openair:::endYear(mydata$date)
-    start.month <- openair:::startMonth(mydata$date)
-    end.month <-  openair:::endMonth(mydata$date)
+    start.year <- startYear(mydata$date)
+    end.year <-  endYear(mydata$date)
+    start.month <- startMonth(mydata$date)
+    end.month <-  endMonth(mydata$date)
 
     ## date formatting for plot
-    date.at <- openair:::dateBreaks(mydata$date, date.breaks)$major
-    date.format <- openair:::dateBreaks(mydata$date)$format
+    date.at <- dateBreaks(mydata$date, date.breaks)$major
+    date.format <- dateBreaks(mydata$date)$format
 
     ## cutData depending on type
     mydata <- cutData(mydata, type, ...)
@@ -270,10 +265,10 @@ smoothTrend <- function(mydata,
         mydata <- mydata[min.idx:max.idx, ]
 
         ## these subsets may have different dates to overall
-        start.year <- openair:::startYear(mydata$date)
-        end.year <-  openair:::endYear(mydata$date)
-        start.month <- openair:::startMonth(mydata$date)
-        end.month <-  openair:::endMonth(mydata$date)
+        start.year <- startYear(mydata$date)
+        end.year <-  endYear(mydata$date)
+        start.month <- startMonth(mydata$date)
+        end.month <-  endMonth(mydata$date)
 
         ## can't deseason less than 2 years of data
         if (nrow(mydata) < 24) deseason <- FALSE
@@ -358,11 +353,15 @@ smoothTrend <- function(mydata,
     extra.args$ylab <- if("ylab" %in% names(extra.args))
                            quickText(extra.args$ylab, auto.text) else quickText(pollutant, auto.text)
 
+    gap <- difftime(max(mydata$date), min(mydata$date), units = "secs") / 80
+    if (is.null(xlim)) xlim <- range(mydata$date) + c(-1 * gap, gap)
+
     xyplot.args <- list(x = myform, data = split.data, groups = split.data$variable,
                   as.table = TRUE,
                   strip = strip,
                   strip.left = strip.left,
                   key = key,
+                        xlim = xlim,
                   par.strip.text = list(cex = 0.8),
                   xlab = quickText(xlab, auto.text),
                   scales = list(x = list(at = date.at, format = date.format),
@@ -375,7 +374,7 @@ smoothTrend <- function(mydata,
 
                       if (group.number == 1) {  ## otherwise this is called every time
 
-                          openair:::panel.shade(split.data, start.year, end.year,
+                          panel.shade(split.data, start.year, end.year,
                                                 ylim = current.panel.limits()$ylim)
                           panel.grid(-1, 0)
 
@@ -385,14 +384,14 @@ smoothTrend <- function(mydata,
                                    col.line = myColors[group.number],
                                    col.symbol = myColors[group.number], ...)
 
-                      openair:::panel.gam(x, y, col =  myColors[group.number], col.se =  "black",
+                      panel.gam(x, y, col =  myColors[group.number], k = k, myColors[group.number], #col.se =  "black",
                                 simulate = simulate, n.sim = n,
                                 autocor = autocor, lty = 1, lwd = 1, se = ci, ...)
 
                   })
 
     #reset for extra.args
-    xyplot.args <- openair:::listUpdate(xyplot.args, extra.args)
+    xyplot.args <- listUpdate(xyplot.args, extra.args)
 
     #plot
     plt <- do.call(xyplot, xyplot.args)

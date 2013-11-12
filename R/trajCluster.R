@@ -159,7 +159,7 @@ trajCluster <- function(traj, method = "Euclid", n.cluster = 5, plot = TRUE, typ
                           map.cols = map.cols, map.alpha = map.alpha)
 
          ## reset for extra.args
-        plot.args <- openair:::listUpdate(plot.args, extra.args)
+        plot.args <- listUpdate(plot.args, extra.args)
 
         ## plot
         plt <- do.call(scatterPlot, plot.args)

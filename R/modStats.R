@@ -114,10 +114,11 @@ modStats <- function(mydata,  mod = "mod", obs = "obs", type = "default", rank.n
     ## extract variables of interest
     vars <- c(mod, obs)
 
-    if (any(type %in%  openair:::dateTypes)) vars <- c("date", vars)
+    if (any(type %in%  dateTypes)) vars <- c("date", vars)
 
     ## check the data
-    mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE,
+                        strip.white = FALSE)
 
     mydata <- cutData(mydata, type, ...)
 

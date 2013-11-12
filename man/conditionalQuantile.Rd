@@ -134,7 +134,9 @@
   values of the predictions. The median prediction line
   together with the 25/75th and 10/90th quantile values are
   plotted together with a line showing a \dQuote{perfect}
-  model. Also shown is a histogram of predicted values.
+  model. Also shown is a histogram of predicted values
+  (shaded grey) and a histogram of observed values (shown
+  as a blue line).
 
   Far more insight can be gained into model performance
   through conditioning using \code{type}. For example,

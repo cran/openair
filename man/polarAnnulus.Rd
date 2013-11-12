@@ -287,7 +287,8 @@ polarAnnulus(mydata, pollutant = "pm10", main = "diurnal variation in pm10 at Ma
 # trend in coarse particles (PMc = PM10 - PM2.5), calculate PMc first
 
 mydata$pmc <- mydata$pm10 - mydata$pm25
-\dontrun{polarAnnulus(mydata, poll="pmc", period = "trend", main = "trend in pmc at Marylebone Road")}
+\dontrun{polarAnnulus(mydata, poll="pmc", period = "trend",
+main = "trend in pmc at Marylebone Road")}
 }
 \author{
   David Carslaw

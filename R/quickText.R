@@ -53,8 +53,6 @@ quickText <- function(text, auto.text = TRUE){
     ans <- gsub("nh3", "' 'NH' [3] * '", ans)
     ans <- gsub("co ", "' 'CO ' '", ans)
     ans <- gsub("co,", "' 'CO,' '", ans)
-    ans <- gsub("no ", "' 'NO ' '", ans)
-    ans <- gsub("no,", "' 'NO,' '", ans)
     ans <- gsub("nmhc", "' 'NMHC' '", ans)
     ans <- gsub("ws", "' 'wind spd.' '", ans)
     ans <- gsub("wd", "' 'wind dir.' '", ans)

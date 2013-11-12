@@ -4,17 +4,18 @@
 \title{Trajectory plots with conditioning}
 \usage{
   trajLevel(mydata, lon = "lon", lat = "lat",
-    pollutant = "pm10", type = "default", smooth = FALSE,
+    pollutant = "height", type = "default", smooth = FALSE,
     statistic = "frequency", percentile = 90, map = TRUE,
     lon.inc = 1, lat.inc = 1, min.bin = 1, map.fill = TRUE,
-    map.cols = "grey40", map.alpha = 0.3, ...)
+    map.res = "default", map.cols = "grey40",
+    map.alpha = 0.3, ...)
 
   trajPlot(mydata, lon = "lon", lat = "lat",
-    pollutant = "pm10", type = "default", smooth = FALSE,
+    pollutant = "height", type = "default", smooth = FALSE,
     statistic = "mean", percentile = 90, map = TRUE,
     lon.inc = 1, lat.inc = 1, min.bin = 1, group = NA,
-    map.fill = TRUE, map.cols = "grey40", map.alpha = 0.4,
-    ...)
+    map.fill = TRUE, map.res = "default",
+    map.cols = "grey40", map.alpha = 0.4, ...)
 }
 \arguments{
   \item{mydata}{Data frame, the result of importing a
@@ -25,7 +26,8 @@
 
   \item{lat}{Column containing the latitude, as a decimal.}
 
-  \item{pollutant}{Pollutant to be plotted.}
+  \item{pollutant}{Pollutant to be plotted. By default the
+  trajectory height is used.}
 
   \item{type}{\code{type} determines how the data are split
   i.e. conditioned, and then plotted. The default is will
@@ -62,6 +64,8 @@
   the trajectory frequencies uses hexagonal binning. This
   is an alternative way of viewing trajectory frequencies
   compared with \code{statistic = "frequency"}.
+
+  There are also various ways of plotting concentrations.
 
   It is also possible to set \code{statistic =
   "difference"}. In this case trajectories where the
@@ -102,6 +106,12 @@
 
   \item{map.fill}{Should the base map be a filled polygon?
   Default is to fill countries.}
+
+  \item{map.res}{The resolution of the base map. By default
+  teh function uses the \sQuote{world} map from the
+  \code{maps} package. If \code{map.res = "hires"} then the
+  (much) more detailed base map \sQuote{worldHires} from
+  the \code{mapdata} package is used.}
 
   \item{map.cols}{If \code{map.fill = TRUE} \code{map.cols}
   controls the fill colour. Examples include \code{map.fill
@@ -150,12 +160,12 @@
   overall concentration pattern. In these cases setting
   \code{alpha} to a low value e.g. 0.1 can help.
 
-  For the investigation of a few days it can be useful to
-  use \code{plot.type = "l"}, which shows the back
-  trajectories as continuous lines rather than individual
-  points. Note that points help to show the duration an air
-  mass spend in a particular location, whereas lines do
-  not.
+  The user can aslo show points instead of lines by
+  \code{plot.type = "p"}.
+
+  Note that \code{trajPlot} will plot only the full length
+  trajectories. This should be remembered when selecting
+  only part of a year to plot.
 
   An alternative way of showing the trajectories is to bin
   the points into latitude/longitude intervals For these
@@ -167,8 +177,9 @@
   degree intervals, controlled by \code{lat.inc} and
   \code{lon.inc}. Such plots are useful for showing the
   frequency of air mass locations. Note that it is also
-  possible to set \code{method = "hexbin"}, which will
-  produce a plot by hexagonal binning.
+  possible to set \code{method = "hexbin"} for plotting
+  frequencies (not concentrations), which will produce a
+  plot by hexagonal binning.
 
   If \code{statistic = "difference"} the trajectories
   associated with a concentration greater than

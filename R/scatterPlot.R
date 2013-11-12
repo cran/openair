@@ -340,6 +340,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
     Args$map.cols <- if ("map.cols" %in% names(Args)) Args$map.cols else "grey20"
     Args$map.alpha <- if ("map.alpha" %in% names(Args)) Args$map.alpha else 0.2
     Args$map.fill <- if ("map.fill" %in% names(Args)) Args$map.fill else TRUE
+    Args$map.res <- if ("map.res" %in% names(Args)) Args$map.res else "default"
 
     ## transform hexbin by default
     Args$trans <- if ("trans" %in% names(Args)) Args$trans else function(x) log(x)
@@ -356,7 +357,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
     if (avg.time != "default")  {
 
         ## can't have a type or group that is date-based
-        if (group %in% openair:::dateTypes | type  %in% openair:::dateTypes)
+        if (group %in% dateTypes | type  %in% dateTypes)
             stop ("Can't have an averging period set and a time-based 'type' or 'group'.")
         if ("default" %in% types) mydata$default <- 0 ## FIX ME
 
@@ -371,7 +372,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
         stop("Need to specify 'z' when using method = 'level'")
 
     ## #######################################################################
-    if (any(type %in%  openair:::dateTypes) | !missing(avg.time)) {
+    if (any(type %in%  dateTypes) | !missing(avg.time)) {
 
         vars <- c("date", x, y)
 
@@ -384,9 +385,9 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
     ## pre-defined date-based one
     if (!is.na(group)){
 
-        if (group %in%  openair:::dateTypes | !missing(avg.time) |
-            any(type %in% openair:::dateTypes)) {
-            if (group %in%  openair:::dateTypes) {
+        if (group %in%  dateTypes | !missing(avg.time) |
+            any(type %in% dateTypes)) {
+            if (group %in%  dateTypes) {
                 vars <- unique(c(vars, "date")) ## don't need group because it is
                 ## defined by date
             } else {
@@ -413,7 +414,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
     ## data checks
 
     if (!is.na(z)) vars <- c(vars, z)
-    mydata <- openair:::checkPrep(mydata, vars, type)
+    mydata <- checkPrep(mydata, vars, type)
 
     ## remove missing data except for time series where we want to show gaps
     ## this also removes missing factors
@@ -431,8 +432,8 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
     ## continuous colors ####################################################################
 
     if (!is.na(z) & method == "scatter") {
-        if (z %in% openair:::dateTypes)
-            stop("Colour coding requires 'z' to be continuous numeric variable'")
+        if (z %in% dateTypes)
+            stop("You tried to use a date type for the 'z' variable. \nColour coding requires 'z' to be continuous numeric variable'")
 
         ## check to see if type is numeric/integer
         if (class(mydata[, z]) %in% c("integer", "numeric") == FALSE)
@@ -490,7 +491,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
                            auto.text = auto.text, footer = Args$key.footer,
                            header = Args$key.header,
                            height = 1, width = 1.5, fit = "all")
-            legend <- openair:::makeOpenKeyLegend(TRUE, legend, "other")
+            legend <- makeOpenKeyLegend(TRUE, legend, "other")
 
         } else {
             legend <- NULL
@@ -510,7 +511,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
     if (is.na(group)) {mydata$MyGroupVar <- factor("MyGroupVar"); group <-  "MyGroupVar"}
 
     ## number of groups
-    npol <- length(levels(mydata[ , group]))
+    npol <- length(unique(mydata[ , group]))
 
     if (!"pch" %in% names(Args)) Args$pch <- seq(npol)
 
@@ -585,7 +586,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
 
     ## proper names of stripName
     ## ############################################################################
-    strip.dat <- openair:::strip.fun(mydata, type, auto.text)
+    strip.dat <- strip.fun(mydata, type, auto.text)
     strip <- strip.dat[[1]]
     strip.left <- strip.dat[[2]]
     pol.name <- strip.dat[[3]]
@@ -601,6 +602,8 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
     groupMax <- length(unique(factor(mydata$MyGroupVar)))
 
     if (method == "scatter") {
+
+        if (missing(k)) k <- NULL ## auto-smoothing by default
 
         xyplot.args <- list(x = myform,  data = mydata, groups = mydata$MyGroupVar,
                             type = c("p", "g"),
@@ -658,10 +661,10 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
 
                             if (smooth)
                                 panel.gam(x, y, col = "grey20", col.se = "black",
-                                          lty = 1, lwd = 1, se = ci, Args, ...)
+                                          lty = 1, lwd = 1, se = ci, k = k, ...)
 
                             if (spline)
-                                panel.smooth.spline(x, y, col = myColors[group.number],
+                                panel.smooth.spline(x, y, col = "grey20", #myColors[group.number],
                                                     lwd = lwd, ...)
 
                             ## add base map
@@ -689,7 +692,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
             Args$pch <- 1
 
         ## reset for Args
-        xyplot.args<- openair:::listUpdate(xyplot.args, Args)
+        xyplot.args<- listUpdate(xyplot.args, Args)
 
         ## plot
         plt <- do.call(xyplot, xyplot.args)
@@ -735,7 +738,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
             Args$pch <- 1
 
         ## reset for Args
-        hexbinplot.args <- openair:::listUpdate(hexbinplot.args, Args)
+        hexbinplot.args <- listUpdate(hexbinplot.args, Args)
 
         ## plot
         plt <- do.call(hexbinplot, hexbinplot.args)
@@ -837,7 +840,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
                            auto.text = auto.text, footer = Args$key.footer,
                            header = Args$key.header,
                            height = 1, width = 1.5, fit = "all")
-            legend <- openair:::makeOpenKeyLegend(key, legend, "other")
+            legend <- makeOpenKeyLegend(key, legend, "other")
         }
 
         if (trajStat %in% c("frequency", "difference")) {
@@ -863,7 +866,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
                            plot.style = "other")
 
             col.scale <- breaks
-            legend <- openair:::makeOpenKeyLegend(key, legend, "windRose")
+            legend <- makeOpenKeyLegend(key, legend, "windRose")
         }
 
         levelplot.args <- list(x = myform, data = mydata,
@@ -905,7 +908,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
             Args$pch <- 1
 
         ## reset for Args
-        levelplot.args<- openair:::listUpdate(levelplot.args, Args)
+        levelplot.args<- listUpdate(levelplot.args, Args)
 
         ## plot
         plt <- do.call(levelplot, levelplot.args)
@@ -927,11 +930,11 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
             xlim <- range(x[, 1])
             ylim <- range(x[, 2])
 
-            map <- grDevices:::.smoothScatterCalcDensity(x, 256)
-            xm <- map$x1
-            ym <- map$x2
+            Map <- .smoothScatterCalcDensity(x, 256)
+            xm <- Map$x1
+            ym <- Map$x2
 
-            dens <- map$fhat
+            dens <- Map$fhat
 
             grid <- expand.grid(x = xm, y = ym)
 
@@ -980,6 +983,10 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
 
                                    if (mod.line) panel.modline(log.x, log.y)
 
+                                   ## base map
+                                   if (map)
+                                       add.map(Args, ...)
+
                                    ## add reference lines
                                    panel.abline(v = ref.x, lty = 5)
                                    panel.abline(h = ref.y, lty = 5)
@@ -993,7 +1000,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
             Args$pch <- 1
 
         ## reset for Args
-        levelplot.args<- openair:::listUpdate(levelplot.args, Args)
+        levelplot.args<- listUpdate(levelplot.args, Args)
 
         ## plot
         plt <- do.call(levelplot, levelplot.args)
@@ -1013,13 +1020,18 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
 ## function to add base map ##############################################################
 add.map <- function (Args, ...) {
     require(mapdata)
+    if (Args$map.res == "default") {
+        res <- "world"
+    } else {
+        res <- "worldHires"
+    }
 
     if (Args$map.fill) {
-        mp <- map(database="worldHires", plot = FALSE, fill = TRUE)
+         mp <- map(database = res, plot = FALSE, fill = TRUE)
         panel.polygon(mp$x, mp$y, col = Args$map.cols, border = "white",
                       alpha = Args$map.alpha)
     } else {
-        mp <- map(database="worldHires", plot = FALSE)
+        mp <- map(database = res, plot = FALSE)
         llines(mp$x, mp$y, col = "black")
 
     }

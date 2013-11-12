@@ -138,7 +138,7 @@ kernelExceed <- function(polar,
 
     ## extract variables of interest
     vars <- c(y, x, "date", pollutant)
-    polar <- openair:::checkPrep(polar, vars, type, remove.calm = FALSE)
+    polar <- checkPrep(polar, vars, type, remove.calm = FALSE)
     polar <- subset(polar, wd > 0)
 
     ##extra.args
@@ -200,7 +200,7 @@ kernelExceed <- function(polar,
         xlim <- range(x[, 1])
         ylim <- range(x[, 2])
 
-        map <- grDevices:::.smoothScatterCalcDensity(x, nbin)
+        map <- .smoothScatterCalcDensity(x, nbin)
         xm <- map$x1
         ym <- map$x2
 
@@ -277,7 +277,7 @@ kernelExceed <- function(polar,
               })
 
     #reset for extra.args
-    levelplot.args<- openair:::listUpdate(levelplot.args, extra.args)
+    levelplot.args<- listUpdate(levelplot.args, extra.args)
 
     #plot
     ans <- do.call(levelplot, levelplot.args)

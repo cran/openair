@@ -6,7 +6,8 @@
     type = "default", statistic = "mean",
     resolution = "normal", limits = NA,
     exclude.missing = TRUE, uncertainty = FALSE,
-    percentile = NA, cols = "default", min.bin = 1,
+    percentile = NA, cols = "default",
+    weights = c(0.25, 0.5, 0.75), min.bin = 1,
     mis.col = "grey", upper = NA, angle.scale = 315,
     units = x, force.positive = TRUE, k = 100,
     normalise = FALSE, key.header = "",
@@ -152,7 +153,10 @@
   greater than or equal to the trim * mean value are
   considered \emph{before} the percentile intervals are
   calculated. The effect is to extract more detail from
-  many source signatures. See the manual for examples.}
+  many source signatures. See the manual for examples.
+  Finally, if the trim value is less than zero the
+  percentile range is interpreted as absolute concentration
+  values and subsetting is carried out directly.}
 
   \item{cols}{Colours to be used for plotting. Options
   include \dQuote{default}, \dQuote{increment},
@@ -162,6 +166,19 @@
   supply a list of colour names recognised by R (type
   \code{colours()} to see the full list). An example would
   be \code{cols = c("yellow", "green", "blue")}}
+
+  \item{weights}{At the edges of the plot there may only be
+  a few data points in each wind speed-direction interval,
+  which could in some situations distort the plot if the
+  concentrations are high. \code{weights} applies a
+  weighting to reduce their influence. For example and by
+  default if only a single data point exists then the
+  weighting factor is 0.25 and for two points 0.5. To not
+  apply any weighting and use the data as is, use
+  \code{weights = c(1, 1, 1)}.
+
+  An alternative to down-weighting these points they can be
+  removed altogether using \code{min.bin}.}
 
   \item{min.bin}{The minimum number of points allowed in a
   wind speed/wind direction bin.  The default is 1. A value

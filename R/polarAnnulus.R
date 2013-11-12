@@ -212,7 +212,8 @@
 ##' # trend in coarse particles (PMc = PM10 - PM2.5), calculate PMc first
 ##'
 ##' mydata$pmc <- mydata$pm10 - mydata$pm25
-##' \dontrun{polarAnnulus(mydata, poll="pmc", period = "trend", main = "trend in pmc at Marylebone Road")}
+##' \dontrun{polarAnnulus(mydata, poll="pmc", period = "trend",
+##' main = "trend in pmc at Marylebone Road")}
 ##'
 ##'
 polarAnnulus <- function(mydata,
@@ -252,9 +253,9 @@ polarAnnulus <- function(mydata,
     }
 
     if (missing(key.header)) key.header <- statistic
-    if (key.header == "weighted.mean") key.header <- c("weighted", "mean")
-    if (key.header == "percentile") key.header <- c(paste(percentile, "th", sep = ""), "percentile")
-    if (key.header == "cpf") key.header <- c("CPF", "probability")
+    if (key.header[1] == "weighted.mean") key.header <- c("weighted", "mean")
+    if (key.header[1] == "percentile") key.header <- c(paste(percentile, "th", sep = ""), "percentile")
+    if (key.header[1] == "cpf") key.header <- c("CPF", "probability")
 
     ## extract variables of interest
     vars <- c("wd", "date", pollutant)
@@ -285,7 +286,7 @@ polarAnnulus <- function(mydata,
 
 
     ## check data
-    mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
 
     ## if more than one pollutant, need to stack the data and set type = "variable"
     ## this case is most relevent for model-measurement compasrions where data are in columns
@@ -541,7 +542,7 @@ polarAnnulus <- function(mydata,
     }
 
     ## proper names of labelling ###################################################
-    strip.dat <- openair:::strip.fun(results.grid, type, auto.text)
+    strip.dat <- strip.fun(results.grid, type, auto.text)
     strip <- strip.dat[[1]]
     strip.left <- strip.dat[[2]]
     pol.name <- strip.dat[[3]]
@@ -564,7 +565,7 @@ polarAnnulus <- function(mydata,
     legend <- list(col = col, at = col.scale, space = key.position,
                    auto.text = auto.text, footer = key.footer, header = key.header,
                    height = 1, width = 1.5, fit = "all")
-    legend <- openair:::makeOpenKeyLegend(key, legend, "polarAnnulus")
+    legend <- makeOpenKeyLegend(key, legend, "polarAnnulus")
 
     temp <- paste(type, collapse = "+")
     myform <- formula(paste("z ~ u * v | ", temp, sep = ""))
@@ -685,7 +686,7 @@ polarAnnulus <- function(mydata,
                      })
 
     #reset for extra.args
-    levelplot.args<- openair:::listUpdate(levelplot.args, extra.args)
+    levelplot.args<- listUpdate(levelplot.args, extra.args)
 
     #plot
     plt <- do.call(levelplot, levelplot.args)

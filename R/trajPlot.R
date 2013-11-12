@@ -16,11 +16,12 @@
 ##' to gauge the overall concentration pattern. In these cases setting
 ##' \code{alpha} to a low value e.g. 0.1 can help.
 ##'
-##' For the investigation of a few days it can be useful to use
-##' \code{plot.type = "l"}, which shows the back trajectories as
-##' continuous lines rather than individual points. Note that points
-##' help to show the duration an air mass spend in a particular
-##' location, whereas lines do not.
+##' The user can aslo show points instead of lines by \code{plot.type
+##' = "p"}.
+##'
+##' Note that \code{trajPlot} will plot only the full length
+##' trajectories. This should be remembered when selecting only part
+##' of a year to plot.
 ##'
 ##' An alternative way of showing the trajectories is to bin the
 ##' points into latitude/longitude intervals For these purposes
@@ -31,8 +32,8 @@
 ##' are by default at 1 degree intervals, controlled by \code{lat.inc}
 ##' and \code{lon.inc}. Such plots are useful for showing the
 ##' frequency of air mass locations. Note that it is also possible to
-##' set \code{method = "hexbin"}, which will produce a plot by
-##' hexagonal binning.
+##' set \code{method = "hexbin"} for plotting frequencies (not
+##' concentrations), which will produce a plot by hexagonal binning.
 ##'
 ##' If \code{statistic = "difference"} the trajectories associated
 ##' with a concentration greater than \code{percentile} are compared
@@ -81,7 +82,8 @@
 ##' file using \code{importTraj}
 ##' @param lon Column containing the longitude, as a decimal.
 ##' @param lat Column containing the latitude, as a decimal.
-##' @param pollutant Pollutant to be plotted.
+##' @param pollutant Pollutant to be plotted. By default the
+##' trajectory height is used.
 ##' @param type \code{type} determines how the data are split
 ##' i.e. conditioned, and then plotted. The default is will produce a
 ##' single plot using the entire data. Type can be one of the built-in
@@ -114,6 +116,8 @@
 ##' trajectory frequencies compared with \code{statistic =
 ##' "frequency"}.
 ##'
+##' There are also various ways of plotting concentrations.
+##'
 ##' It is also possible to set \code{statistic = "difference"}. In
 ##' this case trajectories where the associated concentration is
 ##' greater than \code{percentile} are compared with the the full set
@@ -143,6 +147,11 @@
 ##' missing. For \code{trajLevel} gridded outputs.
 ##' @param map.fill Should the base map be a filled polygon? Default
 ##' is to fill countries.
+##' @param map.res The resolution of the base map. By default teh
+##' function uses the \sQuote{world} map from the \code{maps}
+##' package. If \code{map.res = "hires"} then the (much) more detailed
+##' base map \sQuote{worldHires} from the \code{mapdata} package is
+##' used.
 ##' @param map.cols If \code{map.fill = TRUE} \code{map.cols} controls
 ##' the fill colour. Examples include \code{map.fill = "grey40"} and
 ##' \code{map.fill = openColours("default", 10)}. The latter colours
@@ -226,10 +235,10 @@
 ##' statistic = "pscf", type = "season")
 ##' }
 trajLevel <- function(mydata, lon = "lon", lat = "lat",
-                      pollutant = "pm10", type = "default", smooth = FALSE,
+                      pollutant = "height", type = "default", smooth = FALSE,
                       statistic = "frequency", percentile = 90,
                       map = TRUE, lon.inc = 1.0, lat.inc = 1.0, min.bin = 1,
-                      map.fill = TRUE, map.cols = "grey40",
+                      map.fill = TRUE, map.res = "default", map.cols = "grey40",
                       map.alpha = 0.3, ...)  {
 
     ## mydata can be a list of several trajectory files; in which case combine them
@@ -429,13 +438,14 @@ trajLevel <- function(mydata, lon = "lon", lat = "lat",
     lat <- "ygrid"
 
     ## the plot
-    scatterPlot.args <- list(mydata, x = lon, y = lat, z = pollutant, type = type,
-                             method = method, smooth = smooth, map = map,
-                             x.inc = lon.inc, y.inc = lat.inc, map.fill = map.fill,
+    scatterPlot.args <- list(mydata, x = lon, y = lat, z = pollutant,
+                             type = type, method = method, smooth = smooth,
+                             map = map, x.inc = lon.inc, y.inc = lat.inc,
+                             map.fill = map.fill, map.res = map.res,
                              map.cols = map.cols, map.alpha = map.alpha)
 
     ## reset for extra.args
-    scatterPlot.args <- openair:::listUpdate(scatterPlot.args, extra.args)
+    scatterPlot.args <- listUpdate(scatterPlot.args, extra.args)
 
     ## plot
     do.call(scatterPlot, scatterPlot.args)
@@ -447,12 +457,26 @@ trajLevel <- function(mydata, lon = "lon", lat = "lat",
 ##' @param group For \code{trajPlot} it is sometimes useful to group
 ##' and colour trajectories according to a grouping variable. See example below.
 ##' @export
-trajPlot <- function(mydata, lon = "lon", lat = "lat", pollutant = "pm10",
+trajPlot <- function(mydata, lon = "lon", lat = "lat", pollutant = "height",
                      type = "default", smooth = FALSE, statistic = "mean",
                      percentile = 90, map = TRUE, lon.inc = 1.0,
                      lat.inc = 1.0, min.bin = 1, group = NA, map.fill = TRUE,
-                     map.cols = "grey40", map.alpha = 0.4, ...)
+                     map.res = "default", map.cols = "grey40",
+                     map.alpha = 0.4, ...)
 {
+    len <- NULL ## silence R check
+
+    ## slect only full length trajectories
+    mydata <- mydata[order(mydata$date, mydata$hour.inc), ]
+
+    ## length of back mydataectories
+    mydata$len <- ave(mydata$lat, mydata$date, FUN = length)
+
+    ## find length of back mydataectories
+    ## 96-hour back mydataectories with origin: length should be 97
+    n <- max(abs(mydata$hour.inc)) + 1
+
+    mydata <- subset(mydata, len == n)
 
     ##extra.args
     extra.args <- list(...)
@@ -479,23 +503,28 @@ trajPlot <- function(mydata, lon = "lon", lat = "lat", pollutant = "pm10",
         if(!"main" %in% names(extra.args))
              extra.args$main <- NULL
 
-        scatterPlot.args <- list(mydata, x = lon, y = lat, z = NA, type = type, method = method,
-                                 smooth = smooth, map = map, x.inc = lon.inc, y.inc = lat.inc,
-                                 key = key, group = group, map.fill = map.fill,
+        scatterPlot.args <- list(mydata, x = lon, y = lat, z = NA,
+                                 type = type, method = method,
+                                 smooth = smooth, map = map, x.inc = lon.inc,
+                                 y.inc = lat.inc, key = key, group = group,
+                                 map.fill = map.fill, map.res = map.res,
                                  map.cols = map.cols, map.alpha = map.alpha)
 
     } else {
          if(!"main" %in% names(extra.args))
              extra.args$main <- pollutant
 
-        scatterPlot.args <- list(mydata, x = lon, y = lat, z = pollutant, type = type, method = method,
-                                 smooth = smooth, map = map, x.inc = lon.inc, y.inc = lat.inc,
-                                 group = group, map.fill = map.fill, map.cols = map.cols,
+        scatterPlot.args <- list(mydata, x = lon, y = lat, z = pollutant,
+                                 type = type, method = method,
+                                 smooth = smooth, map = map, x.inc = lon.inc,
+                                 y.inc = lat.inc, group = group,
+                                 map.fill = map.fill, map.res = map.res,
+                                 map.cols = map.cols,
                                  map.alpha = map.alpha)
     }
 
     #reset for extra.args
-    scatterPlot.args <- openair:::listUpdate(scatterPlot.args, extra.args)
+    scatterPlot.args <- listUpdate(scatterPlot.args, extra.args)
 
     #plot
     do.call(scatterPlot, scatterPlot.args)

@@ -134,7 +134,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
     ## extract variables of interest
     vars <- names(mydata)
 
-    mydata <- openair:::checkPrep(mydata, vars, type = "default", remove.calm = FALSE)
+    mydata <- checkPrep(mydata, vars, type = "default", remove.calm = FALSE, strip.white = FALSE)
 
     ## time zone of data
     TZ <- attr(mydata$date, "tzone")
@@ -165,7 +165,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
         ## then data will be expanded or aggregated accordingly
 
         ## time diff in seconds of orginal data
-        timeDiff <-  as.numeric(strsplit(openair:::find.time.interval(mydata$date),
+        timeDiff <-  as.numeric(strsplit(find.time.interval(mydata$date),
                                          " ")[[1]][1])
 
         ## time diff of new interval
@@ -195,7 +195,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
             theDates <- mydata$date
 
             ## need to add a date to the end when expanding times
-            interval <- openair:::find.time.interval(mydata$date)
+            interval <- find.time.interval(mydata$date)
             allDates <- seq(min(mydata$date), max(mydata$date), by = interval)
             allDates <- c(allDates, max(allDates) + timeDiff)
 
@@ -308,7 +308,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
             }
 
             ## need to make sure all data are present..
-            mydata <- openair:::date.pad(mydata)
+            mydata <- date.pad(mydata)
 
             ## cut into sections dependent on period
             mydata$cuts <- cut(mydata$date, avg.time)
@@ -363,7 +363,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
 
         ## fill missing gaps
         if (avg.time != "season") {
-            dailymet <- openair:::date.pad2(dailymet, interval = avg.time)
+            dailymet <- date.pad2(dailymet, interval = avg.time)
         }
 
         ## when expanding with column 'site' make sure it is added

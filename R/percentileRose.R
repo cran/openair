@@ -174,9 +174,9 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
     }
 
     vars <- c("wd", pollutant)
-    if (any(type %in%  openair:::dateTypes)) vars <- c(vars, "date")
+    if (any(type %in%  dateTypes)) vars <- c(vars, "date")
 
-    mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
     ## round wd
     mydata$wd <- 10 * ceiling(mydata$wd / 10 - 0.5)
 
@@ -338,7 +338,7 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
     }
 
     ## proper names of labelling ###################################################
-    strip.dat <- openair:::strip.fun(results.grid, type, auto.text)
+    strip.dat <- strip.fun(results.grid, type, auto.text)
     strip <- strip.dat[[1]]
     strip.left <- strip.dat[[2]]
     pol.name <- strip.dat[[3]]
@@ -349,7 +349,7 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
                    labels = theLabels, footer = key.footer, header = key.header,
                    height = 0.60, width = 1.5, fit = "scale",
                    plot.style =  "other")
-    legend <- openair:::makeOpenKeyLegend(key, legend, "percentileRose")
+    legend <- makeOpenKeyLegend(key, legend, "percentileRose")
 
     if (mean.only || tolower(method) == "cpf") legend <- NULL
 
@@ -474,7 +474,7 @@ percentileRose <- function (mydata, pollutant = "nox", type = "default",
                   }, legend = legend)
 
                                         #reset for extra.args
-    xyplot.args<- openair:::listUpdate(xyplot.args, extra.args)
+    xyplot.args<- listUpdate(xyplot.args, extra.args)
 
     #plot
     plt <- do.call(xyplot, xyplot.args)

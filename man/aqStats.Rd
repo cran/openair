@@ -71,7 +71,12 @@
 
   \item \bold{roll.8.O3.gt.100} --- number of days when the
   daily maximum rolling 8-hour mean ozone concentration is
-  >100 ug/m3.
+  >100 ug/m3. This is the target value.
+
+  \item \bold{roll.8.O3.gt.120} --- number of days when the
+  daily maximum rolling 8-hour mean ozone concentration is
+  >120 ug/m3. This is the Limit Value not to be exceeded >
+  10 days a year.
 
   \item \bold{AOT40} --- is the accumulated amount of ozone
   over the threshold value of 40 ppb for daylight hours in

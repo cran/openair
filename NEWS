@@ -22,6 +22,37 @@ Changes in openair 0.9-0 [2013-02-13]
 *	Show where data removed when min.bin > 1 for polarPlot
 *	Add 'trim' value to percentiles in polarPlot to extract more
 	source information.
+*	Add 'weights' argument to polarPlot to down-weight bins with
+	few data points - alternative to min.bin
+*	Use more wd sectors for surface modelling when wd is not
+	already rounded to 10 degree intervals in polarPlot
+*	Fix bug in timePlot when pch supplied and group = TRUE.
+*	Add Air Quality Standard for O3 in aqStats (days >120 ug/m3)
+	not to be exceeded more than 10 days a year.
+*	Add max.freq option to windRose/pollutionRose to control
+	extent of radial limits
+*	Add map.res option to trajPlot and trajLevel and make default
+	lower resolution. Make default pollutant 'height' (always
+	present)
+*	Add Oslo and Rotterdam to trajectory database for 2010-2012
+*	Better limits control on calendarPlot, use first year if not
+	supplied, add option month to allow only selected month(s)
+*	Fix bug when type = "wd" and some are missing (remove them)
+*	Don't open up graphic window in timeAverage
+*	Fix indexing problem in polarCluster which sometimes caused
+	the function to trip up
+*	Only plot full length trajectories in trajPlot
+*	Allow smoothing parameter k to be used when smooth = TRUE for
+	more control in scatterPlot
+*	Add a bias correction to windRose (thanks to Philippe Barneoud
+	from Environment Canada for pointing out the need and
+	solution)
+*	Better treatment of pollutionRose when comparing two met
+	datasets when ws bias is zero
+*	Fix conditionalEval to use COE, not IOA and other minor
+	changes
+*	Allow method = "density" in trajLevel
+
 
 
 Changes in openair 0.8-0 [2012-11-30]

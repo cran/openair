@@ -48,11 +48,12 @@
   \item{bins}{Number of bins used in
   \code{conditionalQuantile}.}
 
-  \item{statistic}{Statistic(s) to be plotted. Can be "MB",
-  "NMB", "r", "IOA", "MGE", "NMGE", "RMSE", "FAC2", as
-  described in \code{modStats}. When these statistics are
-  chosen, they are calculated from \code{var.mod} and
-  \code{var.mod}.
+  \item{statistic}{Statistic(s) to be plotted. Can be
+  \dQuote{MB}, \dQuote{NMB}, \dQuote{r}, \dQuote{COE},
+  \dQuote{MGE}, \dQuote{NMGE}, \dQuote{RMSE} and
+  \dQuote{FAC2}, as described in \code{modStats}. When
+  these statistics are chosen, they are calculated from
+  \code{var.mod} and \code{var.mod}.
 
   \code{statistic} can also be a value that can be supplied
   to \code{cutData}. For example, \code{statistic =
@@ -140,10 +141,11 @@
   the model performance of other observed/predicted
   variable \bold{pairs} according to different model
   evaluation statistics. These statistics derive from the
-  \code{\link{modStats}} function and include "MB", "NMB",
-  "r", "IOA", "MGE", "NMGE", "RMSE" and "FAC2". More than
+  \code{\link{modStats}} function and include \dQuote{MB},
+  \dQuote{NMB}, \dQuote{r}, \dQuote{COE}, \dQuote{MGE},
+  \dQuote{NMGE}, \dQuote{RMSE} and \dQuote{FAC2}. More than
   one statistic can be supplied e.g. \code{statistic =
-  c("NMB", "IOA")}. Bootstrap samples are taken from the
+  c("NMB", "COE")}. Bootstrap samples are taken from the
   corresponding values of other variables to be plotted and
   their statistics with 95\% confidence intervals
   calculated. In this case, the model \emph{performance} of
@@ -162,7 +164,7 @@
   variables) and \code{var.mod} (modelled values for other
   variables). For example, to consider how well the model
   predicts NOx and wind speed \code{var.obs = c("nox.obs",
-  "ws.obs")} and \code{var.obs = c("nox.mod", "ws.mod")}
+  "ws.obs")} and \code{var.mod = c("nox.mod", "ws.mod")}
   would be supplied (assuming \code{nox.obs, nox.mod,
   ws.obs, ws.mod} are present in the data frame). The
   analysis could show for example, when ozone

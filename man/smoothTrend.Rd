@@ -8,7 +8,8 @@
     simulate = FALSE, n = 200, autocor = FALSE,
     cols = "brewer1", xlab = "year", y.relation = "same",
     key.columns = length(percentile), ci = TRUE,
-    alpha = 0.2, date.breaks = 7, auto.text = TRUE, ...)
+    alpha = 0.2, date.breaks = 7, auto.text = TRUE,
+    k = NULL, ...)
 }
 \arguments{
   \item{mydata}{A data frame containing the field
@@ -126,7 +127,13 @@
   automatically try and format pollutant names and units
   properly e.g.  by subscripting the \sQuote{2} in NO2.}
 
-  \item{\dots}{Other graphical parameters are passed onto
+  \item{k}{This is the smoothing parameter used by the
+  \code{gam} function in package \code{mgcv}. By default it
+  is not used and the amount of smoothing is optimised
+  automatically. However, sometimes it is useful to set the
+  smoothing amount manually using \code{k}.}
+
+  \item{...}{Other graphical parameters are passed onto
   \code{cutData} and \code{lattice:xyplot}. For example,
   \code{smoothTrend} passes the option \code{hemisphere =
   "southern"} on to \code{cutData} to provide southern

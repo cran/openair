@@ -62,36 +62,45 @@
 ##' }
 ##' @param site Site code of the network site to import
 ##' e.g. "london". Only one site can be imported at a time. The
-##' following sites are typically available from 2000-2011, although
-##' some UK ozone sites go back to 1988:
+##' following sites are typically available from 2000-2012, although
+##' some UK ozone sites go back to 1988 (code, location, lat, lon, year):
 ##'
 ##' \tabular{llrrl}{
-##' ah        \tab Aston Hill       \tab  52.50385 \tab  -3.041780 \tab 1988-2011\cr
-##' auch      \tab Auchencorth Moss \tab  55.79283 \tab  -3.242568 \tab 2006-2011\cr
-##' berlin    \tab Berlin, Germany  \tab  52.52000 \tab  13.400000 \tab 2000-2011\cr
-##' birm      \tab Birmigham Centre \tab  52.47972 \tab  -1.908078 \tab 1990-2011\cr
-##' bot       \tab Bottesford       \tab  52.93028 \tab  -0.814722 \tab 1990-2011\cr
-##' ed        \tab Edinburgh        \tab  55.95197 \tab  -3.195775 \tab 1990-2011\cr
-##' elche     \tab Elche, Spain     \tab  38.27000 \tab  -0.690000 \tab 2004-2011\cr
-##' esk       \tab Eskdalemuir      \tab  55.31530 \tab  -3.206110 \tab 1998-2011\cr
-##' gibraltar \tab Gibraltar        \tab  36.13400 \tab  -5.347000 \tab 2005-2010\cr
-##' glaz      \tab Glazebury        \tab  53.46008 \tab  -2.472056 \tab 1998-2011\cr
-##' groningen \tab Groningen        \tab  53.40000 \tab   6.350000 \tab 2007-2011\cr
-##' har       \tab Harwell          \tab  51.57108 \tab  -1.325283 \tab 1988-2011\cr
-##' hk        \tab Hong Kong        \tab  22.29000 \tab 114.170000 \tab 1998-2011\cr
-##' hm        \tab High Muffles     \tab  54.33500 \tab  -0.808600 \tab 1988-2011\cr
-##' kuwait    \tab Kuwait City      \tab  29.36700 \tab  47.967000 \tab 2008-2011\cr
-##' lb        \tab Ladybower        \tab  53.40337 \tab  -1.752006 \tab 1988-2011\cr
-##' london    \tab Central London   \tab  51.50000 \tab  -0.100000 \tab 1990-2011\cr
-##' lh        \tab Lullington Heath \tab  50.79370 \tab   0.181250 \tab 1988-2011\cr
-##' ln        \tab Lough Navar      \tab  54.43951 \tab  -7.900328 \tab 1988-2011\cr
-##' mh        \tab Mace Head        \tab  53.33000 \tab  -9.900000 \tab 1988-2011\cr
-##' paris     \tab Paris, France    \tab  48.86200 \tab   2.339000 \tab 2000-2011\cr
-##' roch      \tab Rochester Stoke  \tab  51.45617 \tab   0.634889 \tab 1988-2011\cr
-##' saopaulo  \tab Sao Paulo        \tab -23.55000 \tab -46.640000 \tab 2000-2011\cr
-##' sib       \tab Sibton           \tab  52.29440 \tab   1.463970 \tab 1988-2011\cr
-##' sv        \tab Strath Vaich     \tab  57.73446 \tab  -4.776583 \tab 1988-2011\cr
-##' yw        \tab Yarner Wood      \tab  50.59760 \tab  -3.716510 \tab 1988-2011
+##' abudhabi   \tab Abu Dhabi                    \tab  24.43000 \tab  54.408000 \tab 2012     \cr
+##' ah         \tab Aston Hill                   \tab  52.50385 \tab  -3.041780 \tab 1988-2012\cr
+##' auch       \tab Auchencorth Moss             \tab  55.79283 \tab  -3.242568 \tab 2006-2012\cr
+##' berlin     \tab Berlin, Germany              \tab  52.52000 \tab  13.400000 \tab 2000-2012\cr
+##' birm       \tab Birmigham Centre             \tab  52.47972 \tab  -1.908078 \tab 1990-2012\cr
+##' boston     \tab Boston, USA                  \tab  42.32900 \tab -71.083000 \tab 2008-2012\cr
+##' bot        \tab Bottesford                   \tab  52.93028 \tab  -0.814722 \tab 1990-2012\cr
+##' bukit      \tab Bukit Kototabang, Indonesia  \tab  -0.19805 \tab 100.318000 \tab 1996-2012\cr
+##' chittagong \tab Chittagong, Bangladesh    \tab  22.37000 \tab  91.800000 \tab 2010-2012\cr
+##' dhaka      \tab Dhaka, Bangladesh            \tab  23.70000 \tab  90.375000 \tab 2010-2012\cr
+##' ed         \tab Edinburgh                    \tab  55.95197 \tab  -3.195775 \tab 1990-2012\cr
+##' elche      \tab Elche, Spain                 \tab  38.27000 \tab  -0.690000 \tab 2004-2012\cr
+##' esk        \tab Eskdalemuir                  \tab  55.31530 \tab  -3.206110 \tab 1998-2012\cr
+##' gibraltar  \tab Gibraltar                    \tab  36.13400 \tab  -5.347000 \tab 2005-2010\cr
+##' glaz       \tab Glazebury                    \tab  53.46008 \tab  -2.472056 \tab 1998-2012\cr
+##' groningen  \tab Groningen                    \tab  53.40000 \tab   6.350000 \tab 2007-2012\cr
+##' har        \tab Harwell                      \tab  51.57108 \tab  -1.325283 \tab 1988-2012\cr
+##' hk         \tab Hong Kong                    \tab  22.29000 \tab 114.170000 \tab 1998-2012\cr
+##' hm         \tab High Muffles                 \tab  54.33500 \tab  -0.808600 \tab 1988-2012\cr
+##' kuwait     \tab Kuwait City                  \tab  29.36700 \tab  47.967000 \tab 2008-2012\cr
+##' lb         \tab Ladybower                    \tab  53.40337 \tab  -1.752006 \tab 1988-2012\cr
+##' london     \tab Central London               \tab  51.50000 \tab  -0.100000 \tab 1990-2012\cr
+##' lh         \tab Lullington Heath             \tab  50.79370 \tab   0.181250 \tab 1988-2012\cr
+##' ln         \tab Lough Navar                  \tab  54.43951 \tab  -7.900328 \tab 1988-2012\cr
+##' mh         \tab Mace Head                    \tab  53.33000 \tab  -9.900000 \tab 1988-2012\cr
+##' ny-alesund \tab Ny-Alesund, Norway           \tab  78.91763 \tab  11.894653 \tab 2009-2012\cr
+##' oslo       \tab Oslo                         \tab  59.90000 \tab  10.750000 \tab 2010-2012\cr
+##' paris      \tab Paris, France                \tab  48.86200 \tab   2.339000 \tab 2000-2012\cr
+##' roch       \tab Rochester Stoke              \tab  51.45617 \tab   0.634889 \tab 1988-2012\cr
+##' rotterdam  \tab Rotterdam                    \tab  51.91660 \tab   4.475000 \tab 2010-2012\cr
+##' saopaulo   \tab Sao Paulo                    \tab -23.55000 \tab -46.640000 \tab 2000-2012\cr
+##' sib        \tab Sibton                       \tab  52.29440 \tab   1.463970 \tab 1988-2012\cr
+##' sv         \tab Strath Vaich                 \tab  57.73446 \tab  -4.776583 \tab 1988-2012\cr
+##' wuhan      \tab Wuhan, China                 \tab  30.58300 \tab 114.280000 \tab 2008-2012\cr
+##' yw         \tab Yarner Wood                  \tab  50.59760 \tab  -3.716510 \tab 1988-2012
 ##' }
 ##' @param year Year or years to import. To import a sequence of years from
 ##'   1990 to 2000 use \code{year = 1990:2000}. To import several specfic years
@@ -135,6 +144,7 @@ importTraj <- function(site = "london", year = 2009, local = NA) {
             if (is.na(local)) {
                 fileName <- paste("http://www.erg.kcl.ac.uk/downloads/Policy_Reports/Traj/", x, ".RData",
                                   sep = "")
+
                 con <- url(fileName)
                 load(con)
                 close(con)
