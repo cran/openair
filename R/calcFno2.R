@@ -192,7 +192,7 @@ calcFno2 <- function(input,
     if(!any(names(input) %in% "temp"))  input$temp <- 11
     if(!any(names(input) %in% "cl"))  input$cl <- 4.5
 
-    input <- openair:::checkPrep(input, Names = c("date", "nox", "no2", "back_no2",
+    input <- checkPrep(input, Names = c("date", "nox", "no2", "back_no2",
                                "back_nox", "back_o3", "cl", "temp"), "default")
     input <- na.omit(input)
     input.all <- prepare(input)  ## process input data
@@ -237,10 +237,14 @@ calcFno2 <- function(input,
 
         hourly <- cbind(date = input.all$date, nox = input.all$nox, hourly)
 
-        gaps <- data.frame(date = input$date[-ids], nox = input$nox[-ids],
-                           no2 = input$no2[-ids], o3 = NA)
+        if (length(input$date[-ids]) > 0) {
+            gaps <- data.frame(date = input$date[-ids], nox = input$nox[-ids],
+                               no2 = input$no2[-ids], o3 = NA)
+            hourly <- rbind(hourly, gaps)
 
-        hourly <- rbind(hourly, gaps)
+        }
+
+
         hourly <- hourly[order(hourly$date), ]
 
         plot.fno2(results,...)

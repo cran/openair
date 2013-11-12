@@ -94,7 +94,7 @@ date.pad <- function(mydata) {
         if (class(mydata$date)[1] == "Date") {
             interval <- "day"
         } else {
-            interval <- openair:::find.time.interval(mydata$date)
+            interval <- find.time.interval(mydata$date)
         }
 
         ## only pad if there are missing data
@@ -239,7 +239,7 @@ rollingMean <- function(mydata, pollutant = "o3", width = 8, new.name = "rolling
         dates <- mydata$date
 
         ## pad missing hours
-        mydata <- openair:::date.pad(mydata)
+        mydata <- date.pad(mydata)
 
         ## make sure function is not called with window width longer than data
         if (width > nrow(mydata)) return(mydata)
@@ -531,7 +531,7 @@ panel.smooth.spline <-
 
 ### panel functions for plots based on lattice ####################################################
 
-panel.gam <- function (x, y, form = y ~ x, method = "loess", ..., simulate = FALSE, n.sim = 200,
+panel.gam <- function (x, y, form = y ~ x, method = "loess", k = k, Args, ..., simulate = FALSE, n.sim = 200,
                        autocor = FALSE, se = TRUE,
                        level = 0.95, n = 100, col = plot.line$col, col.se = col,
                        lty = plot.line$lty, lwd = plot.line$lwd, alpha = plot.line$alpha,
@@ -552,7 +552,13 @@ panel.gam <- function (x, y, form = y ~ x, method = "loess", ..., simulate = FAL
     tryCatch({
 
         if (!simulate) {
-            mod <- gam(y ~ s(x), select = TRUE, data = thedata, ...)
+
+            if (is.null(k)) {
+                mod <- gam(y ~ s(x), select = TRUE, data = thedata, ...)
+
+            } else {
+                mod <- gam(y ~ s(x, k = k), select = TRUE, data = thedata, ...)
+            }
 
 
             lims <- current.panel.limits()
@@ -589,7 +595,11 @@ panel.gam <- function (x, y, form = y ~ x, method = "loess", ..., simulate = FAL
             index <- samp.boot.block(sam.size, n.sim, block.length)
 
             ## predict first
-            mod <- gam(y ~ s(x), data = thedata, ...)
+            if (is.null(k)) {
+                mod <- gam(y ~ s(x), data = thedata, ...)
+            } else {
+                 mod <- gam(y ~ s(x, k = k), data = thedata, ...)
+            }
 
             residuals <- residuals(mod) ## residuals of the model
 
@@ -769,12 +779,12 @@ makeOpenKeyLegend <- function(key, default.key, fun.name = "function"){
 }
 
  ## polygon that can deal with missing data for use in lattice plots with groups
-    poly.na <- function(x1, y1, x2, y2, group.number, myColors) {
+    poly.na <- function(x1, y1, x2, y2, group.number, myColors, alpha = 0.4) {
         for(i in seq(2, length(x1)))
             if (!any(is.na(y2[c(i - 1, i)])))
                 lpolygon(c(x1[i - 1], x1[i], x2[i], x2[i - 1]),
                          c(y1[i - 1], y1[i], y2[i], y2[i - 1]),
-                         col = myColors[group.number], border = NA, alpha = 0.4)
+                         col = myColors[group.number], border = NA, alpha = alpha)
     }
 
 
@@ -797,4 +807,42 @@ strip.fun <- function(results.grid, type, auto.text) {
     }
     if (length(type) == 1 & type[1] == "default") strip <- FALSE ## remove strip
     list(strip, strip.left, pol.name)
+}
+
+
+
+## from lattice
+chooseFace <- function (fontface = NULL, font = 1)
+{
+    if (is.null(fontface))
+        font
+    else fontface
+}
+
+
+## .smoothScatterCalcDensity() is also in graphics, but not exported.
+.smoothScatterCalcDensity <- function(x, nbin, bandwidth, range.x)
+{
+    if (!("KernSmooth" %in% loadedNamespaces())) {
+        ns <- try(loadNamespace("KernSmooth"))
+        if (isNamespace(ns))
+            message("(loaded the KernSmooth namespace)")
+        else stop("panel.smoothScatter() requires the KernSmooth package, but unable to load KernSmooth namespace")
+    }
+    if (length(nbin) == 1)
+        nbin <- c(nbin, nbin)
+    if (!is.numeric(nbin) || (length(nbin)!=2)) stop("'nbin' must be numeric of length 1 or 2")
+    if (missing(bandwidth)) {
+        bandwidth <- diff(apply(x, 2, quantile, probs=c(0.05, 0.95), na.rm=TRUE)) / 25
+    } else {
+        if(!is.numeric(bandwidth)) stop("'bandwidth' must be numeric")
+    }
+    bandwidth[bandwidth==0] <- 1
+    ## create density map
+    if(missing(range.x))
+        rv <- KernSmooth::bkde2D(x, gridsize=nbin, bandwidth=bandwidth)
+    else
+        rv <- KernSmooth::bkde2D(x, gridsize=nbin, bandwidth=bandwidth, range.x=range.x)
+    rv$bandwidth <- bandwidth
+    return(rv)
 }

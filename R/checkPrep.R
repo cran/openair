@@ -3,7 +3,7 @@
                                         # Author: DCC
 ###############################################################################
 
-checkPrep <- function(mydata, Names, type, remove.calm = TRUE, remove.neg = TRUE) {
+checkPrep <- function(mydata, Names, type, remove.calm = TRUE, remove.neg = TRUE, strip.white = TRUE) {
 
     ## deal with conditioning variable if present, if user-defined, must exist in data
     ## pre-defined types
@@ -123,8 +123,10 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE, remove.neg = TRUE
         }
     }
 
-    ## set panel strip to white
-    suppressWarnings(trellis.par.set(list(strip.background = list(col = "white"))))
+    if (strip.white) {
+        ## set panel strip to white
+        suppressWarnings(trellis.par.set(list(strip.background = list(col = "white"))))
+    }
 
     ## return data frame
     mydata

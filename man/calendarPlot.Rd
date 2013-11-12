@@ -3,7 +3,7 @@
 \title{Plot time series values in convential calendar format}
 \usage{
   calendarPlot(mydata, pollutant = "nox", year = 2003,
-    type = "default", annotate = "date",
+    month = 1:12, type = "default", annotate = "date",
     statistic = "mean", cols = "heat", limits = c(0, 100),
     lim = NULL, col.lim = c("grey30", "black"),
     font.lim = c(1, 2), cex.lim = c(0.6, 1), digits = 0,
@@ -23,6 +23,13 @@
   supplied e.g. \code{pollutant = "nox". }}
 
   \item{year}{Year to plot e.g. \code{year = 2003}.}
+
+  \item{month}{If only certain month are required. By
+  default the function will plot an entire year even if
+  months are missing. To only plot certain months use the
+  \code{month} option where month is a numeric 1:12 e.g.
+  \code{month = c(1, 12)} to only plot January and
+  December.}
 
   \item{type}{Not yet implemented.}
 

@@ -177,7 +177,9 @@
 ##' ensures that values greater than or equal to the trim * mean value
 ##' are considered \emph{before} the percentile intervals are
 ##' calculated. The effect is to extract more detail from many source
-##' signatures. See the manual for examples.
+##' signatures. See the manual for examples. Finally, if the trim
+##' value is less than zero the percentile range is interpreted as
+##' absolute concentration values and subsetting is carried out directly.
 ##' @param cols Colours to be used for plotting. Options include
 ##' \dQuote{default}, \dQuote{increment}, \dQuote{heat}, \dQuote{jet}
 ##' and \code{RColorBrewer} colours --- see the \code{openair}
@@ -185,6 +187,18 @@
 ##' user can supply a list of colour names recognised by R (type
 ##' \code{colours()} to see the full list). An example would be
 ##' \code{cols = c("yellow", "green", "blue")}
+##' @param weights At the edges of the plot there may only be a few
+##' data points in each wind speed-direction interval, which could in
+##' some situations distort the plot if the concentrations are
+##' high. \code{weights} applies a weighting to reduce their
+##' influence. For example and by default if only a single data point
+##' exists then the weighting factor is 0.25 and for two points
+##' 0.5. To not apply any weighting and use the data as is, use
+##' \code{weights = c(1, 1, 1)}.
+##'
+##' An alternative to down-weighting these points they can be removed
+##' altogether using \code{min.bin}.
+##'
 ##' @param min.bin The minimum number of points allowed in a wind
 ##' speed/wind direction bin.  The default is 1. A value of two
 ##' requires at least 2 valid records in each bin an so on; bins with
@@ -350,7 +364,8 @@
 polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "default",
                       statistic = "mean", resolution = "normal", limits = NA,
                       exclude.missing = TRUE, uncertainty = FALSE, percentile = NA,
-                      cols = "default", min.bin = 1, mis.col = "grey", upper = NA, angle.scale = 315,
+                      cols = "default", weights = c(0.25, 0.5, 0.75), min.bin = 1,
+                      mis.col = "grey", upper = NA, angle.scale = 315,
                       units = x, force.positive = TRUE, k = 100, normalise = FALSE,
                       key.header = "", key.footer = pollutant, key.position = "right",
                       key = TRUE, auto.text = TRUE, ...) {
@@ -374,6 +389,8 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
                           "weighted.mean", "percentile", "cpf")) {
         stop (paste("statistic '", statistic, "' not recognised", sep = ""))
     }
+
+    if (length(weights) != 3) stop ("weights should be of length 3.")
 
     if (missing(key.header)) key.header <- statistic
     if (key.header == "weighted.mean") key.header <- c("weighted", "mean")
@@ -408,9 +425,9 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
     ## extract variables of interest
 
     vars <- c(wd, x, pollutant)
-    if (any(type %in%  openair:::dateTypes)) vars <- c(vars, "date")
+    if (any(type %in%  dateTypes)) vars <- c(vars, "date")
 
-    mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
 
     mydata <- na.omit(mydata)
 
@@ -444,7 +461,7 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
         }
     }
 
-    ## ##############################################################################
+    ## ####################################################################
 
 
     ## cutData depending on type
@@ -467,8 +484,15 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
     if (resolution == "ultra.fine") int <- 401  ## very large files!
 
     ## binning wd data properly
+    ## use 10 degree binning of wd if already binned, else 5
+    if (all(mydata[, wd] %% 10 == 0, na.rm = TRUE)) {
+        wd.int <- 10
+    } else {
+        wd.int <- 5 ## how to split wd
+    }
+
     ws.seq <- seq(min.ws, max.ws, length = 30)
-    wd.seq <- seq(from = 10, to = 360, by = 10) ## wind directions from 10 to 360
+    wd.seq <- seq(from = wd.int, to = 360, by = wd.int) ## wind directions from wd.int to 360
     ws.wd <- expand.grid(x = ws.seq, wd = wd.seq)
 
     u <- with(ws.wd, x * sin(pi * wd / 180))  ## convert to polar coords
@@ -486,34 +510,46 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
 
             if (length(percentile) == 3) {
                 ## in this case there is a trim value as a proprtion of the mean
+                ## if this value <0 use absolute values as range
                 Mean <- mean(mydata[, pollutant], na.rm = TRUE)
-                Pval1 <- quantile(subset(mydata[[pollutant]], mydata[[pollutant]] >= Mean * percentile[3]),
-                                  probs = percentile[1] / 100, na.rm = TRUE)
 
-                Pval2 <- quantile(subset(mydata[[pollutant]], mydata[[pollutant]] >= Mean * percentile[3]),
-                                   probs = percentile[2] / 100, na.rm = TRUE)
+                if (percentile[3] < 0) {
+
+                    Pval <- percentile[1:2]
+
+                } else  {
+                    Pval <- quantile(subset(mydata[[pollutant]],
+                                            mydata[[pollutant]] >= Mean *
+                                            percentile[3]),
+                                     probs = percentile[1:2] / 100,
+                                     na.rm = TRUE)
+                }
 
             } else {
-                Pval1 <- quantile(mydata[, pollutant], probs = percentile[1] / 100,
-                                  na.rm = TRUE)
-                Pval2 <- quantile(mydata[, pollutant], probs = percentile[2] / 100,
-                                  na.rm = TRUE)
+
+                Pval <- quantile(mydata[, pollutant],
+                                 probs = percentile / 100, na.rm = TRUE)
+
             }
-            sub <- paste("CPF (", Pval1, " to ",
-                         Pval2, ")", sep = "")
+            sub <- paste("CPF (", format(Pval[1], digits = 2), " to ",
+                         format(Pval[2], digits = 2), ")", sep = "")
 
         } else {
             Pval <- quantile(mydata[, pollutant], probs = percentile / 100, na.rm = TRUE)
             sub <- paste("CPF at the ", percentile,
-                         "th percentile (=", round(Pval, 1), ")", sep = "")
+                         "th percentile (=", format(Pval, digits = 2), ")", sep = "")
         }
     } else {
         sub <- NULL
     }
 
+    ## ######################################################################
+
     prepare.grid <- function(mydata) {
         ## identify which ws and wd bins the data belong
-        wd <- cut(mydata[ , wd], breaks = seq(0, 360, 10), include.lowest = TRUE)
+        wd <- cut(wd.int * ceiling(mydata[, wd] / wd.int - 0.5),
+                  breaks = seq(0, 360, wd.int), include.lowest = TRUE)
+
         x <- cut(mydata[ , x], breaks = seq(0, max.ws, length = 31), include.lowest = TRUE)
 
         binned <- switch(statistic,
@@ -530,7 +566,7 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
                          cpf =  tapply(mydata[, pollutant], list(wd, x),
                          function(x) (length(which(x > Pval)) / length(x))),
                          cpfi =  tapply(mydata[, pollutant], list(wd, x),
-                         function(x) (length(which(x > Pval1 & x <= Pval2)) / length(x))),
+                         function(x) (length(which(x > Pval[1] & x <= Pval[2])) / length(x))),
                          weighted.mean = tapply(mydata[, pollutant], list(wd, x),
                          function(x) (mean(x) * length(x) / nrow(mydata))),
                          percentile = tapply(mydata[, pollutant], list(wd, x), function(x)
@@ -544,16 +580,25 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
         bin.len <- tapply(mydata[, pollutant], list(x, wd), length)
         binned.len <- as.vector(bin.len)
 
-        ids <- which(binned.len < min.bin)
+        ## apply weights
+        W <- rep(1, times = length(binned))
+        ids <- which(binned.len == 1)
+        W[ids] <- W[ids] * weights[1]
+        ids <- which(binned.len == 2)
+        W[ids] <- W[ids] * weights[2]
+        ids <- which(binned.len == 3)
+        W[ids] <- W[ids] * weights[3]
 
+        ## set missing to NA
+        ids <- which(binned.len < min.bin)
         binned[ids] <- NA
-        ## ####################Smoothing#################################################
+        ## ####################Smoothing#######################################
         if (force.positive) n <- 0.5 else n <- 1
 
         ## no uncertainty to calculate
         if (!uncertainty) {
             ## catch errors when not enough data to calculate surface
-            Mgam <- try(gam(binned ^ n ~ s(u, v, k = k)), TRUE)
+            Mgam <- try(gam(binned ^ n ~ s(u, v, k = k), weights = W), TRUE)
             if (!inherits(Mgam, "try-error")) {
                 pred <- predict.gam(Mgam, input.data)
                 pred <- pred ^ (1 / n)
@@ -643,7 +688,7 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
     if (clip) results.grid$z[(results.grid$u ^ 2 + results.grid$v ^ 2) ^ 0.5 > upper] <- NA
 
     ## proper names of labelling ###################################################
-    strip.dat <- openair:::strip.fun(results.grid, type, auto.text)
+    strip.dat <- strip.fun(results.grid, type, auto.text)
     strip <- strip.dat[[1]]
     strip.left <- strip.dat[[2]]
     pol.name <- strip.dat[[3]]
@@ -699,7 +744,7 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
                    space = key.position, auto.text = auto.text,
                    footer = key.footer, header = key.header,
                    height = 1, width = 1.5, fit = "all")
-    legend <- openair:::makeOpenKeyLegend(key, legend, "polarPlot")
+    legend <- makeOpenKeyLegend(key, legend, "polarPlot")
 
     ## ##############################################################################
 
@@ -776,7 +821,7 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
                  })
 
     ## reset for extra.args
-    Args<- openair:::listUpdate(Args, extra.args)
+    Args<- listUpdate(Args, extra.args)
 
     plt <- do.call(levelplot, Args)
 

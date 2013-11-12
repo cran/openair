@@ -286,7 +286,7 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
 
     if (length(mod) ==2) combine <- TRUE
 
-    if (any(type %in%  openair:::dateTypes)) {
+    if (any(type %in%  dateTypes)) {
 
         vars <- c("date", obs, mod)
 
@@ -298,8 +298,8 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
     ## if group is present, need to add that list of variables unless it is a pre-defined date-based one
     if (!missing(group)){
 
-        if (group %in%  openair:::dateTypes | any(type %in% openair:::dateTypes)) {
-            if (group %in%  openair:::dateTypes) {
+        if (group %in%  dateTypes | any(type %in% dateTypes)) {
+            if (group %in%  dateTypes) {
                 vars <- unique(c(vars, "date")) ## don't need group because it is defined by date
             } else {
                 vars <- unique(c(vars, "date", group))
@@ -315,7 +315,7 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
 
     ## data checks, for base and new data if necessary
 
-    mydata <- openair:::checkPrep(mydata, vars, type)
+    mydata <- checkPrep(mydata, vars, type)
 
     ## remove missing data
     mydata <- na.omit(mydata)
@@ -471,7 +471,7 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
                         })
 
     ## reset for extra.args
-    xyplot.args <- openair:::listUpdate(xyplot.args, extra.args)
+    xyplot.args <- listUpdate(xyplot.args, extra.args)
 
     ## plot
     plt <- do.call(xyplot, xyplot.args)

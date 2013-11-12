@@ -170,15 +170,15 @@ timeProp <- function(mydata, pollutant = "nox", proportion = "cluster", avg.time
     ## variables needed
     vars <- c("date", pollutant, proportion)
 
-    if (any(type %in% openair:::dateTypes)) vars <- unique(c("date", vars))
+    if (any(type %in% dateTypes)) vars <- unique(c("date", vars))
 
     ## check the data
-    mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
 
     ## need to make sure there are full time series for each proportion
     ## necessary when avg.time is something like "3 month" and time series is non-regular
 
-    mydata <- openair:::date.pad(mydata)
+    mydata <- date.pad(mydata)
 
     fun.pad <- function (x) {
         the.level <- x[[proportion]][1]
@@ -231,7 +231,7 @@ timeProp <- function(mydata, pollutant = "nox", proportion = "cluster", avg.time
     results <- ddply(mydata, type, procData, avg.time)
 
     ## proper names of labelling ###################################################
-    strip.dat <- openair:::strip.fun(results, type, auto.text)
+    strip.dat <- strip.fun(results, type, auto.text)
     strip <- strip.dat[[1]]
     strip.left <- strip.dat[[2]]
     pol.name <- strip.dat[[3]]
@@ -243,11 +243,11 @@ timeProp <- function(mydata, pollutant = "nox", proportion = "cluster", avg.time
 
     myform <- formula(paste("Var1 ~ date | ", type, sep = ""))
 
-    dates <- openair:::dateBreaks(results$date, date.breaks)$major ## for date scale
+    dates <- dateBreaks(results$date, date.breaks)$major ## for date scale
 
     ## date axis formating
     if (is.null(date.format)) {
-        formats <- openair:::dateBreaks(results$date, date.breaks)$format
+        formats <- dateBreaks(results$date, date.breaks)$format
     } else {
         formats <- date.format
     }

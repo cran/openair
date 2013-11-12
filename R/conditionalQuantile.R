@@ -35,12 +35,14 @@
 ##' function in openair allows conditional quantiles to be considered in a
 ##' flexible way e.g. by considering how they vary by season.
 ##'
-##' The function requires a data frame consisting of a column of observations
-##' and a column of predictions. The observations are split up into \code{bins}
-##' according to values of the predictions. The median prediction line together
-##' with the 25/75th and 10/90th quantile values are plotted together with a
-##' line showing a \dQuote{perfect} model. Also shown is a histogram of predicted
-##' values.
+##' The function requires a data frame consisting of a column of
+##' observations and a column of predictions. The observations are
+##' split up into \code{bins} according to values of the
+##' predictions. The median prediction line together with the 25/75th
+##' and 10/90th quantile values are plotted together with a line
+##' showing a \dQuote{perfect} model. Also shown is a histogram of
+##' predicted values (shaded grey) and a histogram of observed values
+##' (shown as a blue line).
 ##'
 ##' Far more insight can be gained into model performance through conditioning
 ##' using \code{type}. For example, \code{type = "season"} will plot
@@ -183,10 +185,10 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
 
     vars <- c(mod, obs)
 
-    if (any(type %in%  openair:::dateTypes)) vars <- c("date", vars)
+    if (any(type %in%  dateTypes)) vars <- c("date", vars)
 
     ## check the data
-    mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
     mydata <- na.omit(mydata)
     mydata <- cutData(mydata, type)
 
@@ -257,17 +259,7 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
         pol.name <- sapply(levels(results[ , type[2]]), function(x) quickText(x, auto.text))
         strip.left <- strip.custom(factor.levels = pol.name)
     }
-#######################################################################################
-
-
-    ## polygon that can deal with missing data
-    poly.na <- function(x1, y1, x2, y2, col) {
-        for(i in seq(2, length(x1)))
-            if (!any(is.na(y2[c(i - 1, i)])))
-                lpolygon(c(x1[i - 1], x1[i], x2[i], x2[i - 1]),
-                         c(y1[i - 1], y1[i], y2[i], y2[i - 1]),
-                         col = col, border = NA, alpha = 1)
-    }
+    ## #####################################################################################
 
     temp <- paste(type, collapse = "+")
     myform <- formula(paste("x ~ med | ", temp, sep = ""))
@@ -295,10 +287,10 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
 
                           poly.na(results$x[subscripts], results$q3[subscripts],
                                   results$x[subscripts],
-                                  results$q4[subscripts], col = col.2)
+                                  results$q4[subscripts], myColors = col.2, alpha = 1)
                           poly.na(results$x[subscripts], results$q1[subscripts],
                                   results$x[subscripts],
-                                  results$q2[subscripts], col = col.1)
+                                  results$q2[subscripts], myColors = col.1, alpha = 1)
 
                           ## match type and get limits for obs
                           theType <- results[subscripts[1], type]
@@ -323,7 +315,8 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
                       })
 
     #reset for extra.args
-    xyplot.args <- openair:::listUpdate(xyplot.args, extra.args)
+
+    xyplot.args <- listUpdate(xyplot.args, extra.args)
 
     #plot
     scatter <- do.call(xyplot, xyplot.args)
@@ -354,7 +347,8 @@ conditionalQuantile <- function(mydata, obs = "obs", mod = "mod",
                        }
                        )
 
-    thePlot <- doubleYScale(scatter, histo, add.ylab2 = TRUE)
+    ## supress scaling warnings
+    thePlot <- suppressWarnings(doubleYScale(scatter, histo, add.ylab2 = TRUE))
     thePlot <- update(thePlot, par.settings = simpleTheme(col = c("black", "black")))
 
     if (length(type) == 1) plot(thePlot) else plot(useOuterStrips(thePlot, strip = strip,

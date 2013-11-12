@@ -301,21 +301,21 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
     if (!avg.time %in% c("year", "month", "season")) stop ("avg.time can only be 'month', 'season' or 'year'.")
 
     ## data checks
-    mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
 
      ## date formatting for plot
-    date.at <- as.Date(openair:::dateBreaks(mydata$date, date.breaks)$major)
-    date.format <- openair:::dateBreaks(mydata$date)$format
+    date.at <- as.Date(dateBreaks(mydata$date, date.breaks)$major)
+    date.format <- dateBreaks(mydata$date)$format
 
 
     ## cutData depending on type
     mydata <- cutData(mydata, type, ...)
 
     ## for overall data and graph plotting
-    start.year <- openair:::startYear(mydata$date)
-    end.year <-   openair:::endYear(mydata$date)
-    start.month <-  openair:::startMonth(mydata$date)
-    end.month <-   openair:::endMonth(mydata$date)
+    start.year <- startYear(mydata$date)
+    end.year <-   endYear(mydata$date)
+    start.month <-  startMonth(mydata$date)
+    end.month <-   endMonth(mydata$date)
 
 
     mydata <- ddply(mydata, type, timeAverage, avg.time = avg.time,
@@ -333,10 +333,10 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
         mydata <- mydata[min.idx:max.idx, ]
 
         ## these subsets may have different dates to overall
-        start.year <-  openair:::startYear(mydata$date)
-        end.year <-   openair:::endYear(mydata$date)
-        start.month <-  openair:::startMonth(mydata$date)
-        end.month <-   openair:::endMonth(mydata$date)
+        start.year <-  startYear(mydata$date)
+        end.year <-   endYear(mydata$date)
+        start.month <-  startMonth(mydata$date)
+        end.month <-   endMonth(mydata$date)
 
 
         if (avg.time == "month") {
@@ -407,7 +407,7 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
         extra.args$skip <- FALSE
 
     ## proper names of labelling ###################################################
-    strip.dat <- openair:::strip.fun(split.data, type, auto.text)
+    strip.dat <- strip.fun(split.data, type, auto.text)
     strip <- strip.dat[[1]]
     strip.left <- strip.dat[[2]]
     pol.name <- strip.dat[[3]]
@@ -470,7 +470,7 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
 
                         panel = function(x, y, subscripts,...){
                             ## year shading
-                            openair:::panel.shade(split.data, start.year, end.year,
+                            panel.shade(split.data, start.year, end.year,
                                                   ylim = current.panel.limits()$ylim)
                             panel.grid(-1, 0)
 
@@ -515,7 +515,7 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
                         })
 
                                         #reset for extra.args
-    xyplot.args<- openair:::listUpdate(xyplot.args, extra.args)
+    xyplot.args<- listUpdate(xyplot.args, extra.args)
 
                                         #plot
     plt <- do.call(xyplot, xyplot.args)
@@ -523,7 +523,7 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
 
     ## output ######################################################################################
 
-    if (length(type) == 1) plot(plt) else plot(openair:::useOuterStrips(plt, strip = strip, strip.left = strip.left))
+    if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip, strip.left = strip.left))
     newdata <- list(main.data = split.data, res2 = res2, subsets = c("main.data", "res2"))
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
@@ -564,7 +564,7 @@ panel.shade <- function(split.data, start.year, end.year, ylim) {
 
 MKstats <- function(x, y, alpha, autocor) {
 
-    estimates <- openair:::regci(as.numeric(x), y, alpha = alpha, autocor = autocor)$regci
+    estimates <- regci(as.numeric(x), y, alpha = alpha, autocor = autocor)$regci
 
     p <- estimates[2, 5]
 

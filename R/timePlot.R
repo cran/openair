@@ -289,8 +289,9 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
                            quickText(extra.args$ylab, auto.text) else NULL
     extra.args$main <- if("main" %in% names(extra.args))
                            quickText(extra.args$main, auto.text) else quickText("", auto.text)
+
     xlim <- if ("xlim" %in% names(extra.args))
-        xlim else NULL
+        extra.args$xlim else  NULL
 
     if(!"pch" %in% names(extra.args))
         extra.args$pch <- NA
@@ -329,7 +330,7 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
     ## #######################################################################################
 
     ## data checks
-    mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
 
     ## pad out any missing date/times so that line don't extend between areas of missing data
 
@@ -434,11 +435,11 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
 
     strip.left <- FALSE
 
-    dates <- openair:::dateBreaks(mydata$date, date.breaks)$major ## for date scale
+    dates <- dateBreaks(mydata$date, date.breaks)$major ## for date scale
 
     ## date axis formating
     if (is.null(date.format)) {
-        formats <- openair:::dateBreaks(mydata$date, date.breaks)$format
+        formats <- dateBreaks(mydata$date, date.breaks)$format
     } else {
         formats <- date.format
     }
@@ -565,17 +566,18 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
                                 panel.grid(-1, 0)
                             }
 
-                            panel.xyplot(x, y, type = plot.type, lty = lty, lwd = lwd,
+                            panel.xyplot(x, y, type = plot.type, lty = lty, lwd = lwd, pch = pch,
                                          col.line = myColors[group.number],...)
                             ## deal with points separately - useful if missing data where line
                             ## does not join consequtive points
                             if (any(!is.na(extra.args$pch))) {
-                                lpoints(x, y, type = "p", pch = extra.args$pch,
+
+                                lpoints(x, y, type = "p", pch = extra.args$pch[group.number],
                                         col.symbol = myColors[group.number],...)
                             }
                             if (smooth) panel.gam(x, y, col = myColors[group.number] ,
                                                   col.se =  myColors[group.number],
-                                                  lty = 1, lwd = 1, se = ci, ...)
+                                                  lty = 1, lwd = 1, se = ci, k = NULL, ...)
 
                             ## add reference lines
                             panel.abline(v = ref.x, lty = 5)
@@ -584,7 +586,7 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
                         })
 
     ## reset for extra.args
-    xyplot.args<- openair:::listUpdate(xyplot.args, extra.args)
+    xyplot.args<- listUpdate(xyplot.args, extra.args)
 
     #plot
     plt <- do.call(xyplot, xyplot.args)

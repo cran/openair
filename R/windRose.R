@@ -4,13 +4,13 @@ pollutionRose <- function(mydata, pollutant = "nox", key.footer = pollutant,
                           ...)
 {
 
-    ## extra.args setup
-    extra.args <- list(...)
+    ## extra args setup
+    extra <- list(...)
 
     ## check to see if two met data sets are being compared.
     ## if so, set pollutant to one of the names
-    if ("ws2" %in% names(extra.args)) {
-        pollutant <-  extra.args$ws
+    if ("ws2" %in% names(extra)) {
+        pollutant <-  extra$ws
         if (missing(breaks)) breaks <- NA
     }
 
@@ -79,16 +79,18 @@ pollutionRose <- function(mydata, pollutant = "nox", key.footer = pollutant,
 ##' direction bias is colour-coded to show negative bias in one colour
 ##' and positive bias in another.
 ##'
-##' @usage windRose(mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA, ws.int = 2,
-##' angle = 30, type = "default", cols = "default", grid.line = NULL, width = 1,
-##' seg = NULL, auto.text = TRUE, breaks = 4, offset = 10, paddle = TRUE,
-##' key.header = NULL, key.footer = "(m/s)", key.position = "bottom",
-##' key = TRUE, dig.lab = 5, statistic = "prop.count", pollutant = NULL,
-##' annotate = TRUE, border = NA, ...)
+##' @usage windRose(mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
+##' ws.int = 2, angle = 30, type = "default", bias.corr = TRUE, cols = "default",
+##' grid.line = NULL, width = 1, seg = NULL, auto.text = TRUE, breaks
+##' = 4, offset = 10, max.freq = NULL, paddle = TRUE, key.header =
+##' NULL, key.footer = "(m/s)", key.position = "bottom", key = TRUE,
+##' dig.lab = 5, statistic = "prop.count", pollutant = NULL, annotate
+##' = TRUE, border = NA, ...)
 ##'
 ##'
 ##'     pollutionRose(mydata, pollutant = "nox", key.footer = pollutant,
-##'        key.position = "right", key = TRUE, breaks = 6, paddle = FALSE, seg = 0.9, ...)
+##'        key.position = "right", key = TRUE, breaks = 6, paddle = FALSE,
+##' seg = 0.9, ...)
 ##'
 ##'
 ##' @aliases windRose pollutionRose
@@ -123,6 +125,14 @@ pollutionRose <- function(mydata, pollutant = "nox", key.footer = pollutant,
 ##' Type can be up length two e.g. \code{type = c("season", "weekday")} will
 ##'   produce a 2x2 plot split by season and day of the week. Note, when two
 ##'   types are provided the first forms the columns and the second the rows.
+##' @param bias.corr When \code{angle} does not divide exactly into
+##' 360 a bias is introduced in the frequencies when the wind
+##' direction is already supplied rounded to the nearest 10 degrees,
+##' as is often the case. For example, if \code{angle = 22.5}, N, E,
+##' S, W will include 3 wind sectors and all other angles will be
+##' two. A bias correction can made to correct for this problem. A
+##' simple method according to Applequist (2012) is used to adjust the
+##' frequencies.
 ##' @param cols Colours to be used for plotting. Options include
 ##' \dQuote{default}, \dQuote{increment}, \dQuote{heat}, \dQuote{jet},
 ##' \dQuote{hue} and user defined. For user defined the user can
@@ -153,6 +163,9 @@ pollutionRose <- function(mydata, pollutant = "nox", key.footer = pollutant,
 ##'   the data into segments <1, 1-10, 10-100, >100.
 ##' @param offset The size of the 'hole' in the middle of the plot, expressed
 ##'   as a percentage of the polar axis scale, default 10.
+##' @param max.freq Controls the scaling used by setting the maximum
+##' value for the radial limits. This is useful to ensure several
+##' plots use the same radial limits.
 ##' @param paddle Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE}
 ##'   plots rose using `paddle' style spokes. If \code{FALSE} plots rose using
 ##'   `wedge' style spokes.
@@ -224,6 +237,17 @@ pollutionRose <- function(mydata, pollutant = "nox", key.footer = pollutant,
 ##' See \code{\link{polarFreq}} for a more flexible version that considers
 ##'   other statistics and pollutant concentrations.
 ##' @keywords methods
+##' @references
+##'
+##' Applequist, S, 2012: Wind Rose Bias
+##' Correction. J. Appl. Meteor. Climatol., 51, 1305-1309.
+##'
+##' This paper seems to be the original?
+##'
+##' Droppo,  J.G. and B.A. Napier (2008) Wind Direction Bias in
+##' Generating Wind Roses and Conducting Sector-Based Air Dispersion
+##' Modeling, Journal of the Air & Waste Management Association, 58:7, 913-918.
+##'
 ##' @examples
 ##'
 ##' # load example data from package data(mydata)
@@ -258,14 +282,14 @@ pollutionRose <- function(mydata, pollutant = "nox", key.footer = pollutant,
 ##'
 ##' ## results show postive bias in wd and ws
 ##' pollutionRose(mydata, ws = "ws", wd = "wd", ws2 = "ws2", wd2 = "wd2")
-windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA, ws.int = 2,
-                      angle = 30, type = "default",
+windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
+                      ws.int = 2, angle = 30, type = "default", bias.corr = TRUE,
                       cols = "default", grid.line = NULL, width = 1, seg = NULL,
                       auto.text = TRUE, breaks = 4, offset = 10,
-                      paddle = TRUE, key.header = NULL, key.footer = "(m/s)",
-                      key.position = "bottom", key = TRUE, dig.lab = 5,
-                      statistic = "prop.count", pollutant = NULL, annotate = TRUE,
-                      border = NA,
+                      max.freq = NULL, paddle = TRUE, key.header = NULL,
+                      key.footer = "(m/s)", key.position = "bottom",
+                      key = TRUE, dig.lab = 5, statistic = "prop.count",
+                      pollutant = NULL, annotate = TRUE, border = NA,
                       ...)
 {
 
@@ -296,16 +320,19 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA, ws.int =
         angle <- 3
     }
 
-    ## extra.args setup
-    extra.args <- list(...)
+    ## extra args setup
+    extra <- list(...)
 
-                                        #label controls
-    extra.args$xlab <- if("xlab" %in% names(extra.args))
-        quickText(extra.args$xlab, auto.text) else quickText("", auto.text)
-    extra.args$ylab <- if("ylab" %in% names(extra.args))
-        quickText(extra.args$ylab, auto.text) else quickText("", auto.text)
-    extra.args$main <- if("main" %in% names(extra.args))
-        quickText(extra.args$main, auto.text) else quickText("", auto.text)
+    ## label controls
+    extra$xlab <- if("xlab" %in% names(extra))
+        quickText(extra$xlab, auto.text) else quickText("", auto.text)
+    extra$ylab <- if("ylab" %in% names(extra))
+        quickText(extra$ylab, auto.text) else quickText("", auto.text)
+    extra$main <- if("main" %in% names(extra))
+        quickText(extra$main, auto.text) else quickText("", auto.text)
+
+    rounded <- FALSE ## is the wd already rounded to 10 degrees, if so need to correct bias later
+    if (all(mydata[, wd] %% 10 == 0, na.rm = TRUE)) rounded <- TRUE
 
     ## preset statitistics
 
@@ -404,11 +431,11 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA, ws.int =
         seg <- 1
     }
 
-    if (any(type %in% openair:::dateTypes)) vars <- c(vars, "date")
+    if (any(type %in% dateTypes)) vars <- c(vars, "date")
 
     if (!is.null(pollutant)) vars <- c(vars, pollutant)
 
-    mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE, remove.neg = rm.neg)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE, remove.neg = rm.neg)
 
     mydata <- na.omit(mydata)
 
@@ -434,8 +461,10 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA, ws.int =
                     dig.lab = dig.lab)
 
     ## clean up cut intervals
-    theLabels <- gsub("[(]|[)]|[[]|[]]", "", levels(mydata$x))
-    theLabels <- gsub("[,]", " to ", theLabels)
+    labs <- gsub("[(]|[)]|[[]|[]]", "", levels(mydata$x))
+    labs <- gsub("[,]", " to ", labs)
+
+
 
     ## statistic handling
 
@@ -443,7 +472,7 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA, ws.int =
         ## return if there is nothing to plot
         if (all(is.na(mydata$x))) return()
 
-        levels(mydata$x) <- c(paste("x", 1:length(theLabels), sep = ""))
+        levels(mydata$x) <- c(paste("x", 1:length(labs), sep = ""))
 
         all <- stat.fun(mydata[ , wd])
         calm <- mydata[mydata[ , wd] == -999, ][, pollutant]
@@ -453,6 +482,7 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA, ws.int =
 
         weights <- tapply(mydata[, pollutant], list(mydata[ , wd], mydata$x),
                           stat.fun)
+        freqs <- tapply(mydata[, pollutant], mydata[ , wd], length)
 
         ## scaling
         if (stat.scale == "all") {
@@ -491,7 +521,7 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA, ws.int =
 
 
         weights <- cbind(data.frame(weights), wd = as.numeric(row.names(weights)),
-                         calm = calm, panel.fun = panel.fun, mean.wd = mean.wd)
+                         calm = calm, panel.fun = panel.fun, mean.wd = mean.wd, freqs = freqs)
 
         weights
     }
@@ -543,30 +573,49 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA, ws.int =
     results.grid$calm <- stat.labcalm(results.grid$calm)
     results.grid$mean.wd <- stat.labcalm(results.grid$mean.wd)
 
-    ## proper names of labelling ###################################################
-    strip.dat <- openair:::strip.fun(results.grid, type, auto.text)
+    ## correction for bias when angle does not divide exactly into 360
+    if (bias.corr & rounded) {
+        wd <- seq(10, 360, 10)
+        tmp <- angle * ceiling(wd / angle - 0.5)
+        id <- which(tmp == 0)
+        if (length(id > 0)) tmp[id] <- 360
+        tmp <- table(tmp) ## number of sectors spanned
+        vars <- grep("x", names(results.grid)) ## the frequencies
+        results.grid[, vars] <- results.grid[, vars] * mean(tmp) /tmp
+    }
+
+    ## proper names of labelling###########################################
+    strip.dat <- strip.fun(results.grid, type, auto.text)
     strip <- strip.dat[[1]]
     strip.left <- strip.dat[[2]]
     pol.name <- strip.dat[[3]]
 
-    if (length(theLabels) < length(cols)) {
-        col <- cols[1:length(theLabels)]
+    if (length(labs) < length(cols)) {
+        col <- cols[1:length(labs)]
     } else {
-        col <- openColours(cols, length(theLabels))
+        col <- openColours(cols, length(labs))
     }
 
-    max.freq <- max(results.grid[, (length(type) + 1) : (length(theLabels) +
-                                                         length(type))], na.rm = TRUE)
+    if (is.null(max.freq)) {
+        max.freq <- max(results.grid[, (length(type) + 1):(length(labs) +
+                                                             length(type))],
+                        na.rm = TRUE)
+    } else {
+        max.freq <- max.freq
+    }
+
     off.set <- max.freq * (offset / 100)
-    box.widths <- seq(0.002 ^ 0.25, 0.016 ^ 0.25, length.out = length(theLabels)) ^ 4
+    box.widths <- seq(0.002 ^ 0.25, 0.016 ^ 0.25,
+                      length.out = length(labs)) ^ 4
     box.widths <- box.widths * max.freq * angle / 5
 
     ## key, colorkey, legend
     legend <- list(col = col, space = key.position, auto.text = auto.text,
-                   labels = theLabels, footer = key.footer, header = key.header,
+                   labels = labs, footer = key.footer, header = key.header,
                    height = 0.60, width = 1.5, fit = "scale",
                    plot.style = if (paddle) "paddle" else "other")
-    legend <- openair:::makeOpenKeyLegend(key, legend, "windRose")
+
+    legend <- makeOpenKeyLegend(key, legend, "windRose")
 
 
     temp <- paste(type, collapse = "+")
@@ -597,7 +646,7 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA, ws.int =
                                    function(x) llines(x * sin(angles), x * cos(angles),
                                                       col = "grey85", lwd = 1))
 
-                            subdata <- results.grid[subscripts, ]
+                            dat <- results.grid[subscripts, ] ## subset of data
                             upper <- max.freq + off.set
 
                             ## add axis lines
@@ -609,27 +658,22 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA, ws.int =
                             ltext(0.07 * upper, upper * 0.95, "N", cex = 0.7)
                             ltext(upper * 0.95, 0.07 *upper, "E", cex = 0.7)
 
-                            if (nrow(subdata) > 0) {
+                            if (nrow(dat) > 0) {
 
-                                for (i in 1:nrow(subdata)) { ## go through wind angles 30, 60, ...
-                                    with(subdata, {
-                                        for (j in 1:length(theLabels)) { ## go through paddles x1, x2, ...
-                                            if (j == 1) {
+                                dat$x0 <- 0 ## make a lower bound to refer to
 
-                                                temp <- "poly(wd[i], 0, x1[i], width * box.widths[1], col[1])"
+                                for (i in 1:nrow(dat)) { ## go through wind angles 30, 60, ...
 
-                                            } else {
+                                    for (j in seq_along(labs)) { ## go through paddles x1, x2, ...
 
-                                                temp <- paste("poly(wd[i], x", j - 1,
-                                                              "[i], x", j, "[i], width * box.widths[",
-                                                              j, "], col[", j, "])", sep = "")
+                                        tmp <- paste("poly(dat$wd[i], dat$x", j - 1,
+                                                      "[i], dat$x", j, "[i], width * box.widths[",
+                                                      j, "], col[", j, "])", sep = "")
 
-                                            }
-                                            eval(parse(text = temp))
-                                        }
-                                    })
+
+                                        eval(parse(text = tmp))
+                                    }
                                 }
-
                             }
 
                             ltext(seq((myby + off.set), mymax, myby) * sin(pi / 4),
@@ -642,27 +686,27 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA, ws.int =
                                     if (!diff) {
                                         ltext(max.freq + off.set, -max.freq - off.set,
                                               label = paste(stat.lab2, " = ",
-                                              subdata$panel.fun[1], "\ncalm = ",
-                                              subdata$calm[1], stat.unit, sep = ""),
+                                              dat$panel.fun[1], "\ncalm = ",
+                                              dat$calm[1], stat.unit, sep = ""),
                                               adj = c(1, 0), cex = 0.7, col = calm.col)
                                     }
                                     if (diff) { ## when two data sets are present
                                         ltext(max.freq + off.set, -max.freq - off.set,
                                               label = paste("mean ws = ",
-                                              round(subdata$panel.fun[1], 1),
-                                              "\nmean wd = ", round(subdata$mean.wd[1], 1),
+                                              round(dat$panel.fun[1], 1),
+                                              "\nmean wd = ", round(dat$mean.wd[1], 1),
                                               sep = ""), adj = c(1, 0), cex = 0.7, col = calm.col)
                                     }
                                 } else {
                                     ltext(max.freq + off.set, -max.freq - off.set,
-                                          label = paste(stat.lab2, " = ", subdata$panel.fun[1],
+                                          label = paste(stat.lab2, " = ", dat$panel.fun[1],
                                           stat.unit, sep = ""), adj = c(1, 0), cex = 0.7,
                                           col = calm.col)
                                 }
                         }, legend = legend)
 
-    ## reset for extra.args
-    xyplot.args <- openair:::listUpdate(xyplot.args, extra.args)
+    ## reset for extra
+    xyplot.args <- listUpdate(xyplot.args, extra)
 
     ## plot
     plt <- do.call(xyplot, xyplot.args)
@@ -670,8 +714,12 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA, ws.int =
 
     ## output ################################################################################
 
-    if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip,
-              strip.left = strip.left))
+    if (length(type) == 1) {
+        plot(plt)
+    } else {
+        plt <- useOuterStrips(plt, strip = strip, strip.left = strip.left)
+        plot(plt)
+    }
 
 
     newdata <- results.grid

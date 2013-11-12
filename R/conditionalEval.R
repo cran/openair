@@ -35,16 +35,16 @@
 ##' performance of other observed/predicted variable \bold{pairs}
 ##' according to different model evaluation statistics. These
 ##' statistics derive from the \code{\link{modStats}} function and
-##' include "MB", "NMB", "r", "IOA", "MGE", "NMGE", "RMSE" and
-##' "FAC2". More than one statistic can be supplied
-##' e.g. \code{statistic = c("NMB", "IOA")}. Bootstrap samples are
-##' taken from the corresponding values of other variables to be
-##' plotted and their statistics with 95\% confidence intervals
-##' calculated. In this case, the model \emph{performance} of other
-##' variables is shown across the same intervals of \code{mod}, rather
-##' than just the values of single variables. In this second case the
-##' model would need to provide observed/predicted pairs of other
-##' variables.
+##' include \dQuote{MB}, \dQuote{NMB}, \dQuote{r}, \dQuote{COE},
+##' \dQuote{MGE}, \dQuote{NMGE}, \dQuote{RMSE} and \dQuote{FAC2}. More
+##' than one statistic can be supplied e.g. \code{statistic = c("NMB",
+##' "COE")}. Bootstrap samples are taken from the corresponding values
+##' of other variables to be plotted and their statistics with 95\%
+##' confidence intervals calculated. In this case, the model
+##' \emph{performance} of other variables is shown across the same
+##' intervals of \code{mod}, rather than just the values of single
+##' variables. In this second case the model would need to provide
+##' observed/predicted pairs of other variables.
 ##'
 ##' For example, a model may provide predictions of NOx and wind speed
 ##' (for which there are also observations available). The
@@ -55,7 +55,7 @@
 ##' other variables) and \code{var.mod} (modelled values for other
 ##' variables). For example, to consider how well the model predicts
 ##' NOx and wind speed \code{var.obs = c("nox.obs", "ws.obs")} and
-##' \code{var.obs = c("nox.mod", "ws.mod")} would be supplied
+##' \code{var.mod = c("nox.mod", "ws.mod")} would be supplied
 ##' (assuming \code{nox.obs, nox.mod, ws.obs, ws.mod} are present in
 ##' the data frame). The analysis could show for example, when ozone
 ##' concentrations are under-predicted, the model may also be shown to
@@ -117,8 +117,9 @@
 ##' great flexibility for understanding the variation of different
 ##' variables and how they depend on one another.
 ##' @param bins Number of bins used in \code{conditionalQuantile}.
-##' @param statistic Statistic(s) to be plotted. Can be "MB", "NMB",
-##' "r", "IOA", "MGE", "NMGE", "RMSE", "FAC2", as described in
+##' @param statistic Statistic(s) to be plotted. Can be \dQuote{MB},
+##' \dQuote{NMB}, \dQuote{r}, \dQuote{COE}, \dQuote{MGE},
+##' \dQuote{NMGE}, \dQuote{RMSE} and \dQuote{FAC2}, as described in
 ##' \code{modStats}. When these statistics are chosen, they are
 ##' calculated from \code{var.mod} and \code{var.mod}.
 ##'
@@ -197,9 +198,9 @@ conditionalEval <- function(mydata, obs = "obs", mod = "mod",
     on.exit(trellis.par.set("strip.background", current.strip))
 
     ## statistic is date-based
-    if (any(statistic %in% openair:::dateTypes)) {
+    if (any(statistic %in% dateTypes)) {
         ## choose only one statistic
-        statistic <- statistic[which(statistic %in% openair:::dateTypes)][1]
+        statistic <- statistic[which(statistic %in% dateTypes)][1]
         mydata <- cutData(mydata, type = statistic)
         vars <- c(vars, statistic)
         other <- TRUE ## i.e. statistic other than var.obs/var.mod is present
@@ -234,8 +235,10 @@ conditionalEval <- function(mydata, obs = "obs", mod = "mod",
     ## extra.args setup
     extra.args <- list(...)
 
+
+
     ## allowable ordinary model evaluation statistics
-    the.stats <- c("MB", "NMB", "r", "IOA", "MGE", "NMGE", "RMSE", "FAC2")
+    the.stats <- c("MB", "NMB", "r", "COE", "MGE", "NMGE", "RMSE", "FAC2")
 
     ## label controls
     ## (xlab and ylab handled in formals because unique action)
@@ -247,7 +250,7 @@ conditionalEval <- function(mydata, obs = "obs", mod = "mod",
 
     cluster <- FALSE
     ## if cluster is in data frame then remove any data duplicates
-    if (statistic == "cluster") {
+    if (statistic[1] == "cluster") {
         if ("hour.inc" %in% names(mydata)) mydata <- subset(mydata, hour.inc == 0)
         vars <- c(vars, "cluster")
         cluster <- TRUE
@@ -257,10 +260,10 @@ conditionalEval <- function(mydata, obs = "obs", mod = "mod",
     pltCondQ <- conditionalQuantile(mydata, obs = obs, mod = mod, type = type, bins = bins,
                                     key.position = "left", key.columns = 1, layout = c(1, NA), ...)$plot
 
-    if (any(type %in% openair:::dateTypes)) vars <- c("date", vars)
+    if (any(type %in% dateTypes)) vars <- c("date", vars)
 
     ## check the data
-    mydata <- openair:::checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
 
     mydata <- na.omit(mydata)
 
@@ -427,62 +430,61 @@ conditionalEval <- function(mydata, obs = "obs", mod = "mod",
 
         myform <- formula(paste("mean ~ .id | ", temp, sep = ""))
 
-        xyplot.args <- list(x = myform, data = results, groups = results$group,
-                            ylim = c(min(results$lower, na.rm = TRUE), max(results$upper, na.rm = TRUE)),
-                            xlim = c(lo, hi * 1.05),
-                            ylab = quickText(ylab, auto.text),
-                            xlab = quickText(xlab, auto.text),
-                            as.table = TRUE,
-                            key = key,
-                            aspect = 1,
-                            strip = strip,
-                            strip.left = strip.left,
-                            scales = list(y = list(relation = "free", rot = 0)),
+        p.args <- list(x = myform, data = results, groups = results$group,
+                       ylim = dlply(results, .(statistic), function(x) c(min(x$lower, na.rm = TRUE),
+                       max(x$upper, na.rm = TRUE))),
+                       xlim = c(lo, hi * 1.05),
+                       ylab = quickText(ylab, auto.text),
+                       xlab = quickText(xlab, auto.text),
+                       as.table = TRUE,
+                       key = key,
+                       aspect = 1,
+                       strip = strip,
+                       strip.left = strip.left,
+                       scales = list(y = list(relation = "free", rot = 0)),
 
-                            par.strip.text = list(cex = 0.8),
-                            panel = panel.superpose, ...,
-                            panel.groups = function(x, y, group.number, subscripts, ...)
-                        {
-                            if (group.number == 1) {
+                       par.strip.text = list(cex = 0.8),
+                       panel = panel.superpose, ...,
+                       panel.groups = function(x, y, group.number, subscripts, ...)
+                   {
+                       if (group.number == 1) {
 
-                                panel.grid (-1, -1, col = "grey95")
-                                if (results$statistic[subscripts][1] %in% c("r", "IOA", "FAC2"))
-                                    panel.abline(h = 1, lty = 5)
-                                if (results$statistic[subscripts][1] %in% c("MB", "NMB"))
-                                    panel.abline(h = 0, lty = 5)
-                            }
+                           panel.grid (-1, -1, col = "grey95")
+                           if (results$statistic[subscripts][1] %in% c("r", "COE", "FAC2"))
+                               panel.abline(h = 1, lty = 5)
+                           if (results$statistic[subscripts][1] %in% c("MB", "NMB"))
+                               panel.abline(h = 0, lty = 5)
+                       }
 
-                            if (results$statistic[subscripts][1] == "IOA")
-                                panel.abline(h = 1, lty = 5)
+                       poly.na(x, results$lower[subscripts], x,
+                               results$upper[subscripts], group.number, myColors)
 
-                            openair:::poly.na(x, results$lower[subscripts], x,
-                                              results$upper[subscripts], group.number, myColors)
+                       panel.lines(results$.id[subscripts], results$mean[subscripts],
+                                   col.line = myColors[group.number], lwd = 2)
 
-                            panel.lines(results$.id[subscripts], results$mean[subscripts],
-                                        col.line = myColors[group.number], lwd = 2)
-
-                        })
+                   })
 
         ## reset for extra.args
-        xyplot.args <- openair:::listUpdate(xyplot.args, extra.args)
+        p.args <- listUpdate(p.args, extra.args)
 
     }
 
     if (other) {
         thePlot <- clust.plt
     } else {
-        thePlot <- do.call(xyplot, xyplot.args)
+        thePlot <- do.call(xyplot, p.args)
     }
 
     ## how wide to set plots,  base is "2" units
-    width <- 1.2 / (1.2 + max(length(statistic), 1))
+    ## width <- 1.2 / (1.2 + max(length(statistic), 1))
+    width <- 0.45
     print(pltCondQ, position = c(0, 0, width, 1), more = TRUE)
 
     if (type == "default") {
-        print(thePlot, position = c(width, 0, 1, 1), more = FALSE)
+        suppressWarnings(print(thePlot, position = c(width, 0, 1, 1), more = FALSE))
     } else {
-        print(useOuterStrips(thePlot, strip = strip,
-                             strip.left = strip.left), position = c(width, 0, 1, 1), more = FALSE)
+        suppressWarnings(print(useOuterStrips(thePlot, strip = strip,
+                             strip.left = strip.left), position = c(width, 0, 1, 1), more = FALSE))
     }
 
 
