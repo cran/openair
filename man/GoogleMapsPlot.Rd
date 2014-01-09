@@ -4,17 +4,14 @@
 \alias{panel.GoogleMapsRaster}
 \title{GoogleMapsPlot}
 \usage{
-  GoogleMapsPlot(mydata, latitude = "latitude",
-    longitude = "longitude", type = "default", xlim, ylim,
-    pollutant = NULL, labels = NULL, cols = "default",
-    limits = c(0, 100), cex = pollutant, pch = NULL,
-    cex.range = c(2, 10), xlab = longitude,
-    ylab = latitude, main = "", axes = TRUE, map = NULL,
-    map.raster = TRUE, map.cols = NULL, aspect = NULL,
-    as.table = TRUE, plot.type = "xy",
-    plot.transparent = FALSE, key = NULL,
-    key.position = "right", key.header = "",
-    key.footer = pollutant, auto.text = TRUE, ...)
+GoogleMapsPlot(mydata, latitude = "latitude", longitude = "longitude",
+  type = "default", xlim, ylim, pollutant = NULL, labels = NULL,
+  cols = "default", limits = c(0, 100), cex = pollutant, pch = NULL,
+  cex.range = c(2, 10), xlab = longitude, ylab = latitude, main = "",
+  axes = TRUE, map = NULL, map.raster = TRUE, map.cols = NULL,
+  aspect = NULL, as.table = TRUE, plot.type = "xy",
+  plot.transparent = FALSE, key = NULL, key.position = "right",
+  key.header = "", key.footer = pollutant, auto.text = TRUE, ...)
 }
 \arguments{
   \item{mydata}{The openair data frame to use to generate
@@ -192,70 +189,70 @@
   layer production.}
 }
 \value{
-  As well as generating the plot itself,
-  \code{GoogleMapsPlot} also returns an object of class
-  ``openair''. The object includes three main components:
-  \code{call}, the command used to generate the plot;
-  \code{data}, the data frame of summarised information
-  used to make the plot; and \code{plot}, the plot itself.
-  If retained, e.g. using \code{output <-
-  GoogleMapsPlot(mydata)}, this output can be used to
-  recover the data, reproduce or rework the original plot
-  or undertake further analysis.
+As well as generating the plot itself,
+\code{GoogleMapsPlot} also returns an object of class
+``openair''. The object includes three main components:
+\code{call}, the command used to generate the plot;
+\code{data}, the data frame of summarised information used
+to make the plot; and \code{plot}, the plot itself. If
+retained, e.g. using \code{output <-
+GoogleMapsPlot(mydata)}, this output can be used to recover
+the data, reproduce or rework the original plot or
+undertake further analysis.
 
-  An openair output can be manipulated using a number of
-  generic operations, including \code{print}, \code{plot}
-  and \code{summary}. See \code{\link{openair.generics}}
-  for further details.
+An openair output can be manipulated using a number of
+generic operations, including \code{print}, \code{plot} and
+\code{summary}. See \code{\link{openair.generics}} for
+further details.
 }
 \description{
-  [IN DEVELOPMENT] Map plotting for openair data sets.
+[IN DEVELOPMENT] Map plotting for openair data sets.
 }
 \details{
-  \code{GoogleMapsPlot} is an IN DEVELOPMENT function.
+\code{GoogleMapsPlot} is an IN DEVELOPMENT function.
 
-  It combines a dedicated map layer, e.g.
-  \code{\link{panel.GoogleMaps}}, or (the default)
-  \code{\link{panel.GoogleMapsRaster}}, and standard
-  \code{\link{lattice}} panels such as
-  \code{\link[lattice]{panel.xyplot}} or
-  \code{\link[lattice]{panel.levelplot}} as a data layer,
-  to produce map-based data visualisations.
+It combines a dedicated map layer, e.g.
+\code{\link{panel.GoogleMaps}}, or (the default)
+\code{\link{panel.GoogleMapsRaster}}, and standard
+\code{\link{lattice}} panels such as
+\code{\link[lattice]{panel.xyplot}} or
+\code{\link[lattice]{panel.levelplot}} as a data layer, to
+produce map-based data visualisations.
 
-  It provides lattice-style conditioning/handling for
-  \code{RgoogleMaps} outputs.
+It provides lattice-style conditioning/handling for
+\code{RgoogleMaps} outputs.
 }
 \note{
-  IN DEVELOPMENT: HANDLE WITH CARE.
+IN DEVELOPMENT: HANDLE WITH CARE.
 
-  Users should be aware that Google Maps are flat 2D
-  projections of the Earth's (curved) surface. Latitude and
-  longitude scales are therefore locally modified to
-  account for this.
+Users should be aware that Google Maps are flat 2D
+projections of the Earth's (curved) surface. Latitude and
+longitude scales are therefore locally modified to account
+for this.
 }
 \examples{
 #TO BE CONFIRMED
 }
 \author{
-  Karl Ropkins
+Karl Ropkins
 }
 \references{
-  This function makes extensive use of code developed by
-  others.
+This function makes extensive use of code developed by
+others.
 
-  RgoogleMaps: Markus Loecher and Sense Networks (2011).
-  RgoogleMaps: Overlays on Google map tiles in R. R package
-  version 1.1.9.6.
-  http://CRAN.R-project.org/package=RgoogleMaps
+RgoogleMaps: Markus Loecher and Sense Networks (2011).
+RgoogleMaps: Overlays on Google map tiles in R. R package
+version 1.1.9.6.
+http://CRAN.R-project.org/package=RgoogleMaps
 
-  lattice: Sarkar, Deepayan (2008) Lattice: Multivariate
-  Data Visualization with R. Springer, New York. ISBN
-  978-0-387-75968-5
+lattice: Sarkar, Deepayan (2008) Lattice: Multivariate Data
+Visualization with R. Springer, New York. ISBN
+978-0-387-75968-5
 }
 \seealso{
-  \code{RgoogleMaps}, \code{\link[lattice]{xyplot}},
-  \code{\link[lattice]{panel.xyplot}} and
-  \code{\link[lattice]{panel.levelplot}}
+\code{RgoogleMaps}, \code{\link[lattice]{xyplot}},
+\code{\link[lattice]{panel.xyplot}} and
+\code{\link[lattice]{panel.levelplot}}
 }
 \keyword{methods}
 

@@ -2,15 +2,14 @@
 \alias{polarAnnulus}
 \title{Bivariate polarAnnulus plot}
 \usage{
-  polarAnnulus(mydata, pollutant = "nox",
-    resolution = "fine", local.time = FALSE,
-    period = "hour", type = "default", statistic = "mean",
-    percentile = NA, limits = c(0, 100), cols = "default",
-    width = "normal", min.bin = 1, exclude.missing = TRUE,
-    date.pad = FALSE, force.positive = TRUE, k = c(20, 10),
-    normalise = FALSE, key.header = "",
-    key.footer = pollutant, key.position = "right",
-    key = TRUE, auto.text = TRUE, ...)
+polarAnnulus(mydata, pollutant = "nox", resolution = "fine",
+  local.time = FALSE, period = "hour", type = "default",
+  statistic = "mean", percentile = NA, limits = c(0, 100),
+  cols = "default", width = "normal", min.bin = 1,
+  exclude.missing = TRUE, date.pad = FALSE, force.positive = TRUE,
+  k = c(20, 10), normalise = FALSE, key.header = "",
+  key.footer = pollutant, key.position = "right", key = TRUE,
+  auto.text = TRUE, ...)
 }
 \arguments{
   \item{mydata}{A data frame minimally containing
@@ -220,59 +219,58 @@
   \code{quickText} to handle routine formatting.}
 }
 \value{
-  As well as generating the plot itself,
-  \code{polarAnnulus} also returns an object of class
-  ``openair''. The object includes three main components:
-  \code{call}, the command used to generate the plot;
-  \code{data}, the data frame of summarised information
-  used to make the plot; and \code{plot}, the plot itself.
-  If retained, e.g. using \code{output <-
-  polarAnnulus(mydata, "nox")}, this output can be used to
-  recover the data, reproduce or rework the original plot
-  or undertake further analysis.
+As well as generating the plot itself, \code{polarAnnulus}
+also returns an object of class ``openair''. The object
+includes three main components: \code{call}, the command
+used to generate the plot; \code{data}, the data frame of
+summarised information used to make the plot; and
+\code{plot}, the plot itself. If retained, e.g. using
+\code{output <- polarAnnulus(mydata, "nox")}, this output
+can be used to recover the data, reproduce or rework the
+original plot or undertake further analysis.
 
-  An openair output can be manipulated using a number of
-  generic operations, including \code{print}, \code{plot}
-  and \code{summary}. See \code{\link{openair.generics}}
-  for further details.
+An openair output can be manipulated using a number of
+generic operations, including \code{print}, \code{plot} and
+\code{summary}. See \code{\link{openair.generics}} for
+further details.
 }
 \description{
-  Typically plots the concentration of a pollutant by wind
-  direction and as a function of time as an annulus. The
-  function is good for visualising how concentrations of
-  pollutants vary by wind direction and a time period e.g.
-  by month, day of week.
+Typically plots the concentration of a pollutant by wind
+direction and as a function of time as an annulus. The
+function is good for visualising how concentrations of
+pollutants vary by wind direction and a time period e.g. by
+month, day of week.
 }
 \details{
-  The \code{polarAnnulus} function shares many of the
-  properties of the \code{polarPlot}. However,
-  \code{polarAnnulus} is focussed on displaying information
-  on how concentrations of a pollutant (values of another
-  variable) vary with wind direction and time. Plotting as
-  an annulus helps to reduce compression of information
-  towards the centre of the plot. The circular plot is easy
-  to interpret because wind direction is most easily
-  understood in polar rather than Cartesian coordinates.
+The \code{polarAnnulus} function shares many of the
+properties of the \code{polarPlot}. However,
+\code{polarAnnulus} is focussed on displaying information
+on how concentrations of a pollutant (values of another
+variable) vary with wind direction and time. Plotting as an
+annulus helps to reduce compression of information towards
+the centre of the plot. The circular plot is easy to
+interpret because wind direction is most easily understood
+in polar rather than Cartesian coordinates.
 
-  The inner part of the annulus represents the earliest
-  time and the outer part of the annulus the latest time.
-  The time dimension can be shown in many ways including
-  "trend", "hour" (hour or day), "season" (month of the
-  year) and "weekday" (day of the week). Taking hour as an
-  example, the plot will show how concentrations vary by
-  hour of the day and wind direction. Such plots can be
-  very useful for understanding how different source
-  influences affect a location.
+The inner part of the annulus represents the earliest time
+and the outer part of the annulus the latest time. The time
+dimension can be shown in many ways including "trend",
+"hour" (hour or day), "season" (month of the year) and
+"weekday" (day of the week). Taking hour as an example, the
+plot will show how concentrations vary by hour of the day
+and wind direction. Such plots can be very useful for
+understanding how different source influences affect a
+location.
 
-  For \code{type = "trend"} the amount of smoothing does
-  not vary linearly with the length of the time series i.e.
-  a certain amount of smoothing per unit interval in time.
-  This is a deliberate choice because should one be
-  interested in a subset (in time) of data, more detail
-  will be provided for the subset compared with the full
-  data set. This allows users to investigate specific
-  periods in more detail. Full flexibility is given through
-  the smoothing parameter \code{k}.
+For \code{type = "trend"} the amount of smoothing does not
+vary linearly with the length of the time series i.e. a
+certain amount of smoothing per unit interval in time. This
+is a deliberate choice because should one be interested in
+a subset (in time) of data, more detail will be provided
+for the subset compared with the full data set. This allows
+users to investigate specific periods in more detail. Full
+flexibility is given through the smoothing parameter
+\code{k}.
 }
 \examples{
 # load example data from package
@@ -291,12 +289,12 @@ mydata$pmc <- mydata$pm10 - mydata$pm25
 main = "trend in pmc at Marylebone Road")}
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \seealso{
-  \code{\link{polarPlot}}, \code{\link{polarFreq}},
-  \code{\link{pollutionRose}} and
-  \code{\link{percentileRose}}
+\code{\link{polarPlot}}, \code{\link{polarFreq}},
+\code{\link{pollutionRose}} and
+\code{\link{percentileRose}}
 }
 \keyword{methods}
 

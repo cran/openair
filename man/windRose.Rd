@@ -3,18 +3,18 @@
 \alias{windRose}
 \title{Traditional wind rose plot and pollution rose variation}
 \usage{
-  windRose(mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 =
-    NA, ws.int = 2, angle = 30, type = "default", bias.corr
-    = TRUE, cols = "default", grid.line = NULL, width = 1,
-    seg = NULL, auto.text = TRUE, breaks = 4, offset = 10,
-    max.freq = NULL, paddle = TRUE, key.header = NULL,
-    key.footer = "(m/s)", key.position = "bottom", key =
-    TRUE, dig.lab = 5, statistic = "prop.count", pollutant
-    = NULL, annotate = TRUE, border = NA, ...)
+windRose(mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
+ws.int = 2, angle = 30, type = "default", bias.corr = TRUE, cols = "default",
+grid.line = NULL, width = 1, seg = NULL, auto.text = TRUE, breaks
+= 4, offset = 10, max.freq = NULL, paddle = TRUE, key.header =
+NULL, key.footer = "(m/s)", key.position = "bottom", key = TRUE,
+dig.lab = 5, statistic = "prop.count", pollutant = NULL, annotate
+= TRUE, border = NA, ...)
 
-  pollutionRose(mydata, pollutant = "nox", key.footer =
-    pollutant, key.position = "right", key = TRUE, breaks =
-    6, paddle = FALSE, seg = 0.9, ...)
+
+    pollutionRose(mydata, pollutant = "nox", key.footer = pollutant,
+       key.position = "right", key = TRUE, breaks = 6, paddle = FALSE,
+seg = 0.9, ...)
 }
 \arguments{
   \item{mydata}{A data frame containing fields \code{ws}
@@ -179,91 +179,88 @@
   formatting.}
 }
 \value{
-  As well as generating the plot itself, \code{windRose}
-  and \code{pollutionRose} also return an object of class
-  \dQuote{openair}. The object includes three main
-  components: \code{call}, the command used to generate the
-  plot; \code{data}, the data frame of summarised
-  information used to make the plot; and \code{plot}, the
-  plot itself. If retained, e.g. using \code{output <-
-  windRose(mydata)}, this output can be used to recover the
-  data, reproduce or rework the original plot or undertake
-  further analysis.
+As well as generating the plot itself, \code{windRose} and
+\code{pollutionRose} also return an object of class
+\dQuote{openair}. The object includes three main
+components: \code{call}, the command used to generate the
+plot; \code{data}, the data frame of summarised information
+used to make the plot; and \code{plot}, the plot itself. If
+retained, e.g. using \code{output <- windRose(mydata)},
+this output can be used to recover the data, reproduce or
+rework the original plot or undertake further analysis.
 
-  An openair output can be manipulated using a number of
-  generic operations, including \code{print}, \code{plot}
-  and \code{summarise}. See \code{\link{openair.generics}}
-  for further details.
+An openair output can be manipulated using a number of
+generic operations, including \code{print}, \code{plot} and
+\code{summarise}. See \code{\link{openair.generics}} for
+further details.
 
-  Summarised proportions can also be extracted directly
-  using the \code{$data} operator, e.g.  \code{object$data}
-  for \code{output <- windRose(mydata)}. This returns a
-  data frame with three set columns: \code{cond},
-  conditioning based on \code{type}; \code{wd}, the wind
-  direction; and \code{calm}, the \code{statistic} for the
-  proportion of data unattributed to any specific wind
-  direction because it was collected under calm conditions;
-  and then several (one for each range binned for the plot)
-  columns giving proportions of measurements associated
-  with each \code{ws} or \code{pollutant} range plotted as
-  a discrete panel.
+Summarised proportions can also be extracted directly using
+the \code{$data} operator, e.g.  \code{object$data} for
+\code{output <- windRose(mydata)}. This returns a data
+frame with three set columns: \code{cond}, conditioning
+based on \code{type}; \code{wd}, the wind direction; and
+\code{calm}, the \code{statistic} for the proportion of
+data unattributed to any specific wind direction because it
+was collected under calm conditions; and then several (one
+for each range binned for the plot) columns giving
+proportions of measurements associated with each \code{ws}
+or \code{pollutant} range plotted as a discrete panel.
 }
 \description{
-  The traditional wind rose plot that plots wind speed and
-  wind direction by different intervals. The pollution rose
-  applies the same plot structure but substitutes other
-  measurements, most commonly a pollutant time series, for
-  wind speed.
+The traditional wind rose plot that plots wind speed and
+wind direction by different intervals. The pollution rose
+applies the same plot structure but substitutes other
+measurements, most commonly a pollutant time series, for
+wind speed.
 }
 \details{
-  For \code{windRose} data are summarised by direction,
-  typically by 45 or 30 (or 10) degrees and by different
-  wind speed categories. Typically, wind speeds are
-  represented by different width "paddles". The plots show
-  the proportion (here represented as a percentage) of time
-  that the wind is from a certain angle and wind speed
-  range.
+For \code{windRose} data are summarised by direction,
+typically by 45 or 30 (or 10) degrees and by different wind
+speed categories. Typically, wind speeds are represented by
+different width "paddles". The plots show the proportion
+(here represented as a percentage) of time that the wind is
+from a certain angle and wind speed range.
 
-  By default \code{windRose} will plot a windRose in using
-  "paddle" style segments and placing the scale key below
-  the plot.
+By default \code{windRose} will plot a windRose in using
+"paddle" style segments and placing the scale key below the
+plot.
 
-  The argument \code{pollutant} uses the same plotting
-  structure but substitutes another data series, defined by
-  \code{pollutant}, for wind speed.
+The argument \code{pollutant} uses the same plotting
+structure but substitutes another data series, defined by
+\code{pollutant}, for wind speed.
 
-  The option \code{statistic = "prop.mean"} provides a
-  measure of the relative contribution of each bin to the
-  panel mean, and is intended for use with
-  \code{pollutionRose}.
+The option \code{statistic = "prop.mean"} provides a
+measure of the relative contribution of each bin to the
+panel mean, and is intended for use with
+\code{pollutionRose}.
 
-  \code{pollutionRose} is a \code{windRose} wrapper which
-  brings \code{pollutant} forward in the argument list, and
-  attempts to sensibly rescale break points based on the
-  \code{pollutant} data range by by-passing \code{ws.int}.
+\code{pollutionRose} is a \code{windRose} wrapper which
+brings \code{pollutant} forward in the argument list, and
+attempts to sensibly rescale break points based on the
+\code{pollutant} data range by by-passing \code{ws.int}.
 
-  By default, \code{pollutionRose} will plot a pollution
-  rose of \code{nox} using "wedge" style segments and
-  placing the scale key to the right of the plot.
+By default, \code{pollutionRose} will plot a pollution rose
+of \code{nox} using "wedge" style segments and placing the
+scale key to the right of the plot.
 
-  It is possible to compare two wind speed-direction data
-  sets using \code{pollutionRose}. There are many reasons
-  for doing so e.g. to see how one site compares with
-  another or for meteorological model evaluation. In this
-  case, \code{ws} and \code{wd} are considered to the the
-  reference data sets with which a second set of wind speed
-  and wind directions are to be compared (\code{ws2} and
-  \code{wd2}). The first set of values is subtracted from
-  the second and the differences compared. If for example,
-  \code{wd2} was biased positive compared with \code{wd}
-  then \code{pollutionRose} will show the bias in polar
-  coordinates. In its default use, wind direction bias is
-  colour-coded to show negative bias in one colour and
-  positive bias in another.
+It is possible to compare two wind speed-direction data
+sets using \code{pollutionRose}. There are many reasons for
+doing so e.g. to see how one site compares with another or
+for meteorological model evaluation. In this case,
+\code{ws} and \code{wd} are considered to the the reference
+data sets with which a second set of wind speed and wind
+directions are to be compared (\code{ws2} and \code{wd2}).
+The first set of values is subtracted from the second and
+the differences compared. If for example, \code{wd2} was
+biased positive compared with \code{wd} then
+\code{pollutionRose} will show the bias in polar
+coordinates. In its default use, wind direction bias is
+colour-coded to show negative bias in one colour and
+positive bias in another.
 }
 \note{
-  \code{windRose} and \code{pollutionRose} both use
-  \link{drawOpenKey} to produce scale keys.
+\code{windRose} and \code{pollutionRose} both use
+\link{drawOpenKey} to produce scale keys.
 }
 \examples{
 # load example data from package data(mydata)
@@ -300,27 +297,27 @@ mydata$wd2[id] <- mydata$wd2[id] + 360
 pollutionRose(mydata, ws = "ws", wd = "wd", ws2 = "ws2", wd2 = "wd2")
 }
 \author{
-  David Carslaw (with some additional contributions by Karl
-  Ropkins)
+David Carslaw (with some additional contributions by Karl
+Ropkins)
 }
 \references{
-  Applequist, S, 2012: Wind Rose Bias Correction. J. Appl.
-  Meteor. Climatol., 51, 1305-1309.
+Applequist, S, 2012: Wind Rose Bias Correction. J. Appl.
+Meteor. Climatol., 51, 1305-1309.
 
-  This paper seems to be the original?
+This paper seems to be the original?
 
-  Droppo, J.G. and B.A. Napier (2008) Wind Direction Bias
-  in Generating Wind Roses and Conducting Sector-Based Air
-  Dispersion Modeling, Journal of the Air & Waste
-  Management Association, 58:7, 913-918.
+Droppo, J.G. and B.A. Napier (2008) Wind Direction Bias in
+Generating Wind Roses and Conducting Sector-Based Air
+Dispersion Modeling, Journal of the Air & Waste Management
+Association, 58:7, 913-918.
 }
 \seealso{
-  See \code{\link{drawOpenKey}} for fine control of the
-  scale key.
+See \code{\link{drawOpenKey}} for fine control of the scale
+key.
 
-  See \code{\link{polarFreq}} for a more flexible version
-  that considers other statistics and pollutant
-  concentrations.
+See \code{\link{polarFreq}} for a more flexible version
+that considers other statistics and pollutant
+concentrations.
 }
 \keyword{methods}
 

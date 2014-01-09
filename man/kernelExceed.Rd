@@ -2,11 +2,10 @@
 \alias{kernelExceed}
 \title{Kernel density plot for daily mean exceedance statistics}
 \usage{
-  kernelExceed(polar, x = "wd", y = "ws",
-    pollutant = "pm10", type = "default",
-    by = c("day", "dayhour", "all"), limit = 50,
-    data.thresh = 0, more.than = TRUE, cols = "default",
-    nbin = 256, auto.text = TRUE, ...)
+kernelExceed(polar, x = "wd", y = "ws", pollutant = "pm10",
+  type = "default", by = c("day", "dayhour", "all"), limit = 50,
+  data.thresh = 0, more.than = TRUE, cols = "default", nbin = 256,
+  auto.text = TRUE, ...)
 }
 \arguments{
   \item{polar}{A data frame minimally containing
@@ -85,78 +84,77 @@
   \code{quickText} to handle routine formatting.}
 }
 \value{
-  To be completed.
+To be completed.
 }
 \description{
-  This function is used to explore the conditions leading
-  to exeedances of air quality limits. Currently the focus
-  is on understanding the conditions under which daily
-  limit values for PM10 are in excess of a specified
-  threshold. Kernel density estimates are calculated and
-  plotted to highlight those conditions.
+This function is used to explore the conditions leading to
+exeedances of air quality limits. Currently the focus is on
+understanding the conditions under which daily limit values
+for PM10 are in excess of a specified threshold. Kernel
+density estimates are calculated and plotted to highlight
+those conditions.
 }
 \details{
-  The \code{kernelExceed} functions is for exploring the
-  conditions under which exceedances of air pollution
-  limits occur. Currently it is focused on the daily mean
-  (European) Limit Value for PM10 of 50~ug/m3 not to be
-  exceeded on more than 35 days. However, the function is
-  sufficiently flexible to consider other limits e.g. could
-  be used to explore days where the daily mean are greater
-  than 100~ug/m3.
+The \code{kernelExceed} functions is for exploring the
+conditions under which exceedances of air pollution limits
+occur. Currently it is focused on the daily mean (European)
+Limit Value for PM10 of 50~ug/m3 not to be exceeded on more
+than 35 days. However, the function is sufficiently
+flexible to consider other limits e.g. could be used to
+explore days where the daily mean are greater than
+100~ug/m3.
 
-  By default the function will plot the kernel density
-  estimate of wind speed and wind directions for all days
-  where the concentration of \code{pollutant} is greater
-  than \code{limit}. Understanding the conditions where
-  exceedances occur can help with source identification.
+By default the function will plot the kernel density
+estimate of wind speed and wind directions for all days
+where the concentration of \code{pollutant} is greater than
+\code{limit}. Understanding the conditions where
+exceedances occur can help with source identification.
 
-  The function offers different ways of selecting the data
-  on days where the \code{pollutant} are greater than
-  \code{limit} through setting \code{by}. By default it
-  will select all data on days where \code{pollutant} is
-  greater than \code{limit}. With the default setting of
-  \code{by} it will select all data on those days where
-  \code{pollutant} is greater than \code{limit}, even if
-  individual data (e.g. hours) are less than \code{limit}.
-  Setting \code{by = "dayhour"} will additionally ensure
-  that all data on the those dates are also greater than
-  \code{limit}. Finally, \code{by = "all"} will select all
-  values of \code{pollutant} above limit, regardless of
-  when they occur.
+The function offers different ways of selecting the data on
+days where the \code{pollutant} are greater than
+\code{limit} through setting \code{by}. By default it will
+select all data on days where \code{pollutant} is greater
+than \code{limit}. With the default setting of \code{by} it
+will select all data on those days where \code{pollutant}
+is greater than \code{limit}, even if individual data (e.g.
+hours) are less than \code{limit}. Setting \code{by =
+"dayhour"} will additionally ensure that all data on the
+those dates are also greater than \code{limit}. Finally,
+\code{by = "all"} will select all values of
+\code{pollutant} above limit, regardless of when they
+occur.
 
-  The usefulness of the function is greatly enhanced
-  through using \code{type}, which conditions the data
-  according to the level of another variable. For example,
-  \code{type = "season"} will show the kernel density
-  estimate by spring, summer, autumn and winter and
-  \code{type = "so2"} will attempt to show the kernel
-  density estimates by quantiles of SO2 concentration. By
-  considering different values of \code{type} it is
-  possible to develop a good understanding of the
-  conditions under which exceedances occur.
+The usefulness of the function is greatly enhanced through
+using \code{type}, which conditions the data according to
+the level of another variable. For example, \code{type =
+"season"} will show the kernel density estimate by spring,
+summer, autumn and winter and \code{type = "so2"} will
+attempt to show the kernel density estimates by quantiles
+of SO2 concentration. By considering different values of
+\code{type} it is possible to develop a good understanding
+of the conditions under which exceedances occur.
 
-  To aid interpretation the plot will also show the
-  \emph{estimated} number of days or hours where exeedances
-  occur. For \code{type = "default"} the number of days
-  should exactly correspond to the actual number of
-  exceedance days. However, with different values of
-  \code{type} the number of days is an estimate. It is an
-  estimate because conditioning breaks up individual days
-  and the estimate is based on the proportion of data
-  calculated for each level of \code{type}.
+To aid interpretation the plot will also show the
+\emph{estimated} number of days or hours where exeedances
+occur. For \code{type = "default"} the number of days
+should exactly correspond to the actual number of
+exceedance days. However, with different values of
+\code{type} the number of days is an estimate. It is an
+estimate because conditioning breaks up individual days and
+the estimate is based on the proportion of data calculated
+for each level of \code{type}.
 }
 \note{
-  This function automatically chooses the bandwidth for the
-  kernel density estimate. We generally find that most data
-  sets are not overly sensitive to the choice of bandwidth.
-  One important reason for this insensitivity is likley to
-  be the characteristics of air pollution itself. Due to
-  atmospheric dispersion processes, pollutant plumes
-  generally mix rapidly in the atmosphere. This means that
-  pollutant concentrations are \sQuote{smeared-out} and
-  extra fidelity brought about by narrower bandwidths do
-  not recover any more detail.
+This function automatically chooses the bandwidth for the
+kernel density estimate. We generally find that most data
+sets are not overly sensitive to the choice of bandwidth.
+One important reason for this insensitivity is likley to be
+the characteristics of air pollution itself. Due to
+atmospheric dispersion processes, pollutant plumes
+generally mix rapidly in the atmosphere. This means that
+pollutant concentrations are \sQuote{smeared-out} and extra
+fidelity brought about by narrower bandwidths do not
+recover any more detail.
 }
 \examples{
 # Note! the manual contains other examples that are more illuminating
@@ -167,11 +165,11 @@ kernelExceed(mydata, pollutant = "pm10")
 \dontrun{kernelExceed(mydata, pollutant = "pm10", type = "nox")}
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \seealso{
-  \code{\link{polarAnnulus}}, \code{\link{polarFreq}},
-  \code{\link{polarPlot}}
+\code{\link{polarAnnulus}}, \code{\link{polarFreq}},
+\code{\link{polarPlot}}
 }
 \keyword{methods}
 

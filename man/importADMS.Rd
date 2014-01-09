@@ -6,11 +6,10 @@
 \alias{importADMSPst}
 \title{ADMS data import function(s) for openair}
 \usage{
-  importADMS(file = file.choose(), file.type = "unknown",
-    drop.case = TRUE, drop.input.dates = TRUE,
-    keep.units = TRUE, simplify.names = TRUE,
-    test.file.structure = TRUE, drop.delim = TRUE,
-    add.prefixes = TRUE, names = NULL, ...)
+importADMS(file = file.choose(), file.type = "unknown", drop.case = TRUE,
+  drop.input.dates = TRUE, keep.units = TRUE, simplify.names = TRUE,
+  test.file.structure = TRUE, drop.delim = TRUE, add.prefixes = TRUE,
+  names = NULL, ...)
 }
 \arguments{
   \item{file}{The ADMS file to be imported. Default,
@@ -100,58 +99,57 @@
   \code{read.csv} as part of import operation.}
 }
 \value{
-  In standard use \code{importADMS()} returns a data frame
-  for use in openair. By comparison to the original file,
-  the resulting data frame is modified as follows:
+In standard use \code{importADMS()} returns a data frame
+for use in openair. By comparison to the original file, the
+resulting data frame is modified as follows:
 
-  Time and date information will combined in a single
-  column "date", formatted as a conventional timeseries
-  (\code{as.POSIX*}). If \code{drop.input.dates} is enabled
-  data series combined to generated the new "date" data
-  series will also be removed.
+Time and date information will combined in a single column
+"date", formatted as a conventional timeseries
+(\code{as.POSIX*}). If \code{drop.input.dates} is enabled
+data series combined to generated the new "date" data
+series will also be removed.
 
-  If \code{simplify.names} is enabled common chemical names
-  may be simplified, and some other parameters may be reset
-  to openair standards (e.g. "ws", "wd" and "temp")
-  according to operations defined in
-  \code{simplifyNamesADMS}. A summary of simplfication
-  operations can be obtained using, e.g., the call
-  \code{importADMS(simplify.names)}.
+If \code{simplify.names} is enabled common chemical names
+may be simplified, and some other parameters may be reset
+to openair standards (e.g. "ws", "wd" and "temp") according
+to operations defined in \code{simplifyNamesADMS}. A
+summary of simplfication operations can be obtained using,
+e.g., the call \code{importADMS(simplify.names)}.
 
-  If \code{drop.case} is enabled all upper case characters
-  in names will be converted to lower case.
+If \code{drop.case} is enabled all upper case characters in
+names will be converted to lower case.
 
-  If \code{keep.units} is enabled data units information
-  may also be retained as part of the data frame comment if
-  available.
+If \code{keep.units} is enabled data units information may
+also be retained as part of the data frame comment if
+available.
 
-  With \code{.mop} files, input and processed data series
-  names may also been modified on the basis of
-  \code{drop.delim} and \code{add.prefixes} settings
+With \code{.mop} files, input and processed data series
+names may also been modified on the basis of
+\code{drop.delim} and \code{add.prefixes} settings
 }
 \description{
-  Function(s) to import various ADMS file types into
-  openair. Currently handles ".met", ".bgd", ".mop" and
-  ".pst" file structures. Uses \code{read.csv} (in
-  \code{utils}) to read in data, format for R and openair
-  and apply some file structure testing.
+Function(s) to import various ADMS file types into openair.
+Currently handles ".met", ".bgd", ".mop" and ".pst" file
+structures. Uses \code{read.csv} (in \code{utils}) to read
+in data, format for R and openair and apply some file
+structure testing.
 }
 \details{
-  The \code{importADMS} function were developed to help
-  import various ADMS file types into openair. In most
-  cases the parent import function should work in default
-  configuration, e.g. \code{mydata <- importADMS()}. The
-  function currently recognises four file formats:
-  \code{.bgd}, \code{.met}, \code{.mop} and \code{.pst}.
-  Where other file extensions have been set but the file
-  structure is known, the import call can be forced by,
-  e.g, \code{mydata <- importADMS(file.type="bgd")}. Other
-  options can be adjusted to provide fine control of the
-  data structuring and renaming.
+The \code{importADMS} function were developed to help
+import various ADMS file types into openair. In most cases
+the parent import function should work in default
+configuration, e.g. \code{mydata <- importADMS()}. The
+function currently recognises four file formats:
+\code{.bgd}, \code{.met}, \code{.mop} and \code{.pst}.
+Where other file extensions have been set but the file
+structure is known, the import call can be forced by, e.g,
+\code{mydata <- importADMS(file.type="bgd")}. Other options
+can be adjusted to provide fine control of the data
+structuring and renaming.
 }
 \note{
-  Times are assumed to be in GMT. Zero wind directions
-  reset to 360 as part of \code{.mop} file import.
+Times are assumed to be in GMT. Zero wind directions reset
+to 360 as part of \code{.mop} file import.
 }
 \examples{
 ##########
@@ -168,14 +166,13 @@ new.name <- importADMS(simplify.names, names="PHI")
 new.name
 }
 \author{
-  Karl Ropkins, David Carslaw and Matthew Williams (CERC).
+Karl Ropkins, David Carslaw and Matthew Williams (CERC).
 }
 \seealso{
-  Generic import function \code{\link{import}}, for
-  possible alternative import methods.  Other dedicated
-  import functions available for other file types,
-  including \code{\link{importKCL}},
-  \code{\link{importAURN}}, etc.
+Generic import function \code{\link{import}}, for possible
+alternative import methods.  Other dedicated import
+functions available for other file types, including
+\code{\link{importKCL}}, \code{\link{importAURN}}, etc.
 }
 \keyword{methods}
 

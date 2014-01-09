@@ -3,16 +3,14 @@
 \alias{TheilSen}
 \title{Tests for trends using Theil-Sen estimates}
 \usage{
-  TheilSen(mydata, pollutant = "nox", deseason = FALSE,
-    type = "default", avg.time = "month", statistic =
-    "mean", percentile = NA, data.thresh = 0, alpha = 0.05,
-    dec.place = 2, xlab = "year", lab.frac = 0.99, lab.cex
-    = 0.8, x.relation = "same", y.relation = "same",
-    data.col = "cornflowerblue", line.col = "red", text.col
-    = "darkgreen", cols = NULL, auto.text = TRUE, autocor =
-    FALSE, slope.percent = FALSE, date.breaks = 7,...)
+TheilSen(mydata, pollutant = "nox", deseason = FALSE, type = "default",
+avg.time = "month", statistic = "mean", percentile = NA, data.thresh = 0,
+alpha = 0.05, dec.place = 2, xlab = "year", lab.frac = 0.99, lab.cex = 0.8,
+x.relation = "same", y.relation = "same", data.col = "cornflowerblue",
+line.col = "red", text.col = "darkgreen", cols = NULL, auto.text = TRUE,
+autocor = FALSE, slope.percent = FALSE, date.breaks = 7,...)
 
-  MannKendall(mydata,...)
+      MannKendall(mydata,...)
 }
 \arguments{
   \item{mydata}{A data frame containing the field
@@ -166,85 +164,85 @@
   \code{quickText} to handle routine formatting.}
 }
 \value{
-  As well as generating the plot itself, \code{TheilSen}
-  also returns an object of class ``openair''. The object
-  includes three main components: \code{call}, the command
-  used to generate the plot; \code{data}, the data frame of
-  summarised information used to make the plot; and
-  \code{plot}, the plot itself. If retained, e.g. using
-  \code{output <- TheilSen(mydata, "nox")}, this output can
-  be used to recover the data, reproduce or rework the
-  original plot or undertake further analysis.
+As well as generating the plot itself, \code{TheilSen} also
+returns an object of class ``openair''. The object includes
+three main components: \code{call}, the command used to
+generate the plot; \code{data}, the data frame of
+summarised information used to make the plot; and
+\code{plot}, the plot itself. If retained, e.g. using
+\code{output <- TheilSen(mydata, "nox")}, this output can
+be used to recover the data, reproduce or rework the
+original plot or undertake further analysis.
 
-  An openair output can be manipulated using a number of
-  generic operations, including \code{print}, \code{plot}
-  and \code{summary}. See \code{\link{openair.generics}}
-  for further details.
+An openair output can be manipulated using a number of
+generic operations, including \code{print}, \code{plot} and
+\code{summary}. See \code{\link{openair.generics}} for
+further details.
 
-  The \code{data} component of the \code{TheilSen} output
-  includes two subsets: \code{main.data}, the monthly data
-  \code{res2} the trend statistics. For \code{output <-
-  TheilSen(mydata, "nox")}, these can be extracted as
-  \code{object$data$main.data} and \code{object$data$res2},
-  respectively.
+The \code{data} component of the \code{TheilSen} output
+includes two subsets: \code{main.data}, the monthly data
+\code{res2} the trend statistics. For \code{output <-
+TheilSen(mydata, "nox")}, these can be extracted as
+\code{object$data$main.data} and \code{object$data$res2},
+respectively.
 
-  Note: In the case of the intercept, it is assumed the
-  y-axis crosses the x-axis on 1/1/1970.
+Note: In the case of the intercept, it is assumed the
+y-axis crosses the x-axis on 1/1/1970.
 }
 \description{
-  Theil-Sen slope estimates and tests for trend.
+Theil-Sen slope estimates and tests for trend.
 }
 \details{
-  The \code{TheilSen} function provides a collection of
-  functions to analyse trends in air pollution data. The
-  Mann-Kendall test is a commonly used test in
-  environmental sciences to detect the presence of a trend.
-  It is often used with the Theil-Sen (or just Sen)
-  estimate of slope. See references.  The \code{TheilSen}
-  function is flexible in the sense that it can be applied
-  to data in many ways e.g. by day of the week, hour of day
-  and wind direction. This flexibility makes it much easier
-  to draw inferences from data e.g. why is there a strong
-  downward trend in concentration from one wind sector and
-  not another, or why trends on one day of the week or a
-  certain time of day are unexpected.
+The \code{TheilSen} function provides a collection of
+functions to analyse trends in air pollution data. The
+Mann-Kendall test is a commonly used test in environmental
+sciences to detect the presence of a trend. It is often
+used with the Theil-Sen (or just Sen) estimate of slope.
+See references.  The \code{TheilSen} function is flexible
+in the sense that it can be applied to data in many ways
+e.g. by day of the week, hour of day and wind direction.
+This flexibility makes it much easier to draw inferences
+from data e.g. why is there a strong downward trend in
+concentration from one wind sector and not another, or why
+trends on one day of the week or a certain time of day are
+unexpected.
 
-  For data that are strongly seasonal, perhaps from a
-  background site, or a pollutant such as ozone, it will be
-  important to deseasonalise the data (using the option
-  \code{deseason = TRUE}.Similarly, for data that increase,
-  then decrease, or show sharp changes it may be better to
-  use \code{\link{smoothTrend}}.
+For data that are strongly seasonal, perhaps from a
+background site, or a pollutant such as ozone, it will be
+important to deseasonalise the data (using the option
+\code{deseason = TRUE}.Similarly, for data that increase,
+then decrease, or show sharp changes it may be better to
+use \code{\link{smoothTrend}}.
 
-  Note! that since version 0.5-11 openair uses Theil-Sen to
-  derive the p values also. This is to ensure there is
-  consistency between the calculated p value and other
-  trend parameters i.e. slope estimates and uncertainties.
-  This change may slightly affect some of the p-estimates
-  previously given by openair because the p estimates are
-  now calculated using bootstrap resampling by default and
-  previously they were not. However, users can still for
-  the moment call the \code{TheilSen} function using
-  \code{MannKendall}.
+Note! that since version 0.5-11 openair uses Theil-Sen to
+derive the p values also. This is to ensure there is
+consistency between the calculated p value and other trend
+parameters i.e. slope estimates and uncertainties. This
+change may slightly affect some of the p-estimates
+previously given by openair because the p estimates are now
+calculated using bootstrap resampling by default and
+previously they were not. However, users can still for the
+moment call the \code{TheilSen} function using
+\code{MannKendall}.
 
-  Note that the symbols shown next to each trend estimate
-  relate to how statistically significant the trend
-  estimate is: p $<$ 0.001 = ***, p $<$ 0.01 = **, p $<$
-  0.05 = * and p $<$ 0.1 = $+$.
+Note that the symbols shown next to each trend estimate
+relate to how statistically significant the trend estimate
+is: p $<$ 0.001 = ***, p $<$ 0.01 = **, p $<$ 0.05 = * and
+p $<$ 0.1 = $+$.
 
-  Some of the code used in \code{TheilSen} is based on that
-  from Rand Wilcox \url{http://www-rcf.usc.edu/~rwilcox/}.
-  This mostly relates to the Theil-Sen slope estimates and
-  uncertainties. Further modifications have been made to
-  take account of correlated data based on Kunsch (1989).
-  The basic function has been adapted to take account of
-  auto-correlated data using block bootstrap simulations if
-  \code{autocor = TRUE} (Kunsch, 1989). We follow the
-  suggestion of Kunsch (1989) of setting the block length
-  to n(1/3) where n is the length of the time series.
+Some of the code used in \code{TheilSen} is based on that
+from Rand Wilcox \url{http://www-rcf.usc.edu/~rwilcox/}.
+This mostly relates to the Theil-Sen slope estimates and
+uncertainties. Further modifications have been made to take
+account of correlated data based on Kunsch (1989). The
+basic function has been adapted to take account of
+auto-correlated data using block bootstrap simulations if
+\code{autocor = TRUE} (Kunsch, 1989). We follow the
+suggestion of Kunsch (1989) of setting the block length to
+n(1/3) where n is the length of the time series.
 
-  The slope estimate and confidence intervals in the slope
-  are plotted and numerical information presented.
+The slope estimate and confidence intervals in the slope
+are plotted and numerical information presented.
 }
 \examples{
 # load example data from package
@@ -265,44 +263,43 @@ TheilSen(mydata, pollutant = "nox")
 \dontrun{TheilSen(select.by.date(mydata, year = 2000:2005), pollutant = "o3", ylab = "o3 (ppb)")}
 }
 \author{
-  David Carslaw with some trend code from Rand Wilcox
+David Carslaw with some trend code from Rand Wilcox
 }
 \references{
-  Helsel, D., Hirsch, R., 2002. Statistical methods in
-  water resources. US Geological Survey.
-  \url{http://pubs.usgs.gov/twri/twri4a3/}. Note that this
-  is a very good resource for statistics as applied to
-  environmental data.
+Helsel, D., Hirsch, R., 2002. Statistical methods in water
+resources. US Geological Survey.
+\url{http://pubs.usgs.gov/twri/twri4a3/}. Note that this is
+a very good resource for statistics as applied to
+environmental data.
 
-  Hirsch, R. M., Slack, J. R., Smith, R. A., 1982.
-  Techniques of trend analysis for monthly water-quality
-  data. Water Resources Research 18 (1), 107-121.
+Hirsch, R. M., Slack, J. R., Smith, R. A., 1982. Techniques
+of trend analysis for monthly water-quality data. Water
+Resources Research 18 (1), 107-121.
 
-  Kunsch, H. R., 1989. The jackknife and the bootstrap for
-  general stationary observations. Annals of Statistics 17
-  (3), 1217-1241.
+Kunsch, H. R., 1989. The jackknife and the bootstrap for
+general stationary observations. Annals of Statistics 17
+(3), 1217-1241.
 
-  Sen, P. K., 1968. Estimates of regression coefficient
-  based on Kendall's tau. Journal of the American
-  Statistical Association 63(324).
+Sen, P. K., 1968. Estimates of regression coefficient based
+on Kendall's tau. Journal of the American Statistical
+Association 63(324).
 
-  Theil, H., 1950. A rank invariant method of linear and
-  polynomial regression analysis, i, ii, iii. Proceedings
-  of the Koninklijke Nederlandse Akademie Wetenschappen,
-  Series A - Mathematical Sciences 53, 386-392, 521-525,
-  1397-1412.
+Theil, H., 1950. A rank invariant method of linear and
+polynomial regression analysis, i, ii, iii. Proceedings of
+the Koninklijke Nederlandse Akademie Wetenschappen, Series
+A - Mathematical Sciences 53, 386-392, 521-525, 1397-1412.
 
-  \dots{} see also several of the Air Quality Expert Group
-  (AQEG) reports for the use of similar tests applied to
-  UK/European air quality data, see
-  \url{http://www.defra.gov.uk/ENVIRONMENT/airquality/panels/aqeg/}.
+\dots{} see also several of the Air Quality Expert Group
+(AQEG) reports for the use of similar tests applied to
+UK/European air quality data, see
+\url{http://www.defra.gov.uk/ENVIRONMENT/airquality/panels/aqeg/}.
 }
 \seealso{
-  See \code{\link{smoothTrend}} for a flexible approach to
-  estimating trends using nonparametric regression. The
-  \code{smoothTrend} function is suitable for cases where
-  trends are not monotonic and is probably better for
-  exploring the shape of trends.
+See \code{\link{smoothTrend}} for a flexible approach to
+estimating trends using nonparametric regression. The
+\code{smoothTrend} function is suitable for cases where
+trends are not monotonic and is probably better for
+exploring the shape of trends.
 }
 \keyword{methods}
 

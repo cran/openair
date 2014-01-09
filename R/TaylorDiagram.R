@@ -120,6 +120,7 @@
 ##' @param rms.col Colour for centred-RMS lines and text.
 ##' @param cor.col Colour for correlation coefficient lines and text.
 ##' @param arrow.lwd Width of arrow used when used for comparing two model outputs.
+##' @param annotate Annotation shown for RMS error.
 ##' @param key Should the key be shown?
 ##' @param key.title Title for the key.
 ##' @param key.columns Number of columns to be used in the key. With many
@@ -133,16 +134,19 @@
 ##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
 ##'   \code{TRUE} titles and axis labels will automatically try and format
 ##'   pollutant names and units properly e.g.  by subscripting the `2' in NO2.
-##' @param \dots Other graphical parameters are passed onto \code{cutData} and
-##'   \code{lattice:xyplot}. For example, \code{TaylorDiagram} passes the option
-##'   \code{hemisphere = "southern"} on to \code{cutData} to provide southern
-##'   (rather than default northern) hemisphere handling of \code{type = "season"}.
-##'   Similarly, common graphical parameters, such as \code{layout} for panel
-##'   arrangement and \code{pch} and \code{cex} for plot symbol type and size,
-##'   are passed on to \code{xyplot}. Most are passed unmodified, although there are
-##'   some special cases where \code{openair} may locally manage this process. For
-##'   example, common axis and title labelling options (such as \code{xlab}, \code{ylab},
-##'   \code{main}) are passed via \code{quickText} to handle routine formatting.
+##' @param ... Other graphical parameters are passed onto
+##' \code{cutData} and \code{lattice:xyplot}. For example,
+##' \code{TaylorDiagram} passes the option \code{hemisphere =
+##' "southern"} on to \code{cutData} to provide southern (rather than
+##' default northern) hemisphere handling of \code{type = "season"}.
+##' Similarly, common graphical parameters, such as \code{layout} for
+##' panel arrangement and \code{pch} and \code{cex} for plot symbol
+##' type and size, are passed on to \code{xyplot}. Most are passed
+##' unmodified, although there are some special cases where
+##' \code{openair} may locally manage this process. For example,
+##' common axis and title labelling options (such as \code{xlab},
+##' \code{ylab}, \code{main}) are passed via \code{quickText} to
+##' handle routine formatting.
 ##' @export
 ##' @return As well as generating the plot itself, \code{TaylorDiagram} also
 ##'   returns an object of class ``openair''. The object includes three main
@@ -235,6 +239,7 @@
 TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type = "default",
                           normalise = FALSE,  cols = "brewer1",
                           rms.col = "darkgoldenrod", cor.col = "black", arrow.lwd = 3,
+                          annotate = "centred\nRMS error",
                           key = TRUE, key.title = group, key.columns = 1,
                           key.pos = "right", strip = TRUE, auto.text = TRUE, ...)
 {
@@ -423,7 +428,7 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
         stripName <- sapply(levels(mydata[ , type[2]]), function(x) quickText(x, auto.text))
         strip.left <- strip.custom(factor.levels =  stripName)
     }
-    ## ########################################################################################################
+    ## #############################################################################
 
 
     ## no strip needed for single panel
@@ -461,7 +466,8 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
 
                             ## annotate each panel but don't need to do this for each grouping value
                             panel.taylor.setup(x, y, results = results, maxsd = maxsd,
-                                               cor.col = cor.col, rms.col = rms.col, ...)
+                                               cor.col = cor.col, rms.col = rms.col,
+                                               annotate = annotate, ...)
 
                             ## plot data in each panel
                             panel.superpose(x, y, panel.groups = panel.taylor, ...,
@@ -489,7 +495,7 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
 
 
 panel.taylor.setup <- function(x, y, subscripts, results, maxsd, cor.col, rms.col,
-                               col.symbol, group.number, type, ...) {
+                               col.symbol, annotate, group.number, type, ...) {
     ## note, this assumes for each level of type there is a single measured value
     ## therefore, only the first is used  i.e. results$sd.obs[subscripts[1]]
     ## This does not matter if normalise = TRUE because all sd.obs = 1.
@@ -550,7 +556,7 @@ panel.taylor.setup <- function(x, y, subscripts, results, maxsd, cor.col, rms.co
               gamma[gindex], cex = 0.7, col = rms.col, pos = 1,
               srt = 0, font = 2)
 
-        ltext(1.1 * maxsd, 1.05 * maxsd, "centred\nRMS error", cex = 0.7,
+        ltext(1.1 * maxsd, 1.05 * maxsd, labels = annotate, cex = 0.7,
               col = rms.col, pos = 2)
     }
 

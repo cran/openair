@@ -100,6 +100,7 @@
 ##' additional data with the first row in each original time interval,
 ##' choose \code{fill = TRUE}.
 ##' @export
+##' @importFrom Rcpp evalCpp
 ##' @return Returns a data frame with date in class \code{POSIXct} and will
 ##'   remove any non-numeric columns except a column "site".
 ##' @author David Carslaw

@@ -499,6 +499,7 @@ importKCL <- function(site = "my1", year = 2009, pollutant = "all", met = FALSE,
              con <- url(fileName)
              load(con)
              close(con)
+             x <- date.pad(x) ## pad out missing dates
              x
              },
                   error = function(ex) {cat(x, "does not exist - ignoring that one.\n")})
@@ -510,9 +511,6 @@ importKCL <- function(site = "my1", year = 2009, pollutant = "all", met = FALSE,
     thedata <- ldply(thedata, rbind.fill)
 
     if (is.null(thedata)) stop("No data to import - check site codes and year.", call. = FALSE)
-
-    ## pad missing data
-    thedata <- date.pad(thedata)
 
     thedata$code <- thedata$site
 

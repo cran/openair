@@ -3,19 +3,17 @@
 \alias{trajPlot}
 \title{Trajectory plots with conditioning}
 \usage{
-  trajLevel(mydata, lon = "lon", lat = "lat",
-    pollutant = "height", type = "default", smooth = FALSE,
-    statistic = "frequency", percentile = 90, map = TRUE,
-    lon.inc = 1, lat.inc = 1, min.bin = 1, map.fill = TRUE,
-    map.res = "default", map.cols = "grey40",
-    map.alpha = 0.3, ...)
+trajLevel(mydata, lon = "lon", lat = "lat", pollutant = "height",
+  type = "default", smooth = FALSE, statistic = "frequency",
+  percentile = 90, map = TRUE, lon.inc = 1, lat.inc = 1, min.bin = 1,
+  map.fill = TRUE, map.res = "default", map.cols = "grey40",
+  map.alpha = 0.3, ...)
 
-  trajPlot(mydata, lon = "lon", lat = "lat",
-    pollutant = "height", type = "default", smooth = FALSE,
-    statistic = "mean", percentile = 90, map = TRUE,
-    lon.inc = 1, lat.inc = 1, min.bin = 1, group = NA,
-    map.fill = TRUE, map.res = "default",
-    map.cols = "grey40", map.alpha = 0.4, ...)
+trajPlot(mydata, lon = "lon", lat = "lat", pollutant = "height",
+  type = "default", smooth = FALSE, statistic = "mean", percentile = 90,
+  map = TRUE, lon.inc = 1, lat.inc = 1, min.bin = 1, group = NA,
+  map.fill = TRUE, map.res = "default", map.cols = "grey40",
+  map.alpha = 0.4, ...)
 }
 \arguments{
   \item{mydata}{Data frame, the result of importing a
@@ -137,99 +135,95 @@
   to group and colour trajectories according to a grouping
   variable. See example below.}
 }
-\value{
-  NULL
-}
 \description{
-  This function plots back trajectories. There are two
-  related functions: \code{trajPlot} and \code{trajLevel}.
-  These functions require that data are imported using the
-  \code{importTraj} function.
+This function plots back trajectories. There are two
+related functions: \code{trajPlot} and \code{trajLevel}.
+These functions require that data are imported using the
+\code{importTraj} function.
 }
 \details{
-  Several types of trajectory plot are available.
-  \code{trajPlot} by default will plot each lat/lon
-  location showing the origin of each trajectory, if no
-  \code{pollutant} is supplied.
+Several types of trajectory plot are available.
+\code{trajPlot} by default will plot each lat/lon location
+showing the origin of each trajectory, if no
+\code{pollutant} is supplied.
 
-  If a pollutant is given, by merging the trajectory data
-  with concentration data (see example below), the
-  trajectories are colour-coded by the concentration of
-  \code{pollutant}. With a long time series there can be
-  lots of overplotting making it difficult to gauge the
-  overall concentration pattern. In these cases setting
-  \code{alpha} to a low value e.g. 0.1 can help.
+If a pollutant is given, by merging the trajectory data
+with concentration data (see example below), the
+trajectories are colour-coded by the concentration of
+\code{pollutant}. With a long time series there can be lots
+of overplotting making it difficult to gauge the overall
+concentration pattern. In these cases setting \code{alpha}
+to a low value e.g. 0.1 can help.
 
-  The user can aslo show points instead of lines by
-  \code{plot.type = "p"}.
+The user can aslo show points instead of lines by
+\code{plot.type = "p"}.
 
-  Note that \code{trajPlot} will plot only the full length
-  trajectories. This should be remembered when selecting
-  only part of a year to plot.
+Note that \code{trajPlot} will plot only the full length
+trajectories. This should be remembered when selecting only
+part of a year to plot.
 
-  An alternative way of showing the trajectories is to bin
-  the points into latitude/longitude intervals For these
-  purposes \code{trajLevel} should be used. There are
-  several trajectory statistics that can be plotted as
-  gridded surfaces. First, \code{statistic} can be set to
-  \dQuote{frequency} to show the number of back trajectory
-  points in a grid square. Grid squares are by default at 1
-  degree intervals, controlled by \code{lat.inc} and
-  \code{lon.inc}. Such plots are useful for showing the
-  frequency of air mass locations. Note that it is also
-  possible to set \code{method = "hexbin"} for plotting
-  frequencies (not concentrations), which will produce a
-  plot by hexagonal binning.
+An alternative way of showing the trajectories is to bin
+the points into latitude/longitude intervals For these
+purposes \code{trajLevel} should be used. There are several
+trajectory statistics that can be plotted as gridded
+surfaces. First, \code{statistic} can be set to
+\dQuote{frequency} to show the number of back trajectory
+points in a grid square. Grid squares are by default at 1
+degree intervals, controlled by \code{lat.inc} and
+\code{lon.inc}. Such plots are useful for showing the
+frequency of air mass locations. Note that it is also
+possible to set \code{method = "hexbin"} for plotting
+frequencies (not concentrations), which will produce a plot
+by hexagonal binning.
 
-  If \code{statistic = "difference"} the trajectories
-  associated with a concentration greater than
-  \code{percentile} are compared with the the full set of
-  trajectories to understand the differences in freqeuncies
-  of the origin of air masses of the highest concentration
-  trajectories compared with the trajectories on average.
-  The comparsion is made by comparing the percentage change
-  in gridded frequencies. For example, such a plot could
-  show that the top 10\% of concentrations of PM10 tend to
-  orginate from air-mass origins to the east.
+If \code{statistic = "difference"} the trajectories
+associated with a concentration greater than
+\code{percentile} are compared with the the full set of
+trajectories to understand the differences in freqeuncies
+of the origin of air masses of the highest concentration
+trajectories compared with the trajectories on average. The
+comparsion is made by comparing the percentage change in
+gridded frequencies. For example, such a plot could show
+that the top 10\% of concentrations of PM10 tend to
+orginate from air-mass origins to the east.
 
-  If \code{statistic = "pscf"} then the Potential Source
-  Contribution Function is plotted. The PSCF calculates the
-  probability that a source is located at latitude \eqn{i}
-  and longitude \eqn{j} (Pekney et al., 2006).The basis of
-  PSCF is that if a source is located at (i,j), an air
-  parcel back trajectory passing through that location
-  indicates that material from the source can be collected
-  and transported along the trajectory to the receptor
-  site. PSCF solves \deqn{PSCF = m_{ij}/n_{ij}} where
-  \eqn{n_{ij}} is the number of times that the trajectories
-  passed through the cell (i,j) and \eqn{m_{ij}} is the
-  number of times that a source concentration was high when
-  the trajectories passed through the cell (i,j). The
-  criterion for de-termining \eqn{m_{ij}} is controlled by
-  \code{percentile}, which by default is 90. Note also that
-  cells with few data have a weighting factor applied to
-  reduce their effect.
+If \code{statistic = "pscf"} then the Potential Source
+Contribution Function is plotted. The PSCF calculates the
+probability that a source is located at latitude \eqn{i}
+and longitude \eqn{j} (Pekney et al., 2006).The basis of
+PSCF is that if a source is located at (i,j), an air parcel
+back trajectory passing through that location indicates
+that material from the source can be collected and
+transported along the trajectory to the receptor site. PSCF
+solves \deqn{PSCF = m_{ij}/n_{ij}} where \eqn{n_{ij}} is
+the number of times that the trajectories passed through
+the cell (i,j) and \eqn{m_{ij}} is the number of times that
+a source concentration was high when the trajectories
+passed through the cell (i,j). The criterion for
+de-termining \eqn{m_{ij}} is controlled by
+\code{percentile}, which by default is 90. Note also that
+cells with few data have a weighting factor applied to
+reduce their effect.
 
-  A limitation of the PSCF method is that grid cells can
-  have the same PSCF value when sample concentrations are
-  either only slightly higher or much higher than the
-  criterion. As a result, it can be difficult to
-  distinguish moderate sources from strong ones. Seibert et
-  al. (1994) computed concentration fields to identify
-  source areas of pollutants. The Concentration Weighted
-  Trajectory (CWT) approach considers the concentration of
-  a species together with its residence time in a grid
-  cell. The CWT approach has been shown to yield similar
-  results to the PSCF approach. The openair manual has more
-  details and examples of these approaches.
+A limitation of the PSCF method is that grid cells can have
+the same PSCF value when sample concentrations are either
+only slightly higher or much higher than the criterion. As
+a result, it can be difficult to distinguish moderate
+sources from strong ones. Seibert et al. (1994) computed
+concentration fields to identify source areas of
+pollutants. The Concentration Weighted Trajectory (CWT)
+approach considers the concentration of a species together
+with its residence time in a grid cell. The CWT approach
+has been shown to yield similar results to the PSCF
+approach. The openair manual has more details and examples
+of these approaches.
 
-  A further useful refinement is to smooth the resulting
-  surface, which is possible by setting \code{smooth =
-  TRUE}.
+A further useful refinement is to smooth the resulting
+surface, which is possible by setting \code{smooth = TRUE}.
 }
 \note{
-  This function is under active development and is likely
-  to change
+This function is under active development and is likely to
+change
 }
 \examples{
 # show a simple case with no pollutant i.e. just the trajectories
@@ -278,26 +272,26 @@ statistic = "pscf", type = "season")
 }
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \references{
-  Pekney, N. J., Davidson, C. I., Zhou, L., & Hopke, P. K.
-  (2006). Application of PSCF and CPF to PMF-Modeled
-  Sources of PM 2.5 in Pittsburgh. Aerosol Science and
-  Technology, 40(10), 952-961.
+Pekney, N. J., Davidson, C. I., Zhou, L., & Hopke, P. K.
+(2006). Application of PSCF and CPF to PMF-Modeled Sources
+of PM 2.5 in Pittsburgh. Aerosol Science and Technology,
+40(10), 952-961.
 
-  Seibert, P., Kromp-Kolb, H., Baltensperger, U., Jost, D.,
-  1994. Trajectory analysis of high-alpine air pollution
-  data. NATO Challenges of Modern Society 18, 595-595.
+Seibert, P., Kromp-Kolb, H., Baltensperger, U., Jost, D.,
+1994. Trajectory analysis of high-alpine air pollution
+data. NATO Challenges of Modern Society 18, 595-595.
 
-  Xie, Y., & Berkowitz, C. M. (2007). The use of
-  conditional probability functions and potential source
-  contribution functions to identify source regions and
-  advection pathways of hydrocarbon emissions in Houston,
-  Texas. Atmospheric Environment, 41(28), 5831-5847.
+Xie, Y., & Berkowitz, C. M. (2007). The use of conditional
+probability functions and potential source contribution
+functions to identify source regions and advection pathways
+of hydrocarbon emissions in Houston, Texas. Atmospheric
+Environment, 41(28), 5831-5847.
 }
 \seealso{
-  \code{\link{importTraj}} to import trajectory data from
-  the King's College server.
+\code{\link{importTraj}} to import trajectory data from the
+King's College server.
 }
 

@@ -271,7 +271,7 @@ smoothTrend <- function(mydata, pollutant = "nox", deseason = FALSE,
         end.month <-  endMonth(mydata$date)
 
         ## can't deseason less than 2 years of data
-        if (nrow(mydata) < 24) deseason <- FALSE
+        if (nrow(mydata) <= 24) deseason <- FALSE
 
         if (deseason) {
             ## interpolate missing data

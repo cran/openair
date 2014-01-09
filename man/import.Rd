@@ -2,12 +2,11 @@
 \alias{import}
 \title{Generic data import for openair}
 \usage{
-  import(file = file.choose(), file.type = "csv",
-    sep = ",", header.at = 1, data.at = 2, date = "date",
-    date.format = "\%d/\%m/\%Y \%H:\%M", time = NULL,
-    time.format = NULL, na.strings = c("", "NA"),
-    quote = "\"", ws = NULL, wd = NULL,
-    correct.time = NULL, ...)
+import(file = file.choose(), file.type = "csv", sep = ",",
+  header.at = 1, data.at = 2, date = "date",
+  date.format = "\%d/\%m/\%Y \%H:\%M", time = NULL, time.format = NULL,
+  na.strings = c("", "NA"),
+  quote = "\\"", ws = NULL, wd = NULL, correct.time = NULL, ...)
 }
 \arguments{
   \item{file}{The name of the file to be imported. Default,
@@ -78,38 +77,36 @@
   \item{...}{Other arguments passed to \code{read.table}.}
 }
 \value{
-  A data frame formatted for openair use.
+A data frame formatted for openair use.
 }
 \description{
-  This function is mostly used to simplify the importing of
-  csv and text file in \code{openair}. In particular it
-  helps to get the date or date/time into the correct
-  format. The file can contain either a date or date/time
-  in a single column or a date in one column and time in
-  another.
+This function is mostly used to simplify the importing of
+csv and text file in \code{openair}. In particular it helps
+to get the date or date/time into the correct format. The
+file can contain either a date or date/time in a single
+column or a date in one column and time in another.
 }
 \details{
-  The function uses \code{\link{strptime}} to parse dates
-  and times. Users should consider the examples for use of
-  these formats.
+The function uses \code{\link{strptime}} to parse dates and
+times. Users should consider the examples for use of these
+formats.
 
-  The function can either deal with combined date-time
-  formats e.g. 10/12/1999 23:00 or with two separate
-  columns that deal with date and time. Often there is a
-  column for the date and another for hour. For the latter,
-  the option \code{time.format = "\%H"} should be supplied.
-  Note that R considers hours 0 to 23. However, if hours 1
-  to 24 are detected \code{import} will correct the hours
-  accordingly.
+The function can either deal with combined date-time
+formats e.g. 10/12/1999 23:00 or with two separate columns
+that deal with date and time. Often there is a column for
+the date and another for hour. For the latter, the option
+\code{time.format = "\%H"} should be supplied. Note that R
+considers hours 0 to 23. However, if hours 1 to 24 are
+detected \code{import} will correct the hours accordingly.
 
-  \code{import} will also ensure wind speed and wind
-  direction are correctly labelled (i.e. "ws", "wd") if
-  \code{ws} or \code{wd} are given.
+\code{import} will also ensure wind speed and wind
+direction are correctly labelled (i.e. "ws", "wd") if
+\code{ws} or \code{wd} are given.
 
-  Note that it is assumed that the input data are in GMT
-  (UTC) format and in particular there is no consideration
-  of daylight saving time i.e. where in the input data set
-  an hour is missing in spring and duplicated in autumn.
+Note that it is assumed that the input data are in GMT
+(UTC) format and in particular there is no consideration of
+daylight saving time i.e. where in the input data set an
+hour is missing in spring and duplicated in autumn.
 }
 \examples{
 ## Note that more examples are given in the openair manual
@@ -129,13 +126,13 @@ time = "Time", time.format = "\%H:\%M")
 }
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \seealso{
-  Dedicated import functions available for selected file
-  types, e.g.  : \code{\link{importAURN}},
-  \code{\link{importAURNCsv}}, \code{\link{importKCL}},
-  \code{\link{importADMS}}, etc.
+Dedicated import functions available for selected file
+types, e.g.  : \code{\link{importAURN}},
+\code{\link{importAURNCsv}}, \code{\link{importKCL}},
+\code{\link{importADMS}}, etc.
 }
 \keyword{methods}
 

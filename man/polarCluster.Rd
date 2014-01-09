@@ -2,9 +2,9 @@
 \alias{polarCluster}
 \title{K-means clustering of bivariate polar plots}
 \usage{
-  polarCluster(mydata, pollutant = "nox", x = "ws",
-    wd = "wd", n.clusters = 6, cols = "Paired",
-    angle.scale = 315, units = x, auto.text = TRUE, ...)
+polarCluster(mydata, pollutant = "nox", x = "ws", wd = "wd",
+  n.clusters = 6, cols = "Paired", angle.scale = 315, units = x,
+  auto.text = TRUE, ...)
 }
 \arguments{
   \item{mydata}{A data frame minimally containing
@@ -65,87 +65,84 @@
   formatting.}
 }
 \value{
-  As well as generating the plot itself,
-  \code{polarCluster} also returns an object of class
-  ``openair''. The object includes three main components:
-  \code{call}, the command used to generate the plot;
-  \code{data}, the original data frame with a new field
-  \code{cluster} identifying the cluster; and \code{plot},
-  the plot itself. Note that any rows where the value of
-  \code{pollutant} is \code{NA} are ignored so that the
-  returned data frame may have fewer rows than the
-  original.
+As well as generating the plot itself, \code{polarCluster}
+also returns an object of class ``openair''. The object
+includes three main components: \code{call}, the command
+used to generate the plot; \code{data}, the original data
+frame with a new field \code{cluster} identifying the
+cluster; and \code{plot}, the plot itself. Note that any
+rows where the value of \code{pollutant} is \code{NA} are
+ignored so that the returned data frame may have fewer rows
+than the original.
 
-  An openair output can be manipulated using a number of
-  generic operations, including \code{print}, \code{plot}
-  and \code{summary}. See \code{\link{openair.generics}}
-  for further details.
+An openair output can be manipulated using a number of
+generic operations, including \code{print}, \code{plot} and
+\code{summary}. See \code{\link{openair.generics}} for
+further details.
 }
 \description{
-  Function for identifying clusters in bivariate polar
-  plots (\code{polarPlot}); identifying clusters in the
-  original data for subsequent processing.
+Function for identifying clusters in bivariate polar plots
+(\code{polarPlot}); identifying clusters in the original
+data for subsequent processing.
 }
 \details{
-  Bivariate polar plots generated using the
-  \code{polarPlot} function provide a very useful graphical
-  technique for identifying and characterising different
-  air pollution sources. While bivariate polar plots
-  provide a useful graphical indication of potential
-  sources, their location and wind-speed or other variable
-  dependence, they do have several limitations. Often, a
-  `feature' will be detected in a plot but the subsequent
-  analysis of data meeting particular wind speed/direction
-  criteria will be based only on the judgement of the
-  investigator concerning the wind speed-direction
-  intervals of interest. Furthermore, the identification of
-  a feature can depend on the choice of the colour scale
-  used, making the process somewhat arbitrary.
+Bivariate polar plots generated using the \code{polarPlot}
+function provide a very useful graphical technique for
+identifying and characterising different air pollution
+sources. While bivariate polar plots provide a useful
+graphical indication of potential sources, their location
+and wind-speed or other variable dependence, they do have
+several limitations. Often, a `feature' will be detected in
+a plot but the subsequent analysis of data meeting
+particular wind speed/direction criteria will be based only
+on the judgement of the investigator concerning the wind
+speed-direction intervals of interest. Furthermore, the
+identification of a feature can depend on the choice of the
+colour scale used, making the process somewhat arbitrary.
 
-  \code{polarCluster} applies Partition Around Medoids
-  (PAM) clustering techniques to \code{polarPlot} surfaces
-  to help identify potentially interesting features for
-  further analysis. Details of PAM can be found in the
-  \code{cluster} package (a core R package that will be
-  pre-installed on all R systems). PAM clustering is
-  similar to k-means but has several advantages e.g. is
-  more robust to outliers. The clustering is based on the
-  equal contribution assumed from the u and v wind
-  components and the associated concentration. The data are
-  standardized before clustering takes place.
+\code{polarCluster} applies Partition Around Medoids (PAM)
+clustering techniques to \code{polarPlot} surfaces to help
+identify potentially interesting features for further
+analysis. Details of PAM can be found in the \code{cluster}
+package (a core R package that will be pre-installed on all
+R systems). PAM clustering is similar to k-means but has
+several advantages e.g. is more robust to outliers. The
+clustering is based on the equal contribution assumed from
+the u and v wind components and the associated
+concentration. The data are standardized before clustering
+takes place.
 
-  The function works best by first trying different numbers
-  of clusters and plotting them. This is achieved by
-  setting \code{n.clusters} to be of length more than 1.
-  For example, if \code{n.clusters = 2:10} then a plot will
-  be output showing the 9 cluster levels 2 to 10.
+The function works best by first trying different numbers
+of clusters and plotting them. This is achieved by setting
+\code{n.clusters} to be of length more than 1. For example,
+if \code{n.clusters = 2:10} then a plot will be output
+showing the 9 cluster levels 2 to 10.
 
-  Note that clustering is computationally intensive and the
-  function can take a long time to run --- particularly
-  when the number of clusters is increased. For this reason
-  it can be a good idea to run a few clusters first to get
-  a feel for it e.g. \code{n.clusters = 2:5}.
+Note that clustering is computationally intensive and the
+function can take a long time to run --- particularly when
+the number of clusters is increased. For this reason it can
+be a good idea to run a few clusters first to get a feel
+for it e.g. \code{n.clusters = 2:5}.
 
-  Once the number of clusters has been decided, the user
-  can then run \code{polarCluster} to return the original
-  data frame together with a new column \code{cluster},
-  which gives the cluster number as a character (see
-  example). Note that any rows where the value of
-  \code{pollutant} is \code{NA} are ignored so that the
-  returned data frame may have fewer rows than the
-  original.
+Once the number of clusters has been decided, the user can
+then run \code{polarCluster} to return the original data
+frame together with a new column \code{cluster}, which
+gives the cluster number as a character (see example). Note
+that any rows where the value of \code{pollutant} is
+\code{NA} are ignored so that the returned data frame may
+have fewer rows than the original.
 
-  Note that there are no automatic ways in ensuring the
-  most appropriate number of clusters as this is
-  application dependent. However, there is often a-priori
-  information available on what different features in polar
-  plots correspond to. Nevertheless, the appropriateness of
-  different clusters is best determined by post-processing
-  the data. The Carslaw and Beevers (2012) paper discusses
-  these issues in more detail.
+Note that there are no automatic ways in ensuring the most
+appropriate number of clusters as this is application
+dependent. However, there is often a-priori information
+available on what different features in polar plots
+correspond to. Nevertheless, the appropriateness of
+different clusters is best determined by post-processing
+the data. The Carslaw and Beevers (2012) paper discusses
+these issues in more detail.
 
-  Note that unlike most other \code{openair} functions only
-  a single \code{type} \dQuote{default} is allowed.
+Note that unlike most other \code{openair} functions only a
+single \code{type} \dQuote{default} is allowed.
 }
 \examples{
 \dontrun{
@@ -174,21 +171,21 @@ group = "cluster", col = openColours("Paired", 6)[c(3, 4)])
 }
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \references{
-  Carslaw, D.C., Beevers, S.D, Ropkins, K and M.C. Bell
-  (2006). Detecting and quantifying aircraft and other
-  on-airport contributions to ambient nitrogen oxides in
-  the vicinity of a large international airport.
-  Atmospheric Environment. 40/28 pp 5424-5434.
+Carslaw, D.C., Beevers, S.D, Ropkins, K and M.C. Bell
+(2006). Detecting and quantifying aircraft and other
+on-airport contributions to ambient nitrogen oxides in the
+vicinity of a large international airport.  Atmospheric
+Environment. 40/28 pp 5424-5434.
 
-  Carslaw, D.C., & Beevers, S.D. (2013). Characterising and
-  understanding emission sources using bivariate polar
-  plots and k-means clustering. Environmental Modelling &
-  Software, 40, 325-329. doi:10.1016/j.envsoft.2012.09.005
+Carslaw, D.C., & Beevers, S.D. (2013). Characterising and
+understanding emission sources using bivariate polar plots
+and k-means clustering. Environmental Modelling & Software,
+40, 325-329. doi:10.1016/j.envsoft.2012.09.005
 }
 \seealso{
-  \code{\link{polarPlot}}
+\code{\link{polarPlot}}
 }
 

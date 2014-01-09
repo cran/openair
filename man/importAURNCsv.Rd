@@ -2,14 +2,11 @@
 \alias{importAURNCsv}
 \title{AURN csv file data import for openair}
 \usage{
-  importAURNCsv(file = file.choose(), header.at = 5,
-    data.at = 7, na.strings = c("No data", "", "NA"),
-    date.name = "Date", date.break = "-",
-    time.name = "time", misc.info = c(1, 2, 3, 4),
-    is.site = 4, bad.24 = TRUE, correct.time = -3600,
-    output = "final",
-    data.order = c("value", "status", "unit"),
-    simplify.names = TRUE, ...)
+importAURNCsv(file = file.choose(), header.at = 5, data.at = 7,
+  na.strings = c("No data", "", "NA"), date.name = "Date",
+  date.break = "-", time.name = "time", misc.info = c(1, 2, 3, 4),
+  is.site = 4, bad.24 = TRUE, correct.time = -3600, output = "final",
+  data.order = c("value", "status", "unit"), simplify.names = TRUE, ...)
 }
 \arguments{
   \item{file}{The name of the AURN file to be imported.
@@ -81,49 +78,48 @@
   \code{import()}.}
 }
 \value{
-  The function returns a data frame for use in openair. By
-  comparison to the original file, the resulting data frame
-  is modified as follows: Time and date information will
-  combined in a single column "date", formatted as a
-  conventional timeseries (\code{\link{as.POSIXct}}). Time
-  adjustments may also be made, subject to "bad.24" and
-  "correct.time" argument settings.  Using default
-  settings, the argument \code{correct.time = - 3600}
-  resets the time stamp to the start of the measurement
-  period. If name simplification was requested
-  (\code{simplify.names = TRUE}), common chemical names
-  will be simplified.  For example, "carbon monoxide" will
-  be reset to "co". Currently, this option only applies to
-  inorganics and particulates, not organics.  Non-value
-  information will be rationalised according to data.order.
-  For example, for the default, \code{data.order =
-  c("value", "status", "unit")}, the status and unit
-  columns following the "co" column will be automatically
-  renamed "unit.co" and "status.co", respectively.  An
-  additional "site" column will be generated. Multiple
-  "site" files are allowed.  Additional information (as
-  defined in "misc.info") and data adjustments (as defined
-  by "bad.24" and "correct.time") are retained in the data
-  frame comment.
+The function returns a data frame for use in openair. By
+comparison to the original file, the resulting data frame
+is modified as follows: Time and date information will
+combined in a single column "date", formatted as a
+conventional timeseries (\code{\link{as.POSIXct}}). Time
+adjustments may also be made, subject to "bad.24" and
+"correct.time" argument settings.  Using default settings,
+the argument \code{correct.time = - 3600} resets the time
+stamp to the start of the measurement period. If name
+simplification was requested (\code{simplify.names =
+TRUE}), common chemical names will be simplified.  For
+example, "carbon monoxide" will be reset to "co".
+Currently, this option only applies to inorganics and
+particulates, not organics.  Non-value information will be
+rationalised according to data.order. For example, for the
+default, \code{data.order = c("value", "status", "unit")},
+the status and unit columns following the "co" column will
+be automatically renamed "unit.co" and "status.co",
+respectively.  An additional "site" column will be
+generated. Multiple "site" files are allowed.  Additional
+information (as defined in "misc.info") and data
+adjustments (as defined by "bad.24" and "correct.time") are
+retained in the data frame comment.
 }
 \description{
-  Function for importing common 1 hour average (hourly) UK
-  Automatic Urban and Rural Network (AURN) Air Quality
-  Archive data files previously downloaded in ".csv" format
-  for use with the openair package.  The function uses
-  \code{read.table} (in \code{utils}) and \code{rbind} (in
-  \code{reshape}).
+Function for importing common 1 hour average (hourly) UK
+Automatic Urban and Rural Network (AURN) Air Quality
+Archive data files previously downloaded in ".csv" format
+for use with the openair package.  The function uses
+\code{read.table} (in \code{utils}) and \code{rbind} (in
+\code{reshape}).
 }
 \details{
-  The importAURN() function was developed for use with air
-  quality monitoring site data files downloaded in standard
-  hourly (or 1 hour average) format using the Air Quality
-  Archive email service. Argument defaults are set to
-  common values to simplify both the import operation and
-  use with openair.
+The importAURN() function was developed for use with air
+quality monitoring site data files downloaded in standard
+hourly (or 1 hour average) format using the Air Quality
+Archive email service. Argument defaults are set to common
+values to simplify both the import operation and use with
+openair.
 
-  Similar file structures can also be imported using this
-  function with argument modification.
+Similar file structures can also be imported using this
+function with argument modification.
 }
 \examples{
 ##########
@@ -187,14 +183,14 @@
 ## timeVariation(so2.15min.data.again, pollutant="so2")
 }
 \author{
-  Karl Ropkins
+Karl Ropkins
 }
 \seealso{
-  Generic import function \code{\link{import}}, or direct
-  (on-line) data import function \code{\link{importAURN}}.
-  Other dedicated import functions available for other file
-  types, e.g.: \code{\link{importKCL}},
-  \code{\link{importADMS}}, etc.
+Generic import function \code{\link{import}}, or direct
+(on-line) data import function \code{\link{importAURN}}.
+Other dedicated import functions available for other file
+types, e.g.: \code{\link{importKCL}},
+\code{\link{importADMS}}, etc.
 }
 \keyword{methods}
 

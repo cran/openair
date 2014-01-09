@@ -2,9 +2,8 @@
 \alias{rollingMean}
 \title{Calculate rollingMean values}
 \usage{
-  rollingMean(mydata, pollutant = "o3", width = 8,
-    new.name = "rolling", data.thresh = 75,
-    align = "centre", ...)
+rollingMean(mydata, pollutant = "o3", width = 8, new.name = "rolling",
+  data.thresh = 75, align = "centre", ...)
 }
 \arguments{
   \item{mydata}{A data frame containing a \code{date}
@@ -41,21 +40,21 @@
   \item{...}{other arguments, currently unused.}
 }
 \description{
-  Calculate rollingMean values taking account of data
-  capture thresholds
+Calculate rollingMean values taking account of data capture
+thresholds
 }
 \details{
-  This is a utility function mostly designed to calculate
-  rolling mean statistics relevant to some pollutant limits
-  e.g. 8 hour rolling means for ozone and 24 hour rolling
-  means for PM10. However, the function has a more general
-  use in helping to display rolling mean values in flexible
-  ways e.g. with the rolling window width left, right or
-  centre aligned.
+This is a utility function mostly designed to calculate
+rolling mean statistics relevant to some pollutant limits
+e.g. 8 hour rolling means for ozone and 24 hour rolling
+means for PM10. However, the function has a more general
+use in helping to display rolling mean values in flexible
+ways e.g. with the rolling window width left, right or
+centre aligned.
 
-  The function will try and fill in missing time gaps to
-  get a full time sequence but return a data frame with the
-  same number of rows supplied.
+The function will try and fill in missing time gaps to get
+a full time sequence but return a data frame with the same
+number of rows supplied.
 }
 \examples{
 ## rolling 8-hour mean for ozone
@@ -63,7 +62,7 @@ mydata <- rollingMean(mydata, pollutant = "o3", width = 8, new.name =
 "rollingo3", data.thresh = 75, align = "right")
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \keyword{methods}
 

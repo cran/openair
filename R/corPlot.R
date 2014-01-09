@@ -168,7 +168,7 @@ corPlot <- function(mydata, pollutants = NULL, type = "default",
     mydata <- mydata[ , sapply(mydata, function(x) !all(is.na(x)))]
 
     ## cut data depending on type
-    mydata <- cutData(mydata, type)
+    mydata <- cutData(mydata, type, ...)
 
     ## proper names of labelling
     pollutants <- names(mydata[, sapply(mydata, is.numeric)])

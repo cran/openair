@@ -2,12 +2,12 @@
 \alias{TaylorDiagram}
 \title{Taylor Diagram for model evaluation with conditioning}
 \usage{
-  TaylorDiagram(mydata, obs = "obs", mod = "mod",
-    group = NULL, type = "default", normalise = FALSE,
-    cols = "brewer1", rms.col = "darkgoldenrod",
-    cor.col = "black", arrow.lwd = 3, key = TRUE,
-    key.title = group, key.columns = 1, key.pos = "right",
-    strip = TRUE, auto.text = TRUE, ...)
+TaylorDiagram(mydata, obs = "obs", mod = "mod", group = NULL,
+  type = "default", normalise = FALSE, cols = "brewer1",
+  rms.col = "darkgoldenrod", cor.col = "black", arrow.lwd = 3,
+  annotate = "centred\\nRMS error", key = TRUE, key.title = group,
+  key.columns = 1, key.pos = "right", strip = TRUE, auto.text = TRUE,
+  ...)
 }
 \arguments{
   \item{mydata}{A data frame minimally containing a column
@@ -93,6 +93,8 @@
   \item{arrow.lwd}{Width of arrow used when used for
   comparing two model outputs.}
 
+  \item{annotate}{Annotation shown for RMS error.}
+
   \item{key}{Should the key be shown?}
 
   \item{key.title}{Title for the key.}
@@ -115,12 +117,12 @@
   automatically try and format pollutant names and units
   properly e.g.  by subscripting the `2' in NO2.}
 
-  \item{\dots}{Other graphical parameters are passed onto
+  \item{...}{Other graphical parameters are passed onto
   \code{cutData} and \code{lattice:xyplot}. For example,
   \code{TaylorDiagram} passes the option \code{hemisphere =
   "southern"} on to \code{cutData} to provide southern
   (rather than default northern) hemisphere handling of
-  \code{type = "season"}.  Similarly, common graphical
+  \code{type = "season"}. Similarly, common graphical
   parameters, such as \code{layout} for panel arrangement
   and \code{pch} and \code{cex} for plot symbol type and
   size, are passed on to \code{xyplot}. Most are passed
@@ -131,94 +133,89 @@
   \code{quickText} to handle routine formatting.}
 }
 \value{
-  As well as generating the plot itself,
-  \code{TaylorDiagram} also returns an object of class
-  ``openair''. The object includes three main components:
-  \code{call}, the command used to generate the plot;
-  \code{data}, the data frame of summarised information
-  used to make the plot; and \code{plot}, the plot itself.
-  If retained, e.g. using \code{output <-
-  TaylorDiagram(thedata, obs = "nox", mod = "mod")}, this
-  output can be used to recover the data, reproduce or
-  rework the original plot or undertake further analysis.
-  For example, \code{output$data} will be a data frame
-  consisting of the group, type, correlation coefficient
-  (R), the standard deviation of the observations and
-  measurements.
+As well as generating the plot itself, \code{TaylorDiagram}
+also returns an object of class ``openair''. The object
+includes three main components: \code{call}, the command
+used to generate the plot; \code{data}, the data frame of
+summarised information used to make the plot; and
+\code{plot}, the plot itself. If retained, e.g. using
+\code{output <- TaylorDiagram(thedata, obs = "nox", mod =
+"mod")}, this output can be used to recover the data,
+reproduce or rework the original plot or undertake further
+analysis. For example, \code{output$data} will be a data
+frame consisting of the group, type, correlation
+coefficient (R), the standard deviation of the observations
+and measurements.
 
-  An openair output can be manipulated using a number of
-  generic operations, including \code{print}, \code{plot}
-  and \code{summary}. See \code{\link{openair.generics}}
-  for further details.
+An openair output can be manipulated using a number of
+generic operations, including \code{print}, \code{plot} and
+\code{summary}. See \code{\link{openair.generics}} for
+further details.
 }
 \description{
-  Function to draw Taylor Diagrams for model evaluation.
-  The function allows conditioning by any categorical or
-  numeric variables, which makes the function very
-  flexible.
+Function to draw Taylor Diagrams for model evaluation. The
+function allows conditioning by any categorical or numeric
+variables, which makes the function very flexible.
 }
 \details{
-  The Taylor Diagram is a very useful model evaluation
-  tool. Details of the diagram can be found at
-  \url{http://www-pcmdi.llnl.gov/about/staff/Taylor/CV/Taylor_diagram_primer.pdf}.
-  The diagram provides a way of showing how three
-  complementary model performance statistics vary
-  simultaneously. These statistics are the correlation
-  coefficient R, the standard deviation (sigma) and the
-  (centred) root-mean-square error. These three statistics
-  can be plotted on one (2D) graph because of the way they
-  are related to one another which can be represented
-  through the Law of Cosines.
+The Taylor Diagram is a very useful model evaluation tool.
+Details of the diagram can be found at
+\url{http://www-pcmdi.llnl.gov/about/staff/Taylor/CV/Taylor_diagram_primer.pdf}.
+The diagram provides a way of showing how three
+complementary model performance statistics vary
+simultaneously. These statistics are the correlation
+coefficient R, the standard deviation (sigma) and the
+(centred) root-mean-square error. These three statistics
+can be plotted on one (2D) graph because of the way they
+are related to one another which can be represented through
+the Law of Cosines.
 
-  The \code{openair} version of the Taylor Diagram has
-  several enhancements that increase its flexibility. In
-  particular, the straightforward way of producing
-  conditioning plots should prove valuable under many
-  circumstances (using the \code{type} option). Many
-  examples of Taylor Diagrams focus on model-observation
-  comparisons for several models using all the available
-  data. However, more insight can be gained into model
-  performance by partitioning the data in various ways e.g.
-  by season, daylight/nighttime, day of the week, by levels
-  of a numeric variable e.g. wind speed or by land-use type
-  etc.
+The \code{openair} version of the Taylor Diagram has
+several enhancements that increase its flexibility. In
+particular, the straightforward way of producing
+conditioning plots should prove valuable under many
+circumstances (using the \code{type} option). Many examples
+of Taylor Diagrams focus on model-observation comparisons
+for several models using all the available data. However,
+more insight can be gained into model performance by
+partitioning the data in various ways e.g. by season,
+daylight/nighttime, day of the week, by levels of a numeric
+variable e.g. wind speed or by land-use type etc.
 
-  To consider several pollutants on one plot, a column
-  identifying the pollutant name can be used e.g.
-  \code{pollutant}. Then the Taylor Diagram can be plotted
-  as (assuming a data frame \code{thedata}):
+To consider several pollutants on one plot, a column
+identifying the pollutant name can be used e.g.
+\code{pollutant}. Then the Taylor Diagram can be plotted as
+(assuming a data frame \code{thedata}):
 
-  \code{TaylorDiagram(thedata, obs = "obs", mod = "mod",
-  group = "model", type = "pollutant")}
+\code{TaylorDiagram(thedata, obs = "obs", mod = "mod",
+group = "model", type = "pollutant")}
 
-  which will give the model performance by pollutant in
-  each panel.
+which will give the model performance by pollutant in each
+panel.
 
-  Note that it is important that each panel represents data
-  with the same mean observed data across different groups.
-  Therefore \code{TaylorDiagram(mydata, group = "model",
-  type = "season")} is OK, whereas
-  \code{TaylorDiagram(mydata, group = "season", type =
-  "model")} is not because each panel (representing a
-  model) will have four different mean values --- one for
-  each season. Generally, the option \code{group} is either
-  missing (one model being evaluated) or represents a
-  column giving the model name. However, the data can be
-  normalised using the \code{normalise} option.
-  Normalisation is carried out on a per
-  \code{group}/\code{type} basis making it possible to
-  compare data on different scales e.g.
-  \code{TaylorDiagram(mydata, group = "season", type =
-  "model", normalise = TRUE)}. In this way it is possible
-  to compare different pollutants, sites etc. in the same
-  panel.
+Note that it is important that each panel represents data
+with the same mean observed data across different groups.
+Therefore \code{TaylorDiagram(mydata, group = "model", type
+= "season")} is OK, whereas \code{TaylorDiagram(mydata,
+group = "season", type = "model")} is not because each
+panel (representing a model) will have four different mean
+values --- one for each season. Generally, the option
+\code{group} is either missing (one model being evaluated)
+or represents a column giving the model name. However, the
+data can be normalised using the \code{normalise} option.
+Normalisation is carried out on a per
+\code{group}/\code{type} basis making it possible to
+compare data on different scales e.g.
+\code{TaylorDiagram(mydata, group = "season", type =
+"model", normalise = TRUE)}. In this way it is possible to
+compare different pollutants, sites etc. in the same panel.
 
-  Also note that if multiple sites are present it makes
-  sense to use \code{type = "site"} to ensure that each
-  panel represents an individual site with its own specific
-  standard deviation etc. If this is not the case then
-  select a single site from the data first e.g.
-  \code{subset(mydata, site == "Harwell")}.
+Also note that if multiple sites are present it makes sense
+to use \code{type = "site"} to ensure that each panel
+represents an individual site with its own specific
+standard deviation etc. If this is not the case then select
+a single site from the data first e.g. \code{subset(mydata,
+site == "Harwell")}.
 }
 \examples{
 ## in the examples below, most effort goes into making some artificial data
@@ -276,26 +273,26 @@ type = "season")
 }
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \references{
-  Taylor, K.E.: Summarizing multiple aspects of model
-  performance in a single diagram. J.  Geophys. Res., 106,
-  7183-7192, 2001 (also see PCMDI Report 55,
-  \url{http://wwwpcmdi.  llnl.gov/publications/ab55.html})
+Taylor, K.E.: Summarizing multiple aspects of model
+performance in a single diagram. J.  Geophys. Res., 106,
+7183-7192, 2001 (also see PCMDI Report 55,
+\url{http://wwwpcmdi.  llnl.gov/publications/ab55.html})
 
-  IPCC, 2001: Climate Change 2001: The Scientific Basis,
-  Contribution of Working Group I to the Third Assessment
-  Report of the Intergovernmental Panel on Climate Change
-  [Houghton, J.T., Y. Ding, D.J. Griggs, M. Noguer, P.J.
-  van der Linden, X. Dai, K. Maskell, and C.A.  Johnson
-  (eds.)].  Cambridge University Press, Cambridge, United
-  Kingdom and New York, NY, USA, 881 pp. (see
-  \url{http://www.grida.no/climate/ipcc_tar/wg1/317.htm#fig84})
+IPCC, 2001: Climate Change 2001: The Scientific Basis,
+Contribution of Working Group I to the Third Assessment
+Report of the Intergovernmental Panel on Climate Change
+[Houghton, J.T., Y. Ding, D.J. Griggs, M. Noguer, P.J. van
+der Linden, X. Dai, K. Maskell, and C.A.  Johnson (eds.)].
+Cambridge University Press, Cambridge, United Kingdom and
+New York, NY, USA, 881 pp. (see
+\url{http://www.grida.no/climate/ipcc_tar/wg1/317.htm#fig84})
 }
 \seealso{
-  \code{taylor.diagram} from the \code{plotrix} package
-  from which some of the annotation code was used.
+\code{taylor.diagram} from the \code{plotrix} package from
+which some of the annotation code was used.
 }
 \keyword{methods}
 

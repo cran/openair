@@ -1,3 +1,20 @@
+Changes in openair 1.0-0 [2013-11-21]
+=====================================
+*	Pass all arguments in corPlot
+*	Enhance timeVariation to consider median + quantiles through
+	option 'statistic'
+*	Do not remove NA results from modStats
+*	Better scaling in polarCluster; consitent with polarPlot
+*	Fix importKCL where dates were filled if two non contiguous
+	years were chosen
+*	Refine scaling of ws in polarPlot when upper is set
+*	Fix bug when type = "weekday" but not all days of the week
+	are present
+*	Add annotate option to TaylorDiagram
+*	Allow modStat statistics to be chosen by user
+*	Needs to be >24 months to deseason in smoothTrend/TheilSen
+	(was >=)
+
 Changes in openair 0.9-0 [2013-02-13]
 =====================================
 *	Fix bug introduced in 0.8-0 for scatterPlot surfaces

@@ -103,10 +103,6 @@ import <- function (file = file.choose(), file.type = "csv", sep = ",", header.a
                     correct.time = NULL, ...)
 {
 
-    if (file.type == "csv") sep <- "," else sep <- ""
-
-    if (!missing(sep)) sep <- sep
-
     ## read header
     if (header.at > 0 ) {
         Names <- read.table(file, nrows = 1, skip = (header.at - 1), sep = sep,

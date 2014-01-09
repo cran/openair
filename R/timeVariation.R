@@ -51,6 +51,10 @@
 ##' In addition, \code{timeVariation} will work well with other variables if
 ##' available. Examples include meteorological and traffic flow data.
 ##'
+##' Depending on the choice of statistic, a subheading is added. Users
+##' can control the text in the subheading through the use of
+##' \code{sub} e.g. \code{sub = ""} will remove any subheading.
+##'
 ##' @param mydata A data frame of hourly (or higher temporal resolution data).
 ##'   Must include a \code{date} field and at least one variable to plot.
 ##' @param pollutant Name of variable to plot. Two or more pollutants can be
@@ -99,6 +103,20 @@
 ##' pollutant[1]}. Bootstrap 95\% confidence intervals of the
 ##' difference in means are also calculated. A horizontal dashed line
 ##' is shown at y = 0.
+##' @param statistic Can be \dQuote{mean} (default) or
+##' \dQuote{median}. If the statistic is \sQuote{mean} then the mean
+##' line and the 95\% confidence interval in the mean are plotted by
+##' default. If the statistic is \sQuote{median} then the median line
+##' is plotted together with the 5/95 and 25/75th quantiles are
+##' plotted. Users can control the confidence intervals with
+##' \code{conf.int}.
+##' @param conf.int The confidence intervals to be plotted. If
+##' \code{statistic = "mean"} then the confidence intervals in the
+##' mean are plotted. If \code{statistic = "median"} then the
+##' \code{conf.int} and \code{1 - conf.int} \emph{quantiles} are
+##' plotted. \code{conf.int} can be of length 2, which is most useful
+##' for showing quantiles. For example \code{conf.int = c(0.75, 0.99)}
+##' will yield a plot showing the median, 25/75 and 5/95th quantiles.
 ##' @param B Number of bootstrap replicates to use. Can be useful to
 ##' reduce this value when there are a large number of observations
 ##' available to increase the speed of the calculations without
@@ -226,14 +244,22 @@
 ##' ## head(myplot, subset = "day") #head/top of day data set
 ##' ## tail(myplot, subset = "month") #tail/top of month data set
 ##'
+##' ## plot quantiles and median
+##' \dontrun{
+##' timeVariation(mydata, stati="median", poll="pm10", col = "firebrick")
 ##'
+##' ## with different intervals
+##' timeVariation(mydata, stati="median", poll="pm10", conf.int = c(0.75, 0.99),
+##' col = "firebrick")
+##' }
 ##'
-timeVariation <- function(mydata, pollutant = "nox", local.time =
-FALSE, normalise = FALSE, xlab = c("hour", "hour", "month",
-"weekday"), name.pol = pollutant, type = "default", group = NULL,
-difference = FALSE, B = 100, ci = TRUE, cols = "hue", key = NULL,
-key.columns = 1, start.day = 1, auto.text = TRUE,
-alpha = 0.4, ...)  {
+timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE,
+                          normalise = FALSE, xlab = c("hour", "hour", "month",
+                                             "weekday"), name.pol = pollutant,
+                          type = "default", group = NULL, difference = FALSE,
+                          statistic = "mean", conf.int = 0.95, B = 100, ci = TRUE, cols = "hue",
+                          key = NULL, key.columns = 1, start.day = 1,
+                          auto.text = TRUE, alpha = 0.4, ...)  {
 
      ## get rid of R check annoyances
     variable = NULL
@@ -253,21 +279,42 @@ alpha = 0.4, ...)  {
 
     ## label controls
     ## xlab handled in formals and code because unique
-    extra.args$ylab <- if("ylab" %in% names(extra.args))
+    extra.args$ylab <- if ("ylab" %in% names(extra.args))
         quickText(extra.args$ylab, auto.text) else
     quickText(paste(pollutant, collapse=", "), auto.text)
 
-    extra.args$main <- if("main" %in% names(extra.args))
+    extra.args$main <- if ("main" %in% names(extra.args))
         quickText(extra.args$main, auto.text) else quickText("", auto.text)
 
-    extra.args$lwd <- if("lwd" %in% names(extra.args)) extra.args$lwd else 2
+    if (statistic == "median" && missing(conf.int)) conf.int <- c(0.75, 0.95)
 
-    ylim.handler <- if("ylim" %in% names(extra.args))
+    ## sub heading stat info
+    if (statistic == "mean") {
+        sub.text <- paste("mean and ", 100 * conf.int[1], "% confidence interval in mean",
+                          sep = "")
+    } else {
+        if (length(conf.int) == 1L) {
+            sub.text <- paste("median and ", 100 * (1 - conf.int[1]), "/", 100 * conf.int[1],
+                              "th quantiles", sep = "")
+        } else {
+            sub.text <- paste("median, ", 100 * (1 - conf.int[1]), "/", 100 * conf.int[1],
+                              " and ", 100 * (1 - conf.int[2]), "/", 100 * conf.int[2],
+                              "th quantiles", sep = "")
+        }
+    }
+
+
+    extra.args$sub <- if ("sub" %in% names(extra.args))
+        quickText(extra.args$sub, auto.text) else quickText(sub.text, auto.text)
+
+    extra.args$lwd <- if ("lwd" %in% names(extra.args)) extra.args$lwd else 2
+
+    ylim.handler <- if ("ylim" %in% names(extra.args))
         FALSE else TRUE
 
     vars <- c("date", pollutant)
 
-    ##  various check to make sure all teh data are available ######################################
+    ##  various check to make sure all the data are available ######################################
     if (!missing(group) & length(pollutant) > 1) {
         stop("Can only have one pollutant with a grouping variable, or several pollutants and no grouping variable.")}
 
@@ -294,6 +341,11 @@ alpha = 0.4, ...)  {
         }
     }
 
+    ## statistic check
+    if (!statistic %in% c("mean", "median")) {
+        statistic <- "mean"
+        warning("statistic should be 'mean' or 'median',  setting it to 'mean'.")
+    }
     ## #############################################################################################
 
     ## check to see if type = "variable" (word used in code, so change)
@@ -320,6 +372,8 @@ alpha = 0.4, ...)  {
     ## title for overall and individual plots
     overall.main <- extra.args$main
     extra.args$main <- ""
+    overall.sub <- extra.args$sub
+    extra.args$sub <- ""
 
     if (local.time) attr(mydata$date, "tzone") <- "Europe/London"
 
@@ -329,7 +383,6 @@ alpha = 0.4, ...)  {
 
     if (missing(name.pol)) mylab <- sapply(seq_along(pollutant), function(x)
                                            quickText(pollutant[x], auto.text))
-
 
     if (!missing(name.pol)) mylab <- sapply(seq_along(name.pol), function(x)
                                             quickText(name.pol[x], auto.text))
@@ -423,18 +476,22 @@ alpha = 0.4, ...)  {
     ## for individual plot keys - useful if only one of the plots is extracted after printing
     if (!is.null(key)) {
         key <- list(rectangles = list(col = myColors[1:npol], border = NA), title = "",
-                    text = list(lab = mylab),  space = "bottom", columns = key.columns, lines.title = 1)
+                    text = list(lab = mylab),  space = "bottom", columns = key.columns,
+                    lines.title = 1)
 
         extra.args$main <- overall.main
     }
+
 
     ## hour ############################################################################
 
     if (difference) {
         data.hour <- errorDiff(mydata, vars = "hour", type = type, poll1 = poll1,
-                               poll2 = poll2, B = B)
+                               poll2 = poll2, B = B, conf.int = conf.int)
     } else {
-        data.hour <- calc.wd(mydata, vars = "hour", pollutant, type, B = B)
+
+        data.hour <- ldply(conf.int, proc, mydata, vars = "hour", pollutant, type, B = B,
+                             statistic = statistic)
     }
 
 
@@ -459,50 +516,50 @@ alpha = 0.4, ...)  {
         extra.args$ylim <- rng(data.hour)
 
     ## plot
-    xyplot.args <- list(x = myform,  data = data.hour, groups = data.hour$variable,
-                        as.table = TRUE,
-                        xlab = xlab[2],
-                        xlim = c(0, 23),
-                        strip = strip,
-                        par.strip.text = list(cex = 0.8),
-                        key = key,
-                        scales = list(x = list(at = c(0, 6, 12, 18, 23))),
-                        par.settings = simpleTheme(col = myColors),
-                        panel =  panel.superpose,
-                        panel.groups = function(x, y, col.line, type, group.number, subscripts,...) {
-                            if (group.number == 1) {
-                                panel.grid(-1, 0)
-                                panel.abline(v = c(0, 6, 12, 18, 23), col = "grey85")
-                            }
+    xy.args <- list(x = myform, data = data.hour, groups = data.hour$variable,
+                    as.table = TRUE,
+                    xlab = xlab[2],
+                    xlim = c(0, 23),
+                    strip = strip,
+                    par.strip.text = list(cex = 0.8),
+                    key = key,
+                    scales = list(x = list(at = c(0, 6, 12, 18, 23))),
+                    par.settings = simpleTheme(col = myColors),
+                    panel = panel.superpose,
+                    panel.groups = function(x, y, col.line, type, group.number, subscripts,...) {
+                        if (group.number == 1) {
+                            panel.grid(-1, 0)
+                            panel.abline(v = c(0, 6, 12, 18, 23), col = "grey85")
+                        }
 
-                            if (difference) panel.abline(h = 0, lty = 5)
+                        if (difference) panel.abline(h = 0, lty = 5)
 
-                            panel.xyplot(x, y, type = "l", col.line = myColors[group.number],...)
+                        id <- which(data.hour$ci[subscripts] == data.hour$ci[1]) ## plot once
+                        panel.xyplot(x[id], y[id], type = "l", col.line = myColors[group.number],...)
 
-                            if (ci) {poly.na(x, data.hour$Lower[subscripts], x,
-                                             data.hour$Upper[subscripts], group.number, myColors,
-                                             alpha = alpha)}
+                        if (ci) {mkpoly(data.hour[subscripts, ], x = "hour", y = "Mean",
+                                        group.number, myColors, alpha)}
 
-                        })
+                    })
 
     ## reset for extra.args
-    xyplot.args <- listUpdate(xyplot.args, extra.args)
+    xy.args <- listUpdate(xy.args, extra.args)
 
     ## plot
-    hour <- do.call(xyplot, xyplot.args)
+    hour <- do.call(xyplot, xy.args)
 
     ## weekday ############################################################################
 
     if (difference) {
         data.weekday <- errorDiff(mydata, vars = "wkday", type = type, poll1 =poll1,
-                                  poll2 = poll2, B = B)
+                                  poll2 = poll2, B = B, conf.int = conf.int)
     } else {
-        data.weekday <- calc.wd(mydata, vars = "wkday", pollutant, type, B = B)
+        data.weekday <- ldply(conf.int, proc, mydata, vars = "wkday", pollutant, type, B = B,
+                              statistic = statistic)
     }
 
     if (normalise) data.weekday <-  ddply(data.weekday, .(variable), divide.by.mean)
 
- #   data.weekday$weekday <- ordered(data.weekday$weekday, levels = format(ISOdate(2000, 1, 3:9), "%A"))
     data.weekday$wkday <- ordered(data.weekday$wkday, levels = day.ord)
 
     data.weekday$wkday <- as.numeric(as.factor(data.weekday$wkday))
@@ -517,50 +574,49 @@ alpha = 0.4, ...)  {
         extra.args$ylim <- rng(data.weekday)
 
     ## plot
-    xyplot.args <- list(x = myform,  data = data.weekday, groups = data.weekday$variable,
-                        as.table = TRUE,
-                        par.settings = simpleTheme(col = myColors, pch = 16),
-                        scales = list(x = list(at = 1:7, labels = day.ord.abb)),
-                        xlab = xlab[4],
-                        strip = strip,
-                        par.strip.text = list(cex = 0.8),
-                        key = key,
-                        panel =  panel.superpose,
-                        panel.groups = function(x, y, col.line, type, group.number, subscripts,...) {
-                            if (group.number == 1) {
-                                panel.grid(-1, 0)
-                                panel.abline(v = 1:7, col = "grey85")
-                            }
+    xy.args <- list(x = myform,  data = data.weekday, groups = data.weekday$variable,
+                    as.table = TRUE,
+                    par.settings = simpleTheme(col = myColors, pch = 16),
+                    scales = list(x = list(at = 1:7, labels = day.ord.abb)),
+                    xlab = xlab[4],
+                    strip = strip,
+                    par.strip.text = list(cex = 0.8),
+                    key = key,
+                    panel =  panel.superpose,
+                    panel.groups = function(x, y, col.line, type, group.number, subscripts,...) {
+                        if (group.number == 1) {
+                            panel.grid(-1, 0)
+                            panel.abline(v = 1:7, col = "grey85")
+                        }
 
-                            if (difference) panel.abline(h = 0, lty = 5)
+                        if (difference) panel.abline(h = 0, lty = 5)
 
-                            panel.xyplot(x, y, type = "l", col.line = myColors[group.number],...)
-                         #   panel.xyplot(x, y, type = "p", col.point = myColors[group.number],...)
+                        ## only plot median once if 2 conf.int
+                        id <- which(data.weekday$ci[subscripts] == data.weekday$ci[1])
+                        panel.xyplot(x[id], y[id], type = "l", col.line = myColors[group.number],...)
 
-                            if (ci) {panel.rect(x - 0.3, data.weekday$Lower[subscripts], x + 0.3,
-                                                data.weekday$Upper[subscripts],
-                                                fill = myColors[group.number],
-                                                border = NA, alpha = alpha)}
-                        })
+                        if (ci) {mkrect(data.weekday[subscripts, ], x = "wkday", y = "Mean",
+                                        group.number, myColors, alpha)}
+                    })
 
     ## reset for extra.args
-    xyplot.args <- listUpdate(xyplot.args, extra.args)
+    xy.args <- listUpdate(xy.args, extra.args)
 
     ## plot
-    day <- do.call(xyplot, xyplot.args)
+    day <- do.call(xyplot, xy.args)
 
     ## month ############################################################################
 
     if (difference) {
         data.month <- errorDiff(mydata, vars = "mnth", type = type, poll1 = poll1,
-                                poll2 = poll2, B = B)
+                                poll2 = poll2, B = B, conf.int = conf.int)
     } else {
-        data.month <- calc.wd(mydata, vars = "mnth", pollutant, type, B = B)
+        data.month <- ldply(conf.int, proc, mydata, vars = "mnth", pollutant, type, B = B,
+                            statistic = statistic)
     }
 
     if (normalise) data.month <-  ddply(data.month, .(variable), divide.by.mean)
 
-                                        #note: 3 not 4
     if (is.null(xlab[3]) | is.na(xlab[3])) xlab[3] <- "month"
 
     temp <- paste(type, collapse = "+")
@@ -571,48 +627,46 @@ alpha = 0.4, ...)  {
         extra.args$ylim <- rng(data.month)
 
     ## plot
-    xyplot.args <- list(x = myform,  data = data.month, groups = data.month$variable,
-                        as.table = TRUE,
-                        xlab = xlab[3],
-                        xlim = c(0.5, 12.5),
-                        key = key,
-                        strip = strip,
-                        par.strip.text = list(cex = 0.8),
-                        par.settings = simpleTheme(col = myColors, pch = 16),
-                        scales = list(x = list(at = 1:12, labels = substr(format(seq(as.Date("2000-01-01"),
-                                                          as.Date("2000-12-31"), "month"), "%B"), 1, 1))),
-                        panel =  panel.superpose,
-                        panel.groups = function(x, y, col.line, type, group.number, subscripts,...) {
-                            if (group.number == 1) {
-                                panel.grid(-1, 0)
-                                panel.abline(v = 1:12, col = "grey85")
-                            }
-                            if (difference) panel.abline(h = 0, lty = 5)
+    xy.args <- list(x = myform, data = data.month, groups = data.month$variable,
+                    as.table = TRUE,
+                    xlab = xlab[3],
+                    xlim = c(0.5, 12.5),
+                    key = key,
+                    strip = strip,
+                    par.strip.text = list(cex = 0.8),
+                    par.settings = simpleTheme(col = myColors, pch = 16),
+                    scales = list(x = list(at = 1:12, labels = substr(format(seq(as.Date("2000-01-01"),
+                                                      as.Date("2000-12-31"), "month"), "%B"), 1, 1))),
+                    panel =  panel.superpose,
+                    panel.groups = function(x, y, col.line, type, group.number, subscripts,...) {
+                        if (group.number == 1) {
+                            panel.grid(-1, 0)
+                            panel.abline(v = 1:12, col = "grey85")
+                        }
+                        if (difference) panel.abline(h = 0, lty = 5)
 
-                       #     panel.xyplot(x, y, type = "p", col.point = myColors[group.number],...)
+                        ## only plot median once if 2 conf.int
+                        id <- which(data.month$ci[subscripts] == data.month$ci[1])
+                        panel.xyplot(x[id], y[id], type = "l", col.line = myColors[group.number],...)
 
-                            panel.xyplot(x, y, type = "l", col.line = myColors[group.number],...)
-
-
-                            if (ci) {panel.rect(x - 0.3, data.month$Lower[subscripts], x + 0.3,
-                                                data.month$Upper[subscripts],
-                                                fill = myColors[group.number],
-                                                border = NA, alpha = alpha)}
-                        })
+                        if (ci) {mkrect(data.month[subscripts, ], x = "mnth", y = "Mean",
+                                        group.number, myColors, alpha)}
+                    })
 
     ## reset for extra.args
-    xyplot.args <- listUpdate(xyplot.args, extra.args)
+    xy.args <- listUpdate(xy.args, extra.args)
 
     ## plot
-    month <- do.call(xyplot, xyplot.args)
+    month <- do.call(xyplot, xy.args)
 
     ## day and hour ############################################################################
 
     if (difference) {
         data.day.hour <- errorDiff(mydata, vars = "day.hour", type = type, poll1 = poll1,
-                                   poll2 = poll2, B = B)
+                                   poll2 = poll2, B = B, conf.int = conf.int)
     } else {
-        data.day.hour <- calc.wd(mydata, vars = "day.hour", pollutant, type, B = B)
+        data.day.hour <- ldply(conf.int, proc, mydata, vars = "day.hour", pollutant, type, B = B,
+                               statistic = statistic)
     }
 
     if (normalise) data.day.hour <-  ddply(data.day.hour, .(variable), divide.by.mean)
@@ -653,46 +707,53 @@ alpha = 0.4, ...)  {
     if(ylim.handler)
         extra.args$ylim <- rng(data.day.hour)
 
+
     ## plot
-    xyplot.args <- list(x = myform,  data = data.day.hour, groups = data.day.hour$variable,
-                        as.table = TRUE,
-                        xlim = c(0, 23),
-                        xlab = xlab[1],
-                        layout = layout,
-                        par.settings = simpleTheme(col = myColors),
-                        scales = list(x = list(at = c(0, 6, 12, 18, 23))),
-                        key = key,
-                        strip = strip,
-                        strip.left = strip.left,
-                        par.strip.text = list(cex = 0.8),
-                        panel =  panel.superpose,
-                        panel.groups = function(x, y, col.line, type, group.number,
-                        subscripts,...) {
-                            ## add grid lines once (otherwise they overwrite the data)
-                            if (group.number == 1) {
-                                panel.grid(-1, 0)
-                                panel.abline(v = c(0, 6, 12, 18, 23), col = "grey85")
-                            }
+    xy.args <- list(x = myform, data = data.day.hour, groups = data.day.hour$variable,
+                    as.table = TRUE,
+                    xlim = c(0, 23),
+                    xlab = xlab[1],
+                    layout = layout,
+                    par.settings = simpleTheme(col = myColors),
+                    scales = list(x = list(at = c(0, 6, 12, 18, 23))),
+                    key = key,
+                    strip = strip,
+                    strip.left = strip.left,
+                    par.strip.text = list(cex = 0.8),
+                    panel =  panel.superpose,
+                    panel.groups = function(x, y, col.line, type, group.number,
+                    subscripts,...) {
+                        ## add grid lines once (otherwise they overwrite the data)
+                        if (group.number == 1) {
+                            panel.grid(-1, 0)
+                            panel.abline(v = c(0, 6, 12, 18, 23), col = "grey85")
+                        }
 
-                            if (difference) panel.abline(h = 0, lty = 5)
+                        if (difference) panel.abline(h = 0, lty = 5)
 
-                            panel.xyplot(x, y, type = "l", col.line = myColors[group.number],...)
+                        ## only plot median once if 2 conf.int
+                        id <- which(data.day.hour$ci[subscripts] == data.day.hour$ci[1])
 
-                            if (ci) {poly.na(x, data.day.hour$Lower[subscripts], x,
-                                             data.day.hour$Upper[subscripts], group.number, myColors,
-                                             alpha = alpha)}
-                        })
+                        panel.xyplot(x[id], y[id], type = "l", col.line = myColors[group.number],...)
+
+                        if (ci) {mkpoly(data.day.hour[subscripts, ], x = "hour", y = "Mean",
+                                        group.number, myColors, alpha)}
+                    })
 
     ## reset for extra.args
-    xyplot.args <- listUpdate(xyplot.args, extra.args)
+    xy.args <- listUpdate(xy.args, extra.args)
 
     ## plot
-    day.hour <- do.call(xyplot, xyplot.args)
+    day.hour <- do.call(xyplot, xy.args)
 
     subsets = c("day.hour", "hour", "day", "month")
 
     ## this adjusts the space for the title to 2 lines (approx) if \n in title
-    if (length(grep("atop", overall.main) == 1)) y.upp <- 0.95 else y.upp <- 0.975
+    if (length(grep("atop", overall.main) == 1)) {
+        y.upp <- 0.95; y.dwn <- 0.05
+    } else {
+        y.upp <- 0.975; y.dwn <- 0.025
+    }
 
     main.plot <- function(...) {
         if (type == "default") {
@@ -707,12 +768,12 @@ alpha = 0.4, ...)  {
                          title = "", lines.title = 1)
                          ), position = c(0, 0.5, 1, y.upp), more = TRUE)
         }
-        print(hour, position = c(0, 0, 0.33, 0.53), more = TRUE)
-        print(month, position = c(0.33, 0, 0.66, 0.53), more = TRUE)
-        print(day, position = c(0.66, 0, 1, 0.53))
+        print(hour, position = c(0, y.dwn, 0.33, 0.53), more = TRUE)
+        print(month, position = c(0.33, y.dwn, 0.66, 0.53), more = TRUE)
+        print(day, position = c(0.66, y.dwn, 1, 0.53))
         ## use grid to add an overall title
-      #  grid.text(overall.main, 0.5, 0.975, gp = gpar(fontsize = 14))
         grid.text(overall.main, 0.5, y.upp, gp = gpar(fontsize = 14))
+        grid.text(overall.sub, 0.5, y.dwn, gp = gpar(fontsize = 12))
     }
 
     ind.plot = function(x, ...){
@@ -735,12 +796,20 @@ alpha = 0.4, ...)  {
     invisible(output)
 }
 
-calc.wd <- function(mydata, vars = "day.hour", pollutant, type, B = B) {
+proc <- function(conf.int = conf.int, mydata, vars = "day.hour", pollutant, type, B = B,
+                 statistic = statistic) {
 
     ## get rid of R check annoyances
     variable = value = NULL
 
-    summary.values <- function(mydata, vars, FUN, type, B = B) {
+    if (statistic == "mean") {
+        stat <- bootMean
+    } else {
+        stat <- median.hilow
+    }
+
+    summary.values <- function(conf.int = conf.int, mydata, vars = vars, FUN, type = type, B = B,
+                               statistic = statistic) {
 
         if (vars == "hour")  myform <- formula(paste("value ~ variable + hour +", type))
 
@@ -750,20 +819,23 @@ calc.wd <- function(mydata, vars = "day.hour", pollutant, type, B = B) {
 
         if (vars == "mnth") myform <- formula(paste("value ~ variable + mnth +", type))
 
-        mydata <- aggregate(myform, data = mydata, FUN, B = B)
+        mydata <- aggregate(myform, data = mydata, FUN, B = B, statistic = statistic,
+                            conf.int = conf.int)
         mydata
     }
 
     ## function to calculate statistics dealing with wd properly
     if (any(!pollutant %in% "wd")) {
+
         data1 <- subset(mydata, variable != "wd")
-        data1 <-  summary.values(data1, vars, bootMean, type, B = B)
+        data1 <-  summary.values(data1, vars, stat, type, B = B, statistic = statistic,
+                                 conf.int = conf.int)
         data1 <- data.frame(subset(data1, select = -value), data1$value)
     }
 
     if ("wd" %in% pollutant) {
         data2 <-  subset(mydata, variable == "wd")
-        data2 <-  summary.values(data2, vars, bootMean, type, B = B)
+        data2 <-  summary.values(conf.int, data2, vars, wd.smean.normal, type, B = B, statistic = statistic)
         data2 <- data.frame(subset(data2, select = -value), data2$value)
     }
 
@@ -773,10 +845,11 @@ calc.wd <- function(mydata, vars = "day.hour", pollutant, type, B = B) {
 
     if (length(pollutant) == 1 & "wd" %in% pollutant) data2 <- data2
 
+    data2$ci <- conf.int
     data2
 }
 
-wd.smean.normal <- function(wd, B = B) {
+wd.smean.normal <- function(wd, B = B, statistic, conf.int) {
     ## function to calculate mean and 95% CI of the mean for wd
 
     u <- mean(sin(pi * wd / 180), na.rm = TRUE)
@@ -794,18 +867,22 @@ wd.smean.normal <- function(wd, B = B) {
     ids <- which(wd.diff > 180)
     wd.diff[ids] <- abs(wd.diff[ids] - 360)
 
-    conf.int <- bootMean(wd.diff, B = B)
-    Lower <- conf.int[2]
+    if (statistic == "mean") {
+        intervals <- bootMean(wd.diff, B = B, conf.int)
+    } else {
+        intervals <- median.hilow(wd.diff, conf.int)
+    }
+    Lower <- intervals[2]
     names(Lower) <- NULL
 
-    Upper <- conf.int[3]
+    Upper <- intervals[3]
     names(Upper) <- NULL
     diff.wd <- (Upper - Lower) / 2
 
     c(Mean = Mean, Lower = Mean - diff.wd, Upper = Mean + diff.wd)
 }
 
-errorDiff <- function(mydata, vars = "day.hour", poll1, poll2, type, B = B)
+errorDiff <- function(mydata, vars = "day.hour", poll1, poll2, type, B = B, conf.int = conf.int)
 {
     ## bootstrap mean difference confidence intervals
     ## rearrange data
@@ -816,6 +893,60 @@ errorDiff <- function(mydata, vars = "day.hour", poll1, poll2, type, B = B)
     if (vars == "mnth") splits <- c("mnth", type)
 
     res <- ddply(mydata, splits, bootMeanDiff, x = poll1, y = poll2, B = B)
-
+    res$ci <- conf.int[1]
     res
+}
+
+
+## function to calculate median and lower/upper quantiles
+median.hilow <- function (x, conf.int = 0.95, na.rm = TRUE, ...) {
+    quant <- quantile(x, probs = c(0.5, (1 - conf.int) / 2, (1 +
+                         conf.int) / 2), na.rm = na.rm)
+    names(quant) <- c("Mean", "Lower", "Upper")
+    quant
+}
+
+## make poly function ########################################
+mkpoly <- function(dat, x = "hour", y = "Mean", group.number, myColors, alpha) {
+    len <- length(unique(dat$ci)) ## number of confidence intervals to consider
+    ci <- sort(unique(dat$ci))
+
+    fac <- 2
+
+    if (len == 1L) id1 <- which(dat$ci == ci[1]) ## ids of higher band
+
+    if (len == 2L) {
+        id1 <- which(dat$ci == ci[2])
+        id2 <- which(dat$ci == ci[1])
+        fac <- 1
+    }
+
+    poly.na(dat[id1, x], dat$Lower[id1], dat[id1, x], dat$Upper[id1],
+            group.number, myColors, alpha = fac * alpha / 2)
+
+    if (len == 2L) poly.na(dat[id2, x], dat$Lower[id2], dat[id2, x], dat$Upper[id2],
+        group.number, myColors, alpha = alpha)
+}
+
+mkrect <- function(dat, x = "wkday", y = "Mean", group.number, myColors, alpha) {
+    len <- length(unique(dat$ci)) ## number of confidence intervals to consider
+    ci <- sort(unique(dat$ci))
+
+    fac <- 2
+
+    if (len == 1L) id1 <- which(dat$ci == ci[1]) ## ids of higher band
+
+    if (len == 2L) {
+        id1 <- which(dat$ci == ci[2])
+        id2 <- which(dat$ci == ci[1])
+        fac <- 1
+    }
+
+    panel.rect(dat[id1, x] - 0.15 * fac, dat$Lower[id1], dat[id1, x] + 0.15 * fac,
+               dat$Upper[id1], fill = myColors[group.number],
+               border = NA, alpha = fac * alpha / 2)
+
+    if (len == 2L) panel.rect(dat[id2, x] - 0.3, dat$Lower[id2], dat[id2, x] + 0.3,
+        dat$Upper[id2], fill = myColors[group.number],
+        border = NA, alpha = alpha)
 }

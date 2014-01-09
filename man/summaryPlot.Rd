@@ -2,13 +2,11 @@
 \alias{summaryPlot}
 \title{Function to rapidly provide an overview of air quality data}
 \usage{
-  summaryPlot(mydata, na.len = 24, clip = TRUE,
-    percentile = 0.99, type = "histogram",
-    pollutant = "nox", period = "years", breaks = NULL,
-    col.trend = "darkgoldenrod2", col.data = "lightblue",
-    col.mis = rgb(0.65, 0.04, 0.07),
-    col.hist = "forestgreen", cols = NULL, date.breaks = 7,
-    auto.text = TRUE, ...)
+summaryPlot(mydata, na.len = 24, clip = TRUE, percentile = 0.99,
+  type = "histogram", pollutant = "nox", period = "years",
+  breaks = NULL, col.trend = "darkgoldenrod2", col.data = "lightblue",
+  col.mis = rgb(0.65, 0.04, 0.07), col.hist = "forestgreen", cols = NULL,
+  date.breaks = 7, auto.text = TRUE, ...)
 }
 \arguments{
   \item{mydata}{A data frame to be summarised. Must contain
@@ -92,58 +90,55 @@
   Total")}.}
 }
 \description{
-  This function provides a quick graphical and numerical
-  summary of data. The location presence/absence of data
-  are shown, with summary statistics and plots of variable
-  distributions. \code{summaryPlot} can also provide
-  summaries of a single pollutant across many sites.
+This function provides a quick graphical and numerical
+summary of data. The location presence/absence of data are
+shown, with summary statistics and plots of variable
+distributions. \code{summaryPlot} can also provide
+summaries of a single pollutant across many sites.
 }
 \details{
-  \code{summaryPlot} produces two panels of plots: one
-  showing the presence/absence of data and the other the
-  distributions. The left panel shows time series and codes
-  the presence or absence of data in different colours. By
-  stacking the plots one on top of another it is easy to
-  compare different pollutants/variables. Overall
-  statistics are given for each variable: mean, maximum,
-  minimum, missing hours (also expressed as a percentage),
-  median and the 95th percentile. For each year the data
-  capture rate (expressed as a percentage of hours in that
-  year) is also given.
+\code{summaryPlot} produces two panels of plots: one
+showing the presence/absence of data and the other the
+distributions. The left panel shows time series and codes
+the presence or absence of data in different colours. By
+stacking the plots one on top of another it is easy to
+compare different pollutants/variables. Overall statistics
+are given for each variable: mean, maximum, minimum,
+missing hours (also expressed as a percentage), median and
+the 95th percentile. For each year the data capture rate
+(expressed as a percentage of hours in that year) is also
+given.
 
-  The right panel shows either a histogram or a density
-  plot depending on the choice of \code{type}. Density
-  plots avoid the issue of arbitrary bin sizes that can
-  sometimes provide a misleading view of the data
-  distribution. Density plots are often more appropriate,
-  but their effectiveness will depend on the data in
-  question.
+The right panel shows either a histogram or a density plot
+depending on the choice of \code{type}. Density plots avoid
+the issue of arbitrary bin sizes that can sometimes provide
+a misleading view of the data distribution. Density plots
+are often more appropriate, but their effectiveness will
+depend on the data in question.
 
-  \code{summaryPlot} will only show data that are numeric
-  or integer type. This is useful for checking that data
-  have been imported properly. For example, if for some
-  reason a column representing wind speed erroneosly had
-  one or more fields with charcters in, the whole column
-  would be either character or factor type. The absence of
-  a wind speed variable in the \code{summaryPlot} plot
-  would therefore indicate a problem with the input data.
-  In this particular case, the user should go back to the
-  source data and remove the characters or remove them
-  using R functions.
+\code{summaryPlot} will only show data that are numeric or
+integer type. This is useful for checking that data have
+been imported properly. For example, if for some reason a
+column representing wind speed erroneosly had one or more
+fields with charcters in, the whole column would be either
+character or factor type. The absence of a wind speed
+variable in the \code{summaryPlot} plot would therefore
+indicate a problem with the input data. In this particular
+case, the user should go back to the source data and remove
+the characters or remove them using R functions.
 
-  If there is a field \code{site}, which would generally
-  mean there is more than one site, \code{summaryPlot} will
-  provide information on a \emph{single} pollutant across
-  all sites, rather than provide details on all pollutants
-  at a \emph{single} site. In this case the user should
-  also provide a name of a pollutant e.g. \code{pollutant =
-  "nox"}. If a pollutant is not provided the first numeric
-  field will automatically be chosen.
+If there is a field \code{site}, which would generally mean
+there is more than one site, \code{summaryPlot} will
+provide information on a \emph{single} pollutant across all
+sites, rather than provide details on all pollutants at a
+\emph{single} site. In this case the user should also
+provide a name of a pollutant e.g. \code{pollutant =
+"nox"}. If a pollutant is not provided the first numeric
+field will automatically be chosen.
 
-  \bold{It is strongly recommended that the
-  \code{summaryPlot} function is applied to all new
-  imported data sets to ensure the data are imported as
-  expected.}
+\bold{It is strongly recommended that the
+\code{summaryPlot} function is applied to all new imported
+data sets to ensure the data are imported as expected.}
 }
 \examples{
 # load example data from package
@@ -169,7 +164,7 @@ summaryPlot(mydata, clip = FALSE)
 \dontrun{summaryPlot(mydata, col.dens = "black")}
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \keyword{methods}
 

@@ -2,18 +2,15 @@
 \alias{scatterPlot}
 \title{Flexible scatter plots}
 \usage{
-  scatterPlot(mydata, x = "nox", y = "no2", z = NA,
-    method = "scatter", group = NA, avg.time = "default",
-    data.thresh = 0, statistic = "mean", percentile = NA,
-    type = "default", smooth = FALSE, spline = FALSE,
-    linear = FALSE, ci = TRUE, mod.line = FALSE,
-    cols = "hue", plot.type = "p", key = TRUE,
-    key.title = group, key.columns = 1,
-    key.position = "right", strip = TRUE, log.x = FALSE,
-    log.y = FALSE, x.inc = 10, y.inc = 10, limits = NULL,
-    y.relation = "same", x.relation = "same", ref.x = NULL,
-    ref.y = NULL, k = 100, map = FALSE, auto.text = TRUE,
-    ...)
+scatterPlot(mydata, x = "nox", y = "no2", z = NA, method = "scatter",
+  group = NA, avg.time = "default", data.thresh = 0, statistic = "mean",
+  percentile = NA, type = "default", smooth = FALSE, spline = FALSE,
+  linear = FALSE, ci = TRUE, mod.line = FALSE, cols = "hue",
+  plot.type = "p", key = TRUE, key.title = group, key.columns = 1,
+  key.position = "right", strip = TRUE, log.x = FALSE, log.y = FALSE,
+  x.inc = 10, y.inc = 10, limits = NULL, y.relation = "same",
+  x.relation = "same", ref.x = NULL, ref.y = NULL, k = 100,
+  map = FALSE, auto.text = TRUE, ...)
 }
 \arguments{
   \item{mydata}{A data frame containing at least two
@@ -243,73 +240,72 @@
   = NULL} and \code{inv = NULL} should be used.}
 }
 \value{
-  As well as generating the plot itself, \code{scatterPlot}
-  also returns an object of class ``openair''. The object
-  includes three main components: \code{call}, the command
-  used to generate the plot; \code{data}, the data frame of
-  summarised information used to make the plot; and
-  \code{plot}, the plot itself. If retained, e.g. using
-  \code{output <- scatterPlot(mydata, "nox", "no2")}, this
-  output can be used to recover the data, reproduce or
-  rework the original plot or undertake further analysis.
+As well as generating the plot itself, \code{scatterPlot}
+also returns an object of class ``openair''. The object
+includes three main components: \code{call}, the command
+used to generate the plot; \code{data}, the data frame of
+summarised information used to make the plot; and
+\code{plot}, the plot itself. If retained, e.g. using
+\code{output <- scatterPlot(mydata, "nox", "no2")}, this
+output can be used to recover the data, reproduce or rework
+the original plot or undertake further analysis.
 
-  An openair output can be manipulated using a number of
-  generic operations, including \code{print}, \code{plot}
-  and \code{summary}. See \code{\link{openair.generics}}
-  for further details.
+An openair output can be manipulated using a number of
+generic operations, including \code{print}, \code{plot} and
+\code{summary}. See \code{\link{openair.generics}} for
+further details.
 }
 \description{
-  Scatter plots with conditioning and three main
-  approaches: conventional scatterPlot, hexagonal binning
-  and kernel density estimates. The former also has options
-  for fitting smooth fits and linear models with
-  uncertainties shown.
+Scatter plots with conditioning and three main approaches:
+conventional scatterPlot, hexagonal binning and kernel
+density estimates. The former also has options for fitting
+smooth fits and linear models with uncertainties shown.
 }
 \details{
-  The \code{scatterPlot} is the basic function for plotting
-  scatterPlots in flexible ways in \code{openair}. It is
-  flexible enough to consider lots of conditioning
-  variables and takes care of fitting smooth or linear
-  relationships to the data.
+The \code{scatterPlot} is the basic function for plotting
+scatterPlots in flexible ways in \code{openair}. It is
+flexible enough to consider lots of conditioning variables
+and takes care of fitting smooth or linear relationships to
+the data.
 
-  There are four main ways of plotting the relationship
-  between two variables, which are set using the
-  \code{method} option. The default \code{"scatter"} will
-  plot a conventional scatterPlot. In cases where there are
-  lots of data and over-plotting becomes a problem, then
-  \code{method = "hexbin"} or \code{method = "density"} can
-  be useful. The former requires the \code{hexbin} package
-  to be installed.
+There are four main ways of plotting the relationship
+between two variables, which are set using the
+\code{method} option. The default \code{"scatter"} will
+plot a conventional scatterPlot. In cases where there are
+lots of data and over-plotting becomes a problem, then
+\code{method = "hexbin"} or \code{method = "density"} can
+be useful. The former requires the \code{hexbin} package to
+be installed.
 
-  There is also a \code{method = "level"} which will bin
-  the \code{x} and \code{y} data according to the intervals
-  set for \code{x.inc} and \code{y.inc} and colour the bins
-  according to levels of a third variable, \code{z}.
-  Sometimes however, a far better understanding of the
-  relationship between three variables (\code{x}, \code{y}
-  and \code{z}) is gained by fitting a smooth surface
-  through the data. See examples below.
+There is also a \code{method = "level"} which will bin the
+\code{x} and \code{y} data according to the intervals set
+for \code{x.inc} and \code{y.inc} and colour the bins
+according to levels of a third variable, \code{z}.
+Sometimes however, a far better understanding of the
+relationship between three variables (\code{x}, \code{y}
+and \code{z}) is gained by fitting a smooth surface through
+the data. See examples below.
 
-  A smooth fit is shown if \code{smooth = TRUE} which can
-  help show the overall form of the data e.g. whether the
-  relationship appears to be linear or not. Also, a linear
-  fit can be shown using \code{linear = TRUE} as an option.
+A smooth fit is shown if \code{smooth = TRUE} which can
+help show the overall form of the data e.g. whether the
+relationship appears to be linear or not. Also, a linear
+fit can be shown using \code{linear = TRUE} as an option.
 
-  The user has fine control over the choice of colours and
-  symbol type used.
+The user has fine control over the choice of colours and
+symbol type used.
 
-  Another way of reducing the number of points used in the
-  plots which can sometimes be useful is to aggregate the
-  data. For example, hourly data can be aggregated to daily
-  data. See \code{timePlot} for examples here.
+Another way of reducing the number of points used in the
+plots which can sometimes be useful is to aggregate the
+data. For example, hourly data can be aggregated to daily
+data. See \code{timePlot} for examples here.
 
-  By default plots are shown with a colour key at the
-  bottom and in the case of conditioning, strips on the top
-  of each plot. Sometimes this may be overkill and the user
-  can opt to remove the key and/or the strip by setting
-  \code{key} and/or \code{strip} to \code{FALSE}. One
-  reason to do this is to maximise the plotting area and
-  therefore the information shown.
+By default plots are shown with a colour key at the bottom
+and in the case of conditioning, strips on the top of each
+plot. Sometimes this may be overkill and the user can opt
+to remove the key and/or the strip by setting \code{key}
+and/or \code{strip} to \code{FALSE}. One reason to do this
+is to maximise the plotting area and therefore the
+information shown.
 }
 \examples{
 # load openair data if not loaded already
@@ -376,12 +372,12 @@ x.inc = 10, y.inc = 2, smooth = TRUE)
 }
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \seealso{
-  \code{\link{linearRelation}}, \code{\link{timePlot}} and
-  \code{\link{timeAverage}} for details on selecting
-  averaging times and other statistics in a flexible way
+\code{\link{linearRelation}}, \code{\link{timePlot}} and
+\code{\link{timeAverage}} for details on selecting
+averaging times and other statistics in a flexible way
 }
 \keyword{methods}
 

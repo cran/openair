@@ -2,7 +2,7 @@
 \alias{drawOpenKey}
 \title{Scale key handling for openair}
 \usage{
-  drawOpenKey(key, draw = FALSE, vp = NULL)
+drawOpenKey(key, draw = FALSE, vp = NULL)
 }
 \arguments{
   \item{key}{List defining the scale key structure to be
@@ -106,53 +106,52 @@
   type of additional scale labelling is not required.)}
 }
 \value{
-  The function is a modification of
-  \code{lattice::draw.colorkey} and returns a scale key
-  using a similar mechanism to that used in in the original
-  function as developed by Deepayan Sarkar.
+The function is a modification of
+\code{lattice::draw.colorkey} and returns a scale key using
+a similar mechanism to that used in in the original
+function as developed by Deepayan Sarkar.
 }
 \description{
-  General function for producing scale keys for other
-  openair functions.  The function is a crude modification
-  of the draw.colorkey function developed by Deepayan
-  Sarkar as part of the lattice package, and allows
-  additional key labelling to added, and provides some
-  additional control of the appearance and scaling.
+General function for producing scale keys for other openair
+functions.  The function is a crude modification of the
+draw.colorkey function developed by Deepayan Sarkar as part
+of the lattice package, and allows additional key labelling
+to added, and provides some additional control of the
+appearance and scaling.
 }
 \details{
-  The \code{drawOpenKey} function produces scale keys for
-  other openair functions.
+The \code{drawOpenKey} function produces scale keys for
+other openair functions.
 
-  Most \code{drawOpenKey} options are identical to those of
-  \code{lattice::draw.colorkey}.  For example, scale key
-  size and position are controlled via \code{height},
-  \code{width} and \code{space}. Likewise, the axis
-  labelling can be set in and formatted by \code{labels}.
-  See \code{\link{draw.colorkey}} for further details.
+Most \code{drawOpenKey} options are identical to those of
+\code{lattice::draw.colorkey}.  For example, scale key size
+and position are controlled via \code{height}, \code{width}
+and \code{space}. Likewise, the axis labelling can be set
+in and formatted by \code{labels}. See
+\code{\link{draw.colorkey}} for further details.
 
-  Additional scale labelling may be added above and below
-  the scale using \code{header} and \code{footer} options
-  within \code{key}. As in other \code{openair} functions,
-  automatic text formatting can be enabled via
-  \code{auto.key}.
+Additional scale labelling may be added above and below the
+scale using \code{header} and \code{footer} options within
+\code{key}. As in other \code{openair} functions, automatic
+text formatting can be enabled via \code{auto.key}.
 
-  (Note: Currently, the formatting of \code{header} and
-  \code{footer} text are fixed to the same style as
-  \code{labels} (the scale axis) and cannot be defined
-  locally.)
+(Note: Currently, the formatting of \code{header} and
+\code{footer} text are fixed to the same style as
+\code{labels} (the scale axis) and cannot be defined
+locally.)
 
-  The relationship between \code{header}, \code{footer} and
-  the scale key itself can be controlled using \code{fit}
-  options. These can be set in \code{key$fit} to apply
-  uniform control or individually in \code{key$header$fit}
-  and/or \code{key$footer$fit} to control locally.
+The relationship between \code{header}, \code{footer} and
+the scale key itself can be controlled using \code{fit}
+options. These can be set in \code{key$fit} to apply
+uniform control or individually in \code{key$header$fit}
+and/or \code{key$footer$fit} to control locally.
 
-  The appearance of the scale can be controlled using
-  \code{plot.style}.
+The appearance of the scale can be controlled using
+\code{plot.style}.
 }
 \note{
-  We gratefully acknoweldge the considerable help and
-  advice of Deepayan Sarkar.
+We gratefully acknoweldge the considerable help and advice
+of Deepayan Sarkar.
 }
 \examples{
 ##########
@@ -186,22 +185,22 @@ windRose(mydata,
 )
 }
 \author{
-  \code{draw.colorkey} is part of the \code{lattice}
-  package, developed by Deepayan Sarkar.
+\code{draw.colorkey} is part of the \code{lattice} package,
+developed by Deepayan Sarkar.
 
-  Additional modifications by Karl Ropkins.
+Additional modifications by Karl Ropkins.
 }
 \references{
-  Deepayan Sarkar (2010). lattice: Lattice Graphics. R
-  package version 0.18-5.
-  http://r-forge.r-project.org/projects/lattice/
+Deepayan Sarkar (2010). lattice: Lattice Graphics. R
+package version 0.18-5.
+http://r-forge.r-project.org/projects/lattice/
 }
 \seealso{
-  Functions using \code{drawOpenKey} currently include
-  \code{\link{windRose}}, \code{\link{pollutionRose}}.
+Functions using \code{drawOpenKey} currently include
+\code{\link{windRose}}, \code{\link{pollutionRose}}.
 
-  For details of the original function, see
-  \code{\link{draw.colorkey}}
+For details of the original function, see
+\code{\link{draw.colorkey}}
 }
 \keyword{methods}
 

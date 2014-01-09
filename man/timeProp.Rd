@@ -2,17 +2,16 @@
 \alias{timeProp}
 \title{Time series plot with categories shown as a stacked bar chart}
 \usage{
-  timeProp(mydata, pollutant = "nox",
-    proportion = "cluster", avg.time = "day",
-    type = "default", statistic = "mean",
-    normalise = FALSE, cols = "Set1", date.breaks = 7,
-    date.format = NULL, box.width = 1, key.columns = 1,
-    key.position = "right", auto.text = TRUE, ...)
+timeProp(mydata, pollutant = "nox", proportion = "cluster",
+  avg.time = "day", type = "default", statistic = "mean",
+  normalise = FALSE, cols = "Set1", date.breaks = 7, date.format = NULL,
+  box.width = 1, key.columns = 1, key.position = "right",
+  auto.text = TRUE, ...)
 }
 \arguments{
-  \item{mydata}{A data frame containing the field
-  \code{obs} and \code{mod} representing observed and
-  modelled values.}
+  \item{mydata}{A data frame containing the fields
+  \code{date}, \code{pollutant} and a splitting variable
+  \code{proportion}}
 
   \item{pollutant}{Name of the pollutant to plot contained
   in \code{mydata}.}
@@ -127,27 +126,26 @@
   \code{quickText} to handle routine formatting.}
 }
 \description{
-  This function shows time series plots as stacked bar
-  charts. The different categories in the bar chart are
-  made up from a character or factor variable in a data
-  frame. The function is primarily developed to support the
-  plotting of cluster analysis output from
-  \code{\link{polarCluster}} and \code{\link{trajCluster}}
-  that consider local and regional (back trajectory)
-  cluster analysis respectively. However, the function has
-  more general use for understanding time series data.
+This function shows time series plots as stacked bar
+charts. The different categories in the bar chart are made
+up from a character or factor variable in a data frame. The
+function is primarily developed to support the plotting of
+cluster analysis output from \code{\link{polarCluster}} and
+\code{\link{trajCluster}} that consider local and regional
+(back trajectory) cluster analysis respectively. However,
+the function has more general use for understanding time
+series data.
 }
 \details{
-  In order to plot time series in this way, some sort of
-  time aggregation is needed, which is controlled by the
-  option \code{avg.time}.
+In order to plot time series in this way, some sort of time
+aggregation is needed, which is controlled by the option
+\code{avg.time}.
 
-  The plot shows the value of \code{pollutant} on the
-  y-axis (averaged according to \code{avg.time}). The time
-  intervals are made up of bars split according to
-  \code{proportion}. The bars therefore show how the total
-  value of \code{pollutant} is made up for any time
-  interval.
+The plot shows the value of \code{pollutant} on the y-axis
+(averaged according to \code{avg.time}). The time intervals
+are made up of bars split according to \code{proportion}.
+The bars therefore show how the total value of
+\code{pollutant} is made up for any time interval.
 }
 \examples{
 ## See manual for more examples e.g. related to clustering
@@ -158,13 +156,13 @@ timeProp(mydata, pollutant="so2", avg.time="month", proportion="wd")
 }
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \seealso{
-  See \code{\link{timePlot}} for time series plotting,
-  \code{\link{polarCluster}} for cluster analysis of
-  bivariate polar plots and \code{\link{trajCluster}} for
-  cluster analysis of HYSPLIT back trajectories.
+See \code{\link{timePlot}} for time series plotting,
+\code{\link{polarCluster}} for cluster analysis of
+bivariate polar plots and \code{\link{trajCluster}} for
+cluster analysis of HYSPLIT back trajectories.
 }
 \keyword{methods}
 

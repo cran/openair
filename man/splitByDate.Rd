@@ -2,8 +2,8 @@
 \alias{splitByDate}
 \title{Divide up a data frame by time}
 \usage{
-  splitByDate(mydata, dates = "1/1/2003",
-    labels = c("before", "after"), name = "split.by")
+splitByDate(mydata, dates = "1/1/2003", labels = c("before", "after"),
+  name = "split.by")
 }
 \arguments{
   \item{mydata}{A data frame containing a \code{date} field
@@ -17,16 +17,16 @@
   the periods split}
 }
 \description{
-  Utility function to prepare input data for use in openair
-  functions
+Utility function to prepare input data for use in openair
+functions
 }
 \details{
-  This function partitions a data frame up into different
-  time segments. It produces a new column called controlled
-  by \code{name} that can be used in many \code{openair}
-  functions. Note that there must be one more label than
-  there are dates. See examples below and in full
-  \code{openair} documentation.
+This function partitions a data frame up into different
+time segments. It produces a new column called controlled
+by \code{name} that can be used in many \code{openair}
+functions. Note that there must be one more label than
+there are dates. See examples below and in full
+\code{openair} documentation.
 }
 \examples{
 ## split data up into "before" and "after"
@@ -38,7 +38,7 @@ mydata <- splitByDate(mydata, dates = c("1/1/2000", "1/3/2003"),
 labels = c("before", "during", "after"))
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \keyword{methods}
 

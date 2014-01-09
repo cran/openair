@@ -2,8 +2,8 @@
 \alias{aqStats}
 \title{Calculate summary statistics for air pollution data by year}
 \usage{
-  aqStats(mydata, pollutant = "no2", data.thresh = 75,
-    percentile = c(95, 99), transpose = FALSE, ...)
+aqStats(mydata, pollutant = "no2", data.thresh = 75, percentile = c(95,
+  99), transpose = FALSE, ...)
 }
 \arguments{
   \item{mydata}{A data frame containing a \code{date} field
@@ -31,69 +31,68 @@
   \item{...}{Other arguments, currently unused.}
 }
 \description{
-  Calculate a range of air pollution-relevant statistics by
-  year and by site.
+Calculate a range of air pollution-relevant statistics by
+year and by site.
 }
 \details{
-  This function calculates a range of common and air
-  pollution-specific statistics from a data frame. The
-  statistics are calculated on an annual basis and the
-  input is assumed to be hourly data. The function can cope
-  with several sites and years. The user can control the
-  output by setting \code{transpose} appropriately.
+This function calculates a range of common and air
+pollution-specific statistics from a data frame. The
+statistics are calculated on an annual basis and the input
+is assumed to be hourly data. The function can cope with
+several sites and years. The user can control the output by
+setting \code{transpose} appropriately.
 
-  Note that the input data is assumed to be in mass units
-  e.g. ug/m3 for all species except CO (mg/m3).
+Note that the input data is assumed to be in mass units
+e.g. ug/m3 for all species except CO (mg/m3).
 
-  The following statistics are calculated:
+The following statistics are calculated:
 
-  \itemize{ \item \bold{data.capture} --- percentage data
-  capture over a full year.
+\itemize{ \item \bold{data.capture} --- percentage data
+capture over a full year.
 
-  \item \bold{mean} --- annual mean.
+\item \bold{mean} --- annual mean.
 
-  \item \bold{minimum} --- minimum hourly value.
+\item \bold{minimum} --- minimum hourly value.
 
-  \item \bold{maximum} --- maximum hourly value.
+\item \bold{maximum} --- maximum hourly value.
 
-  \item \bold{median} --- median value.
+\item \bold{median} --- median value.
 
-  \item \bold{max.daily} --- maximum daily mean.
+\item \bold{max.daily} --- maximum daily mean.
 
-  \item \bold{max.rolling.8} --- maximum 8-hour rolling
-  mean.
+\item \bold{max.rolling.8} --- maximum 8-hour rolling mean.
 
-  \item \bold{max.rolling.24} --- maximum 24-hour rolling
-  mean.
+\item \bold{max.rolling.24} --- maximum 24-hour rolling
+mean.
 
-  \item \bold{percentile.95} --- 95th percentile. Note that
-  several percentiles can be calculated.
+\item \bold{percentile.95} --- 95th percentile. Note that
+several percentiles can be calculated.
 
-  \item \bold{roll.8.O3.gt.100} --- number of days when the
-  daily maximum rolling 8-hour mean ozone concentration is
-  >100 ug/m3. This is the target value.
+\item \bold{roll.8.O3.gt.100} --- number of days when the
+daily maximum rolling 8-hour mean ozone concentration is
+>100 ug/m3. This is the target value.
 
-  \item \bold{roll.8.O3.gt.120} --- number of days when the
-  daily maximum rolling 8-hour mean ozone concentration is
-  >120 ug/m3. This is the Limit Value not to be exceeded >
-  10 days a year.
+\item \bold{roll.8.O3.gt.120} --- number of days when the
+daily maximum rolling 8-hour mean ozone concentration is
+>120 ug/m3. This is the Limit Value not to be exceeded > 10
+days a year.
 
-  \item \bold{AOT40} --- is the accumulated amount of ozone
-  over the threshold value of 40 ppb for daylight hours in
-  the growing season (April to September). Note that
-  \code{latitude} and \code{longitude} can also be passed
-  to this calculation.
+\item \bold{AOT40} --- is the accumulated amount of ozone
+over the threshold value of 40 ppb for daylight hours in
+the growing season (April to September). Note that
+\code{latitude} and \code{longitude} can also be passed to
+this calculation.
 
-  \item \bold{hours.gt.200} --- number of hours NO2 is more
-  than 200 ug/m3.
+\item \bold{hours.gt.200} --- number of hours NO2 is more
+than 200 ug/m3.
 
-  \item \bold{days.gt.50} --- number of days PM10 is more
-  than 50 ug/m3. }
+\item \bold{days.gt.50} --- number of days PM10 is more
+than 50 ug/m3. }
 
-  There can be small discrepancies with the AURN due to the
-  treatment of rounding data. The \code{aqStats} function
-  does not round, whereas AURN data can be rounded at
-  several stages during the calculations.
+There can be small discrepancies with the AURN due to the
+treatment of rounding data. The \code{aqStats} function
+does not round, whereas AURN data can be rounded at several
+stages during the calculations.
 }
 \examples{
 ## Statistics for 2004. NOTE! these data are in ppb/ppm so the
@@ -104,7 +103,7 @@ aqStats(selectByDate(mydata, year = 2004), pollu=c("no2", "pm10"),
 transpose = TRUE)
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \keyword{methods}
 

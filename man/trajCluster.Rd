@@ -2,10 +2,9 @@
 \alias{trajCluster}
 \title{Calculate clusters for back tracectories}
 \usage{
-  trajCluster(traj, method = "Euclid", n.cluster = 5,
-    plot = TRUE, type = "default", cols = "Set1",
-    split.after = FALSE, map.fill = TRUE,
-    map.cols = "grey40", map.alpha = 0.4, ...)
+trajCluster(traj, method = "Euclid", n.cluster = 5, plot = TRUE,
+  type = "default", cols = "Set1", split.after = FALSE, map.fill = TRUE,
+  map.cols = "grey40", map.alpha = 0.4, ...)
 }
 \arguments{
   \item{traj}{An openair trajectory data frame resulting
@@ -66,32 +65,31 @@
   formatting.}
 }
 \value{
-  Returns original data frame with a new (factor) variable
-  \code{cluster} giving the calculated cluster.
+Returns original data frame with a new (factor) variable
+\code{cluster} giving the calculated cluster.
 }
 \description{
-  This function carries out cluster analysis of HYSPLIT
-  back trajectories. The function is specifically designed
-  to work with the trajectories imported using the
-  \code{openair} \code{importTraj} function, which provides
-  pre-calculated back trajectories at specific receptor
-  locations.
+This function carries out cluster analysis of HYSPLIT back
+trajectories. The function is specifically designed to work
+with the trajectories imported using the \code{openair}
+\code{importTraj} function, which provides pre-calculated
+back trajectories at specific receptor locations.
 }
 \details{
-  Two main methods are available to cluster the back
-  trajectories using two different calculations of the
-  distance matrix. The default is to use the standard
-  Euclidian distance between each pair of trajectories.
-  Also available is an angle-based distance matrix based on
-  Sirois and Bottenheim (1995). The latter method is useful
-  when the interest is the direction of the trajectories in
-  clustering.
+Two main methods are available to cluster the back
+trajectories using two different calculations of the
+distance matrix. The default is to use the standard
+Euclidian distance between each pair of trajectories. Also
+available is an angle-based distance matrix based on Sirois
+and Bottenheim (1995). The latter method is useful when the
+interest is the direction of the trajectories in
+clustering.
 
-  The distance matrix calculations are made in C++ for
-  speed. For data sets of up to 1 year both methods should
-  be relatively fast, although the \code{method = "Angle"}
-  does tend to take much longer to calculate. Further
-  details of these methods are given in the openair manual.
+The distance matrix calculations are made in C++ for speed.
+For data sets of up to 1 year both methods should be
+relatively fast, although the \code{method = "Angle"} does
+tend to take much longer to calculate. Further details of
+these methods are given in the openair manual.
 }
 \examples{
 \dontrun{
@@ -105,18 +103,18 @@ traj <- trajCluster(traj, method = "Angle", type = "season", n.clusters = 4)
 }
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \references{
-  Sirois, A. and Bottenheim, J.W., 1995. Use of backward
-  trajectories to interpret the 5-year record of PAN and O3
-  ambient air concentrations at Kejimkujik National Park,
-  Nova Scotia. Journal of Geophysical Research, 100:
-  2867-2881.
+Sirois, A. and Bottenheim, J.W., 1995. Use of backward
+trajectories to interpret the 5-year record of PAN and O3
+ambient air concentrations at Kejimkujik National Park,
+Nova Scotia. Journal of Geophysical Research, 100:
+2867-2881.
 }
 \seealso{
-  \code{\link{importTraj}}, \code{\link{trajPlot}},
-  \code{\link{trajLevel}}
+\code{\link{importTraj}}, \code{\link{trajPlot}},
+\code{\link{trajLevel}}
 }
 \keyword{methods}
 

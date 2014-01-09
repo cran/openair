@@ -750,10 +750,11 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
 
     ## scaling
     ## scaling of 'zeroed' data
-    intervals <- pretty(mydata[ , x])
+    ## note - add upper because user can set this to be different to data
+    intervals <- pretty(c(mydata[ , x], upper))
 
     ## labels for scaling
-    labels <- pretty(mydata[ , x] + min.scale)
+    labels <- pretty(c(mydata[ , x], upper) + min.scale)
     ## offset the lines/labels if necessary
     intervals <- intervals + (min(labels) - min.scale)
 
