@@ -2,13 +2,12 @@
 \alias{timeVariation}
 \title{Diurnal, day of the week and monthly variation}
 \usage{
-  timeVariation(mydata, pollutant = "nox",
-    local.time = FALSE, normalise = FALSE,
-    xlab = c("hour", "hour", "month", "weekday"),
-    name.pol = pollutant, type = "default", group = NULL,
-    difference = FALSE, B = 100, ci = TRUE, cols = "hue",
-    key = NULL, key.columns = 1, start.day = 1,
-    auto.text = TRUE, alpha = 0.4, ...)
+timeVariation(mydata, pollutant = "nox", local.time = FALSE,
+  normalise = FALSE, xlab = c("hour", "hour", "month", "weekday"),
+  name.pol = pollutant, type = "default", group = NULL,
+  difference = FALSE, statistic = "mean", conf.int = 0.95, B = 100,
+  ci = TRUE, cols = "hue", key = NULL, key.columns = 1, start.day = 1,
+  auto.text = TRUE, alpha = 0.4, ...)
 }
 \arguments{
   \item{mydata}{A data frame of hourly (or higher temporal
@@ -77,6 +76,25 @@
   confidence intervals of the difference in means are also
   calculated. A horizontal dashed line is shown at y = 0.}
 
+  \item{statistic}{Can be \dQuote{mean} (default) or
+  \dQuote{median}. If the statistic is \sQuote{mean} then
+  the mean line and the 95\% confidence interval in the
+  mean are plotted by default. If the statistic is
+  \sQuote{median} then the median line is plotted together
+  with the 5/95 and 25/75th quantiles are plotted. Users
+  can control the confidence intervals with
+  \code{conf.int}.}
+
+  \item{conf.int}{The confidence intervals to be plotted.
+  If \code{statistic = "mean"} then the confidence
+  intervals in the mean are plotted. If \code{statistic =
+  "median"} then the \code{conf.int} and \code{1 -
+  conf.int} \emph{quantiles} are plotted. \code{conf.int}
+  can be of length 2, which is most useful for showing
+  quantiles. For example \code{conf.int = c(0.75, 0.99)}
+  will yield a plot showing the median, 25/75 and 5/95th
+  quantiles.}
+
   \item{B}{Number of bootstrap replicates to use. Can be
   useful to reduce this value when there are a large number
   of observations available to increase the speed of the
@@ -132,88 +150,91 @@
   "southern"}.}
 }
 \value{
-  As well as generating the plot itself,
-  \code{timeVariation} also returns an object of class
-  ``openair''. The object includes three main components:
-  \code{call}, the command used to generate the plot;
-  \code{data}, the data used to make the four components of
-  the plot (or subplots); and \code{plot}, the associated
-  subplots.  If retained, e.g.  using \code{output <-
-  timeVariation(mydata, "nox")}, this output can be used to
-  recover the data, reproduce or rework the original plot
-  or undertake further analysis.
+As well as generating the plot itself, \code{timeVariation}
+also returns an object of class ``openair''. The object
+includes three main components: \code{call}, the command
+used to generate the plot; \code{data}, the data used to
+make the four components of the plot (or subplots); and
+\code{plot}, the associated subplots.  If retained, e.g.
+using \code{output <- timeVariation(mydata, "nox")}, this
+output can be used to recover the data, reproduce or rework
+the original plot or undertake further analysis.
 
-  An openair output can be manipulated using a number of
-  generic operations, including \code{print}, \code{plot}
-  and \code{summary}. See \code{\link{openair.generics}}
-  for further details.
+An openair output can be manipulated using a number of
+generic operations, including \code{print}, \code{plot} and
+\code{summary}. See \code{\link{openair.generics}} for
+further details.
 
-  The four components of timeVariation are:
-  \code{day.hour}, \code{hour}, \code{day} and
-  \code{month}. Associated data.frames can be extracted
-  directly using the \code{subset} option, e.g. as in
-  \code{plot(object, subset = "day.hour")},
-  \code{summary(output, subset = "hour")}, etc, for
-  \code{output <- timeVariation(mydata, "nox")}
+The four components of timeVariation are: \code{day.hour},
+\code{hour}, \code{day} and \code{month}. Associated
+data.frames can be extracted directly using the
+\code{subset} option, e.g. as in \code{plot(object, subset
+= "day.hour")}, \code{summary(output, subset = "hour")},
+etc, for \code{output <- timeVariation(mydata, "nox")}
 }
 \description{
-  Plots the diurnal, day of the week and monthly variation
-  for different variables, typically pollutant
-  concentrations. Four separate plots are produced.
+Plots the diurnal, day of the week and monthly variation
+for different variables, typically pollutant
+concentrations. Four separate plots are produced.
 }
 \details{
-  The variation of pollutant concentrations by hour of the
-  day and day of the week etc. can reveal many interesting
-  features that relate to source types and meteorology. For
-  traffic sources, there are often important differences in
-  the way vehicles vary by vehicles type e.g. less heavy
-  vehicles at weekends.
+The variation of pollutant concentrations by hour of the
+day and day of the week etc. can reveal many interesting
+features that relate to source types and meteorology. For
+traffic sources, there are often important differences in
+the way vehicles vary by vehicles type e.g. less heavy
+vehicles at weekends.
 
-  The \code{timeVariation} function makes it easy to see
-  how concentrations (and many other variable types) vary
-  by hour of the day and day of the week.
+The \code{timeVariation} function makes it easy to see how
+concentrations (and many other variable types) vary by hour
+of the day and day of the week.
 
-  The plots also show the 95\% confidence intervals in the
-  mean. The 95\% confidence intervals in the mean are
-  calculated through bootstrap simulations, which will
-  provide more robust estimates of the confidence intervals
-  (particularly when there are relatively few data).
+The plots also show the 95\% confidence intervals in the
+mean. The 95\% confidence intervals in the mean are
+calculated through bootstrap simulations, which will
+provide more robust estimates of the confidence intervals
+(particularly when there are relatively few data).
 
-  The function can handle multiple pollutants and uses the
-  flexible \code{type} option to provide separate panels
-  for each 'type' --- see \code{cutData} for more details.
-  \code{timeVariation} can also accept a \code{group}
-  option which is useful if data are stacked. This will
-  work in a similar way to having multiple pollutants in
-  separate columns.
+The function can handle multiple pollutants and uses the
+flexible \code{type} option to provide separate panels for
+each 'type' --- see \code{cutData} for more details.
+\code{timeVariation} can also accept a \code{group} option
+which is useful if data are stacked. This will work in a
+similar way to having multiple pollutants in separate
+columns.
 
-  The option \code{difference} will calculate the
-  difference in means of two pollutants together with
-  bootstrap estimates of the 95\% confidence intervals in
-  the difference in the mean. This works in two ways:
-  either two pollutants are supplied in separate columns
-  e.g. \code{pollutant = c("no2", "o3")}, or there are two
-  unique values of \code{group}. The difference is
-  calculated as the second pollutant minus the first and is
-  labelled as such. Considering differences in this way can
-  provide many useful insights and is particularly useful
-  for model evaluation when information is needed about
-  where a model differs from observations by many different
-  time scales. The manual contains various examples of
-  using \code{difference = TRUE}.
+The option \code{difference} will calculate the difference
+in means of two pollutants together with bootstrap
+estimates of the 95\% confidence intervals in the
+difference in the mean. This works in two ways: either two
+pollutants are supplied in separate columns e.g.
+\code{pollutant = c("no2", "o3")}, or there are two unique
+values of \code{group}. The difference is calculated as the
+second pollutant minus the first and is labelled as such.
+Considering differences in this way can provide many useful
+insights and is particularly useful for model evaluation
+when information is needed about where a model differs from
+observations by many different time scales. The manual
+contains various examples of using \code{difference =
+TRUE}.
 
-  Note also that the \code{timeVariation} function works
-  well on a subset of data and in conjunction with other
-  plots. For example, a \code{\link{polarPlot}} may
-  highlight an interesting feature for a particular wind
-  speed/direction range. By filtering for those conditions
-  \code{timeVariation} can help determine whether the
-  temporal variation of that feature differs from other
-  features --- and help with source identification.
+Note also that the \code{timeVariation} function works well
+on a subset of data and in conjunction with other plots.
+For example, a \code{\link{polarPlot}} may highlight an
+interesting feature for a particular wind speed/direction
+range. By filtering for those conditions
+\code{timeVariation} can help determine whether the
+temporal variation of that feature differs from other
+features --- and help with source identification.
 
-  In addition, \code{timeVariation} will work well with
-  other variables if available. Examples include
-  meteorological and traffic flow data.
+In addition, \code{timeVariation} will work well with other
+variables if available. Examples include meteorological and
+traffic flow data.
+
+Depending on the choice of statistic, a subheading is
+added. Users can control the text in the subheading through
+the use of \code{sub} e.g. \code{sub = ""} will remove any
+subheading.
 }
 \examples{
 # basic use
@@ -281,12 +302,21 @@ plot(myplot, subset = "day.hour") # top weekday and plot
 ## summary(myplot, subset = "hour") #summary of hour data set
 ## head(myplot, subset = "day") #head/top of day data set
 ## tail(myplot, subset = "month") #tail/top of month data set
+
+## plot quantiles and median
+\dontrun{
+timeVariation(mydata, stati="median", poll="pm10", col = "firebrick")
+
+## with different intervals
+timeVariation(mydata, stati="median", poll="pm10", conf.int = c(0.75, 0.99),
+col = "firebrick")
+}
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \seealso{
-  \code{\link{polarPlot}}, \code{\link{linearRelation}}
+\code{\link{polarPlot}}, \code{\link{linearRelation}}
 }
 \keyword{methods}
 

@@ -2,14 +2,12 @@
 \alias{smoothTrend}
 \title{Calculate smoothTrends}
 \usage{
-  smoothTrend(mydata, pollutant = "nox", deseason = FALSE,
-    type = "default", statistic = "mean",
-    avg.time = "month", percentile = NA, data.thresh = 0,
-    simulate = FALSE, n = 200, autocor = FALSE,
-    cols = "brewer1", xlab = "year", y.relation = "same",
-    key.columns = length(percentile), ci = TRUE,
-    alpha = 0.2, date.breaks = 7, auto.text = TRUE,
-    k = NULL, ...)
+smoothTrend(mydata, pollutant = "nox", deseason = FALSE, type = "default",
+  statistic = "mean", avg.time = "month", percentile = NA,
+  data.thresh = 0, simulate = FALSE, n = 200, autocor = FALSE,
+  cols = "brewer1", xlab = "year", y.relation = "same",
+  key.columns = length(percentile), ci = TRUE, alpha = 0.2,
+  date.breaks = 7, auto.text = TRUE, k = NULL, ...)
 }
 \arguments{
   \item{mydata}{A data frame containing the field
@@ -152,50 +150,48 @@
   \code{percentile} values, see examples below.}
 }
 \value{
-  As well as generating the plot itself, \code{smoothTrend}
-  also returns an object of class ``openair''. The object
-  includes three main components: \code{call}, the command
-  used to generate the plot; \code{data}, the data frame of
-  summarised information used to make the plot; and
-  \code{plot}, the plot itself. If retained, e.g. using
-  \code{output <- smoothTrend(mydata, "nox")}, this output
-  can be used to recover the data, reproduce or rework the
-  original plot or undertake further analysis.
+As well as generating the plot itself, \code{smoothTrend}
+also returns an object of class ``openair''. The object
+includes three main components: \code{call}, the command
+used to generate the plot; \code{data}, the data frame of
+summarised information used to make the plot; and
+\code{plot}, the plot itself. If retained, e.g. using
+\code{output <- smoothTrend(mydata, "nox")}, this output
+can be used to recover the data, reproduce or rework the
+original plot or undertake further analysis.
 
-  An openair output can be manipulated using a number of
-  generic operations, including \code{print}, \code{plot}
-  and \code{summarise}. See \code{\link{openair.generics}}
-  for further details.
+An openair output can be manipulated using a number of
+generic operations, including \code{print}, \code{plot} and
+\code{summarise}. See \code{\link{openair.generics}} for
+further details.
 }
 \description{
-  Use non-parametric methods to calculate time series
-  trends
+Use non-parametric methods to calculate time series trends
 }
 \details{
-  The \code{smoothTrend} function provides a flexible way
-  of estimating the trend in the concentration of a
-  pollutant or other variable. Monthly mean values are
-  calculated from an hourly (or higher resolution) or daily
-  time series. There is the option to deseasonalise the
-  data if there is evidence of a seasonal cycle.
+The \code{smoothTrend} function provides a flexible way of
+estimating the trend in the concentration of a pollutant or
+other variable. Monthly mean values are calculated from an
+hourly (or higher resolution) or daily time series. There
+is the option to deseasonalise the data if there is
+evidence of a seasonal cycle.
 
-  \code{smoothTrend} uses a Generalized Additive Model
-  (GAM) from the \code{\link{gam}} package to find the most
-  appropriate level of smoothing. The function is
-  particularly suited to situations where trends are not
-  monotonic (see discussion with \code{\link{MannKendall}}
-  for more details on this). The \code{smoothTrend}
-  function is particularly useful as an exploratory
-  technique e.g. to check how linear or non-linear trends
-  are.
+\code{smoothTrend} uses a Generalized Additive Model (GAM)
+from the \code{\link{gam}} package to find the most
+appropriate level of smoothing. The function is
+particularly suited to situations where trends are not
+monotonic (see discussion with \code{\link{MannKendall}}
+for more details on this). The \code{smoothTrend} function
+is particularly useful as an exploratory technique e.g. to
+check how linear or non-linear trends are.
 
-  95% confidence intervals are shown by shading. Bootstrap
-  estimates of the confidence intervals are also available
-  through the \code{simulate} option. Residual resampling
-  is used.
+95% confidence intervals are shown by shading. Bootstrap
+estimates of the confidence intervals are also available
+through the \code{simulate} option. Residual resampling is
+used.
 
-  Trends can be considered in a very wide range of ways,
-  controlled by setting \code{type} - see examples below.
+Trends can be considered in a very wide range of ways,
+controlled by setting \code{type} - see examples below.
 }
 \examples{
 # load example data from package
@@ -219,11 +215,11 @@ percentile = 95)}
 percentile = c(5, 50, 95), lwd = c(1, 2, 1), lty = c(5, 1, 5))}
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \seealso{
-  \code{\link{MannKendall}} for an alternative method of
-  calculating trends.
+\code{\link{MannKendall}} for an alternative method of
+calculating trends.
 }
 \keyword{methods}
 

@@ -2,9 +2,8 @@
 \alias{timeAverage}
 \title{Function to calculate timeAverages for data frames}
 \usage{
-  timeAverage(mydata, avg.time = "day", data.thresh = 0,
-    statistic = "mean", percentile = NA, start.date = NA,
-    vector.ws = FALSE, fill = FALSE)
+timeAverage(mydata, avg.time = "day", data.thresh = 0, statistic = "mean",
+  percentile = NA, start.date = NA, vector.ws = FALSE, fill = FALSE)
 }
 \arguments{
   \item{mydata}{A data frame containing a \code{date} field
@@ -92,40 +91,39 @@
   TRUE}.}
 }
 \value{
-  Returns a data frame with date in class \code{POSIXct}
-  and will remove any non-numeric columns except a column
-  "site".
+Returns a data frame with date in class \code{POSIXct} and
+will remove any non-numeric columns except a column "site".
 }
 \description{
-  Function to flexibly aggregate or expand data frames by
-  different time periods, calculating vector-averaged wind
-  direction where appropriate. The averaged periods can
-  also take account of data capture rates.
+Function to flexibly aggregate or expand data frames by
+different time periods, calculating vector-averaged wind
+direction where appropriate. The averaged periods can also
+take account of data capture rates.
 }
 \details{
-  This function calculates time averages for a data frame.
-  It also treats wind direction correctly through
-  vector-averaging. For example, the average of 350 degrees
-  and 10 degrees is either 0 or 360 - not 180. The
-  calculations therefore average the wind components.
+This function calculates time averages for a data frame. It
+also treats wind direction correctly through
+vector-averaging. For example, the average of 350 degrees
+and 10 degrees is either 0 or 360 - not 180. The
+calculations therefore average the wind components.
 
-  \code{timeAverage} should be useful in many circumstances
-  where it is necessary to work with different time average
-  data. For example, hourly air pollution data and
-  15-minute meteorological data. To merge the two data sets
-  \code{timeAverage} can be used to make the meteorological
-  data 1-hour means first. Alternatively,
-  \code{timeAverage} can be used to expand the hourly data
-  to 15 minute data - see example below.
+\code{timeAverage} should be useful in many circumstances
+where it is necessary to work with different time average
+data. For example, hourly air pollution data and 15-minute
+meteorological data. To merge the two data sets
+\code{timeAverage} can be used to make the meteorological
+data 1-hour means first. Alternatively, \code{timeAverage}
+can be used to expand the hourly data to 15 minute data -
+see example below.
 
-  For the research community \code{timeAverage} should be
-  useful for dealing with outputs from instruments where
-  there are a range of time periods used.
+For the research community \code{timeAverage} should be
+useful for dealing with outputs from instruments where
+there are a range of time periods used.
 
-  It is also very useful for plotting data using
-  \code{\link{timePlot}}. Often the data are too dense to
-  see patterns and setheiltting different averaging periods
-  easily helps with interpretation.
+It is also very useful for plotting data using
+\code{\link{timePlot}}. Often the data are too dense to see
+patterns and setheiltting different averaging periods
+easily helps with interpretation.
 }
 \examples{
 ## daily average values
@@ -144,12 +142,11 @@ min15 <-  timeAverage(mydata, avg.time = "15 min", fill = TRUE)
 }
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \seealso{
-  See \code{\link{timePlot}} that plots time series data
-  and uses \code{timeAverage} to aggregate data where
-  necessary.
+See \code{\link{timePlot}} that plots time series data and
+uses \code{timeAverage} to aggregate data where necessary.
 }
 \keyword{methods}
 

@@ -56,6 +56,8 @@
 ##'   values.
 ##' @param obs Name of a variable in \code{mydata} that respresents measured
 ##'   values.
+##' @param statistic The statistic to be calculated. See details below
+##' for a description of each.
 ##' @param type \code{type} determines how the data are split
 ##' i.e. conditioned, and then plotted. The default is will produce
 ##' statistics using the entire data. \code{type} can be one of the
@@ -106,7 +108,9 @@
 ##' modStats(mydata, mod = "no2", obs = "nox", type = "season")
 ##'
 ##'
-modStats <- function(mydata,  mod = "mod", obs = "obs", type = "default", rank.name = NULL, ...) {
+modStats <- function(mydata,  mod = "mod", obs = "obs",
+                     statistic = c("n", "FAC2", "MB", "MGE", "NMB", "NMGE", "RMSE", "r", "COE"),
+                     type = "default", rank.name = NULL, ...) {
     ## function to calculate model evaluation statistics
     ## the default is to use the entire data set.
     ## Requires a field "date" and optional conditioning variables representing measured and modelled values
@@ -116,6 +120,14 @@ modStats <- function(mydata,  mod = "mod", obs = "obs", type = "default", rank.n
 
     if (any(type %in%  dateTypes)) vars <- c("date", vars)
 
+    theStats <- c("n", "FAC2", "MB", "MGE", "NMB", "NMGE", "RMSE", "r", "COE")
+    matching <- statistic %in% theStats
+
+    if (any(!matching)) {
+        ## not all variables are present
+        stop(cat("Can't find the statistic(s)", statistic[!matching], "\n"))
+    }
+
     ## check the data
     mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE,
                         strip.white = FALSE)
@@ -123,18 +135,21 @@ modStats <- function(mydata,  mod = "mod", obs = "obs", type = "default", rank.n
     mydata <- cutData(mydata, type, ...)
 
     ## calculate the various statistics
-    res.n <- ddply(mydata, type, n, mod, obs)
-    res.FAC <- ddply(mydata, type, FAC2, mod, obs)
-    res.MB <- ddply(mydata, type, MB, mod, obs)
-    res.MGE <- ddply(mydata, type, MGE, mod, obs)
-    res.NMB <- ddply(mydata, type, NMB, mod, obs)
-    res.NMGE <- ddply(mydata, type, NMGE, mod, obs)
-    res.RMSE <- ddply(mydata, type, RMSE, mod, obs)
-    res.r <- ddply(mydata, type, r, mod, obs, ...)
-    res.COE <- ddply(mydata, type, COE, mod, obs)
+    if ("n" %in% statistic) res.n <- ddply(mydata, type, n, mod, obs) else res.n <- NULL
+    if ("FAC2" %in% statistic) res.FAC <- ddply(mydata, type, FAC2, mod, obs) else res.FAC <- NULL
+    if ("MB" %in% statistic) res.MB <- ddply(mydata, type, MB, mod, obs) else res.MB <- NULL
+    if ("MGE" %in% statistic) res.MGE <- ddply(mydata, type, MGE, mod, obs) else res.MGE <- NULL
+    if ("NMB" %in% statistic) res.NMB <- ddply(mydata, type, NMB, mod, obs) else res.NMB <- NULL
+    if ("NMGE" %in% statistic) res.NMGE <- ddply(mydata, type, NMGE, mod, obs) else res.NMGE <- NULL
+    if ("RMSE" %in% statistic) res.RMSE <- ddply(mydata, type, RMSE, mod, obs) else res.RMSE <- NULL
+    if ("r" %in% statistic) res.r <- ddply(mydata, type, r, mod, obs, ...) else res.r <- NULL
+    if ("COE" %in% statistic) res.COE <- ddply(mydata, type, COE, mod, obs) else res.COE <- NULL
 
     ## merge them all into one data frame
     results <- list(res.n, res.FAC, res.MB, res.MGE, res.NMB, res.NMGE, res.RMSE, res.r, res.COE)
+
+    ## remove NULLs from lits
+    results <- results[!sapply(results, is.null)]
     results <- Reduce(function(x, y, by = type) merge(x, y, by = type, all = TRUE), results)
 
     results <- sortDataFrame(results, key = type)
@@ -153,8 +168,7 @@ modStats <- function(mydata,  mod = "mod", obs = "obs", type = "default", rank.n
 
     }
 
-    results <- na.omit(results)
-    results
+     results
 
 }
 
@@ -240,7 +254,8 @@ RMSE <- function(x, mod = "mod", obs = "obs") {
 r <- function(x, mod = "mod", obs = "obs", ...) {
 
     x <- na.omit(x[ , c(mod, obs)])
-    res <- suppressWarnings(cor(x[ , mod], x[ , obs], ...)) ## when SD=0
+    res <- suppressWarnings(cor(x[ , mod], x[ , obs], ...)) ## when SD=0; will return NA
+
     data.frame(r = res)
 }
 

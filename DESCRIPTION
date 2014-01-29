@@ -1,16 +1,15 @@
 Package: openair
 Type: Package
 Title: Tools for the analysis of air pollution data
-Version: 0.9-0
-Date: 2013-11-12
+Version: 0.9-2
+Date: 2014-01-09
 Authors@R: c(person("David", "Carslaw", role = c("aut", "cre"), email =
     "david.carslaw@kcl.ac.uk"), person("Karl", "Ropkins", role =
     "aut", email = "K.Ropkins@its.leeds.ac.uk"))
 ByteCompile: true
-Author: David Carslaw and Karl Ropkins
 Depends: R (>= 2.15.1),
 Imports: utils, grid, plyr, reshape2, mgcv, lattice, latticeExtra,
-        cluster, RColorBrewer
+        cluster, RColorBrewer, Rcpp
 Suggests: hexbin, RgoogleMaps, png, mapdata, KernSmooth
 LinkingTo: Rcpp
 Maintainer: David Carslaw <david.carslaw@kcl.ac.uk>
@@ -23,21 +22,9 @@ License: GPL (>= 2)
 URL: http://www.openair-project.org/
 LazyLoad: yes
 LazyData: yes
-Packaged: 2013-11-12 13:22:03 UTC; david
-Collate: 'aqStats.R' 'calcFno2.R' 'calcPercentile.R' 'calendarPlot.R'
-        'checkPrep.R' 'conditionalQuantile.R' 'corPlot.R' 'cutData.R'
-        'date.breaks.R' 'drawOpenKey.R' 'GoogleMapsPlot.R' 'import.2.R'
-        'import.R' 'importADMS.R' 'importAURN.R' 'importAURNCsv.R'
-        'importKCL.R' 'importSAQN.R' 'kernelExceed.R'
-        'linearRelation.R' 'modStats.R' 'openair.generics.R'
-        'openColours.R' 'percentileRose.R' 'polarAnnulus.R'
-        'polarFreq.R' 'polarPlot.R' 'quickText.R' 'samp.boot.block.R'
-        'scatterPlot.R' 'selectRunning.R' 'smoothTrend.R'
-        'summaryPlot.R' 'TaylorDiagram.R' 'timeAverage.R' 'timePlot.R'
-        'timeVariation.R' 'trendLevel.R' 'utilities.R' 'windRose.R'
-        'trajPlot.R' 'importTraj.R' 'getMeta.R' 'senTheil.R'
-        'TheilSen.R' 'polarCluster.R' 'zzz.R' 'mydata.R'
-        'trajCluster.R' 'conditionalEval.R' 'timeProp.R'
+Packaged: 2014-01-29 07:56:03 UTC; David
+Author: David Carslaw [aut, cre],
+  Karl Ropkins [aut]
 NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2013-11-12 14:30:56
+Date/Publication: 2014-01-29 10:56:54

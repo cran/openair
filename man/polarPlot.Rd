@@ -2,17 +2,14 @@
 \alias{polarPlot}
 \title{Bivariate polar plot with smoothing}
 \usage{
-  polarPlot(mydata, pollutant = "nox", x = "ws", wd = "wd",
-    type = "default", statistic = "mean",
-    resolution = "normal", limits = NA,
-    exclude.missing = TRUE, uncertainty = FALSE,
-    percentile = NA, cols = "default",
-    weights = c(0.25, 0.5, 0.75), min.bin = 1,
-    mis.col = "grey", upper = NA, angle.scale = 315,
-    units = x, force.positive = TRUE, k = 100,
-    normalise = FALSE, key.header = "",
-    key.footer = pollutant, key.position = "right",
-    key = TRUE, auto.text = TRUE, ...)
+polarPlot(mydata, pollutant = "nox", x = "ws", wd = "wd",
+  type = "default", statistic = "mean", resolution = "normal",
+  limits = NA, exclude.missing = TRUE, uncertainty = FALSE,
+  percentile = NA, cols = "default", weights = c(0.25, 0.5, 0.75),
+  min.bin = 1, mis.col = "grey", upper = NA, angle.scale = 315,
+  units = x, force.positive = TRUE, k = 100, normalise = FALSE,
+  key.header = "", key.footer = pollutant, key.position = "right",
+  key = TRUE, auto.text = TRUE, ...)
 }
 \arguments{
   \item{mydata}{A data frame minimally containing
@@ -285,105 +282,103 @@
   \code{quickText} to handle routine formatting.}
 }
 \value{
-  As well as generating the plot itself, \code{polarPlot}
-  also returns an object of class ``openair''. The object
-  includes three main components: \code{call}, the command
-  used to generate the plot; \code{data}, the data frame of
-  summarised information used to make the plot; and
-  \code{plot}, the plot itself. If retained, e.g. using
-  \code{output <- polarPlot(mydata, "nox")}, this output
-  can be used to recover the data, reproduce or rework the
-  original plot or undertake further analysis.
+As well as generating the plot itself, \code{polarPlot}
+also returns an object of class ``openair''. The object
+includes three main components: \code{call}, the command
+used to generate the plot; \code{data}, the data frame of
+summarised information used to make the plot; and
+\code{plot}, the plot itself. If retained, e.g. using
+\code{output <- polarPlot(mydata, "nox")}, this output can
+be used to recover the data, reproduce or rework the
+original plot or undertake further analysis.
 
-  An openair output can be manipulated using a number of
-  generic operations, including \code{print}, \code{plot}
-  and \code{summary}. See \code{\link{openair.generics}}
-  for further details.
+An openair output can be manipulated using a number of
+generic operations, including \code{print}, \code{plot} and
+\code{summary}. See \code{\link{openair.generics}} for
+further details.
 
-  \code{polarPlot} surface data can also be extracted
-  directly using the \code{results}, e.g.
-  \code{results(object)} for \code{output <-
-  polarPlot(mydata, "nox")}. This returns a data frame with
-  four set columns: \code{cond}, conditioning based on
-  \code{type}; \code{u} and \code{v}, the translational
-  vectors based on \code{ws} and \code{wd}; and the local
-  \code{pollutant} estimate.
+\code{polarPlot} surface data can also be extracted
+directly using the \code{results}, e.g.
+\code{results(object)} for \code{output <-
+polarPlot(mydata, "nox")}. This returns a data frame with
+four set columns: \code{cond}, conditioning based on
+\code{type}; \code{u} and \code{v}, the translational
+vectors based on \code{ws} and \code{wd}; and the local
+\code{pollutant} estimate.
 }
 \description{
-  Function for plotting pollutant concentration in polar
-  coordinates showing concentration by wind speed (or
-  another numeric variable) and direction. Mean
-  concentrations are calculated for wind speed-direction
-  \sQuote{bins} (e.g. 0-1, 1-2 m/s,...  and 0-10, 10-20
-  degrees etc.).  To aid interpretation, \code{gam}
-  smoothing is carried out using \code{mgcv}.
+Function for plotting pollutant concentration in polar
+coordinates showing concentration by wind speed (or another
+numeric variable) and direction. Mean concentrations are
+calculated for wind speed-direction \sQuote{bins} (e.g.
+0-1, 1-2 m/s,...  and 0-10, 10-20 degrees etc.).  To aid
+interpretation, \code{gam} smoothing is carried out using
+\code{mgcv}.
 }
 \details{
-  The bivariate polar plot is a useful diagnostic tool for
-  quickly gaining an idea of potential sources. Wind speed
-  is one of the most useful variables to use to separate
-  source types (see references). For example, ground-level
-  concentrations resulting from buoyant plumes from chimney
-  stacks tend to peak under higher wind speed conditions.
-  Conversely, ground-level, non-buoyant plumes such as from
-  road traffic, tend to have highest concentrations under
-  low wind speed conditions. Other sources such as from
-  aircraft engines also show differing characteristics by
-  wind speed.
+The bivariate polar plot is a useful diagnostic tool for
+quickly gaining an idea of potential sources. Wind speed is
+one of the most useful variables to use to separate source
+types (see references). For example, ground-level
+concentrations resulting from buoyant plumes from chimney
+stacks tend to peak under higher wind speed conditions.
+Conversely, ground-level, non-buoyant plumes such as from
+road traffic, tend to have highest concentrations under low
+wind speed conditions. Other sources such as from aircraft
+engines also show differing characteristics by wind speed.
 
-  The function has been developed to allow variables other
-  than wind speed to be plotted with wind direction in
-  polar coordinates. The key issue is that the other
-  variable plotted against wind direction should be
-  discriminating in some way. For example, temperature can
-  help reveal high-level sources brought down to ground
-  level in unstable atmospheric conditions, or show the
-  effect a source emission dependent on temperature e.g.
-  biogenic isoprene.
+The function has been developed to allow variables other
+than wind speed to be plotted with wind direction in polar
+coordinates. The key issue is that the other variable
+plotted against wind direction should be discriminating in
+some way. For example, temperature can help reveal
+high-level sources brought down to ground level in unstable
+atmospheric conditions, or show the effect a source
+emission dependent on temperature e.g. biogenic isoprene.
 
-  The plots can vary considerably depending on how much
-  smoothing is done.  The approach adopted here is based on
-  the very flexible and capable \code{mgcv} package that
-  uses \emph{Generalized Additive Models}. While methods do
-  exist to find an optimum level of smoothness, they are
-  not necessarily useful. The principal aim of
-  \code{polarPlot} is as a graphical analysis rather than
-  for quantitative purposes. In this respect the smoothing
-  aims to strike a balance between revealing interesting
-  (real) features and overly noisy data. The defaults used
-  in \code{polarPlot} are based on the analysis of data
-  from many different sources. More advanced users may wish
-  to modify the code and adopt other smoothing approaches.
+The plots can vary considerably depending on how much
+smoothing is done.  The approach adopted here is based on
+the very flexible and capable \code{mgcv} package that uses
+\emph{Generalized Additive Models}. While methods do exist
+to find an optimum level of smoothness, they are not
+necessarily useful. The principal aim of \code{polarPlot}
+is as a graphical analysis rather than for quantitative
+purposes. In this respect the smoothing aims to strike a
+balance between revealing interesting (real) features and
+overly noisy data. The defaults used in \code{polarPlot}
+are based on the analysis of data from many different
+sources. More advanced users may wish to modify the code
+and adopt other smoothing approaches.
 
-  Various statistics are possible to consider e.g. mean,
-  maximum, median. \code{statistic = "max"} is often useful
-  for revealing sources.
+Various statistics are possible to consider e.g. mean,
+maximum, median. \code{statistic = "max"} is often useful
+for revealing sources.
 
-  Wind direction is split up into 10 degree intervals and
-  the other variable (e.g. wind speed) 30 intervals. These
-  2D bins are then used to calculate the statistics.
+Wind direction is split up into 10 degree intervals and the
+other variable (e.g. wind speed) 30 intervals. These 2D
+bins are then used to calculate the statistics.
 
-  These plots often show interesting features at higher
-  wind speeds (see references below). For these conditions
-  there can be very few measurements and therefore greater
-  uncertainty in the calculation of the surface. There are
-  several ways in which this issue can be tackled. First,
-  it is possible to avoid smoothing altogether and use
-  \code{\link{polarFreq}}. Second, the effect of setting a
-  minimum number of measurements in each wind
-  speed-direction bin can be examined through
-  \code{min.bin}. It is possible that a single point at
-  high wind speed conditions can strongly affect the
-  surface prediction. Therefore, setting \code{min.bin =
-  3}, for example, will remove all wind speed-direction
-  bins with fewer than 3 measurements \emph{before} fitting
-  the surface. Third, consider setting \code{uncertainty =
-  TRUE}. This option will show the predicted surface
-  together with upper and lower 95% confidence intervals,
-  which take account of the frequency of measurements.
+These plots often show interesting features at higher wind
+speeds (see references below). For these conditions there
+can be very few measurements and therefore greater
+uncertainty in the calculation of the surface. There are
+several ways in which this issue can be tackled. First, it
+is possible to avoid smoothing altogether and use
+\code{\link{polarFreq}}. Second, the effect of setting a
+minimum number of measurements in each wind speed-direction
+bin can be examined through \code{min.bin}. It is possible
+that a single point at high wind speed conditions can
+strongly affect the surface prediction. Therefore, setting
+\code{min.bin = 3}, for example, will remove all wind
+speed-direction bins with fewer than 3 measurements
+\emph{before} fitting the surface. Third, consider setting
+\code{uncertainty = TRUE}. This option will show the
+predicted surface together with upper and lower 95%
+confidence intervals, which take account of the frequency
+of measurements.
 
-  Variants on \code{polarPlot} include \code{polarAnnulus}
-  and \code{polarFreq}.
+Variants on \code{polarPlot} include \code{polarAnnulus}
+and \code{polarFreq}.
 }
 \examples{
 # load example data from package
@@ -406,47 +401,47 @@ polarPlot(mydata, pollutant = "nox")
 \dontrun{polarPlot(mydata, pollutant = "so2", uncertainty = TRUE)}
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \references{
-  Ashbaugh, L.L., Malm, W.C., Sadeh, W.Z., 1985. A
-  residence time probability analysis of sulfur
-  concentrations at ground canyon national park.
-  Atmospheric Environment 19 (8), 1263-1270.
+Ashbaugh, L.L., Malm, W.C., Sadeh, W.Z., 1985. A residence
+time probability analysis of sulfur concentrations at
+ground canyon national park. Atmospheric Environment 19
+(8), 1263-1270.
 
-  Carslaw, D.C., Beevers, S.D, Ropkins, K and M.C. Bell
-  (2006). Detecting and quantifying aircraft and other
-  on-airport contributions to ambient nitrogen oxides in
-  the vicinity of a large international airport.
-  Atmospheric Environment. 40/28 pp 5424-5434.
+Carslaw, D.C., Beevers, S.D, Ropkins, K and M.C. Bell
+(2006). Detecting and quantifying aircraft and other
+on-airport contributions to ambient nitrogen oxides in the
+vicinity of a large international airport.  Atmospheric
+Environment. 40/28 pp 5424-5434.
 
-  Carslaw, D.C., & Beevers, S.D. (2013). Characterising and
-  understanding emission sources using bivariate polar
-  plots and k-means clustering. Environmental Modelling &
-  Software, 40, 325-329. doi:10.1016/j.envsoft.2012.09.005
+Carslaw, D.C., & Beevers, S.D. (2013). Characterising and
+understanding emission sources using bivariate polar plots
+and k-means clustering. Environmental Modelling & Software,
+40, 325-329. doi:10.1016/j.envsoft.2012.09.005
 
-  Henry, R.C., Chang, Y.S., Spiegelman, C.H., 2002.
-  Locating nearby sources of air pollution by nonparametric
-  regression of atmospheric concentrations on wind
-  direction. Atmospheric Environment 36 (13), 2237-2244.
+Henry, R.C., Chang, Y.S., Spiegelman, C.H., 2002. Locating
+nearby sources of air pollution by nonparametric regression
+of atmospheric concentrations on wind direction.
+Atmospheric Environment 36 (13), 2237-2244.
 
-  Westmoreland, E.J., N. Carslaw, D.C. Carslaw, A. Gillah
-  and E. Bates (2007).  Analysis of air quality within a
-  street canyon using statistical and dispersion modelling
-  techniques. Atmospheric Environment. Vol.  41(39), pp.
-  9195-9205.
+Westmoreland, E.J., N. Carslaw, D.C. Carslaw, A. Gillah and
+E. Bates (2007).  Analysis of air quality within a street
+canyon using statistical and dispersion modelling
+techniques. Atmospheric Environment. Vol.  41(39), pp.
+9195-9205.
 
-  Yu, K.N., Cheung, Y.P., Cheung, T., Henry, R.C., 2004.
-  Identifying the impact of large urban airports on local
-  air quality by nonparametric regression. Atmospheric
-  Environment 38 (27), 4501-4507.
+Yu, K.N., Cheung, Y.P., Cheung, T., Henry, R.C., 2004.
+Identifying the impact of large urban airports on local air
+quality by nonparametric regression. Atmospheric
+Environment 38 (27), 4501-4507.
 }
 \seealso{
-  \code{\link{polarCluster}} for identifying features in
-  bivairate polar plots and for post processing and
-  \code{\link{polarAnnulus}}, \code{\link{polarFreq}},
-  \code{\link{percentileRose}} for other ways of plotting
-  directional data.
+\code{\link{polarCluster}} for identifying features in
+bivairate polar plots and for post processing and
+\code{\link{polarAnnulus}}, \code{\link{polarFreq}},
+\code{\link{percentileRose}} for other ways of plotting
+directional data.
 }
 \keyword{methods}
 

@@ -2,14 +2,12 @@
 \alias{percentileRose}
 \title{Function to plot percentiles by wind direction}
 \usage{
-  percentileRose(mydata, pollutant = "nox",
-    type = "default", percentile = c(25, 50, 75, 90, 95),
-    method = "default", cols = "default", mean = TRUE,
-    mean.lty = 1, mean.lwd = 3, mean.col = "grey",
-    fill = TRUE, intervals = NULL, angle.scale = 45,
-    auto.text = TRUE, key.header = NULL,
-    key.footer = "percentile", key.position = "bottom",
-    key = TRUE, ...)
+percentileRose(mydata, pollutant = "nox", type = "default",
+  percentile = c(25, 50, 75, 90, 95), method = "default",
+  cols = "default", mean = TRUE, mean.lty = 1, mean.lwd = 3,
+  mean.col = "grey", fill = TRUE, intervals = NULL, angle.scale = 45,
+  auto.text = TRUE, key.header = NULL, key.footer = "percentile",
+  key.position = "bottom", key = TRUE, ...)
 }
 \arguments{
   \item{mydata}{A data frame minimally containing \code{wd}
@@ -129,56 +127,54 @@
   routine formatting.}
 }
 \value{
-  As well as generating the plot itself,
-  \code{percentileRose} also returns an object of class
-  \dQuote{openair}. The object includes three main
-  components: \code{call}, the command used to generate the
-  plot; \code{data}, the data frame of summarised
-  information used to make the plot; and \code{plot}, the
-  plot itself. If retained, e.g. using \code{output <-
-  percentileRose(mydata, "nox")}, this output can be used
-  to recover the data, reproduce or rework the original
-  plot or undertake further analysis.
+As well as generating the plot itself,
+\code{percentileRose} also returns an object of class
+\dQuote{openair}. The object includes three main
+components: \code{call}, the command used to generate the
+plot; \code{data}, the data frame of summarised information
+used to make the plot; and \code{plot}, the plot itself. If
+retained, e.g. using \code{output <- percentileRose(mydata,
+"nox")}, this output can be used to recover the data,
+reproduce or rework the original plot or undertake further
+analysis.
 
-  An openair output can be manipulated using a number of
-  generic operations, including \code{print}, \code{plot}
-  and \code{summary}. See \code{\link{openair.generics}}
-  for further details.
+An openair output can be manipulated using a number of
+generic operations, including \code{print}, \code{plot} and
+\code{summary}. See \code{\link{openair.generics}} for
+further details.
 }
 \description{
-  \code{percentileRose} plots percentiles by wind direction
-  with flexible conditioning. The plot can display mutiple
-  percentile lines or filled areas.
+\code{percentileRose} plots percentiles by wind direction
+with flexible conditioning. The plot can display mutiple
+percentile lines or filled areas.
 }
 \details{
-  \code{percentileRose} calculates percentile levels of a
-  pollutant and plots them by wind direction. One or more
-  percentile levels can be calculated and these are
-  displayed as either filled areas or as lines.
+\code{percentileRose} calculates percentile levels of a
+pollutant and plots them by wind direction. One or more
+percentile levels can be calculated and these are displayed
+as either filled areas or as lines.
 
-  The levels by wind direction are calculated using a
-  cyclic smooth cubic spline. The wind directions are
-  rounded to the nearest 10 degrees, consistent with
-  surface data from the UK Met Office before a smooth is
-  fitted.
+The levels by wind direction are calculated using a cyclic
+smooth cubic spline. The wind directions are rounded to the
+nearest 10 degrees, consistent with surface data from the
+UK Met Office before a smooth is fitted.
 
-  The \code{percentileRose} function compliments other
-  similar functions including \code{\link{windRose}},
-  \code{\link{pollutionRose}}, \code{\link{polarFreq}} or
-  \code{\link{polarPlot}}. It is most useful for showing
-  the distribution of concentrations by wind direction and
-  often can reveal different sources e.g. those that only
-  affect high percentile concentrations such as a chimney
-  stack.
+The \code{percentileRose} function compliments other
+similar functions including \code{\link{windRose}},
+\code{\link{pollutionRose}}, \code{\link{polarFreq}} or
+\code{\link{polarPlot}}. It is most useful for showing the
+distribution of concentrations by wind direction and often
+can reveal different sources e.g. those that only affect
+high percentile concentrations such as a chimney stack.
 
-  Similar to other functions, flexible conditioning is
-  available through the \code{type} option. It is easy for
-  example to consider multiple percentile values for a
-  pollutant by season, year and so on. See examples below.
+Similar to other functions, flexible conditioning is
+available through the \code{type} option. It is easy for
+example to consider multiple percentile values for a
+pollutant by season, year and so on. See examples below.
 
-  \code{percentileRose} also offers great flexibility with
-  the scale used and the user has fine control over both
-  the range, interval and colour.
+\code{percentileRose} also offers great flexibility with
+the scale used and the user has fine control over both the
+range, interval and colour.
 }
 \examples{
 # basic percentile plot
@@ -196,18 +192,18 @@ percentileRose(mydata, type = c("season", "daylight"), pollutant = "o3", col = "
 }
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \references{
-  Ashbaugh, L.L., Malm, W.C., Sadeh, W.Z., 1985. A
-  residence time probability analysis of sulfur
-  concentrations at ground canyon national park.
-  Atmospheric Environment 19 (8), 1263-1270.
+Ashbaugh, L.L., Malm, W.C., Sadeh, W.Z., 1985. A residence
+time probability analysis of sulfur concentrations at
+ground canyon national park. Atmospheric Environment 19
+(8), 1263-1270.
 }
 \seealso{
-  See Also as \code{\link{windRose}},
-  \code{\link{pollutionRose}}, \code{\link{polarFreq}},
-  \code{\link{polarPlot}}
+See Also as \code{\link{windRose}},
+\code{\link{pollutionRose}}, \code{\link{polarFreq}},
+\code{\link{polarPlot}}
 }
 \keyword{methods}
 

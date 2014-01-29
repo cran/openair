@@ -2,8 +2,9 @@
 \alias{modStats}
 \title{Calculate common model evaluation statistics}
 \usage{
-  modStats(mydata, mod = "mod", obs = "obs",
-    type = "default", rank.name = NULL, ...)
+modStats(mydata, mod = "mod", obs = "obs", statistic = c("n", "FAC2",
+  "MB", "MGE", "NMB", "NMGE", "RMSE", "r", "COE"), type = "default",
+  rank.name = NULL, ...)
 }
 \arguments{
   \item{mydata}{A data frame.}
@@ -13,6 +14,9 @@
 
   \item{obs}{Name of a variable in \code{mydata} that
   respresents measured values.}
+
+  \item{statistic}{The statistic to be calculated. See
+  details below for a description of each.}
 
   \item{type}{\code{type} determines how the data are split
   i.e. conditioned, and then plotted. The default is will
@@ -47,65 +51,64 @@
   e.g.  \code{hemisphere = "southern"}}
 }
 \value{
-  Returns a data frame with model evaluation statistics.
+Returns a data frame with model evaluation statistics.
 }
 \description{
-  Function to calculate common numerical model evaluation
-  statistics with flexible conditioning
+Function to calculate common numerical model evaluation
+statistics with flexible conditioning
 }
 \details{
-  This function is under development and currently provides
-  some common model evaluation statistics. These include
-  (to be mathematically defined later):
+This function is under development and currently provides
+some common model evaluation statistics. These include (to
+be mathematically defined later):
 
-  \itemize{
+\itemize{
 
-  \item \eqn{n}, the number of complete pairs of data.
+\item \eqn{n}, the number of complete pairs of data.
 
-  \item \eqn{FAC2}, fraction of predictions within a factor
-  of two.
+\item \eqn{FAC2}, fraction of predictions within a factor
+of two.
 
-  \item \eqn{MB}, the mean bias.
+\item \eqn{MB}, the mean bias.
 
-  \item \eqn{MGE}, the mean gross error.
+\item \eqn{MGE}, the mean gross error.
 
-  \item \eqn{NMB}, the normalised mean bias.
+\item \eqn{NMB}, the normalised mean bias.
 
-  \item \eqn{NMGE}, the normalised mean gross error.
+\item \eqn{NMGE}, the normalised mean gross error.
 
-  \item \eqn{RMSE}, the root mean squared error.
+\item \eqn{RMSE}, the root mean squared error.
 
-  \item \eqn{r}, the Pearson correlation coefficient. Note,
-  can also supply and aurument \code{method} e.g.
-  \code{method = "spearman"}
+\item \eqn{r}, the Pearson correlation coefficient. Note,
+can also supply and aurument \code{method} e.g.
+\code{method = "spearman"}
 
-  \item \eqn{COE}, the \emph{Coefficient of Efficiency}
-  based on Legates and McCabe (1999, 2012). There have been
-  many suggestions for measuring model performance over the
-  years, but the COE is a simple formulation which is easy
-  to interpret.
+\item \eqn{COE}, the \emph{Coefficient of Efficiency} based
+on Legates and McCabe (1999, 2012). There have been many
+suggestions for measuring model performance over the years,
+but the COE is a simple formulation which is easy to
+interpret.
 
-  A perfect model has a COE = 1. As noted by Legates and
-  McCabe although the COE has no lower bound, a value of
-  COE = 0.0 has a fundamental meaning. It implies that the
-  model is no more able to predict the observed values than
-  does the observed mean. Therefore, since the model can
-  explain no more of the variation in the observed values
-  than can the observed mean, such a model can have no
-  predictive advantage.
+A perfect model has a COE = 1. As noted by Legates and
+McCabe although the COE has no lower bound, a value of COE
+= 0.0 has a fundamental meaning. It implies that the model
+is no more able to predict the observed values than does
+the observed mean. Therefore, since the model can explain
+no more of the variation in the observed values than can
+the observed mean, such a model can have no predictive
+advantage.
 
-  For negative values of COE, the model is less effective
-  than the observed mean in predicting the variation in the
-  observations. }
+For negative values of COE, the model is less effective
+than the observed mean in predicting the variation in the
+observations. }
 
-  All statistics are based on complete pairs of \code{mod}
-  and \code{obs}.
+All statistics are based on complete pairs of \code{mod}
+and \code{obs}.
 
-  Conditioning is possible through setting \code{type},
-  which can be a vector e.g. \code{type = c("weekday",
-  "season")}.
+Conditioning is possible through setting \code{type}, which
+can be a vector e.g. \code{type = c("weekday", "season")}.
 
-  Details of the formulas are given in the openair manual.
+Details of the formulas are given in the openair manual.
 }
 \examples{
 ## the example below is somewhat artificial --- assuming the observed
@@ -118,17 +121,16 @@ modStats(mydata, mod = "no2", obs = "nox")
 modStats(mydata, mod = "no2", obs = "nox", type = "season")
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \references{
-  Legates DR, McCabe GJ. (1999). Evaluating the use of
-  goodness-of-fit measures in hydrologic and hydroclimatic
-  model validation. Water Resources Research 35(1):
-  233-241.
+Legates DR, McCabe GJ. (1999). Evaluating the use of
+goodness-of-fit measures in hydrologic and hydroclimatic
+model validation. Water Resources Research 35(1): 233-241.
 
-  Legates DR, McCabe GJ. (2012). A refined index of model
-  performance: a rejoinder, International Journal of
-  Climatology.
+Legates DR, McCabe GJ. (2012). A refined index of model
+performance: a rejoinder, International Journal of
+Climatology.
 }
 \keyword{methods}
 

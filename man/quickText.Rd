@@ -2,7 +2,7 @@
 \alias{quickText}
 \title{Automatic text formatting for openair}
 \usage{
-  quickText(text, auto.text = TRUE)
+quickText(text, auto.text = TRUE)
 }
 \arguments{
   \item{text}{A character vector.}
@@ -15,22 +15,22 @@
   using this option.}
 }
 \value{
-  The function returns an expression for graphical
-  evaluation.
+The function returns an expression for graphical
+evaluation.
 }
 \description{
-  Workhorse function that automatically applies routine
-  text formatting to common expressions and data names used
-  in openair.
+Workhorse function that automatically applies routine text
+formatting to common expressions and data names used in
+openair.
 }
 \details{
-  \code{quickText} is routine formatting lookup table. It
-  screens the supplied character vector \code{text} and
-  automatically applies formatting to any recognised
-  character sub-series. The function is used in a number of
-  \code{openair} functions and can also be used directly by
-  users to format text components of their own graphs (see
-  below).
+\code{quickText} is routine formatting lookup table. It
+screens the supplied character vector \code{text} and
+automatically applies formatting to any recognised
+character sub-series. The function is used in a number of
+\code{openair} functions and can also be used directly by
+users to format text components of their own graphs (see
+below).
 }
 \examples{
 #example 1
@@ -43,7 +43,7 @@ plot(mydata$no2, mydata$pm10, xlab = quickText("my no2 label"),
      ylab = quickText("pm10 [ ug.m-3 ]"))
 }
 \author{
-  Karl Ropkins.
+Karl Ropkins.
 }
 \keyword{methods}
 

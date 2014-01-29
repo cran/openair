@@ -662,7 +662,7 @@ errorInMean <- function (x, mult = qt((1 + conf.int)/2, n - 1), conf.int = 0.95,
 }
 
 ## bootsrap confidence intervals in the mean from Hmisc
-bootMean <- function (x, conf.int = 0.95, B = 1000, na.rm = TRUE, reps = FALSE)
+bootMean <- function (x, conf.int = 0.95, B = 1000, na.rm = TRUE, reps = FALSE, ...)
 {
     if (na.rm)
         x <- x[!is.na(x)]

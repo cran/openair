@@ -2,8 +2,7 @@
 \alias{calcFno2}
 \title{Estimate NO2/NOX emission ratios from monitoring data}
 \usage{
-  calcFno2(input, tau = 60, user.fno2, main = "",
-    xlab = "year", ...)
+calcFno2(input, tau = 60, user.fno2, main = "", xlab = "year", ...)
 }
 \arguments{
   \item{input}{A data frame with the following fields.
@@ -32,100 +31,99 @@
   \code{scatterPlot}.}
 }
 \value{
-  As well as generating the plot itself, \code{calcFno2}
-  also returns an object of class ``openair''. The object
-  includes three main components: \code{call}, the command
-  used to generate the plot; \code{data}, the data frame of
-  summarised information used to make the plot; and
-  \code{plot}, the plot itself. If retained, e.g. using
-  \code{output <- calcFno2(...)}, this output can be used
-  to recover the data, reproduce or rework the original
-  plot or undertake further analysis.
+As well as generating the plot itself, \code{calcFno2} also
+returns an object of class ``openair''. The object includes
+three main components: \code{call}, the command used to
+generate the plot; \code{data}, the data frame of
+summarised information used to make the plot; and
+\code{plot}, the plot itself. If retained, e.g. using
+\code{output <- calcFno2(...)}, this output can be used to
+recover the data, reproduce or rework the original plot or
+undertake further analysis.
 
-  An openair output can be manipulated using a number of
-  generic operations, including \code{print}, \code{plot}
-  and \code{summary}. See \code{\link{openair.generics}}
-  for further details.
+An openair output can be manipulated using a number of
+generic operations, including \code{print}, \code{plot} and
+\code{summary}. See \code{\link{openair.generics}} for
+further details.
 }
 \description{
-  Given hourly NOX and NO2 from a roadside site and hourly
-  NOX, NO2 and O3 from a background site the function will
-  estimate the emissions ratio of NO2/NOX --- the level of
-  primary NO2
+Given hourly NOX and NO2 from a roadside site and hourly
+NOX, NO2 and O3 from a background site the function will
+estimate the emissions ratio of NO2/NOX --- the level of
+primary NO2
 }
 \details{
-  The principal purpose of this function is to estimate the
-  level of primary (or direct) NO2 from road vehicles. When
-  hourly data of NOX, NO2 and O3 are available, the total
-  oxidant method of Clapp and Jenkin (2001) can be used. If
-  roadside O3 measurements are available see
-  \code{\link{linearRelation}} for details of how to
-  estimate the primary NO2 fraction.
+The principal purpose of this function is to estimate the
+level of primary (or direct) NO2 from road vehicles. When
+hourly data of NOX, NO2 and O3 are available, the total
+oxidant method of Clapp and Jenkin (2001) can be used. If
+roadside O3 measurements are available see
+\code{\link{linearRelation}} for details of how to estimate
+the primary NO2 fraction.
 
-  In the absence of roadside O3 measurements, it is rather
-  more problematic to calculate the fraction of primary
-  NO2. Carslaw and Beevers (2005c) developed an approach
-  based on \code{\link{linearRelation}} the analysis of
-  roadside and background measurements. The increment in
-  roadside NO2 concentrations is primarily determined by
-  direct emissions of NO2 and the availability of One to
-  react with NO to form NO2. The method aims to quantify
-  the amount of NO2 formed through these two processes by
-  seeking the optimum level of primary NO2 that gives the
-  least error.
+In the absence of roadside O3 measurements, it is rather
+more problematic to calculate the fraction of primary NO2.
+Carslaw and Beevers (2005c) developed an approach based on
+\code{\link{linearRelation}} the analysis of roadside and
+background measurements. The increment in roadside NO2
+concentrations is primarily determined by direct emissions
+of NO2 and the availability of One to react with NO to form
+NO2. The method aims to quantify the amount of NO2 formed
+through these two processes by seeking the optimum level of
+primary NO2 that gives the least error.
 
-  Test data is provided at
-  \url{http://www.openair-project.org}.
+Test data is provided at
+\url{http://www.openair-project.org}.
 }
 \examples{
 ## Users should see the full openair manual for examples of how
 ## to use this function.
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \references{
-  Clapp, L.J., Jenkin, M.E., 2001. Analysis of the
-  relationship between ambient levels of O3, NO2 and NO as
-  a function of NOX in the UK.  Atmospheric Environment 35
-  (36), 6391-6405.
+Clapp, L.J., Jenkin, M.E., 2001. Analysis of the
+relationship between ambient levels of O3, NO2 and NO as a
+function of NOX in the UK.  Atmospheric Environment 35
+(36), 6391-6405.
 
-  Carslaw, D.C. and N Carslaw (2007).  Detecting and
-  characterising small changes in urban nitrogen dioxide
-  concentrations.  Atmospheric Environment.  Vol. 41,
-  4723-4733.
+Carslaw, D.C. and N Carslaw (2007).  Detecting and
+characterising small changes in urban nitrogen dioxide
+concentrations.  Atmospheric Environment.  Vol. 41,
+4723-4733.
 
-  Carslaw, D.C., Beevers, S.D. and M.C. Bell (2007). Risks
-  of exceeding the hourly EU limit value for nitrogen
-  dioxide resulting from increased road transport emissions
-  of primary nitrogen dioxide. Atmospheric Environment 41
-  2073-2082.
+Carslaw, D.C., Beevers, S.D. and M.C. Bell (2007). Risks of
+exceeding the hourly EU limit value for nitrogen dioxide
+resulting from increased road transport emissions of
+primary nitrogen dioxide. Atmospheric Environment 41
+2073-2082.
 
-  Carslaw, D.C. (2005a). Evidence of an increasing NO2/NOX
-  emissions ratio from road traffic emissions. Atmospheric
-  Environment, 39(26) 4793-4802.
+Carslaw, D.C. (2005a). Evidence of an increasing NO2/NOX
+emissions ratio from road traffic emissions. Atmospheric
+Environment, 39(26) 4793-4802.
 
-  Carslaw, D.C. and Beevers, S.D. (2005b). Development of
-  an urban inventory for road transport emissions of NO2
-  and comparison with estimates derived from ambient
-  measurements. Atmospheric Environment, (39): 2049-2059.
+Carslaw, D.C. and Beevers, S.D. (2005b). Development of an
+urban inventory for road transport emissions of NO2 and
+comparison with estimates derived from ambient
+measurements. Atmospheric Environment, (39): 2049-2059.
 
-  Carslaw, D.C. and Beevers, S.D. (2005c). Estimations of
-  road vehicle primary NO2 exhaust emission fractions using
-  monitoring data in London.  Atmospheric Environment,
-  39(1): 167-177.
+Carslaw, D.C. and Beevers, S.D. (2005c). Estimations of
+road vehicle primary NO2 exhaust emission fractions using
+monitoring data in London.  Atmospheric Environment, 39(1):
+167-177.
 
-  Carslaw, D. C. and S. D. Beevers (2004). Investigating
-  the Potential Importance of Primary NO2 Emissions in a
-  Street Canyon. Atmospheric Environment 38(22): 3585-3594.
+Carslaw, D. C. and S. D. Beevers (2004). Investigating the
+Potential Importance of Primary NO2 Emissions in a Street
+Canyon. Atmospheric Environment 38(22): 3585-3594.
 
-  Carslaw, D. C. and S. D. Beevers (2004). New Directions:
-  Should road vehicle emissions legislation consider
-  primary NO2? Atmospheric Environment 38(8): 1233-1234.
+Carslaw, D. C. and S. D. Beevers (2004). New Directions:
+Should road vehicle emissions legislation consider primary
+NO2? Atmospheric Environment 38(8): 1233-1234.
 }
 \seealso{
-  \code{\link{linearRelation}} if you have roadside ozone
-  measurements.
+\code{\link{linearRelation}} if you have roadside ozone
+measurements.
 }
 \keyword{methods}
 

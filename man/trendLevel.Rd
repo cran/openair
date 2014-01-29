@@ -4,15 +4,13 @@
 \alias{trendLevelWd}
 \title{trendLevel}
 \usage{
-  trendLevel(mydata, pollutant = "nox", x = "month",
-    y = "hour", type = "year", rotate.axis = c(90, 0),
-    n.levels = c(10, 10, 4), limits = c(0, 100),
-    cols = "default", auto.text = TRUE,
-    key.header = "use.stat.name", key.footer = pollutant,
-    key.position = "right", key = TRUE,
-    statistic = c("mean", "max", "frequency"),
-    stat.args = NULL, stat.safe.mode = TRUE,
-    drop.unused.types = TRUE, ...)
+trendLevel(mydata, pollutant = "nox", x = "month", y = "hour",
+  type = "year", rotate.axis = c(90, 0), n.levels = c(10, 10, 4),
+  limits = c(0, 100), cols = "default", auto.text = TRUE,
+  key.header = "use.stat.name", key.footer = pollutant,
+  key.position = "right", key = TRUE, statistic = c("mean", "max",
+  "frequency"), stat.args = NULL, stat.safe.mode = TRUE,
+  drop.unused.types = TRUE, ...)
 }
 \arguments{
   \item{mydata}{The openair data frame to use to generate
@@ -133,61 +131,61 @@
   the plot itself.}
 }
 \value{
-  As well as generating the plot itself, \code{trendLevel}
-  also returns an object of class ``openair''. The object
-  includes three main components: \code{call}, the command
-  used to generate the plot; \code{data}, the data frame of
-  summarised information used to make the plot; and
-  \code{plot}, the plot itself. If retained, e.g. using
-  \code{output <- trendLevel(mydata)}, this output can be
-  used to recover the data, reproduce or rework the
-  original plot or undertake further analysis.
+As well as generating the plot itself, \code{trendLevel}
+also returns an object of class ``openair''. The object
+includes three main components: \code{call}, the command
+used to generate the plot; \code{data}, the data frame of
+summarised information used to make the plot; and
+\code{plot}, the plot itself. If retained, e.g. using
+\code{output <- trendLevel(mydata)}, this output can be
+used to recover the data, reproduce or rework the original
+plot or undertake further analysis.
 
-  An openair output can be manipulated using a number of
-  generic operations, including \code{print}, \code{plot}
-  and \code{summary}. See \code{\link{openair.generics}}
-  for further details.
+An openair output can be manipulated using a number of
+generic operations, including \code{print}, \code{plot} and
+\code{summary}. See \code{\link{openair.generics}} for
+further details.
 
-  Summary statistics can also be extracted directly using
-  \code{results}, e.g.  \code{results(object)} for
-  \code{output <- trendLevel(mydata)}.
+Summary statistics can also be extracted directly using
+\code{results}, e.g.  \code{results(object)} for
+\code{output <- trendLevel(mydata)}.
 }
 \description{
-  The trendLevel function provides a way of rapidly showing
-  a large amount of data in a condensed form. In one plot,
-  the variation in the concentration of one pollutant can
-  to shown as a function of three other properties. The
-  default version of the plot uses y = time of day, x =
-  month of year and type = year to provide information on
-  trends, seasonal effects and diurnal variations. However,
-  x, y and type and summarising statistics can all be
-  modified to provide a range of other similar plots.
+The trendLevel function provides a way of rapidly showing a
+large amount of data in a condensed form. In one plot, the
+variation in the concentration of one pollutant can to
+shown as a function of three other properties. The default
+version of the plot uses y = time of day, x = month of year
+and type = year to provide information on trends, seasonal
+effects and diurnal variations. However, x, y and type and
+summarising statistics can all be modified to provide a
+range of other similar plots.
 }
 \details{
-  \code{trendLevel} allows the use of third party
-  summarising functions via the \code{statistic} option.
-  Any additional function arguments not included within a
-  function called using \code{statistic} should be supplied
-  as a list of named parameters and sent using
-  \code{stat.args}. For example, the encoded option
-  \code{statistic = "mean"} is equivalent to
-  \code{statistic = mean, stat.args = list(na.rm = TRUE)}
-  or the R command \code{mean(x, na.rm= TRUE)}.  Many R
-  functions and user`s own code could be applied in a
-  similar fashion, subject to the following restrictions:
-  the first argument sent to the function must be the data
-  series to be analysed; the name `x' cannot be used for
-  any of the extra options supplied in \code{stat.args};
-  and the function should return the required answer as a
-  numeric or NA. Note: If the supplied function returns
-  more than one answer, currently only the first of these
-  is retained and used by \code{trendLevel}. All other
-  returned information will be ignored without warning. If
-  the function terminates with an error when it is sent an
-  empty data series, the option \code{stat.safe.mode}
-  should not be set to \code{FALSE} or \code{trendLevel}
-  may fail. Note: The \code{stat.safe.mode = TRUE} option
-  returns an NA without warning for empty data series.
+\code{trendLevel} allows the use of third party summarising
+functions via the \code{statistic} option. Any additional
+function arguments not included within a function called
+using \code{statistic} should be supplied as a list of
+named parameters and sent using \code{stat.args}. For
+example, the encoded option \code{statistic = "mean"} is
+equivalent to \code{statistic = mean, stat.args =
+list(na.rm = TRUE)} or the R command \code{mean(x, na.rm=
+TRUE)}.  Many R functions and user`s own code could be
+applied in a similar fashion, subject to the following
+restrictions: the first argument sent to the function must
+be the data series to be analysed; the name `x' cannot be
+used for any of the extra options supplied in
+\code{stat.args}; and the function should return the
+required answer as a numeric or NA. Note: If the supplied
+function returns more than one answer, currently only the
+first of these is retained and used by \code{trendLevel}.
+All other returned information will be ignored without
+warning. If the function terminates with an error when it
+is sent an empty data series, the option
+\code{stat.safe.mode} should not be set to \code{FALSE} or
+\code{trendLevel} may fail. Note: The \code{stat.safe.mode
+= TRUE} option returns an NA without warning for empty data
+series.
 }
 \examples{
 #basic use
@@ -203,12 +201,12 @@ trendLevel(mydata, pollutant = "nox", statistic = my.mean)
 #           stat.args = list(na.rm = TRUE))
 }
 \author{
-  Karl Ropkins
+Karl Ropkins
 }
 \seealso{
-  \code{\link{openColours}} and \code{\link{drawOpenKey}}
-  for more detailed plot control and
-  \code{\link{openair.generics}} for output handling.
+\code{\link{openColours}} and \code{\link{drawOpenKey}} for
+more detailed plot control and
+\code{\link{openair.generics}} for output handling.
 }
 \keyword{methods}
 

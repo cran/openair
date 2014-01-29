@@ -2,7 +2,7 @@
 \alias{importMeta}
 \title{Import monitoring site meta data}
 \usage{
-  importMeta(source = "aurn", all = FALSE)
+importMeta(source = "aurn", all = FALSE)
 }
 \arguments{
   \item{source}{The data source for the meta data. Can be
@@ -14,30 +14,29 @@
   available meta data.}
 }
 \value{
-  A data frame with meta data.
+A data frame with meta data.
 }
 \description{
-  Function to import meta data from UK air pollution
-  monitoring sites
+Function to import meta data from UK air pollution
+monitoring sites
 }
 \details{
-  This function imports site meta data from three networks
-  in the UK: the Defra Automatic Urban and Rural Network
-  (AURN), King's College London networks and the Scottish
-  Air Quality Network. The meta data includes site location
-  (latitude, longitude and OS easting and northing --- the
-  latter for KCL networks), site type and it's start/close
-  data, as well as other information.
+This function imports site meta data from three networks in
+the UK: the Defra Automatic Urban and Rural Network (AURN),
+King's College London networks and the Scottish Air Quality
+Network. The meta data includes site location (latitude,
+longitude and OS easting and northing --- the latter for
+KCL networks), site type and it's start/close data, as well
+as other information.
 
-  The meta information can usefully be combined with
-  matching air pollution data and produce maps of
-  concentration --- see examples below. Note if many sites
-  and/or years of hourly data are imported it may be better
-  to aggregate first and then combine with the meta data
-  information.
+The meta information can usefully be combined with matching
+air pollution data and produce maps of concentration ---
+see examples below. Note if many sites and/or years of
+hourly data are imported it may be better to aggregate
+first and then combine with the meta data information.
 
-  Thanks go to Dr Ben Barratt (KCL) and Trevor Davies (AEA)
-  for making these data available.
+Thanks go to Dr Ben Barratt (KCL) and Trevor Davies (AEA)
+for making these data available.
 }
 \examples{
 ## import AQ data and add meta data to data frame
@@ -59,13 +58,13 @@ GoogleMapsPlot(annual, pollutant = "no2")
 }
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \seealso{
-  \code{\link{importAURN}}, \code{\link{importKCL}} and
-  \code{\link{importSAQN}} for importing air quality data
-  from each network, and \code{\link{GoogleMapsPlot}} for
-  plotting concentrations on a map.
+\code{\link{importAURN}}, \code{\link{importKCL}} and
+\code{\link{importSAQN}} for importing air quality data
+from each network, and \code{\link{GoogleMapsPlot}} for
+plotting concentrations on a map.
 }
 \keyword{methods}
 

@@ -17,31 +17,31 @@
   numeric vector.} \item{list("pm25")}{Particulate PM2.5 fraction
   measurement, in ug/m3, as a numeric vector.} }}
 \source{
-  \code{mydata} was compiled from data archived in the
-  London Air Quality Archive.  See
-  \url{http://www.londonair.org.uk} for site details.
+\code{mydata} was compiled from data archived in the London
+Air Quality Archive.  See \url{http://www.londonair.org.uk}
+for site details.
 
-  The same data is also provide in \code{'.csv'} format via
-  the openair project web site
-  \url{http://www.openair-project.org}.
+The same data is also provide in \code{'.csv'} format via
+the openair project web site
+\url{http://www.openair-project.org}.
 }
 \description{
-  The mydata dataset is provided as an example dataset as
-  part of the openair package. The dataset contains hourly
-  measurements of air pollutant concentrations, wind speed
-  and wind direction collected at the Marylebone (London)
-  air quality monitoring supersite between 1st January 1998
-  and 23rd June 2005.
+The mydata dataset is provided as an example dataset as
+part of the openair package. The dataset contains hourly
+measurements of air pollutant concentrations, wind speed
+and wind direction collected at the Marylebone (London) air
+quality monitoring supersite between 1st January 1998 and
+23rd June 2005.
 }
 \details{
-  \code{mydata} is supplied with the \code{openair} package
-  as an example dataset for use with documented examples.
+\code{mydata} is supplied with the \code{openair} package
+as an example dataset for use with documented examples.
 }
 \note{
-  \code{openair} functions generally require data frames
-  with a field "date" that can be in either \code{POSIXct}
-  or \code{Date} format but should be GMT time zone. This
-  can be hourly data or higher resolution data.
+\code{openair} functions generally require data frames with
+a field "date" that can be in either \code{POSIXct} or
+\code{Date} format but should be GMT time zone. This can be
+hourly data or higher resolution data.
 }
 \examples{
 #basic structure

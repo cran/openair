@@ -270,7 +270,7 @@ polarCluster <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", n.clust
 
     ## labels for scaling
     labels <- pretty(intervals + min.scale)
-    upper <- max(intervals)
+    upper <- max(mydata[[x]], na.rm = TRUE)
 
     ## offset the lines/labels if necessary
     intervals <- intervals + (min(labels) - min.scale)

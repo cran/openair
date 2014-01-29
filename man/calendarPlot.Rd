@@ -2,15 +2,13 @@
 \alias{calendarPlot}
 \title{Plot time series values in convential calendar format}
 \usage{
-  calendarPlot(mydata, pollutant = "nox", year = 2003,
-    month = 1:12, type = "default", annotate = "date",
-    statistic = "mean", cols = "heat", limits = c(0, 100),
-    lim = NULL, col.lim = c("grey30", "black"),
-    font.lim = c(1, 2), cex.lim = c(0.6, 1), digits = 0,
-    data.thresh = 0, labels = NA, breaks = NA,
-    main = paste(pollutant, "in", year), key.header = "",
-    key.footer = "", key.position = "right", key = TRUE,
-    auto.text = TRUE, ...)
+calendarPlot(mydata, pollutant = "nox", year = 2003, month = 1:12,
+  type = "default", annotate = "date", statistic = "mean",
+  cols = "heat", limits = c(0, 100), lim = NULL, col.lim = c("grey30",
+  "black"), font.lim = c(1, 2), cex.lim = c(0.6, 1), digits = 0,
+  data.thresh = 0, labels = NA, breaks = NA, main = paste(pollutant,
+  "in", year), key.header = "", key.footer = "", key.position = "right",
+  key = TRUE, auto.text = TRUE, ...)
 }
 \arguments{
   \item{mydata}{A data frame minimally containing
@@ -138,66 +136,63 @@
   via \code{quickText} to handle routine formatting.}
 }
 \value{
-  As well as generating the plot itself,
-  \code{calendarPlot} also returns an object of class
-  ``openair''. The object includes three main components:
-  \code{call}, the command used to generate the plot;
-  \code{data}, the data frame of summarised information
-  used to make the plot; and \code{plot}, the plot itself.
-  If retained, e.g. using \code{output <-
-  calendarPlot(mydata, "nox")}, this output can be used to
-  recover the data, reproduce or rework the original plot
-  or undertake further analysis.
+As well as generating the plot itself, \code{calendarPlot}
+also returns an object of class ``openair''. The object
+includes three main components: \code{call}, the command
+used to generate the plot; \code{data}, the data frame of
+summarised information used to make the plot; and
+\code{plot}, the plot itself. If retained, e.g. using
+\code{output <- calendarPlot(mydata, "nox")}, this output
+can be used to recover the data, reproduce or rework the
+original plot or undertake further analysis.
 
-  An openair output can be manipulated using a number of
-  generic operations, including \code{print}, \code{plot}
-  and \code{summary}. See \code{\link{openair.generics}}
-  for further details.
+An openair output can be manipulated using a number of
+generic operations, including \code{print}, \code{plot} and
+\code{summary}. See \code{\link{openair.generics}} for
+further details.
 }
 \description{
-  This function will plot one year of data by month laid
-  out in a conventional calendar format. The main purpose
-  is to help rapidly visualise potentially complex data in
-  a familiar way. Users can also choose to show daily mean
-  wind vectors if wind speed and direction are available.
+This function will plot one year of data by month laid out
+in a conventional calendar format. The main purpose is to
+help rapidly visualise potentially complex data in a
+familiar way. Users can also choose to show daily mean wind
+vectors if wind speed and direction are available.
 }
 \details{
-  \code{calendarPlot} will plot one year of data in a
-  conventional calendar format i.e. by month and day of the
-  week. The main purpose of this function is to make it
-  easy to visualise data in a familiar way. Daily
-  statistics are calculated using
-  \code{\link{timeAverage}}, which by default will
-  calculate the daily mean concentration.
+\code{calendarPlot} will plot one year of data in a
+conventional calendar format i.e. by month and day of the
+week. The main purpose of this function is to make it easy
+to visualise data in a familiar way. Daily statistics are
+calculated using \code{\link{timeAverage}}, which by
+default will calculate the daily mean concentration.
 
-  If wind direction is available it is then possible to
-  plot the wind direction vector on each day. This is very
-  useful for getting a feel for the meteorological
-  conditions that affect pollutant concentrations. Note
-  that if hourly or higher time resolution are supplied,
-  then \code{calendarPlot} will calculate daily averages
-  using \code{\link{timeAverage}}, which ensures that wind
-  directions are vector-averaged.
+If wind direction is available it is then possible to plot
+the wind direction vector on each day. This is very useful
+for getting a feel for the meteorological conditions that
+affect pollutant concentrations. Note that if hourly or
+higher time resolution are supplied, then
+\code{calendarPlot} will calculate daily averages using
+\code{\link{timeAverage}}, which ensures that wind
+directions are vector-averaged.
 
-  If wind speed is also available, then setting the option
-  \code{annotate = "ws"} will plot the wind vectors whose
-  length is scaled to the wind speed. Thus information on
-  the daily mean wind speed and direction are available.
+If wind speed is also available, then setting the option
+\code{annotate = "ws"} will plot the wind vectors whose
+length is scaled to the wind speed. Thus information on the
+daily mean wind speed and direction are available.
 
-  It is also possible to plot categorical scales. This is
-  useful where, for example, an air quality index defines
-  concentrations as bands e.g. \dQuote{good},
-  \dQuote{poor}. In these cases users must supply
-  \code{labels} and corresponding \code{breaks}.
+It is also possible to plot categorical scales. This is
+useful where, for example, an air quality index defines
+concentrations as bands e.g. \dQuote{good}, \dQuote{poor}.
+In these cases users must supply \code{labels} and
+corresponding \code{breaks}.
 
-  Note that is is possible to pre-calculate concentrations
-  in some way before passing the data to
-  \code{calendarPlot}. For example
-  \code{\link{rollingMean}} could be used to calculate
-  rolling 8-hour mean concentrations. The data can then be
-  passed to \code{calendarPlot} and \code{statistic =
-  "max"} chosen, which will plot maximum daily 8-hour mean
-  concentrations.
+Note that is is possible to pre-calculate concentrations in
+some way before passing the data to \code{calendarPlot}.
+For example \code{\link{rollingMean}} could be used to
+calculate rolling 8-hour mean concentrations. The data can
+then be passed to \code{calendarPlot} and \code{statistic =
+"max"} chosen, which will plot maximum daily 8-hour mean
+concentrations.
 }
 \examples{
 # load example data from package
@@ -223,10 +218,10 @@ labels = c("Very low", "Low", "High", "Very High"),
 cols = c("lightblue", "green", "yellow",  "red"), statistic = "max")
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \seealso{
-  \code{\link{timePlot}}, \code{\link{timeVariation}}
+\code{\link{timePlot}}, \code{\link{timeVariation}}
 }
 \keyword{methods}
 

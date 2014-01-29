@@ -81,7 +81,8 @@
 ##' "site" splits the data by site and therefore requires a column \code{site}.
 ##'
 ##' @aliases cutData cutDaylight
-##' @usage cutData(x, type = "default", hemisphere = "northern", n.levels = 4, start.day, is.axis = FALSE, ...)
+##' @usage cutData(x, type = "default", hemisphere = "northern", n.levels = 4,
+##' start.day, is.axis = FALSE, ...)
 ##'
 ##' cutDaylight(x, local.hour.offset = 0,
 ##'                  latitude = 51.522393, longitude = -0.154700, ...)
@@ -295,7 +296,13 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
             ids <- which(weekday.names %in% unique(x$weekday))
            # the.days <- weekday.names[ids]
             the.days <- day.ord[ids]
-            x[ , type] <- ordered(x[ , type], levels = the.days)
+
+            ## just use sequence of days given if <7, if not order them
+            if (length(unique(x$weekday)) < 7) {
+                x[ , type] <- ordered(x[ , type], levels = factor(unique(x$weekday)))
+            } else {
+                x[ , type] <- ordered(x[ , type], levels = the.days)
+            }
         }
 
         if (type == "wd") {

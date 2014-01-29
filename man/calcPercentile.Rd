@@ -2,9 +2,8 @@
 \alias{calcPercentile}
 \title{Calculate percentile values from a time series}
 \usage{
-  calcPercentile(mydata, pollutant = "o3",
-    avg.time = "month", percentile = 50, data.thresh = 0,
-    start = NA)
+calcPercentile(mydata, pollutant = "o3", avg.time = "month",
+  percentile = 50, data.thresh = 0, start = NA)
 }
 \arguments{
   \item{mydata}{A data frame of data with a \code{date}
@@ -28,19 +27,19 @@
   for details.}
 }
 \value{
-  Returns a data frame with new columns for each percentile
-  level.  New columns are given names like percentile.95
-  e.g. when percentile = 95 is chosen. See examples below.
+Returns a data frame with new columns for each percentile
+level.  New columns are given names like percentile.95 e.g.
+when percentile = 95 is chosen. See examples below.
 }
 \description{
-  Calculates multiple percentile values from a time series,
-  with flexible time aggregation.
+Calculates multiple percentile values from a time series,
+with flexible time aggregation.
 }
 \details{
-  This is a utility function to calculate percentiles and
-  is used in, for example, \code{timePlot}. Given a data
-  frame with a \code{date} field and one other numeric
-  variable, percentiles are calculated.
+This is a utility function to calculate percentiles and is
+used in, for example, \code{timePlot}. Given a data frame
+with a \code{date} field and one other numeric variable,
+percentiles are calculated.
 }
 \examples{
 # 95th percentile monthly o3 concentrations
@@ -58,10 +57,10 @@ head(percentiles)
 }
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \seealso{
-  \code{\link{timePlot}}, \code{\link{timeAverage}}
+\code{\link{timePlot}}, \code{\link{timeAverage}}
 }
 \keyword{methods}
 

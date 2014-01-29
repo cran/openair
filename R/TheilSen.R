@@ -59,12 +59,12 @@ MannKendall <- function(mydata, ...) {
 ##'
 ##' The slope estimate and confidence intervals in the slope are plotted and
 ##' numerical information presented.
-##' @usage TheilSen(mydata, pollutant = "nox", deseason = FALSE, type = "default", avg.time = "month",
-##'                      statistic = "mean", percentile = NA, data.thresh = 0, alpha = 0.05,
-##'                      dec.place = 2, xlab = "year", lab.frac = 0.99, lab.cex = 0.8,
-##'                      x.relation = "same", y.relation = "same", data.col = "cornflowerblue",
-##'                      line.col = "red", text.col = "darkgreen", cols = NULL, auto.text = TRUE,
-##'                      autocor = FALSE, slope.percent = FALSE, date.breaks = 7,...)
+##' @usage TheilSen(mydata, pollutant = "nox", deseason = FALSE, type = "default",
+##' avg.time = "month", statistic = "mean", percentile = NA, data.thresh = 0,
+##' alpha = 0.05, dec.place = 2, xlab = "year", lab.frac = 0.99, lab.cex = 0.8,
+##' x.relation = "same", y.relation = "same", data.col = "cornflowerblue",
+##' line.col = "red", text.col = "darkgreen", cols = NULL, auto.text = TRUE,
+##' autocor = FALSE, slope.percent = FALSE, date.breaks = 7,...)
 ##'
 ##'       MannKendall(mydata,...)
 ##'
@@ -338,7 +338,6 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
         start.month <-  startMonth(mydata$date)
         end.month <-   endMonth(mydata$date)
 
-
         if (avg.time == "month") {
 
             mydata$date <- as.Date(mydata$date)
@@ -346,7 +345,7 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
             deseas <- mydata[, pollutant]
 
             ## can't deseason less than 2 years of data
-            if (nrow(mydata) < 24) deseason <- FALSE
+            if (nrow(mydata) <= 24) deseason <- FALSE
 
             if (deseason) {
                 ## interpolate missing data

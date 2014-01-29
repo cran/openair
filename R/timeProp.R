@@ -20,8 +20,8 @@
 ##' for any time interval.
 ##'
 ##'
-##' @param mydata A data frame containing the field \code{obs} and
-##' \code{mod} representing observed and modelled values.
+##' @param mydata A data frame containing the fields \code{date},
+##' \code{pollutant} and a splitting variable \code{proportion}
 ##' @param pollutant Name of the pollutant to plot contained in
 ##' \code{mydata}.
 ##' @param proportion The splitting variable that makes up the bars in

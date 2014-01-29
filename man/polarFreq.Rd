@@ -2,14 +2,12 @@
 \alias{polarFreq}
 \title{Function to plot wind speed/direction frequencies and other statistics}
 \usage{
-  polarFreq(mydata, pollutant = "",
-    statistic = "frequency", ws.int = 1, grid.line = 5,
-    breaks = seq(0, 5000, 500), cols = "default",
-    trans = TRUE, type = "default", min.bin = 1,
-    ws.upper = NA, offset = 10, border.col = "transparent",
-    key.header = statistic, key.footer = pollutant,
-    key.position = "right", key = TRUE, auto.text = TRUE,
-    ...)
+polarFreq(mydata, pollutant = "", statistic = "frequency", ws.int = 1,
+  grid.line = 5, breaks = seq(0, 5000, 500), cols = "default",
+  trans = TRUE, type = "default", min.bin = 1, ws.upper = NA,
+  offset = 10, border.col = "transparent", key.header = statistic,
+  key.footer = pollutant, key.position = "right", key = TRUE,
+  auto.text = TRUE, ...)
 }
 \arguments{
   \item{mydata}{A data frame minimally containing
@@ -151,58 +149,57 @@
   \code{quickText} to handle routine formatting.}
 }
 \value{
-  As well as generating the plot itself, \code{polarFreq}
-  also returns an object of class \dQuote{openair}. The
-  object includes three main components: \code{call}, the
-  command used to generate the plot; \code{data}, the data
-  frame of summarised information used to make the plot;
-  and \code{plot}, the plot itself. If retained, e.g. using
-  \code{output <- polarFreq(mydata, "nox")}, this output
-  can be used to recover the data, reproduce or rework the
-  original plot or undertake further analysis.
+As well as generating the plot itself, \code{polarFreq}
+also returns an object of class \dQuote{openair}. The
+object includes three main components: \code{call}, the
+command used to generate the plot; \code{data}, the data
+frame of summarised information used to make the plot; and
+\code{plot}, the plot itself. If retained, e.g. using
+\code{output <- polarFreq(mydata, "nox")}, this output can
+be used to recover the data, reproduce or rework the
+original plot or undertake further analysis.
 
-  An openair output can be manipulated using a number of
-  generic operations, including \code{print}, \code{plot}
-  and \code{summary}. See \code{\link{openair.generics}}
-  for further details.
+An openair output can be manipulated using a number of
+generic operations, including \code{print}, \code{plot} and
+\code{summary}. See \code{\link{openair.generics}} for
+further details.
 }
 \description{
-  \code{polarFreq} primarily plots wind speed-direction
-  frequencies in \sQuote{bins}. Each bin is colour-coded
-  depending on the frequency of measurements. Bins can also
-  be used to show the concentration of pollutants using a
-  range of commonly used statistics.
+\code{polarFreq} primarily plots wind speed-direction
+frequencies in \sQuote{bins}. Each bin is colour-coded
+depending on the frequency of measurements. Bins can also
+be used to show the concentration of pollutants using a
+range of commonly used statistics.
 }
 \details{
-  \code{polarFreq} is its default use provides details of
-  wind speed and direction frequencies. In this respect it
-  is similar to \code{\link{windRose}}, but considers wind
-  direction intervals of 10 degrees and a user-specified
-  wind speed interval. The frequency of wind
-  speeds/directions formed by these \sQuote{bins} is
-  represented on a colour scale.
+\code{polarFreq} is its default use provides details of
+wind speed and direction frequencies. In this respect it is
+similar to \code{\link{windRose}}, but considers wind
+direction intervals of 10 degrees and a user-specified wind
+speed interval. The frequency of wind speeds/directions
+formed by these \sQuote{bins} is represented on a colour
+scale.
 
-  The \code{polarFreq} function is more flexible than
-  either \code{\link{windRose}} or \code{\link{polarPlot}}.
-  It can, for example, also consider pollutant
-  concentrations (see examples below). Instead of the
-  number of data points in each bin, the concentration can
-  be shown. Further, a range of statistics can be used to
-  describe each bin - see \code{statistic} above. Plotting
-  mean concentrations is useful for source identification
-  and is the same as \code{\link{polarPlot}} but without
-  smoothing, which may be preferable for some data.
-  Plotting with \code{statistic = "weighted.mean"} is
-  particularly useful for understanding the relative
-  importance of different source contributions. For
-  example, high mean concentrations may be observed for
-  high wind speed conditions, but the weighted mean
-  concentration may well show that the contribution to
-  overall concentrations is very low.
+The \code{polarFreq} function is more flexible than either
+\code{\link{windRose}} or \code{\link{polarPlot}}. It can,
+for example, also consider pollutant concentrations (see
+examples below). Instead of the number of data points in
+each bin, the concentration can be shown. Further, a range
+of statistics can be used to describe each bin - see
+\code{statistic} above. Plotting mean concentrations is
+useful for source identification and is the same as
+\code{\link{polarPlot}} but without smoothing, which may be
+preferable for some data. Plotting with \code{statistic =
+"weighted.mean"} is particularly useful for understanding
+the relative importance of different source contributions.
+For example, high mean concentrations may be observed for
+high wind speed conditions, but the weighted mean
+concentration may well show that the contribution to
+overall concentrations is very low.
 
-  \code{polarFreq} also offers great flexibility with the
-  scale used and the user has fine control over both the
-  range, interval and colour.
+\code{polarFreq} also offers great flexibility with the
+scale used and the user has fine control over both the
+range, interval and colour.
 }
 \examples{
 # basic wind frequency plot
@@ -235,14 +232,13 @@ type = "year", cols = "jet")}
 ="weighted.mean", offset = 50, ws.int = 25, trans = FALSE) }
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \references{
-  ~put references to the literature/web site here ~
+~put references to the literature/web site here ~
 }
 \seealso{
-  See Also as \code{\link{windRose}},
-  \code{\link{polarPlot}}
+See Also as \code{\link{windRose}}, \code{\link{polarPlot}}
 }
 \keyword{methods}
 

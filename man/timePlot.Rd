@@ -2,15 +2,13 @@
 \alias{timePlot}
 \title{Plot time series}
 \usage{
-  timePlot(mydata, pollutant = "nox", group = FALSE,
-    stack = FALSE, normalise = NULL, avg.time = "default",
-    data.thresh = 0, statistic = "mean", percentile = NA,
-    date.pad = FALSE, type = "default", cols = "brewer1",
-    plot.type = "l", key = TRUE, log = FALSE,
-    smooth = FALSE, ci = TRUE, y.relation = "same",
-    ref.x = NULL, ref.y = NULL, key.columns = 1,
-    name.pol = pollutant, date.breaks = 7,
-    date.format = NULL, auto.text = TRUE, ...)
+timePlot(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
+  normalise = NULL, avg.time = "default", data.thresh = 0,
+  statistic = "mean", percentile = NA, date.pad = FALSE,
+  type = "default", cols = "brewer1", plot.type = "l", key = TRUE,
+  log = FALSE, smooth = FALSE, ci = TRUE, y.relation = "same",
+  ref.x = NULL, ref.y = NULL, key.columns = 1, name.pol = pollutant,
+  date.breaks = 7, date.format = NULL, auto.text = TRUE, ...)
 }
 \arguments{
   \item{mydata}{A data frame of time series. Must include a
@@ -206,64 +204,64 @@
   to handle routine formatting. See examples below.}
 }
 \value{
-  As well as generating the plot itself, \code{timePlot}
-  also returns an object of class ``openair''. The object
-  includes three main components: \code{call}, the command
-  used to generate the plot; \code{data}, the data frame of
-  summarised information used to make the plot; and
-  \code{plot}, the plot itself. If retained, e.g. using
-  \code{output <- timePlot(mydata, "nox")}, this output can
-  be used to recover the data, reproduce or rework the
-  original plot or undertake further analysis.
+As well as generating the plot itself, \code{timePlot} also
+returns an object of class ``openair''. The object includes
+three main components: \code{call}, the command used to
+generate the plot; \code{data}, the data frame of
+summarised information used to make the plot; and
+\code{plot}, the plot itself. If retained, e.g. using
+\code{output <- timePlot(mydata, "nox")}, this output can
+be used to recover the data, reproduce or rework the
+original plot or undertake further analysis.
 
-  An openair output can be manipulated using a number of
-  generic operations, including \code{print}, \code{plot}
-  and \code{summary}. See \code{\link{openair.generics}}
-  for further details.
+An openair output can be manipulated using a number of
+generic operations, including \code{print}, \code{plot} and
+\code{summary}. See \code{\link{openair.generics}} for
+further details.
 }
 \description{
-  Plot time series quickly, perhaps for multiple
-  pollutants, grouped or in separate panels.
+Plot time series quickly, perhaps for multiple pollutants,
+grouped or in separate panels.
 }
 \details{
-  The \code{timePlot} is the basic time series plotting
-  function in \code{openair}. Its purpose is to make it
-  quick and easy to plot time series for pollutants and
-  other variables. The other purpose is to plot potentially
-  many variables together in as compact a way as possible.
+The \code{timePlot} is the basic time series plotting
+function in \code{openair}. Its purpose is to make it quick
+and easy to plot time series for pollutants and other
+variables. The other purpose is to plot potentially many
+variables together in as compact a way as possible.
 
-  The function is flexible enough to plot more than one
-  variable at once. If more than one variable is chosen
-  plots it can either show all variables on the same plot
-  (with different line types) \emph{on the same scale}, or
-  (if \code{group = FALSE}) each variable in its own panels
-  with its own scale.
+The function is flexible enough to plot more than one
+variable at once. If more than one variable is chosen plots
+it can either show all variables on the same plot (with
+different line types) \emph{on the same scale}, or (if
+\code{group = FALSE}) each variable in its own panels with
+its own scale.
 
-  The general preference is not to plot two variables on
-  the same graph with two different y-scales. It can be
-  misleading to do so and difficult with more than two
-  variables. If there is in interest in plotting several
-  variables together that have very different scales, then
-  it can be useful to normalise the data first, which can
-  be down be setting the \code{normalise} option.
+The general preference is not to plot two variables on the
+same graph with two different y-scales. It can be
+misleading to do so and difficult with more than two
+variables. If there is in interest in plotting several
+variables together that have very different scales, then it
+can be useful to normalise the data first, which can be
+down be setting the \code{normalise} option.
 
-  The user has fine control over the choice of colours,
-  line width and line types used. This is useful for
-  example, to emphasise a particular variable with a
-  specific line type/colour/width.
+The user has fine control over the choice of colours, line
+width and line types used. This is useful for example, to
+emphasise a particular variable with a specific line
+type/colour/width.
 
-  \code{timePlot} works very well with
-  \code{\link{selectByDate}}, which is used for selecting
-  particular date ranges quickly and easily. See examples
-  below.
+\code{timePlot} works very well with
+\code{\link{selectByDate}}, which is used for selecting
+particular date ranges quickly and easily. See examples
+below.
 
-  By default plots are shown with a colour key at the
-  bottom and in teh case of multiple pollutants or sites,
-  strips on the left of each plot. Sometimes this may be
-  overkill and the user can opt to remove the key and/or
-  the strip by setting \code{key} and/or \code{strip} to
-  \code{FALSE}. One reason to do this is to maximise the
-  plotting area and therefore the information shown.
+By default plots are shown with a colour key at the bottom
+and in teh case of multiple pollutants or sites, strips on
+the left of each plot. Sometimes this may be overkill and
+the user can opt to remove the key and/or the strip by
+setting \code{key} and/or \code{strip} to \code{FALSE}. One
+reason to do this is to maximise the plotting area and
+therefore the information shown.
 }
 \examples{
 # basic use, single pollutant
@@ -314,13 +312,13 @@ c("nox", "no2"), lwd = c(1, 2), col = "black")
 \dontrun{timePlot(mydata, pollutant = "o3", avg.time = "2 week")}
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \seealso{
-  \code{\link{MannKendall}}, \code{\link{smoothTrend}},
-  \code{\link{linearRelation}}, \code{\link{selectByDate}}
-  and \code{\link{timeAverage}} for details on selecting
-  averaging times and other statistics in a flexible way
+\code{\link{MannKendall}}, \code{\link{smoothTrend}},
+\code{\link{linearRelation}}, \code{\link{selectByDate}}
+and \code{\link{timeAverage}} for details on selecting
+averaging times and other statistics in a flexible way
 }
 \keyword{methods}
 

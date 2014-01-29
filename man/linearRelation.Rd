@@ -2,11 +2,10 @@
 \alias{linearRelation}
 \title{Linear relations between pollutants}
 \usage{
-  linearRelation(mydata, x = "nox", y = "no2",
-    period = "monthly", condition = FALSE, n = 20,
-    rsq.thresh = 0, ylim = c(0, 20),
-    ylab = paste("slope from ", y, " = m.", x, " + c", sep = ""),
-    auto.text = TRUE, cols = NULL, span = 0.3, ...)
+linearRelation(mydata, x = "nox", y = "no2", period = "monthly",
+  condition = FALSE, n = 20, rsq.thresh = 0, ylim = c(0, 20),
+  ylab = paste("slope from ", y, " = m.", x, " + c", sep = ""),
+  auto.text = TRUE, cols = NULL, span = 0.3, ...)
 }
 \arguments{
   \item{mydata}{A data frame minimally containing
@@ -71,71 +70,68 @@
   plot is to set \code{strip = FALSE}.}
 }
 \value{
-  As well as generating the plot itself,
-  \code{linearRelation} also returns an object of class
-  ``openair''. The object includes three main components:
-  \code{call}, the command used to generate the plot;
-  \code{data}, the data frame of summarised information
-  used to make the plot; and \code{plot}, the plot itself.
-  If retained, e.g. using \code{output <-
-  linearRelation(mydata, "nox", "no2")}, this output can be
-  used to recover the data, reproduce or rework the
-  original plot or undertake further analysis.
+As well as generating the plot itself,
+\code{linearRelation} also returns an object of class
+``openair''. The object includes three main components:
+\code{call}, the command used to generate the plot;
+\code{data}, the data frame of summarised information used
+to make the plot; and \code{plot}, the plot itself. If
+retained, e.g. using \code{output <- linearRelation(mydata,
+"nox", "no2")}, this output can be used to recover the
+data, reproduce or rework the original plot or undertake
+further analysis.
 
-  An openair output can be manipulated using a number of
-  generic operations, including \code{print}, \code{plot}
-  and \code{summary}. See \code{\link{openair.generics}}
-  for further details.
+An openair output can be manipulated using a number of
+generic operations, including \code{print}, \code{plot} and
+\code{summary}. See \code{\link{openair.generics}} for
+further details.
 }
 \description{
-  This function considers linearRelationships between two
-  pollutants. The relationships are calculated on different
-  times bases using a linear model. The slope and 95%
-  confidence interval in slope relationships by time unit
-  are plotted in many ways. The function is particularly
-  useful when considering whether relationships are
-  consistent with emissions inventories.
+This function considers linearRelationships between two
+pollutants. The relationships are calculated on different
+times bases using a linear model. The slope and 95%
+confidence interval in slope relationships by time unit are
+plotted in many ways. The function is particularly useful
+when considering whether relationships are consistent with
+emissions inventories.
 }
 \details{
-  The relationships between pollutants can yield some very
-  useful information about source emissions and how they
-  change. A scatterPlot between two pollutants is the usual
-  way to investigate the relationship. A linear regression
-  is useful to test the strength of the relationship.
-  However, considerably more information can be gleaned by
-  considering different time periods, such as how the
-  relationship between two pollutants vary over time, by
-  day of the week, diurnally and so on. The
-  \code{linearRelation} function does just that - it fits a
-  linear relationship between two pollutants over a wide
-  range of time periods determined by \code{period}.
+The relationships between pollutants can yield some very
+useful information about source emissions and how they
+change. A scatterPlot between two pollutants is the usual
+way to investigate the relationship. A linear regression is
+useful to test the strength of the relationship. However,
+considerably more information can be gleaned by considering
+different time periods, such as how the relationship
+between two pollutants vary over time, by day of the week,
+diurnally and so on. The \code{linearRelation} function
+does just that - it fits a linear relationship between two
+pollutants over a wide range of time periods determined by
+\code{period}.
 
-  \code{linearRelation} function is particularly useful if
-  background concentrations are first removed from roadside
-  concentrations, as the increment will relate more
-  directly with changes in emissions. In this respect,
-  using \code{linearRelation} can provide valuable
-  information on how emissions may have changed over time,
-  by hour of the day etc. Using the function in this way
-  will require users to do some basic manipulation with
-  their data first.
+\code{linearRelation} function is particularly useful if
+background concentrations are first removed from roadside
+concentrations, as the increment will relate more directly
+with changes in emissions. In this respect, using
+\code{linearRelation} can provide valuable information on
+how emissions may have changed over time, by hour of the
+day etc. Using the function in this way will require users
+to do some basic manipulation with their data first.
 
-  If a data frame is supplied that contains \code{nox},
-  \code{no2} and \code{o3}, the \code{y} can be chosen as
-  \code{y = "ox"}. In function will therefore consider
-  total oxidant slope (sum of NO2 + O3), which can provide
-  valuable information on likely vehicle primary NO
-  emissions. Note, however, that most roadside sites do not
-  have ozone measurements and \code{\link{calcFno2}} is the
-  alternative.
+If a data frame is supplied that contains \code{nox},
+\code{no2} and \code{o3}, the \code{y} can be chosen as
+\code{y = "ox"}. In function will therefore consider total
+oxidant slope (sum of NO2 + O3), which can provide valuable
+information on likely vehicle primary NO emissions. Note,
+however, that most roadside sites do not have ozone
+measurements and \code{\link{calcFno2}} is the alternative.
 
-  A smooth line is added to all plots except \code{period =
-  "weekday"} using \code{smooth.spline}.
-  \code{smooth.spline} uses Generalized Cross Validation
-  (GCV) to find a line that is neither too wiggly nor too
-  smooth. The line tends to highlight both the overall
-  tendency of a relationship as well as some of the more
-  interesting features.
+A smooth line is added to all plots except \code{period =
+"weekday"} using \code{smooth.spline}. \code{smooth.spline}
+uses Generalized Cross Validation (GCV) to find a line that
+is neither too wiggly nor too smooth. The line tends to
+highlight both the overall tendency of a relationship as
+well as some of the more interesting features.
 }
 \examples{
 # monthly relationship between NOx and SO2 - note rapid fall in
@@ -155,10 +151,10 @@ linearRelation(mydata, x = "nox", y = "so2")
 \dontrun{linearRelation(mydata, x = "pm10", y = "pm25", rsq.thresh = 0.8)}
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \seealso{
-  \code{\link{calcFno2}}
+\code{\link{calcFno2}}
 }
 \keyword{methods}
 

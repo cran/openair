@@ -2,9 +2,8 @@
 \alias{selectByDate}
 \title{Subset a data frame based on date}
 \usage{
-  selectByDate(mydata, start = "1/1/2008",
-    end = "31/12/2008", year = 2008, month = 1,
-    day = "weekday", hour = 1)
+selectByDate(mydata, start = "1/1/2008", end = "31/12/2008", year = 2008,
+  month = 1, day = "weekday", hour = 1)
 }
 \arguments{
   \item{mydata}{A data frame containing a \code{date} field
@@ -38,25 +37,25 @@
   \code{hour = 0:12} to select hours 0 to 12 inclusive.}
 }
 \description{
-  Utility function to make it easier to select periods from
-  a data frame before sending to a function
+Utility function to make it easier to select periods from a
+data frame before sending to a function
 }
 \details{
-  This function makes it much easier to select periods of
-  interest from a data frame based on dates in a British
-  format. Selecting date/times in R format can be
-  intimidating for new users. This function can be used to
-  select quite complex dates simply - see examples below.
+This function makes it much easier to select periods of
+interest from a data frame based on dates in a British
+format. Selecting date/times in R format can be
+intimidating for new users. This function can be used to
+select quite complex dates simply - see examples below.
 
-  Dates are assumed to be inclusive, so \code{start =
-  "1/1/1999"} means that times are selected from hour zero.
-  Similarly, \code{end = "31/12/1999"} will include all
-  hours of the 31st December. \code{start} and \code{end}
-  can also be in standard R format as a string i.e.
-  "YYYY-mm-dd", so \code{start = "1999-01-01"} is fine.
+Dates are assumed to be inclusive, so \code{start =
+"1/1/1999"} means that times are selected from hour zero.
+Similarly, \code{end = "31/12/1999"} will include all hours
+of the 31st December. \code{start} and \code{end} can also
+be in standard R format as a string i.e. "YYYY-mm-dd", so
+\code{start = "1999-01-01"} is fine.
 
-  All options are applied in turn making it possible to
-  select quite complex dates
+All options are applied in turn making it possible to
+select quite complex dates
 }
 \examples{
 ## select all of 1999
@@ -79,7 +78,7 @@ sub.data <- selectByDate(mydata, day = "weekend", hour = 7:19, month =
 c("dec", "jan", "feb"))
 }
 \author{
-  David Carslaw
+David Carslaw
 }
 \keyword{methods}
 
