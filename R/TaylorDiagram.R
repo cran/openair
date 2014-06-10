@@ -160,8 +160,7 @@
 ##'   (R), the standard deviation of the observations and measurements.
 ##'
 ##' An openair output can be manipulated using a number of generic operations,
-##'   including \code{print}, \code{plot} and \code{summary}. See
-##'   \code{\link{openair.generics}} for further details.
+##'   including \code{print}, \code{plot} and \code{summary}. 
 ##' @author David Carslaw
 ##' @seealso \code{taylor.diagram} from the \code{plotrix} package from which
 ##'   some of the annotation code was used.

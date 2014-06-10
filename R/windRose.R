@@ -153,14 +153,15 @@ pollutionRose <- function(mydata, pollutant = "nox", key.footer = pollutant,
 ##' \code{TRUE} titles and axis labels will automatically try and
 ##' format pollutant names and units properly e.g.  by subscripting
 ##' the \sQuote{2} in NO2.
-##' @param breaks Most commonly, the number of break points for wind speed in
-##'   \code{windRose} or pollutant in \code{pollutionRose}. For \code{windRose}
-##'   and the \code{ws.int} default of 2 m/s, the default, 4, generates the
-##'   break points 2, 4, 6, 8 m/s. For \code{pollutionRose}, the default, 6,
-##'   attempts to breaks the supplied data at approximately 6 sensible break
-##'   points. However, \code{breaks} can also be used to set specific break
-##'   points. For example, the argument \code{breaks = c(1, 10, 100)} breaks
-##'   the data into segments <1, 1-10, 10-100, >100.
+##' @param breaks Most commonly, the number of break points for wind
+##' speed in \code{windRose} or pollutant in \code{pollutionRose}. For
+##' \code{windRose} and the \code{ws.int} default of 2 m/s, the
+##' default, 4, generates the break points 2, 4, 6, 8 m/s. For
+##' \code{pollutionRose}, the default, 6, attempts to breaks the
+##' supplied data at approximately 6 sensible break points. However,
+##' \code{breaks} can also be used to set specific break points. For
+##' example, the argument \code{breaks = c(0, 1, 10, 100)} breaks the
+##' data into segments <1, 1-10, 10-100, >100.
 ##' @param offset The size of the 'hole' in the middle of the plot, expressed
 ##'   as a percentage of the polar axis scale, default 10.
 ##' @param max.freq Controls the scaling used by setting the maximum
@@ -217,8 +218,7 @@ pollutionRose <- function(mydata, pollutant = "nox", key.footer = pollutant,
 ##' undertake further analysis.
 ##'
 ##' An openair output can be manipulated using a number of generic operations,
-##'   including \code{print}, \code{plot} and \code{summarise}. See
-##'   \code{\link{openair.generics}} for further details.
+##'   including \code{print}, \code{plot} and \code{summarise}. 
 ##'
 ##' Summarised proportions can also be extracted directly using the
 ##'   \code{$data} operator, e.g.  \code{object$data} for \code{output <-

@@ -60,17 +60,22 @@
 ##' @param pollutant Name of variable to plot. Two or more pollutants can be
 ##'   plotted, in which case a form like \code{pollutant = c("nox", "co")}
 ##'   should be used.
-##' @param local.time Should the results be calculated in local time? The
-##'   default is \code{FALSE}. Emissions activity tends to occur at local time
-##'   e.g. rush hour is at 8 am every day. When the clocks go forward in
-##'   spring, the emissions are effectively released into the atmosphere at BST
-##'   --- 1 hour during the summer. When plotting diurnal profiles, this has the
-##'   effect of \dQuote{smearing-out} the concentrations. Sometimes, a better approach
-##'   is to express time as local time, which here is defined as BST (British
-##'   Summer Time). This correction tends to produce better-defined diurnal
-##'   profiles of concentration (or other variables) and allows a better
-##'   comparison to be made with emissions/activity data. If set to
-##'   \code{FALSE} then GMT is used.
+##' @param local.tz Should the results be calculated in local time
+##' that includes a treatment of daylight savings time (DST)? The
+##' default is not to consider DST issues, provided the data were
+##' imported without a DST offset. Emissions activity tends to occur
+##' at local time e.g. rush hour is at 8 am every day. When the clocks
+##' go forward in spring, the emissions are effectively released into
+##' the atmosphere typically 1 hour earlier during the summertime
+##' i.e. when DST applies. When plotting diurnal profiles, this has
+##' the effect of \dQuote{smearing-out} the concentrations. Sometimes,
+##' a useful approach is to express time as local time. This
+##' correction tends to produce better-defined diurnal profiles of
+##' concentration (or other variables) and allows a better comparison
+##' to be made with emissions/activity data. If set to \code{FALSE}
+##' then GMT is used. Examples of usage include \code{local.tz =
+##' "Europe/London"}, \code{local.tz = "America/New_York"}. See
+##' \code{cutData} and \code{import} for more details.
 ##' @param normalise Should variables be normalised? The default is
 ##'   \code{FALSE}. If \code{TRUE} then the variable(s) are divided by their
 ##'   mean values. This helps to compare the shape of the diurnal trends for
@@ -164,8 +169,7 @@
 ##'   undertake further analysis.
 ##'
 ##' An openair output can be manipulated using a number of generic operations,
-##'   including \code{print}, \code{plot} and \code{summary}. See
-##'   \code{\link{openair.generics}} for further details.
+##'   including \code{print}, \code{plot} and \code{summary}. 
 ##'
 ##' The four components of timeVariation are: \code{day.hour}, \code{hour},
 ##'   \code{day} and \code{month}. Associated data.frames can be extracted
@@ -195,16 +199,16 @@
 ##' # local time, showing that the profile is dominated by a local source
 ##' # that varies by local time and not by GMT i.e. road vehicle emissions
 ##'
-##' \dontrun{timeVariation(mydata, pollutant = "nox", type = "gmtbst")}
+##' \dontrun{timeVariation(mydata, pollutant = "nox", type = "dst", local.tz = "Europe/London")}
 ##'
 ##' ## In this case it is better to group the results for clarity:
-##' \dontrun{timeVariation(mydata, pollutant = "nox", group = "gmtbst")}
+##' \dontrun{timeVariation(mydata, pollutant = "nox", group = "dst", local.tz = "Europe/London")}
 ##'
 ##' # By contrast, a variable such as wind speed shows a clear shift when
 ##' #  expressed in local time. These two plots can help show whether the
 ##' #  variation is dominated by man-made influences or natural processes
 ##'
-##' \dontrun{timeVariation(mydata, pollutant = "ws", group = "gmtbst")}
+##' \dontrun{timeVariation(mydata, pollutant = "ws", group = "dst", local.tz = "Europe/London")}
 ##'
 ##' ## It is also possible to plot several variables and set type. For
 ##' ## example, consider the NOx and NO2 split by levels of O3:
@@ -253,15 +257,15 @@
 ##' col = "firebrick")
 ##' }
 ##'
-timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE,
+timeVariation <- function(mydata, pollutant = "nox", local.tz = NULL,
                           normalise = FALSE, xlab = c("hour", "hour", "month",
-                                             "weekday"), name.pol = pollutant,
+                                                 "weekday"), name.pol = pollutant,
                           type = "default", group = NULL, difference = FALSE,
                           statistic = "mean", conf.int = 0.95, B = 100, ci = TRUE, cols = "hue",
                           key = NULL, key.columns = 1, start.day = 1,
                           auto.text = TRUE, alpha = 0.4, ...)  {
 
-     ## get rid of R check annoyances
+    ## get rid of R check annoyances
     variable = NULL
 
     ## greyscale handling
@@ -346,7 +350,7 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE,
         statistic <- "mean"
         warning("statistic should be 'mean' or 'median',  setting it to 'mean'.")
     }
-    ## #############################################################################################
+    ## #################################################################################
 
     ## check to see if type = "variable" (word used in code, so change)
     if (type == "variable") {
@@ -364,19 +368,22 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE,
         }
     }
 
+
+
     ## data checks
     mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
-    if (!missing(group))  mydata <- cutData(mydata, group, ...)
-    mydata <- cutData(mydata, type, ...)
+    if (!missing(group))  mydata <- cutData(mydata, group, local.tz = local.tz, ...)
+    mydata <- cutData(mydata, type, local.tz = local.tz, ...)
+    
+    ## put in local time if needed
+    if (!is.null(local.tz)) attr(mydata$date, "tzone") <- local.tz
 
     ## title for overall and individual plots
     overall.main <- extra.args$main
     extra.args$main <- ""
     overall.sub <- extra.args$sub
     extra.args$sub <- ""
-
-    if (local.time) attr(mydata$date, "tzone") <- "Europe/London"
-
+    
     ## labels for pollutants, can be user-defined, special handling when difference = TRUE
     poll.orig <- pollutant
     if (difference && missing(group)) pollutant <- c(pollutant, paste(pollutant[2], "-", pollutant[1]))
@@ -441,7 +448,7 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE,
 
     ## y range taking account of expanded uncertainties
     rng <- function(x) {
-
+        
         ## if no CI information, just return
         if (all(is.na(x[, c("Lower", "Upper")]))) {
             lims <- NULL
@@ -456,6 +463,7 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE,
             lims <- range(c(x$Mean, x$Mean), na.rm = TRUE)
             inc <- 0.04 * abs(lims[2] - lims[1])
             lims <- c(lims[1] - inc, lims[2] + inc)
+            if (diff(lims) == 0) lims <- NULL 
         }
         lims
     }
@@ -489,9 +497,9 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE,
         data.hour <- errorDiff(mydata, vars = "hour", type = type, poll1 = poll1,
                                poll2 = poll2, B = B, conf.int = conf.int)
     } else {
-
+        
         data.hour <- ldply(conf.int, proc, mydata, vars = "hour", pollutant, type, B = B,
-                             statistic = statistic)
+                           statistic = statistic)
     }
 
 
@@ -525,22 +533,26 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE,
                     key = key,
                     scales = list(x = list(at = c(0, 6, 12, 18, 23))),
                     par.settings = simpleTheme(col = myColors),
-                    panel = panel.superpose,
-                    panel.groups = function(x, y, col.line, type, group.number, subscripts,...) {
-                        if (group.number == 1) {
-                            panel.grid(-1, 0)
-                            panel.abline(v = c(0, 6, 12, 18, 23), col = "grey85")
-                        }
+                    panel = function(x, y, ...) {
+                        panel.grid(-1, 0)
+                        panel.abline(v = c(0, 6, 12, 18, 23), col = "grey85")
+                        panel.superpose(x, y, ...,
+                                        panel.groups = function(x, y, col.line, type,
+                                            group.number, subscripts,...) {
+                                            
+                                            if (difference) panel.abline(h = 0, lty = 5)
+                                            ## plot once
+                                            id <- which(data.hour$ci[subscripts] == data.hour$ci[1]) 
+                                            panel.xyplot(x[id], y[id], type = "l",
+                                                         col.line = myColors[group.number],...)
 
-                        if (difference) panel.abline(h = 0, lty = 5)
+                                            if (ci) {mkpoly(data.hour[subscripts, ], x = "hour", y = "Mean",
+                                                            group.number, myColors, alpha)}
 
-                        id <- which(data.hour$ci[subscripts] == data.hour$ci[1]) ## plot once
-                        panel.xyplot(x[id], y[id], type = "l", col.line = myColors[group.number],...)
-
-                        if (ci) {mkpoly(data.hour[subscripts, ], x = "hour", y = "Mean",
-                                        group.number, myColors, alpha)}
-
-                    })
+                                        }
+                                        )
+                    }
+                    )
 
     ## reset for extra.args
     xy.args <- listUpdate(xy.args, extra.args)
@@ -582,22 +594,26 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE,
                     strip = strip,
                     par.strip.text = list(cex = 0.8),
                     key = key,
-                    panel =  panel.superpose,
-                    panel.groups = function(x, y, col.line, type, group.number, subscripts,...) {
-                        if (group.number == 1) {
-                            panel.grid(-1, 0)
-                            panel.abline(v = 1:7, col = "grey85")
-                        }
+                    panel = function(x, y, ...) {
+                        panel.grid(-1, 0)
+                        panel.abline(v = 1:7, col = "grey85")
+                        panel.superpose(x, y, ...,
+                                        panel.groups = function(x, y, col.line, type, group.number,
+                                            subscripts,...) {
+                                            
+                                            if (difference) panel.abline(h = 0, lty = 5)
 
-                        if (difference) panel.abline(h = 0, lty = 5)
+                                            ## only plot median once if 2 conf.int
+                                            id <- which(data.weekday$ci[subscripts] == data.weekday$ci[1])
+                                            panel.xyplot(x[id], y[id], type = "l",
+                                                         col.line = myColors[group.number],...)
 
-                        ## only plot median once if 2 conf.int
-                        id <- which(data.weekday$ci[subscripts] == data.weekday$ci[1])
-                        panel.xyplot(x[id], y[id], type = "l", col.line = myColors[group.number],...)
-
-                        if (ci) {mkrect(data.weekday[subscripts, ], x = "wkday", y = "Mean",
-                                        group.number, myColors, alpha)}
-                    })
+                                            if (ci) {mkrect(data.weekday[subscripts, ], x = "wkday",
+                                                            y = "Mean", group.number, myColors, alpha)}
+                                        }
+                                        )
+                    }
+                    )
 
     ## reset for extra.args
     xy.args <- listUpdate(xy.args, extra.args)
@@ -621,7 +637,7 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE,
 
     temp <- paste(type, collapse = "+")
     myform <- formula(paste("Mean ~ mnth | ", temp, sep = ""))
-
+    
     ## ylim hander
     if (ylim.handler)
         extra.args$ylim <- rng(data.month)
@@ -636,22 +652,31 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE,
                     par.strip.text = list(cex = 0.8),
                     par.settings = simpleTheme(col = myColors, pch = 16),
                     scales = list(x = list(at = 1:12, labels = substr(format(seq(as.Date("2000-01-01"),
-                                                      as.Date("2000-12-31"), "month"), "%B"), 1, 1))),
-                    panel =  panel.superpose,
-                    panel.groups = function(x, y, col.line, type, group.number, subscripts,...) {
-                        if (group.number == 1) {
-                            panel.grid(-1, 0)
-                            panel.abline(v = 1:12, col = "grey85")
-                        }
-                        if (difference) panel.abline(h = 0, lty = 5)
+                                                          as.Date("2000-12-31"), "month"), "%B"), 1, 1))),
+                    panel = function(x, y, ...) {
+                        panel.grid(-1, 0)
+                        panel.abline(v = 1:12, col = "grey85")
+                        panel.superpose(x, y, ...,
+                                        panel.groups = function(x, y, col.line, type,
+                                            group.number, subscripts,...) {
+                                            
+                                            if (difference) panel.abline(h = 0, lty = 5)
 
-                        ## only plot median once if 2 conf.int
-                        id <- which(data.month$ci[subscripts] == data.month$ci[1])
-                        panel.xyplot(x[id], y[id], type = "l", col.line = myColors[group.number],...)
+                                            ## a line won't work for a single point
+                                            pltType <- "l"
+                                            if (length(subscripts) == 1) pltType <- "p"
+                                            
+                                            ## only plot median once if 2 conf.int
+                                            id <- which(data.month$ci[subscripts] == data.month$ci[1])
+                                            panel.xyplot(x[id], y[id], type = pltType,
+                                                         col.line = myColors[group.number],...)
 
-                        if (ci) {mkrect(data.month[subscripts, ], x = "mnth", y = "Mean",
-                                        group.number, myColors, alpha)}
-                    })
+                                            if (ci) {mkrect(data.month[subscripts, ], x = "mnth",
+                                                            y = "Mean", group.number, myColors, alpha)}
+                                        }
+                                        )
+                    }
+                    )
 
     ## reset for extra.args
     xy.args <- listUpdate(xy.args, extra.args)
@@ -679,7 +704,7 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE,
 
     if (is.null(xlab[1]) | is.na(xlab[1])) xlab[1] <- "hour"
 
-    ## proper names of labelling ##############################################################################
+    ## proper names of labelling #####################################################################
 
     strip <- strip.custom(par.strip.text = list(cex = 0.8))
 
@@ -694,7 +719,7 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE,
         strip.left <- strip.custom(factor.levels =  stripName)
         layout <- NULL
     }
-    ## ########################################################################################################
+    ## #################################################################################################
 
     temp <- paste(type, collapse = "+")
     if (type == "default") {
@@ -720,25 +745,32 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE,
                     strip = strip,
                     strip.left = strip.left,
                     par.strip.text = list(cex = 0.8),
-                    panel =  panel.superpose,
-                    panel.groups = function(x, y, col.line, type, group.number,
-                    subscripts,...) {
-                        ## add grid lines once (otherwise they overwrite the data)
-                        if (group.number == 1) {
-                            panel.grid(-1, 0)
-                            panel.abline(v = c(0, 6, 12, 18, 23), col = "grey85")
-                        }
+                    panel = function(x, y, ...) {
+                        panel.grid(-1, 0)
+                        panel.abline(v = c(0, 6, 12, 18, 23), col = "grey85")
+                        panel.superpose(x, y, ...,
+                                        panel.groups = function(x, y, col.line, type, group.number,
+                                            subscripts,...) {
+                                            ## add grid lines once (otherwise they overwrite the data)
+                                            if (group.number == 1) {
+                                                panel.grid(-1, 0)
+                                                panel.abline(v = c(0, 6, 12, 18, 23), col = "grey85")
+                                            }
 
-                        if (difference) panel.abline(h = 0, lty = 5)
+                                            if (difference) panel.abline(h = 0, lty = 5)
 
-                        ## only plot median once if 2 conf.int
-                        id <- which(data.day.hour$ci[subscripts] == data.day.hour$ci[1])
+                                            ## only plot median once if 2 conf.int
+                                            id <- which(data.day.hour$ci[subscripts] == data.day.hour$ci[1])
 
-                        panel.xyplot(x[id], y[id], type = "l", col.line = myColors[group.number],...)
+                                            panel.xyplot(x[id], y[id], type = "l",
+                                                         col.line = myColors[group.number],...)
 
-                        if (ci) {mkpoly(data.day.hour[subscripts, ], x = "hour", y = "Mean",
-                                        group.number, myColors, alpha)}
-                    })
+                                            if (ci) {mkpoly(data.day.hour[subscripts, ], x = "hour",
+                                                            y = "Mean", group.number, myColors, alpha)}
+                                        }
+                                        )
+                    }
+                    )
 
     ## reset for extra.args
     xy.args <- listUpdate(xy.args, extra.args)
@@ -754,18 +786,18 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE,
     } else {
         y.upp <- 0.975; y.dwn <- 0.025
     }
-
+    
     main.plot <- function(...) {
         if (type == "default") {
             print(update(day.hour, key = list(rectangles = list(col = myColors[1:npol], border = NA),
-                                   text = list(lab = mylab), space = "bottom", columns = key.columns,
-                                   title = "", lines.title = 1)
+                                       text = list(lab = mylab), space = "bottom", columns = key.columns,
+                                       title = "", lines.title = 1)
                          ), position = c(0, 0.5, 1, y.upp), more = TRUE)
         } else {
             print(update(useOuterStrips(day.hour, strip = strip, strip.left = strip.left),
                          key = list(rectangles = list(col = myColors[1:npol], border = NA),
-                         text = list(lab = mylab), space = "bottom", columns = key.columns,
-                         title = "", lines.title = 1)
+                             text = list(lab = mylab), space = "bottom", columns = key.columns,
+                             title = "", lines.title = 1)
                          ), position = c(0, 0.5, 1, y.upp), more = TRUE)
         }
         print(hour, position = c(0, y.dwn, 0.33, 0.53), more = TRUE)
@@ -778,8 +810,8 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE,
 
     ind.plot = function(x, ...){
         plot(update(x, key = list(
-                       rectangles = list(col = myColors[1:npol], border = NA),
-                       text = list(lab = mylab), space = "top", columns = key.columns)
+                           rectangles = list(col = myColors[1:npol], border = NA),
+                           text = list(lab = mylab), space = "top", columns = key.columns)
                     ), ...)
     }
 
@@ -798,7 +830,7 @@ timeVariation <- function(mydata, pollutant = "nox", local.time = FALSE,
 
 proc <- function(conf.int = conf.int, mydata, vars = "day.hour", pollutant, type, B = B,
                  statistic = statistic) {
-
+    
     ## get rid of R check annoyances
     variable = value = NULL
 
@@ -810,7 +842,7 @@ proc <- function(conf.int = conf.int, mydata, vars = "day.hour", pollutant, type
 
     summary.values <- function(conf.int = conf.int, mydata, vars = vars, FUN, type = type, B = B,
                                statistic = statistic) {
-
+        
         if (vars == "hour")  myform <- formula(paste("value ~ variable + hour +", type))
 
         if (vars == "day.hour")  myform <- formula(paste("value ~ variable + wkday + hour +", type))
@@ -832,10 +864,11 @@ proc <- function(conf.int = conf.int, mydata, vars = "day.hour", pollutant, type
                                  conf.int = conf.int)
         data1 <- data.frame(subset(data1, select = -value), data1$value)
     }
-
+    
     if ("wd" %in% pollutant) {
-        data2 <-  subset(mydata, variable == "wd")
-        data2 <-  summary.values(conf.int, data2, vars, wd.smean.normal, type, B = B, statistic = statistic)
+        if (length(pollutant) > 1) mydata <- subset(mydata, variable == "wd")
+        data2 <-  summary.values(conf.int, mydata, vars, wd.smean.normal, type,
+                                 B = B, statistic = statistic)
         data2 <- data.frame(subset(data2, select = -value), data2$value)
     }
 
@@ -901,7 +934,7 @@ errorDiff <- function(mydata, vars = "day.hour", poll1, poll2, type, B = B, conf
 ## function to calculate median and lower/upper quantiles
 median.hilow <- function (x, conf.int = 0.95, na.rm = TRUE, ...) {
     quant <- quantile(x, probs = c(0.5, (1 - conf.int) / 2, (1 +
-                         conf.int) / 2), na.rm = na.rm)
+                             conf.int) / 2), na.rm = na.rm)
     names(quant) <- c("Mean", "Lower", "Upper")
     quant
 }
@@ -925,7 +958,7 @@ mkpoly <- function(dat, x = "hour", y = "Mean", group.number, myColors, alpha) {
             group.number, myColors, alpha = fac * alpha / 2)
 
     if (len == 2L) poly.na(dat[id2, x], dat$Lower[id2], dat[id2, x], dat$Upper[id2],
-        group.number, myColors, alpha = alpha)
+            group.number, myColors, alpha = alpha)
 }
 
 mkrect <- function(dat, x = "wkday", y = "Mean", group.number, myColors, alpha) {
@@ -947,6 +980,6 @@ mkrect <- function(dat, x = "wkday", y = "Mean", group.number, myColors, alpha) 
                border = NA, alpha = fac * alpha / 2)
 
     if (len == 2L) panel.rect(dat[id2, x] - 0.3, dat$Lower[id2], dat[id2, x] + 0.3,
-        dat$Upper[id2], fill = myColors[group.number],
-        border = NA, alpha = alpha)
+            dat$Upper[id2], fill = myColors[group.number],
+            border = NA, alpha = alpha)
 }

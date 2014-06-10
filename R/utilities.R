@@ -12,7 +12,21 @@ endMonth <- function(dat) as.numeric(format(max(dat[order(dat)]), "%m"))
 
 ## these are pre-defined type that need a field "date"; used by cutData
 dateTypes <- c("year", "hour", "month", "season", "weekday", "weekend", "monthyear",
-                   "gmtbst", "bstgmt", "daylight")
+                   "gmtbst", "bstgmt", "dst", "daylight")
+
+## sets up how openair graphics look by default and resets on exit
+
+setGraphics <- function(fontsize = 5) {
+    
+  current.strip <- trellis.par.get("strip.background")
+  trellis.par.set(fontsize = list(text = fontsize))
+
+  ## reset graphic parameters
+  font.orig <- trellis.par.get("fontsize")$text
+  on.exit(trellis.par.set(strip.background = current.strip, 
+                          fontsize = list(text = font.orig)))
+  
+}
 
 ###############################################################################
 
@@ -565,10 +579,18 @@ panel.gam <- function (x, y, form = y ~ x, method = "loess", k = k, Args, ..., s
             xrange <- c(max(min(lims$x), min(x)), min(max(lims$x), max(x)))
             xseq <- seq(xrange[1], xrange[2], length = n)
 
+            ## for uncertainties
+            std <- qnorm(level / 2 + 0.5)
+
             pred <- predict(mod, data.frame(x = xseq), se = se)
 
+            
+            results <- data.frame(date = xseq, pred = pred$fit,
+                                  lower = pred$fit - std * pred$se,
+                                  upper = pred$fit + std * pred$se)
+            
             if (se) {
-                std <- qnorm(level / 2 + 0.5)
+                
                 panel.polygon(x = c(xseq, rev(xseq)), y = c(pred$fit -
                                                       std * pred$se, rev(pred$fit + std * pred$se)),
                               col = col.se, alpha = alpha.se, border = border)
@@ -576,6 +598,7 @@ panel.gam <- function (x, y, form = y ~ x, method = "loess", k = k, Args, ..., s
             }
 
             panel.lines(xseq, pred, col = col, alpha = alpha, lty = lty, lwd = 2)
+            
         } else { ## simulations required
 
             sam.size <- length(x)
@@ -633,12 +656,103 @@ panel.gam <- function (x, y, form = y ~ x, method = "loess", k = k, Args, ..., s
             panel.lines(xseq, pred.input, col = col, alpha = alpha, lty = lty, lwd = 2)
 
         }
-
+        results
     }, error = function(x) return)
 }
 
 
+## version of GAM fitting not for plotting - need to rationalise both...
+fitGam <- function (thedata, x = "date", y = "conc", form = y ~ x, k = k,
+                        Args, ..., simulate = FALSE, n.sim = 200, autocor = FALSE, se = TRUE,
+                       level = 0.95, n = 100)
+{
 
+    ## panel function to add a smooth line to a plot
+    ## Uses a GAM (mgcv) to fit smooth
+    ## Optionally can plot 95% confidence intervals and run bootstrap simulations
+    ## to estimate uncertainties. Simple block bootstrap is also available for correlated data
+
+    data.orig <- thedata ## return this if all else fails
+
+    id <- which(names(thedata) == x)
+    names(thedata)[id] <- "x"
+    id <- which(names(thedata) == y)
+    names(thedata)[id] <- "y"
+    
+    thedata$x <- as.numeric(thedata$x)
+    
+    tryCatch({
+
+        if (!simulate) {
+
+            if (is.null(k)) {
+                mod <- gam(y ~ s(x), select = TRUE, data = thedata, ...)
+
+            } else {
+                mod <- gam(y ~ s(x, k = k), select = TRUE, data = thedata, ...)
+            }
+
+            xseq <- seq(min(thedata$x, na.rm = TRUE), max(thedata$x, na.rm = TRUE), length = n)
+
+            ## for uncertainties
+            std <- qnorm(level / 2 + 0.5)
+
+            pred <- predict(mod, data.frame(x = xseq), se = se)
+
+            
+            results <- data.frame(date = xseq, pred = pred$fit,
+                                  lower = pred$fit - std * pred$se,
+                                  upper = pred$fit + std * pred$se)          
+            
+        } else { ## simulations required
+
+            sam.size <- nrow(thedata)
+           
+            xseq <- seq(min(thedata$x, na.rm = TRUE), max(thedata$x, na.rm = TRUE), length = n)
+
+            boot.pred <- matrix(nrow = sam.size, ncol = n.sim)
+
+            print ("Taking bootstrap samples. Please wait...")
+
+            ## set up bootstrap
+            block.length <- 1
+
+            if (autocor) block.length <- round(sam.size ^ (1 / 3))
+            index <- samp.boot.block(sam.size, n.sim, block.length)
+
+            ## predict first
+            if (is.null(k)) {
+                mod <- gam(y ~ s(x), data = thedata, ...)
+            } else {
+                 mod <- gam(y ~ s(x, k = k), data = thedata, ...)
+            }
+
+            residuals <- residuals(mod) ## residuals of the model
+
+            pred.input <- predict(mod, thedata)
+
+            for (i in 1:n.sim) {
+                ## make new data
+                new.data <- data.frame(x = xseq, y = pred.input + residuals[index[, i]])
+
+                mod <- gam(y ~ s(x), data = new.data, ...)
+
+                pred <- predict(mod, new.data)
+
+                boot.pred[, i] <- as.vector(pred)
+
+            }
+
+            ## calculate percentiles
+            percentiles <- apply(boot.pred, 1, function(x) quantile(x, probs = c(0.025, 0.975)))
+
+            results <- as.data.frame(cbind(pred = rowMeans(boot.pred),
+                                           lower = percentiles[1, ], upper = percentiles[2, ]))
+         
+        }
+        results
+    }, error = function(x) {data.orig})
+}
 
 
 #########################################################################################################
@@ -779,12 +893,12 @@ makeOpenKeyLegend <- function(key, default.key, fun.name = "function"){
 }
 
  ## polygon that can deal with missing data for use in lattice plots with groups
-    poly.na <- function(x1, y1, x2, y2, group.number, myColors, alpha = 0.4) {
+    poly.na <- function(x1, y1, x2, y2, group.number, myColors, alpha = 0.4, border = NA) {
         for(i in seq(2, length(x1)))
             if (!any(is.na(y2[c(i - 1, i)])))
                 lpolygon(c(x1[i - 1], x1[i], x2[i], x2[i - 1]),
                          c(y1[i - 1], y1[i], y2[i], y2[i - 1]),
-                         col = myColors[group.number], border = NA, alpha = alpha)
+                         col = myColors[group.number], border = border, alpha = alpha)
     }
 
 

@@ -50,7 +50,7 @@ is.openair <- function(x, full.test=TRUE, ...){
 
 #results
 
-##' @export results
+
 results <- function(object,...)
                   UseMethod("results")
 
@@ -61,7 +61,7 @@ results <- function(object,...)
 #to handle all other cases without error
 #
 
-##' @S3method results default
+##' @export
 
 results.default <- function(object,...){
 
@@ -77,7 +77,7 @@ results.default <- function(object,...){
 #to do
 #################
 
-##' @S3method results openair
+##' @export
 
 results.openair <- function(object,
                        subset = "all", silent=FALSE,
@@ -219,7 +219,7 @@ openairApply <- function(object, fun=summary, subset = "all",
 #kr 17/12/2010 v 0.0.3
 
 
-##' @S3method summary openair
+##' @export
 summary.openair <- function(object, subset = "all", ...)
     openairApply(object, fun=summary, subset=subset, ..., fun.name="summary")
 
@@ -237,9 +237,9 @@ summary.openair <- function(object, subset = "all", ...)
 #see ?head, ?tail
 
 
-##' @S3method head openair
+##' @export
 ##' @importFrom utils head
-##' @S3method tail openair
+##' @export 
 ##' @importFrom utils tail
 head.openair <- function(x, subset = "all", ...)
     openairApply(x, fun=head, subset=subset, ..., fun.name="head")
@@ -256,7 +256,7 @@ tail.openair <- function(x, subset = "all", ...)
 #################
 #to do
 #################
-##' @S3method plot openair
+##' @export
 plot.openair <- function(x, subset = "all", silent=TRUE, ...){
 
    if(!is.openair(x)) return(invisible(NULL))
@@ -328,7 +328,7 @@ plot.openair <- function(x, subset = "all", silent=TRUE, ...){
 #################
 #to do
 #################
-##' @S3method print openair
+##' @export
 print.openair <- function(x, silent = FALSE, plot = TRUE, ...){
 
    if(!is.openair(x)) return(invisible(NULL))
@@ -376,7 +376,7 @@ print.openair <- function(x, silent = FALSE, plot = TRUE, ...){
 #currently not S3 and base names(x)
 #so can't pass extra args via ...!
 #
-##' @S3method names openair
+##' @export 
 names.openair <- function(x, ...){
 
     #stuff we own up to...

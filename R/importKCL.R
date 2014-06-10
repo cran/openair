@@ -574,7 +574,7 @@ importKCL <- function(site = "my1", year = 2009, pollutant = "all", met = FALSE,
 
     if (met) {  ## merge met data
         load(url(paste("http://www.londonair.org.uk/r_data/", "metData", ".RData", sep = "")))
-        closeAllConnections()
+        #closeAllConnections()
         thedata <- merge(thedata, met, by = "date")
     }
 

@@ -1,5 +1,5 @@
 
-##' Import monitoring site meta data
+##' Import monitoring site meta data for the AURN, KCL and SAQN networks
 ##'
 ##' Function to import meta data from UK air pollution monitoring sites
 ##'

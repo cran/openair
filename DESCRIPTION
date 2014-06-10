@@ -1,8 +1,8 @@
 Package: openair
 Type: Package
 Title: Tools for the analysis of air pollution data
-Version: 0.9-2
-Date: 2014-01-09
+Version: 1.0
+Date: 2014-06-10
 Authors@R: c(person("David", "Carslaw", role = c("aut", "cre"), email =
     "david.carslaw@kcl.ac.uk"), person("Karl", "Ropkins", role =
     "aut", email = "K.Ropkins@its.leeds.ac.uk"))
@@ -22,9 +22,9 @@ License: GPL (>= 2)
 URL: http://www.openair-project.org/
 LazyLoad: yes
 LazyData: yes
-Packaged: 2014-01-29 07:56:03 UTC; David
+Packaged: 2014-06-10 10:51:24 UTC; davidcarslaw
 Author: David Carslaw [aut, cre],
   Karl Ropkins [aut]
 NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2014-01-29 10:56:54
+Date/Publication: 2014-06-10 13:31:19

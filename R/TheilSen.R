@@ -3,30 +3,20 @@
 ## The block bootstrap used should be regarded as an ongoing development
 ## see http://www-rcf.usc.edu/~rwilcox/
 ##
-## Author: DCC with Mann-Kendall and Sen-Theil functions from
-## Rand Wilcox
+## Author: David Carslaw with Sen-Theil functions from Rand Wilcox
 ###############################################################################
-
-MannKendall <- function(mydata, ...) {
-    TheilSen(mydata, ...)
-}
-
-
 ##' Tests for trends using Theil-Sen estimates
 ##'
 ##' Theil-Sen slope estimates and tests for trend.
 ##'
 ##' The \code{TheilSen} function provides a collection of functions to
-##' analyse trends in air pollution data. The Mann-Kendall test is a
-##' commonly used test in environmental sciences to detect the
-##' presence of a trend. It is often used with the Theil-Sen (or just
-##' Sen) estimate of slope. See references.  The \code{TheilSen}
-##' function is flexible in the sense that it can be applied to data
-##' in many ways e.g. by day of the week, hour of day and wind
-##' direction. This flexibility makes it much easier to draw
-##' inferences from data e.g. why is there a strong downward trend in
-##' concentration from one wind sector and not another, or why trends
-##' on one day of the week or a certain time of day are unexpected.
+##' analyse trends in air pollution data. The \code{TheilSen} function
+##' is flexible in the sense that it can be applied to data in many
+##' ways e.g. by day of the week, hour of day and wind direction. This
+##' flexibility makes it much easier to draw inferences from data
+##' e.g. why is there a strong downward trend in concentration from
+##' one wind sector and not another, or why trends on one day of the
+##' week or a certain time of day are unexpected.
 ##'
 ##' For data that are strongly seasonal, perhaps from a background
 ##' site, or a pollutant such as ozone, it will be important to
@@ -34,14 +24,13 @@ MannKendall <- function(mydata, ...) {
 ##' TRUE}.Similarly, for data that increase, then decrease, or show
 ##' sharp changes it may be better to use \code{\link{smoothTrend}}.
 ##'
+##' A minimum of 6 points are required for trend estimates to be made.
+##'
 ##' Note! that since version 0.5-11 openair uses Theil-Sen to derive
-##' the p values also. This is to ensure there is consistency between
-##' the calculated p value and other trend parameters i.e. slope
-##' estimates and uncertainties. This change may slightly affect some
-##' of the p-estimates previously given by openair because the p
-##' estimates are now calculated using bootstrap resampling by default
-##' and previously they were not. However, users can still for the
-##' moment call the \code{TheilSen} function using \code{MannKendall}.
+##' the p values also for the slope. This is to ensure there is
+##' consistency between the calculated p value and other trend
+##' parameters i.e. slope estimates and uncertainties. The p value and
+##' all uncertainties are calculated through bootstrap simulations.
 ##'
 ##' Note that the symbols shown next to each trend estimate relate to
 ##' how statistically significant the trend estimate is: p $<$ 0.001 =
@@ -59,16 +48,8 @@ MannKendall <- function(mydata, ...) {
 ##'
 ##' The slope estimate and confidence intervals in the slope are plotted and
 ##' numerical information presented.
-##' @usage TheilSen(mydata, pollutant = "nox", deseason = FALSE, type = "default",
-##' avg.time = "month", statistic = "mean", percentile = NA, data.thresh = 0,
-##' alpha = 0.05, dec.place = 2, xlab = "year", lab.frac = 0.99, lab.cex = 0.8,
-##' x.relation = "same", y.relation = "same", data.col = "cornflowerblue",
-##' line.col = "red", text.col = "darkgreen", cols = NULL, auto.text = TRUE,
-##' autocor = FALSE, slope.percent = FALSE, date.breaks = 7,...)
-##'
-##'       MannKendall(mydata,...)
-##'
-##' @aliases TheilSen MannKendall
+##' 
+##' @aliases TheilSen
 ##' @param mydata A data frame containing the field \code{date} and at least
 ##'   one other parameter for which a trend test is required; typically (but
 ##'   not necessarily) a pollutant.
@@ -138,6 +119,8 @@ MannKendall <- function(mydata, ...) {
 ##' @param text.col Colour name for the slope/uncertainty numeric estimates
 ##' @param cols Predefined colour scheme, currently only enabled for
 ##'   \code{"greyscale"}.
+##' @param shade The colour used for marking alternate years. Use
+##' \dQuote{white} or \dQuote{transparent} to remove shading.
 ##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
 ##'   \code{TRUE} titles and axis labels will automatically try and format
 ##'   pollutant names and units properly e.g.  by subscripting the \sQuote{2}
@@ -178,7 +161,7 @@ MannKendall <- function(mydata, ...) {
 ##'   Similarly, common axis and title labelling options (such as \code{xlab},
 ##'   \code{ylab}, \code{main}) are passed to \code{xyplot} via \code{quickText}
 ##'   to handle routine formatting.
-##' @export TheilSen MannKendall
+##' @export TheilSen
 ##' @return As well as generating the plot itself, \code{TheilSen} also
 ##'   returns an object of class ``openair''. The object includes three main
 ##'   components: \code{call}, the command used to generate the plot;
@@ -189,8 +172,7 @@ MannKendall <- function(mydata, ...) {
 ##'   further analysis.
 ##'
 ##' An openair output can be manipulated using a number of generic operations,
-##'   including \code{print}, \code{plot} and \code{summary}. See
-##'   \code{\link{openair.generics}} for further details.
+##'   including \code{print}, \code{plot} and \code{summary}. 
 ##'
 ##' The \code{data} component of the \code{TheilSen} output includes two
 ##'   subsets: \code{main.data}, the monthly data \code{res2} the trend
@@ -257,7 +239,8 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
                      statistic = "mean", percentile = NA, data.thresh = 0, alpha = 0.05,
                      dec.place = 2, xlab = "year", lab.frac = 0.99, lab.cex = 0.8,
                      x.relation = "same", y.relation = "same", data.col = "cornflowerblue",
-                     line.col = "red", text.col = "darkgreen", cols = NULL, auto.text = TRUE,
+                     line.col = "red", text.col = "darkgreen", cols = NULL, 
+                     shade = "grey95", auto.text = TRUE,
                      autocor = FALSE, slope.percent = FALSE, date.breaks = 7,...)  {
 
     ## get rid of R check annoyances
@@ -290,6 +273,9 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
         quickText(extra.args$ylab, auto.text) else quickText(pollutant, auto.text)
     extra.args$main <- if("main" %in% names(extra.args))
         quickText(extra.args$main, auto.text) else quickText("", auto.text)
+    
+    xlim <- if ("xlim" %in% names(extra.args))
+      extra.args$xlim else  NULL
 
     ## layout default
     if(!"layout" %in% names(extra.args))
@@ -299,6 +285,11 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
 
 
     if (!avg.time %in% c("year", "month", "season")) stop ("avg.time can only be 'month', 'season' or 'year'.")
+
+    ## if data clearly annual, then assume annual
+    interval <- find.time.interval(mydata$date)
+    interval <- as.numeric(strsplit(interval, split = " ")[[1]][1])   
+    if (round(interval / 8760) == 3600) avg.time <- "year"
 
     ## data checks
     mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
@@ -321,10 +312,11 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
     mydata <- ddply(mydata, type, timeAverage, avg.time = avg.time,
                          statistic = statistic, percentile = percentile,
                          data.thresh = data.thresh)
+    
 
     process.cond <- function(mydata) {
 
-        if (all(is.na(mydata[ , pollutant]))) return()
+        if (all(is.na(mydata[ , pollutant]))) return()       
 
         ## sometimes data have long trailing NAs, so start and end at
         ## first and last data
@@ -337,7 +329,7 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
         end.year <-   endYear(mydata$date)
         start.month <-  startMonth(mydata$date)
         end.month <-   endMonth(mydata$date)
-
+        
         if (avg.time == "month") {
 
             mydata$date <- as.Date(mydata$date)
@@ -375,15 +367,15 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
             results <- na.omit(all.results)
         }
 
-        ## now calculate trend, uncertainties etc ###############################################
-        if (nrow(results) < 2) return()
+        ## now calculate trend, uncertainties etc ###########################
+        if (nrow(results) < 6) return() ## need enough data to calculate trend
         MKresults <- MKstats(results$date, results$conc, alpha, autocor)
 
         ## make sure missing data are put back in for plotting
         results <- suppressWarnings(merge(all.results, MKresults, by = "date", all = TRUE))
         results
     }
-
+    
     split.data <- ddply(mydata, type,  process.cond)
     if (nrow(split.data) < 2) return()
 
@@ -457,10 +449,14 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
     temp <- paste(type, collapse = "+")
     myform <- formula(paste("conc ~ date| ", temp, sep = ""))
 
+    gap <- (max(split.data$date) - min(split.data$date)) / 80
+    if (is.null(xlim)) xlim <- range(split.data$date) + c(-1 * gap, gap)
+
     xyplot.args <- list(x = myform, data = split.data,
                         xlab = quickText(xlab, auto.text),
                         par.strip.text = list(cex = 0.8),
                         as.table = TRUE,
+                        xlim = xlim,
                         strip = strip,
                         strip.left = strip.left,
                         scales = list(x = list(at = date.at, format = date.format,
@@ -470,7 +466,7 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
                         panel = function(x, y, subscripts,...){
                             ## year shading
                             panel.shade(split.data, start.year, end.year,
-                                                  ylim = current.panel.limits()$ylim)
+                                                  ylim = current.panel.limits()$ylim, shade)
                             panel.grid(-1, 0)
 
                             panel.xyplot(x, y, type = "b", col = data.col, ...)
@@ -533,7 +529,7 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
 
 
 
-panel.shade <- function(split.data, start.year, end.year, ylim) {
+panel.shade <- function(split.data, start.year, end.year, ylim, shade = "grey95") {
 
      x1 <- as.POSIXct(seq(ISOdate(start.year - 6, 1, 1),
                          ISOdate(end.year + 5, 1, 1), by = "2 years"), "GMT")
@@ -558,7 +554,7 @@ panel.shade <- function(split.data, start.year, end.year, ylim) {
 
     sapply(seq_along(x1), function(x) lpolygon(c(x1[x], x1[x], x2[x], x2[x]),
                                                c(y1, y2, y2, y1),
-                                               col = "grey95", border = "grey95"))
+                                               col = shade, border = "grey95"))
 }
 
 MKstats <- function(x, y, alpha, autocor) {

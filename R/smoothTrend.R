@@ -1,4 +1,4 @@
-##' Calculate smoothTrends
+##' Calculate nonparametric smooth trends
 ##'
 ##' Use non-parametric methods to calculate time series trends
 ##'
@@ -11,7 +11,7 @@
 ##' \code{smoothTrend} uses a Generalized Additive Model (GAM) from the
 ##' \code{\link{gam}} package to find the most appropriate level of smoothing.
 ##' The function is particularly suited to situations where trends are not
-##' monotonic (see discussion with \code{\link{MannKendall}} for more details
+##' monotonic (see discussion with \code{\link{TheilSen}} for more details
 ##' on this). The \code{smoothTrend} function is particularly useful as an
 ##' exploratory technique e.g. to check how linear or non-linear trends are.
 ##'
@@ -79,6 +79,8 @@
 ##' @param cols Colours to use. Can be a vector of colours e.g. \code{cols =
 ##'   c("black", "green")} or pre-defined openair colours --- see
 ##'   \code{openColours} for more details.
+##' @param shade The colour used for marking alternate years. Use
+##' \dQuote{white} or \dQuote{transparent} to remove shading.
 ##' @param xlab x-axis label, by default \dQuote{year}.
 ##' @param y.relation This determines how the y-axis scale is plotted. "same"
 ##'   ensures all panels use the same scale and "free" will use panel-specfic
@@ -118,20 +120,22 @@
 ##'   \code{statistic = "percentile"} and a vector of \code{percentile} values,
 ##'   see examples below.
 ##' @export
-##' @return As well as generating the plot itself, \code{smoothTrend} also
-##'   returns an object of class ``openair''. The object includes three main
-##'   components: \code{call}, the command used to generate the plot;
-##'   \code{data}, the data frame of summarised information used to make the
-##'   plot; and \code{plot}, the plot itself. If retained, e.g. using
-##'   \code{output <- smoothTrend(mydata, "nox")}, this output can be used to
-##'   recover the data, reproduce or rework the original plot or undertake
-##'   further analysis.
+##' @return As well as generating the plot itself, \code{smoothTrend}
+##' also returns an object of class ``openair''. The object includes
+##' three main components: \code{call}, the command used to generate
+##' the plot; \code{data}, the data frame of summarised information
+##' used to make the plot; and \code{plot}, the plot itself. Note that
+##' \code{data} is a list of two data frames: \code{data} (the
+##' original data) and \code{fit} (the smooth fit that has details of
+##' the fit and teh uncertainties). If retained, e.g. using
+##' \code{output <- smoothTrend(mydata, "nox")}, this output can be
+##' used to recover the data, reproduce or rework the original plot or
+##' undertake further analysis.
 ##'
 ##' An openair output can be manipulated using a number of generic operations,
-##'   including \code{print}, \code{plot} and \code{summarise}. See
-##'   \code{\link{openair.generics}} for further details.
+##'   including \code{print}, \code{plot} and \code{summarise}. 
 ##' @author David Carslaw
-##' @seealso \code{\link{MannKendall}} for an alternative method of calculating
+##' @seealso \code{\link{TheilSen}} for an alternative method of calculating
 ##'   trends.
 ##' @keywords methods
 ##' @examples
@@ -159,8 +163,9 @@
 smoothTrend <- function(mydata, pollutant = "nox", deseason = FALSE,
                         type = "default", statistic = "mean", avg.time = "month",
                         percentile = NA, data.thresh = 0, simulate = FALSE,
-                        n = 200, autocor = FALSE, cols = "brewer1", xlab = "year",
-                        y.relation = "same", key.columns = length(percentile),
+                        n = 200, autocor = FALSE, cols = "brewer1", shade = "grey95",
+                        xlab = "year", y.relation = "same",
+                        key.columns = length(percentile),
                         ci = TRUE, alpha = 0.2, date.breaks = 7,
                         auto.text = TRUE, k = NULL, ...)  {
 
@@ -172,7 +177,7 @@ smoothTrend <- function(mydata, pollutant = "nox", deseason = FALSE,
 
         trellis.par.set(list(strip.background = list(col = "white")))
     }
-
+    
     ## reset strip color on exit
     current.strip <- trellis.par.get("strip.background")
     on.exit(trellis.par.set("strip.background", current.strip))
@@ -216,7 +221,12 @@ smoothTrend <- function(mydata, pollutant = "nox", deseason = FALSE,
     }
 
     if (!avg.time %in% c("year", "season", "month")) stop("Averaging period must be 'month' or 'year'.")
-
+    
+    ## if data clearly annual, then assume annual
+    interval <- find.time.interval(mydata$date)
+    interval <- as.numeric(strsplit(interval, split = " ")[[1]][1])   
+    if (round(interval / 8760) == 3600) avg.time <- "year"
+    
     ## for overall data and graph plotting
     start.year <- startYear(mydata$date)
     end.year <-  endYear(mydata$date)
@@ -247,6 +257,7 @@ smoothTrend <- function(mydata, pollutant = "nox", deseason = FALSE,
                                                            percentile, sep = ""))
 
     } else {
+        
         mydata <- ddply(mydata, c(type, "variable"), timeAverage, avg.time = avg.time,
                         statistic = statistic, percentile = percentile,
                         data.thresh = data.thresh)
@@ -292,13 +303,18 @@ smoothTrend <- function(mydata, pollutant = "nox", deseason = FALSE,
             results <- data.frame(date = mydata$date, conc = mydata[, "value"])
 
         }
-
+                              
         results
+       
     }
-
+    
     split.data <- ddply(mydata, c(type, "variable"),  process.cond)
 
-
+    ## smooth fits so that they can be returned to the user
+    fit <- ddply(split.data, c(type, "variable"), fitGam, x = "date", y = "conc",
+                 k = k, ...)
+    class(fit$date) <- c("POSIXt", "POSIXct")
+    
     ## special wd layout
     #(type field in results.grid called type not wd)
     if (length(type) == 1 & type[1] == "wd" & is.null(extra.args$layout)) {
@@ -321,8 +337,7 @@ smoothTrend <- function(mydata, pollutant = "nox", deseason = FALSE,
     strip <- strip.dat[[1]]
     strip.left <- strip.dat[[2]]
     pol.name <- strip.dat[[3]]
-
-
+    
     ## colours according to number of percentiles
     npol <- max(length(percentile), length(pollutant)) ## number of pollutants
 
@@ -331,7 +346,7 @@ smoothTrend <- function(mydata, pollutant = "nox", deseason = FALSE,
         openColours(cols, npol+1)[-1] else openColours(cols, npol)
 
     ## information for key
-    npol <- unique(split.data$variable)
+    npol <- na.omit(unique(split.data$variable))
     key.lab <- sapply(seq_along(npol), function(x) quickText(npol[x], auto.text))
 
     if (length(npol) > 1) {
@@ -375,19 +390,20 @@ smoothTrend <- function(mydata, pollutant = "nox", deseason = FALSE,
                       if (group.number == 1) {  ## otherwise this is called every time
 
                           panel.shade(split.data, start.year, end.year,
-                                                ylim = current.panel.limits()$ylim)
+                                                ylim = current.panel.limits()$ylim,
+                                      shade)
                           panel.grid(-1, 0)
-
-
+                          
                       }
                       panel.xyplot(x, y, type = "b", lwd = lwd, lty = lty, pch = pch,
                                    col.line = myColors[group.number],
                                    col.symbol = myColors[group.number], ...)
 
-                      panel.gam(x, y, col =  myColors[group.number], k = k, myColors[group.number], #col.se =  "black",
+                      panel.gam(x, y, col =  myColors[group.number], k = k, myColors[group.number], 
                                 simulate = simulate, n.sim = n,
                                 autocor = autocor, lty = 1, lwd = 1, se = ci, ...)
-
+                                           
+                      
                   })
 
     #reset for extra.args
@@ -395,13 +411,11 @@ smoothTrend <- function(mydata, pollutant = "nox", deseason = FALSE,
 
     #plot
     plt <- do.call(xyplot, xyplot.args)
-
-#################
-    ## output
-#################
+   
+    ## output ########################################################################
     if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip, strip.left = strip.left))
     newdata <- split.data
-    output <- list(plot = plt, data = newdata, call = match.call())
+    output <- list(plot = plt, data = list(data = newdata, fit = fit), call = match.call())
     class(output) <- "openair"
 
     invisible(output)

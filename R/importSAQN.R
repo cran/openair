@@ -1,4 +1,4 @@
-##' SAQN data import for openair
+##' Scottish Air Quality Network data import for openair
 ##'
 ##' Function for importing hourly mean Scottish Air Quality Network (SAQN)
 ##' archive data files for use with the \code{openair} package. Files are

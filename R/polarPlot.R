@@ -291,8 +291,7 @@
 ##'
 ##' An openair output can be manipulated using a number of generic
 ##' operations, including \code{print}, \code{plot} and
-##' \code{summary}. See \code{\link{openair.generics}} for further
-##' details.
+##' \code{summary}. 
 ##'
 ##' \code{polarPlot} surface data can also be extracted directly using
 ##' the \code{results}, e.g.  \code{results(object)} for \code{output
@@ -403,10 +402,12 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
         trellis.par.set(list(strip.background = list(col = "white")))
     }
 
-    ## reset strip color on exit
+    ## set graphics
     current.strip <- trellis.par.get("strip.background")
-    on.exit(trellis.par.set("strip.background", current.strip))
-
+    
+    ## reset graphic parameters
+    on.exit(trellis.par.set(strip.background = current.strip))
+        
     ## extra.args setup
     extra.args <- list(...)
 
@@ -667,28 +668,28 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
     if (!missing(min.bin)) {
         tmp <- min.bin
         min.bin <- 0
-        results.grid1 <- ddply(mydata, type, prepare.grid)
+        res1 <- ddply(mydata, type, prepare.grid)
 
         min.bin <- tmp
-        results.grid <- ddply(mydata, type, prepare.grid)
-        results.grid$miss <- results.grid1$z
+        res <- ddply(mydata, type, prepare.grid)
+        res$miss <- res1$z
 
     } else {
 
-        results.grid <- ddply(mydata, type, prepare.grid)
+        res <- ddply(mydata, type, prepare.grid)
     }
 
     ## with CPF make sure not >1 due to surface fitting
-    if (any(results.grid$z > 1, na.rm = TRUE) & statistic %in% c("cpf", "cpfi")) {
-        id <- which(results.grid$z > 1)
-        results.grid$z[id] <- 1
+    if (any(res$z > 1, na.rm = TRUE) & statistic %in% c("cpf", "cpfi")) {
+        id <- which(res$z > 1)
+        res$z[id] <- 1
     }
 
     ## remove wind speeds > upper to make a circle
-    if (clip) results.grid$z[(results.grid$u ^ 2 + results.grid$v ^ 2) ^ 0.5 > upper] <- NA
+    if (clip) res$z[(res$u ^ 2 + res$v ^ 2) ^ 0.5 > upper] <- NA
 
     ## proper names of labelling ###################################################
-    strip.dat <- strip.fun(results.grid, type, auto.text)
+    strip.dat <- strip.fun(res, type, auto.text)
     strip <- strip.dat[[1]]
     strip.left <- strip.dat[[2]]
     pol.name <- strip.dat[[3]]
@@ -696,7 +697,7 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
 
     ## normalise by divining by mean conditioning value if needed
     if (normalise){
-        results.grid <- ddply(results.grid, type, transform, z = z / mean(z, na.rm = TRUE))
+        res <- ddply(res, type, transform, z = z / mean(z, na.rm = TRUE))
         if (missing(key.footer)) key.footer <- "normalised \nlevel"
     }
 
@@ -707,24 +708,35 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
     ## handle missing breaks arguments
 
     if (missing(limits)) {
-        breaks <- pretty(results.grid$z, n = nlev)
+       # breaks <- pretty(res$z, n = nlev)
+        breaks <- seq(min(res$z, na.rm = TRUE), max(res$z, na.rm = TRUE),
+                          length.out = nlev)
         labs <- pretty(breaks, 7)
         labs <- labs[labs >= min(breaks) & labs <= max(breaks)]
-
+        at <- labs
+        
     } else {
-
-        breaks <- pretty(limits, n = nlev)
+        
+        ## handle user limits and clipping
+        breaks <- seq(min(limits), max(limits), length.out = nlev)
         labs <- pretty(breaks, 7)
         labs <- labs[labs >= min(breaks) & labs <= max(breaks)]
-
-        if (max(limits) < max(results.grid$z, na.rm = TRUE)) {
-            ## if clipping highest, then annotate differently
-            id <- which(results.grid$z > max(limits))
-            results.grid$z[id] <- max(limits)
-            labs <- pretty(breaks, 7)
-            labs <- labs[labs >= min(breaks) & labs <= max(breaks)]
-            labs[length(labs)] <- paste(">", labs[length(labs)])
+        at <- labs
+        
+        ## case where user max is < data max
+        if (max(limits) < max(res[["z"]], na.rm = TRUE)) {             
+            id <- which(res[["z"]] > max(limits))
+            res[["z"]][id] <- max(limits)
+            labs[length(labs)] <- paste(">", labs[length(labs)])          
         }
+
+        ## case where user min is > data min
+        if (min(limits) > min(res[["z"]], na.rm = TRUE)) {              
+            id <- which(res[["z"]] < min(limits))
+            res[["z"]][id] <- min(limits)
+            labs[1] <- paste("<", labs[1])
+        }
+               
     }
 
     nlev2 <- length(breaks)
@@ -740,7 +752,7 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
 
     ## scale key setup ##############################################################
 
-    legend <- list(col = col, at = col.scale, labels = list(labels = labs),
+    legend <- list(col = col, at = col.scale, labels = list(labels = labs, at = at),
                    space = key.position, auto.text = auto.text,
                    footer = key.footer, header = key.header,
                    height = 1, width = 1.5, fit = "all")
@@ -768,7 +780,7 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
     temp <- paste(type, collapse = "+")
     myform <- formula(paste("z ~ u * v | ", temp, sep = ""))
 
-    Args <- list(x = myform, results.grid, axes = FALSE,
+    Args <- list(x = myform, res, axes = FALSE,
                  as.table = TRUE,
                  strip = strip,
                  strip.left = strip.left,
@@ -776,7 +788,6 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
                  region = TRUE,
                  aspect = 1,
                  sub = sub,
-                 at = col.scale,
                  par.strip.text = list(cex = 0.8),
                  scales = list(draw = FALSE),
                  xlim = c(-upper * 1.025, upper * 1.025),
@@ -787,7 +798,7 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
 
                      ## show missing data due to min.bin
                      if (min.bin > 1)
-                         panel.levelplot(x, y, results.grid$miss,
+                         panel.levelplot(x, y, res$miss,
                                          subscripts,
                                          col.regions = mis.col,
                                          labels = FALSE)
@@ -827,16 +838,19 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
     plt <- do.call(levelplot, Args)
 
     ## output #######################################################################
-
+    
+    
     if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip,
               strip.left = strip.left))
+    
+    
 
-    newdata <- results.grid
+    newdata <- res
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
-
+    
     invisible(output)
-
+ 
 }
 
 

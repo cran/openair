@@ -128,15 +128,13 @@ trendLevelWd <- function(mydata,
 ##'   analysis.
 ##'
 ##' An openair output can be manipulated using a number of generic operations,
-##'   including \code{print}, \code{plot} and \code{summary}. See
-##'   \code{\link{openair.generics}} for further details.
+##'   including \code{print}, \code{plot} and \code{summary}. 
 ##'
 ##' Summary statistics can also be extracted directly using \code{results},
 ##'   e.g.  \code{results(object)} for \code{output <- trendLevel(mydata)}.
 ##' @author Karl Ropkins
 ##' @seealso \code{\link{openColours}} and \code{\link{drawOpenKey}} for more
-##'   detailed plot control and \code{\link{openair.generics}} for output
-##'   handling.
+##'   detailed plot control.
 ##' @keywords methods
 ##' @examples
 ##'

@@ -11,9 +11,29 @@ Changes in openair 1.0-0 [2013-11-21]
 *	Fix bug when type = "weekday" but not all days of the week
 	are present
 *	Add annotate option to TaylorDiagram
-*	Allow modStat statistics to be chosen by user
+*	Allow modStat statistics to be chosen by user and add Index of Agreement
 *	Needs to be >24 months to deseason in smoothTrend/TheilSen
 	(was >=)
+* 	Refine names returned by importADMS when used with .pst file
+*	Fix trajectory code in appendix D in the manual (some function
+	arguments were not passed)
+*	Better user defined limits scaling in polarPlot, scatterPlot,
+	polarAnnulus when limits within data range
+*	Clarify time zone for importing data to openair and checking
+	(see manual for details)
+*	Initial versions of functions to import EEA airbase data - see
+	newsletter/manual for details
+*	Better treatment of daylight saving time in cutData,
+	timeVariation and polarAnnulus (allow any local time zone to be used;
+	was just GMT/BST befote)
+*	Remove existing date-based columns in cutData to ensure date
+	is used instead
+* 	Allow users to shade/not shade alternate years in smoothTrend
+	and TheilSen
+*	Do not smooth percentileRose by wind direction by default.
+* 	Add option 'wd' to percentileRose
+* 	Fix trajPlot bug when trajectory data was not at 3-hour intervals
+* 	Return data and smooth fit information in smoothTrend
 
 Changes in openair 0.9-0 [2013-02-13]
 =====================================

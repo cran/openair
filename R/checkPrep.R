@@ -3,17 +3,18 @@
                                         # Author: DCC
 ###############################################################################
 
-checkPrep <- function(mydata, Names, type, remove.calm = TRUE, remove.neg = TRUE, strip.white = TRUE) {
+checkPrep <- function(mydata, Names, type, remove.calm = TRUE, remove.neg = TRUE, strip.white = TRUE,
+                      wd = "wd") {
 
     ## deal with conditioning variable if present, if user-defined, must exist in data
     ## pre-defined types
     ## existing conditioning variables that only depend on date (which is checked)
-    conds <- c("default", "year", "hour", "month", "season", "weekday", "weekend", "monthyear", "gmtbst", "bstgmt", "daylight")
+    conds <- c("default", "year", "hour", "month", "season", "weekday", "weekend", "monthyear", "gmtbst", "bstgmt", "dst", "daylight")
     all.vars <- unique(c(names(mydata), conds))
 
     varNames <- c(Names, type) ## names we want to be there
     matching <- varNames %in% all.vars
-
+    
     if (any(!matching)) {
         ## not all variables are present
         stop(cat("Can't find the variable(s)", varNames[!matching], "\n"))
@@ -66,30 +67,31 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE, remove.neg = TRUE
     ## data already rounded to nearest 10 degress will not be affected
     ## data not rounded will be rounded to nearest 10 degrees
     ## assumes 10 is average of 5-15 etc
+    if (wd %in% Names) {
+        if (wd %in% Names & is.numeric(mydata[, wd])) {
 
-    if ("wd" %in% Names & is.numeric(mydata$wd)) {
+            ## check for wd <0 or > 360
+            if (any(sign(mydata[ , wd][!is.na(mydata[ , wd])]) == -1 | mydata[ , wd][!is.na(mydata[ , wd])] > 360)) {
 
-        ## check for wd <0 or > 360
-        if (any(sign(mydata$wd[!is.na(mydata$wd)]) == -1 | mydata$wd[!is.na(mydata$wd)] > 360)) {
-
-            warning("Wind direction < 0 or > 360; removing these data")
-            mydata$wd[mydata$wd < 0] <- NA
-            mydata$wd[mydata$wd > 360] <- NA
-        }
-
-        if (remove.calm) {
-            if ("ws" %in% names(mydata)) {
-                mydata$wd[mydata$ws == 0]  <- NA ## set wd to NA where there are calms
-                mydata$ws[mydata$ws == 0] <- NA ## remove calm ws
+                warning("Wind direction < 0 or > 360; removing these data")
+                mydata[ , wd][mydata[ , wd] < 0] <- NA
+                mydata[ , wd][mydata[ , wd] > 360] <- NA
             }
-            mydata$wd[mydata$wd == 0] <- 360 ## set any legitimate wd to 360
 
-            ## round wd for use in functions - except windRose/pollutionRose
-            mydata$wd <- 10 * ceiling(mydata$wd / 10 - 0.5)
-            mydata$wd[mydata$wd == 0] <- 360   # angles <5 should be in 360 bin
+            if (remove.calm) {
+                if ("ws" %in% names(mydata)) {
+                    mydata[ , wd][mydata$ws == 0]  <- NA ## set wd to NA where there are calms
+                    mydata$ws[mydata$ws == 0] <- NA ## remove calm ws
+                }
+                mydata[ , wd][mydata[ , wd] == 0] <- 360 ## set any legitimate wd to 360
 
+                ## round wd for use in functions - except windRose/pollutionRose
+                mydata[ , wd] <- 10 * ceiling(mydata[ , wd] / 10 - 0.5)
+                mydata[ , wd][mydata[ , wd] == 0] <- 360   # angles <5 should be in 360 bin
+
+            }
+            mydata[ , wd][mydata[ , wd] == 0] <- 360 ## set any legitimate wd to 360
         }
-         mydata$wd[mydata$wd == 0] <- 360 ## set any legitimate wd to 360
     }
 
 
@@ -116,9 +118,13 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE, remove.neg = TRUE
         ## daylight saving time can cause terrible problems - best avoided!!
         z <- as.POSIXlt(mydata$date[1])
         zz <- attr(z, "tzone")
+        
         if (length(zz) == 3L) {
-            warning("Detected data with Daylight Saving Time, converting to UTC/GMT")
-            attr(mydata$date, "tzone") <- "GMT"
+            if (!zz[3] %in%  c("WILDABBR", "   ")) ## means that no DST e.g. for tz = Etc/GMT+5
+                {
+                    warning("Detected data with Daylight Saving Time, converting to UTC/GMT")
+                    attr(mydata$date, "tzone") <- "GMT"
+                }
 
         }
     }

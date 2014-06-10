@@ -1,4 +1,4 @@
-##' AURN data import for openair
+##' Import data from the UK Automatic Urban and Rural Network (AURN)
 ##'
 ##' Function for importing hourly mean UK Automatic Urban and Rural Network
 ##' (AURN) air quality archive data files for use with the \code{openair}

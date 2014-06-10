@@ -184,14 +184,15 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
         if (units == "week") int <- 3600 * 24 * 7
         if (units == "month") int <- 3600 * 24 * 31 ## approx
         if (units == "quarter" || units == "season") int <- 3600 * 24 * 31 * 3 ## approx
-        if (units == "year") int <- 3600 * 8760 ## approx
+        if (units == "year") int <- 3600 * 8784 ## approx
 
         seconds <- seconds * int ## interval in seconds
-
+        if (is.na(timeDiff)) timeDiff <- seconds ## when only one row
+        
         ## check to see if we need to expand data rather than aggregate it
         ## i.e. chosen time interval less than that of data
         if (seconds < timeDiff) {
-
+            
             ## orginal dates
             theDates <- mydata$date
 
@@ -205,8 +206,9 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
 
             ## merge with orginal data, which leaves gaps to fill
             mydata <- merge(mydata, allData, by = "date", all = TRUE)
-
+            
             if (fill) {
+                
                 ## this will copy-down data to next original row of data
                 ## number of additional lines to fill
                 inflateFac <-  timeDiff / seconds
@@ -364,6 +366,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
 
         ## fill missing gaps
         if (avg.time != "season") {
+            
             dailymet <- date.pad2(dailymet, interval = avg.time)
         }
 
@@ -372,7 +375,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
         dailymet
 
     }
-
+    
     ## split if several sites
     if ("site" %in% names(mydata)) { ## split by site
         mydata$site <- factor(mydata$site)
@@ -381,5 +384,6 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
     } else {
         mydata <- calc.mean(mydata, start.date)
     }
+  
     mydata
 }

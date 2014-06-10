@@ -41,6 +41,21 @@
 ##' For negative values of COE, the model is less effective than the
 ##' observed mean in predicting the variation in the
 ##' observations.
+##' \item \eqn{IOA}, the Index of Agreement based on Willmott et
+##' al. (2011), which spans between -1 and +1 with values approaching
+##' +1 representing better model performance.
+##'
+##' An IOA of 0.5, for example, indicates that the sum of the
+##' error-magnitudes is one half of the sum of the observed-deviation
+##' magnitudes.  When IOA = 0.0, it signifies that the sum of the
+##' magnitudes of the errors and the sum of the observed-deviation
+##' magnitudes are equivalent. When IOA = -0.5, it indicates that the
+##' sum of the error-magnitudes is twice the sum of the perfect
+##' model-deviation and observed-deviation magnitudes. Values of IOA
+##' near -1.0 can mean that the model-estimated deviations about O are
+##' poor estimates of the observed deviations; but, they also can mean
+##' that there simply is little observed variability - so some caution
+##' is needed when the IOA approaches -1.
 ##' }
 ##'
 ##' All statistics are based on complete pairs of \code{mod} and \code{obs}.
@@ -95,6 +110,10 @@
 ##'
 ##' Legates DR, McCabe GJ. (2012). A refined index of model
 ##' performance: a rejoinder, International Journal of Climatology.
+##'
+##' Willmott, C.J., Robeson, S.M., Matsuura, K., 2011. A
+##' refined index of model performance. International Journal of
+##' Climatology.
 ##' @keywords methods
 ##' @examples
 ##'
@@ -109,7 +128,7 @@
 ##'
 ##'
 modStats <- function(mydata,  mod = "mod", obs = "obs",
-                     statistic = c("n", "FAC2", "MB", "MGE", "NMB", "NMGE", "RMSE", "r", "COE"),
+                     statistic = c("n", "FAC2", "MB", "MGE", "NMB", "NMGE", "RMSE", "r", "COE", "IOA"),
                      type = "default", rank.name = NULL, ...) {
     ## function to calculate model evaluation statistics
     ## the default is to use the entire data set.
@@ -120,7 +139,7 @@ modStats <- function(mydata,  mod = "mod", obs = "obs",
 
     if (any(type %in%  dateTypes)) vars <- c("date", vars)
 
-    theStats <- c("n", "FAC2", "MB", "MGE", "NMB", "NMGE", "RMSE", "r", "COE")
+    theStats <- c("n", "FAC2", "MB", "MGE", "NMB", "NMGE", "RMSE", "r", "COE", "IOA")
     matching <- statistic %in% theStats
 
     if (any(!matching)) {
@@ -144,9 +163,11 @@ modStats <- function(mydata,  mod = "mod", obs = "obs",
     if ("RMSE" %in% statistic) res.RMSE <- ddply(mydata, type, RMSE, mod, obs) else res.RMSE <- NULL
     if ("r" %in% statistic) res.r <- ddply(mydata, type, r, mod, obs, ...) else res.r <- NULL
     if ("COE" %in% statistic) res.COE <- ddply(mydata, type, COE, mod, obs) else res.COE <- NULL
-
+    if ("IOA" %in% statistic) res.IOA <- ddply(mydata, type, IOA, mod, obs) else res.IOA <- NULL
+    
     ## merge them all into one data frame
-    results <- list(res.n, res.FAC, res.MB, res.MGE, res.NMB, res.NMGE, res.RMSE, res.r, res.COE)
+    results <- list(res.n, res.FAC, res.MB, res.MGE, res.NMB, res.NMGE, res.RMSE, res.r,
+                    res.COE, res.IOA)
 
     ## remove NULLs from lits
     results <- results[!sapply(results, is.null)]
@@ -268,3 +289,14 @@ COE <- function(x, mod = "mod", obs = "obs") {
     data.frame(COE = res)
 }
 
+##  Index of Agreement
+IOA <- function(x, mod = "mod", obs = "obs") {
+    x <- na.omit(x[ , c(mod, obs)])
+
+    LHS <- sum(abs(x[, mod] - x[, obs]))
+    RHS <- 2 * sum(abs(x[, obs] - mean(x[, obs])))
+
+    if (LHS <= RHS) res <- 1 - LHS / RHS else res <- RHS / LHS - 1
+
+    data.frame(IOA = res)
+}

@@ -224,7 +224,7 @@ drawOpenKey <- function (key, draw = FALSE, vp = NULL) {
             }
         }
     }
-
+    
     ################
     #process key
     #modification of sk

@@ -213,8 +213,7 @@
 ##'   further analysis.
 ##'
 ##' An openair output can be manipulated using a number of generic operations,
-##'   including \code{print}, \code{plot} and \code{summary}. See
-##'   \code{\link{openair.generics}} for further details.
+##'   including \code{print}, \code{plot} and \code{summary}. 
 ##' @note IN DEVELOPMENT: HANDLE WITH CARE.
 ##'
 ##'   Users should be aware that Google Maps are flat 2D projections of the

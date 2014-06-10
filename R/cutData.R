@@ -56,21 +56,25 @@
 ##' \code{latitude} (+ to North; - to South) and \code{longitude} (+ to East; -
 ##' to West).
 ##'
-##' "gmtbst" or "bstgmt" will split the data by hours that are in GMT i.e.
-##' mostly winter months) and hours in British summertime. Each of the two
-##' periods will be in \emph{local time}. The main purpose of this option is to
-##' test whether there is a shift in the diurnal profile when GMT and BST hours
-##' are compared. This option is particularly useful with the
-##' \code{timeVariation} function. For example, close to the source of road
-##' vehicle emissions, `rush-hour' will tend to occur at the same \emph{local
-##' time} throughout the year e.g. 8 am and 5 pm. Therefore, comparing GMT
-##' hours with BST hours will tend to show similar diurnal patterns (at least
-##' in the timing of the peaks, if not magnitude) when expressed in local time.
-##' By contrast a variable such as wind speed or temperature should show a
-##' clear shift when expressed in local time for BST vs. GMT. In essence, this
-##' option when used with \code{timeVariation} may help determine whether the
-##' variation in a pollutant is driven by man-made emissions or natural
-##' processes.
+##' "dst" will split the data by hours that are in daylight saving
+##' time (DST) and hours that are not for appropriate time zones. The
+##' option "dst" also requires that the local time zone is given
+##' e.g. \code{local.tz = "Europe/London"}, \code{local.tz =
+##' "America/New_York"}. Each of the two periods will be in
+##' \emph{local time}. The main purpose of this option is to test
+##' whether there is a shift in the diurnal profile when DST and
+##' non-DST hours are compared. This option is particularly useful
+##' with the \code{timeVariation} function. For example, close to the
+##' source of road vehicle emissions, `rush-hour' will tend to occur
+##' at the same \emph{local time} throughout the year e.g. 8 am and 5
+##' pm. Therefore, comparing non-DST hours with DST hours will tend to
+##' show similar diurnal patterns (at least in the timing of the
+##' peaks, if not magnitude) when expressed in local time. By
+##' contrast a variable such as wind speed or temperature should show
+##' a clear shift when expressed in local time. In essence, this
+##' option when used with \code{timeVariation} may help determine
+##' whether the variation in a pollutant is driven by man-made
+##' emissions or natural processes.
 ##'
 ##' "wd" splits the data by 8 wind sectors and requires a column \code{wd}:
 ##' "NE", "E", "SE", "S", "SW", "W", "NW", "N".
@@ -80,9 +84,13 @@
 ##'
 ##' "site" splits the data by site and therefore requires a column \code{site}.
 ##'
+##' Note that all the date-based types e.g. month/year are derived
+##' from a column \code{date}. If a user already has a column with a
+##' name of one of the date-based types it will not be used.
+##'
 ##' @aliases cutData cutDaylight
 ##' @usage cutData(x, type = "default", hemisphere = "northern", n.levels = 4,
-##' start.day, is.axis = FALSE, ...)
+##' start.day, is.axis = FALSE, local.tz = NULL, ...)
 ##'
 ##' cutDaylight(x, local.hour.offset = 0,
 ##'                  latitude = 51.522393, longitude = -0.154700, ...)
@@ -91,7 +99,7 @@
 ##' be split. Pre-defined values are: \dQuote{default}, \dQuote{year},
 ##' \dQuote{hour}, \dQuote{month}, \dQuote{season}, \dQuote{weekday},
 ##' \dQuote{site}, \dQuote{weekend}, \dQuote{monthyear},
-##' \dQuote{daylight}, \dQuote{gmtbst} or \dQuote{bstgmt}.
+##' \dQuote{daylight}, \dQuote{dst} (daylight saving time).
 ##'
 ##' \code{type} can also be the name of a numeric or factor. If a numeric
 ##'   column name is supplied \code{cutData} will split the data into four
@@ -107,6 +115,15 @@
 ##' choose \code{start.day = 6}.
 ##' @param is.axis A logical (\code{TRUE}/\code{FALSE}), used to request
 ##'   shortened cut labels for axes.
+##' @param local.tz Used for identifying whether a date has daylight
+##' savings time (DST) applied or not. Examples include \code{local.tz
+##' = "Europe/London"}, \code{local.tz = "America/New_York"} i.e. time
+##' zones that assume
+##' DST. \url{http://en.wikipedia.org/wiki/List_of_zoneinfo_time_zones}
+##' shows time zones that should be valid for most systems. It is
+##' important that the original data are in GMT (UTC) or a fixed
+##' offset from GMT. See \code{import} and the openair manual for
+##' information on how to import data and ensure no DST is applied.
 ##' @param ... All additional parameters are passed on to next function(s).
 ##'   For example, with \code{cutData} all additional parameters are passed on
 ##'   to \code{cutDaylight} allowing direct access to \code{cutDaylight} via
@@ -131,8 +148,8 @@
 ##' mydata <- cutData(mydata, type = "weekday")
 ##'
 ##'
-cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, start.day = 1,
-                    is.axis = FALSE, ...) {
+cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4,
+                    start.day = 1, is.axis = FALSE, local.tz = NULL, ...) {
 
     ## function to cutData depending on choice of variable
     ## pre-defined types and user-defined types
@@ -146,9 +163,15 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
     makeCond <- function(x, type = "default") {
         ## adds a column "cond"
 
+        ## if type is time based and already exists in data, remove it
+        ## because we need to calculate it based on the date
 
+        if (type %in% dateTypes & type %in% names(x)) 
+             x <- x[ , !(names(x) %in% type)]
+        
+        
         conds <- c("default", "year", "hour", "month", "season", "weekday", "wd", "site",
-                   "weekend", "monthyear", "bstgmt", "gmtbst", "daylight")
+                   "weekend", "monthyear", "bstgmt", "gmtbst", "dst", "daylight")
 
         ## if conditioning type already built in, is present in data frame and is a factor
         if (type %in% conds & type %in% names(x)) {
@@ -214,7 +237,7 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
             ## need to generate month abbrevs on the fly for different languages
              temp <- if (is.axis) "%b" else "%B"
              x[ , type] <- format(x$date, temp)
-
+             
              ## month names
              month.abbs <- format(seq(as.Date("2000-01-01"), as.Date("2000-12-31"), "month"), temp)
 
@@ -327,26 +350,27 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4, 
             x[ , type] <- x$site
             x[ , type] <- factor(x[ , type]) ## will get rid of any unused factor levels
         }
-
-        if (type == "gmtbst" | type == "bstgmt") {
+        
+        if (type %in% c("dst", "bstgmt", "gmtbst")) {
+            type <- "dst" ## keep it simple
+            
             ## how to extract BST/GMT
-            ## first format date in local time
-            x$date <- format(x$date, usetz = TRUE, tz = "Europe/London")
-            ## extract ids where BST/GMT
-            id.BST <- grep("BST", x$date)
-            id.GMT <- grep("GMT", x$date)
+            if (is.null(local.tz)) {
+                message("missing time zone, assuming Europe/London")
+                local.tz <- "Europe/London"
+            }
+           
+            attr(x$date, "tzone") <- local.tz
+            
+            id.nondst <- which(as.POSIXlt(x$date)$isdst == 0)
+            id.dst <- which(as.POSIXlt(x$date)$isdst == 1)
 
-            bst <- x[id.BST, ]
-            bst[ , type] <- "BST hours"
+            if (any(as.POSIXlt(x$date)$isdst == -1)) stop ("Not possible to identify DST")
 
-            gmt <- x[id.GMT, ]
-            gmt[ , type] <- "GMT hours"
-
-            x <- rbind.fill(bst, gmt)
-            x[ , type] <- factor(x[ , type])
-            x$date <- as.POSIXct(x$date, "GMT")
-            x <- x[order(x$date), ]
-
+            x[id.nondst, type] <- "Non-DST"
+            x[id.dst, type] <- "DST"
+            x[, type] <- factor(x[, type])
+                        
         }
 
         if (type == "daylight") {

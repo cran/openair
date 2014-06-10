@@ -43,18 +43,22 @@
 ##' \dQuote{mod} (modelled values).
 ##' @param resolution Two plot resolutions can be set: \dQuote{normal} and
 ##'   \dQuote{fine} (the default).
-##' @param local.time Should the results be calculated in local time?
-##' The default is \code{FALSE}. Emissions activity tends to occur at
-##' local time e.g. rush hour is at 8 am every day. When the clocks go
-##' forward in spring, the emissions are effectively released into the
-##' atmosphere at BST --- 1 hour during the summer. When plotting
-##' diurnal profiles, this has the effect of \dQuote{smearing-out} the
-##' concentrations. A better approach is to express time as local
-##' time, which here is defined as BST (British Summer Time). This
+##' @param local.tz Should the results be calculated in local time
+##' that includes a treatment of daylight savings time (DST)? The
+##' default is not to consider DST issues, provided the data were
+##' imported without a DST offset. Emissions activity tends to occur
+##' at local time e.g. rush hour is at 8 am every day. When the clocks
+##' go forward in spring, the emissions are effectively released into
+##' the atmosphere typically 1 hour earlier during the summertime
+##' i.e. when DST applies. When plotting diurnal profiles, this has
+##' the effect of \dQuote{smearing-out} the concentrations. Sometimes,
+##' a useful approach is to express time as local time. This
 ##' correction tends to produce better-defined diurnal profiles of
 ##' concentration (or other variables) and allows a better comparison
 ##' to be made with emissions/activity data. If set to \code{FALSE}
-##' then GMT is used.
+##' then GMT is used. Examples of usage include \code{local.tz =
+##' "Europe/London"}, \code{local.tz = "America/New_York"}. See
+##' \code{cutData} and \code{import} for more details.
 ##' @param period This determines the temporal period to
 ##' consider. Options are \dQuote{hour} (the default, to plot diurnal
 ##' variations), \dQuote{season} to plot variation throughout the
@@ -191,8 +195,7 @@
 ##'   further analysis.
 ##'
 ##' An openair output can be manipulated using a number of generic operations,
-##'   including \code{print}, \code{plot} and \code{summary}. See
-##'   \code{\link{openair.generics}} for further details.
+##'   including \code{print}, \code{plot} and \code{summary}. 
 ##' @author David Carslaw
 ##' @seealso \code{\link{polarPlot}}, \code{\link{polarFreq}},
 ##'   \code{\link{pollutionRose}} and \code{\link{percentileRose}}
@@ -216,27 +219,15 @@
 ##' main = "trend in pmc at Marylebone Road")}
 ##'
 ##'
-polarAnnulus <- function(mydata,
-                         pollutant = "nox",
-                         resolution = "fine",
-                         local.time = FALSE,
-                         period = "hour",
-                         type = "default",
-                         statistic = "mean",
-                         percentile = NA,
-                         limits = c(0, 100),
-                         cols = "default",
-                         width = "normal",
-                         min.bin = 1,
-                         exclude.missing = TRUE,
-                         date.pad = FALSE,
-                         force.positive = TRUE,
-                         k = c(20, 10),
-                         normalise = FALSE,
-                         key.header = "",
-                         key.footer = pollutant,
-                         key.position = "right",
-                         key = TRUE,
+polarAnnulus <- function(mydata, pollutant = "nox", resolution = "fine",
+                         local.tz = NULL, period = "hour", type = "default",
+                         statistic = "mean", percentile = NA,
+                         limits = c(0, 100), cols = "default",
+                         width = "normal", min.bin = 1, exclude.missing = TRUE,
+                         date.pad = FALSE, force.positive = TRUE,
+                         k = c(20, 10), normalise = FALSE,
+                         key.header = "", key.footer = pollutant,
+                         key.position = "right", key = TRUE,
                          auto.text = TRUE,...) {
 
     ## get rid of R check annoyances
@@ -318,7 +309,7 @@ polarAnnulus <- function(mydata,
     mydata <- cutData(mydata, type, ...)
 
     ## convert to local time
-    if (local.time) attr(mydata$date, "tzone") <- "Europe/London"
+    if (!is.null(local.tz)) attr(mydata$date, "tzone") <- local.tz
 
     ## for resolution of grid plotting (default = 0.2; fine = 0.1)
     if (resolution == "normal") int <- 0.2
@@ -549,12 +540,41 @@ polarAnnulus <- function(mydata,
 
 
     ## auto-scaling
-    nlev = 200  #preferred number of intervals
+    nlev <- 200  #preferred number of intervals
     ## handle missing breaks arguments
-    if(missing(limits)) breaks <- pretty(results.grid$z, n = nlev) else breaks <- pretty(limits,
-                                                         n = nlev)
+    if (missing(limits)) {
+       # breaks <- pretty(results.grid$z, n = nlev)
+        breaks <- seq(min(results.grid$z, na.rm = TRUE), max(results.grid$z, na.rm = TRUE),
+                          length.out = nlev)
+        labs <- pretty(breaks, 7)
+        labs <- labs[labs >= min(breaks) & labs <= max(breaks)]
+        at <- labs
+        
+    } else {
+        
+        ## handle user limits and clipping
+        breaks <- seq(min(limits), max(limits), length.out = nlev)
+        labs <- pretty(breaks, 7)
+        labs <- labs[labs >= min(breaks) & labs <= max(breaks)]
+        at <- labs
+        
+        ## case where user max is < data max
+        if (max(limits) < max(results.grid[["z"]], na.rm = TRUE)) {             
+            id <- which(results.grid[["z"]] > max(limits))
+            results.grid[["z"]][id] <- max(limits)
+            labs[length(labs)] <- paste(">", labs[length(labs)])          
+        }
 
-    nlev2 = length(breaks)
+        ## case where user min is > data min
+        if (min(limits) > min(results.grid[["z"]], na.rm = TRUE)) {              
+            id <- which(results.grid[["z"]] < min(limits))
+            results.grid[["z"]][id] <- min(limits)
+            labs[1] <- paste("<", labs[1])
+        }
+               
+    }
+
+    nlev2 <- length(breaks)
 
     col <- openColours(cols, (nlev2 - 1))
     col.scale = breaks
@@ -562,9 +582,11 @@ polarAnnulus <- function(mydata,
 #################
     ## scale key setup
 #################
-    legend <- list(col = col, at = col.scale, space = key.position,
-                   auto.text = auto.text, footer = key.footer, header = key.header,
+    legend <- list(col = col, at = col.scale, labels = list(labels = labs, at = at),
+                   space = key.position, auto.text = auto.text,
+                   footer = key.footer, header = key.header,
                    height = 1, width = 1.5, fit = "all")
+    
     legend <- makeOpenKeyLegend(key, legend, "polarAnnulus")
 
     temp <- paste(type, collapse = "+")
