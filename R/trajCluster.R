@@ -54,6 +54,24 @@
 ##' takes values from 0 (full transparency) to 1 (full
 ##' opacity). Setting it below 1 can help view trajectories,
 ##' trajectory surfaces etc. \emph{and} a filled base map.
+##' @param projection The map projection to be used. Different map
+##' projections are possible through the \code{mapproj}
+##' package. See\code{?mapproj} for extensive details and information
+##' on setting other parameters and orientation (see below).
+##' @param parameters From the \code{mapproj} package. Optional
+##' numeric vector of parameters for use with the projection
+##' argument. This argument is optional only in the sense that certain
+##' projections do not require additional parameters. If a projection
+##' does require additional parameters, these must be given in the
+##' parameters argument.
+##' @param orientation From the \code{mapproj} package. An optional
+##' vector c(latitude,longitude,rotation) which describes where the
+##' "North Pole" should be when computing the projection. Normally
+##' this is c(90,0), which is appropriate for cylindrical and conic
+##' projections. For a planar projection, you should set it to the
+##' desired point of tangency. The third value is a clockwise rotation
+##' (in degrees), which defaults to the midrange of the longitude
+##' coordinates in the map.
 ##' @param ... Other graphical parameters passed onto
 ##' \code{lattice:levelplot} and \code{cutData}. Similarly, common
 ##' axis and title labelling options (such as \code{xlab},
@@ -84,8 +102,10 @@
 ##' traj <- trajCluster(traj, method = "Angle", type = "season", n.clusters = 4)
 ##' }
 trajCluster <- function(traj, method = "Euclid", n.cluster = 5, plot = TRUE, type = "default",
-                        cols = "Set1", split.after = FALSE, map.fill = TRUE, map.cols = "grey40",
-                        map.alpha = 0.4, ...) {
+                        cols = "Set1", split.after = FALSE, map.fill = TRUE,
+                        map.cols = "grey40", map.alpha = 0.4,
+                        projection = "lambert",
+                        parameters = c(51, 51), orientation = c(90, 0, 0), ...) {
 
     if (tolower(method) == "euclid")  method <- "distEuclid" else method <- "distAngle"
 
@@ -156,7 +176,9 @@ trajCluster <- function(traj, method = "Euclid", n.cluster = 5, plot = TRUE, typ
 
         plot.args <- list(agg, x = "lon", y ="lat", group = "cluster",
                     col = cols, type = type, map = TRUE, map.fill = map.fill,
-                          map.cols = map.cols, map.alpha = map.alpha)
+                          map.cols = map.cols, map.alpha = map.alpha,
+                          projection = projection, parameters = parameters,
+                          orientation = orientation, traj = TRUE)
 
          ## reset for extra.args
         plot.args <- listUpdate(plot.args, extra.args)

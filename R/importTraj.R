@@ -41,25 +41,24 @@
 ##' produce back trajectories in an open way. We ask that you cite
 ##' HYSPLIT if used in published work.
 ##'
+##' Users can supply their own trajectory files to plot in
+##' openair. These files must have the following fields: date, lat,
+##' lon and hour.inc (see details below).
+##'
 ##' The files consist of the following information:
 ##'
-##' \describe{
-##' \item{date}{This is the arrival point time and is
+##' \describe{ \item{date}{This is the arrival point time and is
 ##' repeated the number of times equal to the length of the back
 ##' trajectory --- typically 96 hours (except early on in the
-##' file). It is this field that should be used to link with air
-##' quality data. See example below.}
+##' file). The format is \code{POSIXct}. It is this field that should
+##' be used to link with air quality data. See example below.}
 ##' \item{receptor}{Receptor number, currently only 1.}
-##' \item{year}{The year}
-##' \item{month}{Month 1-12}
-##' \item{day}{Day of the month 1-31}
-##' \item{hour}{Hour of the day 0-23 GMT}
-##' \item{hour.inc}{Number of hours back in time 0 to -96.}
-##' \item{lat}{Latitude in decimal format.}
-##' \item{lon}{Longitude in decimal format.}
-##' \item{height}{Height of trajectory (m).}
-##' \item{pressure}{Pressure of trajectory (kPa).}
-##' }
+##' \item{year}{The year} \item{month}{Month 1-12} \item{day}{Day of
+##' the month 1-31} \item{hour}{Hour of the day 0-23 GMT}
+##' \item{hour.inc}{Number of hours back in time e.g. 0 to -96.}
+##' \item{lat}{Latitude in decimal format.}  \item{lon}{Longitude in
+##' decimal format.}  \item{height}{Height of trajectory (m).}
+##' \item{pressure}{Pressure of trajectory (kPa).}  }
 ##' @param site Site code of the network site to import
 ##' e.g. "london". Only one site can be imported at a time. The
 ##' following sites are typically available from 2000-2012, although

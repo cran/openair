@@ -2,22 +2,24 @@
 ##'
 ##' Use non-parametric methods to calculate time series trends
 ##'
-##' The \code{smoothTrend} function provides a flexible way of estimating the
-##' trend in the concentration of a pollutant or other variable. Monthly mean
-##' values are calculated from an hourly (or higher resolution) or daily time
-##' series. There is the option to deseasonalise the data if there is evidence
-##' of a seasonal cycle.
+##' The \code{smoothTrend} function provides a flexible way of
+##' estimating the trend in the concentration of a pollutant or other
+##' variable. Monthly mean values are calculated from an hourly (or
+##' higher resolution) or daily time series. There is the option to
+##' deseasonalise the data if there is evidence of a seasonal cycle.
 ##'
-##' \code{smoothTrend} uses a Generalized Additive Model (GAM) from the
-##' \code{\link{gam}} package to find the most appropriate level of smoothing.
-##' The function is particularly suited to situations where trends are not
-##' monotonic (see discussion with \code{\link{TheilSen}} for more details
-##' on this). The \code{smoothTrend} function is particularly useful as an
-##' exploratory technique e.g. to check how linear or non-linear trends are.
+##' \code{smoothTrend} uses a Generalized Additive Model (GAM) from
+##' the \code{\link{gam}} package to find the most appropriate level
+##' of smoothing.  The function is particularly suited to situations
+##' where trends are not monotonic (see discussion with
+##' \code{\link{TheilSen}} for more details on this). The
+##' \code{smoothTrend} function is particularly useful as an
+##' exploratory technique e.g. to check how linear or non-linear
+##' trends are.
 ##'
-##' 95% confidence intervals are shown by shading. Bootstrap estimates of the
-##' confidence intervals are also available through the \code{simulate} option.
-##' Residual resampling is used.
+##' 95% confidence intervals are shown by shading. Bootstrap estimates
+##' of the confidence intervals are also available through the
+##' \code{simulate} option.  Residual resampling is used.
 ##'
 ##' Trends can be considered in a very wide range of ways, controlled by
 ##' setting \code{type} - see examples below.
@@ -38,12 +40,13 @@
 ##' \dQuote{year}, \dQuote{weekday} and so on. For example, \code{type
 ##' = "season"} will produce four plots --- one for each season.
 ##'
-##' It is also possible to choose \code{type} as another variable in the data
-##'   frame. If that variable is numeric, then the data will be split into four
-##'   quantiles (if possible) and labelled accordingly. If type is an existing
-##'   character or factor variable, then those categories/levels will be used
-##'   directly. This offers great flexibility for understanding the variation
-##'   of different variables and how they depend on one another.
+##' It is also possible to choose \code{type} as another variable in
+##' the data frame. If that variable is numeric, then the data will be
+##' split into four quantiles (if possible) and labelled
+##' accordingly. If type is an existing character or factor variable,
+##' then those categories/levels will be used directly. This offers
+##' great flexibility for understanding the variation of different
+##' variables and how they depend on one another.
 ##'
 ##' Type can be up length two e.g. \code{type = c("season", "weekday")} will
 ##'   produce a 2x2 plot split by season and day of the week. Note, when two
@@ -82,12 +85,26 @@
 ##' @param shade The colour used for marking alternate years. Use
 ##' \dQuote{white} or \dQuote{transparent} to remove shading.
 ##' @param xlab x-axis label, by default \dQuote{year}.
-##' @param y.relation This determines how the y-axis scale is plotted. "same"
-##'   ensures all panels use the same scale and "free" will use panel-specfic
-##'   scales. The latter is a useful setting when plotting data with very
-##'   different values.
+##' @param y.relation This determines how the y-axis scale is
+##' plotted. "same" ensures all panels use the same scale and "free"
+##' will use panel-specfic scales. The latter is a useful setting when
+##' plotting data with very different values.  ref.x See \code{ref.y}
+##' for details. In this case the correct date format should be used
+##' for a vertical line e.g.  \code{ref.x = list(v =
+##' as.POSIXct("2000-06-15"), lty = 5)}.
+##' @param ref.x See \code{ref.y}.
+##' @param ref.y A list with details of the horizontal lines to be
+##' added representing reference line(s). For example, \code{ref.y =
+##' list(h = 50, lty = 5)} will add a dashed horizontal line at
+##' 50. Several lines can be plotted e.g. \code{ref.y = list(h = c(50,
+##' 100), lty = c(1, 5), col = c("green", "blue"))}. See
+##' \code{panel.abline} in the \code{lattice} package for more details
+##' on adding/controlling lines.
 ##' @param key.columns Number of columns used if a key is drawn when using the
 ##'   option \code{statistic = "percentile"}.
+##' @param name.pol Names to be given to the pollutant(s). This is
+##' useful if you want to give a fuller description of the variables,
+##' maybe also including subscripts etc.
 ##' @param ci Should confidence intervals be plotted? The default is
 ##'   \code{FALSE}.
 ##' @param alpha The alpha transparency of shaded confidence intervals - if
@@ -133,7 +150,7 @@
 ##' undertake further analysis.
 ##'
 ##' An openair output can be manipulated using a number of generic operations,
-##'   including \code{print}, \code{plot} and \code{summarise}. 
+##'   including \code{print}, \code{plot} and \code{summarise}.
 ##' @author David Carslaw
 ##' @seealso \code{\link{TheilSen}} for an alternative method of calculating
 ##'   trends.
@@ -164,8 +181,8 @@ smoothTrend <- function(mydata, pollutant = "nox", deseason = FALSE,
                         type = "default", statistic = "mean", avg.time = "month",
                         percentile = NA, data.thresh = 0, simulate = FALSE,
                         n = 200, autocor = FALSE, cols = "brewer1", shade = "grey95",
-                        xlab = "year", y.relation = "same",
-                        key.columns = length(percentile),
+                        xlab = "year", y.relation = "same", ref.x = NULL, ref.y = NULL,
+                        key.columns = length(percentile), name.pol = pollutant,
                         ci = TRUE, alpha = 0.2, date.breaks = 7,
                         auto.text = TRUE, k = NULL, ...)  {
 
@@ -177,36 +194,36 @@ smoothTrend <- function(mydata, pollutant = "nox", deseason = FALSE,
 
         trellis.par.set(list(strip.background = list(col = "white")))
     }
-    
+
     ## reset strip color on exit
     current.strip <- trellis.par.get("strip.background")
     on.exit(trellis.par.set("strip.background", current.strip))
 
-    ##extra.args setup
-    extra.args <- list(...)
+    ##Args setup
+    Args <- list(...)
 
     #label controls
     ##xlab in args because local unique
     ##ylab in code before plot because of local unique
-    extra.args$main <- if("main" %in% names(extra.args))
-                           quickText(extra.args$main, auto.text) else quickText("", auto.text)
+    Args$main <- if("main" %in% names(Args))
+                           quickText(Args$main, auto.text) else quickText("", auto.text)
 
-    xlim <- if ("xlim" %in% names(extra.args))
-        extra.args$xlim else  NULL
+    xlim <- if ("xlim" %in% names(Args))
+        Args$xlim else  NULL
 
     #lty, lwd, pch, cex handling
-    if(!"lty" %in% names(extra.args))
-        extra.args$lty <- 1
-    if(!"lwd" %in% names(extra.args))
-        extra.args$lwd <- 1
-    if(!"pch" %in% names(extra.args))
-        extra.args$pch <- 1
-    if (!"cex" %in% names(extra.args))
-        extra.args$cex <- 1
+    if (!"lty" %in% names(Args))
+        Args$lty <- 1
+    if (!"lwd" %in% names(Args))
+        Args$lwd <- 1
+    if (!"pch" %in% names(Args))
+        Args$pch <- 1
+    if (!"cex" %in% names(Args))
+        Args$cex <- 1
 
     #layout default
-    if(!"layout" %in% names(extra.args))
-            extra.args$layout <- NULL
+    if (!"layout" %in% names(Args))
+            Args$layout <- NULL
 
     vars <- c("date", pollutant)
 
@@ -221,12 +238,12 @@ smoothTrend <- function(mydata, pollutant = "nox", deseason = FALSE,
     }
 
     if (!avg.time %in% c("year", "season", "month")) stop("Averaging period must be 'month' or 'year'.")
-    
+
     ## if data clearly annual, then assume annual
     interval <- find.time.interval(mydata$date)
-    interval <- as.numeric(strsplit(interval, split = " ")[[1]][1])   
+    interval <- as.numeric(strsplit(interval, split = " ")[[1]][1])
     if (round(interval / 8760) == 3600) avg.time <- "year"
-    
+
     ## for overall data and graph plotting
     start.year <- startYear(mydata$date)
     end.year <-  endYear(mydata$date)
@@ -257,7 +274,7 @@ smoothTrend <- function(mydata, pollutant = "nox", deseason = FALSE,
                                                            percentile, sep = ""))
 
     } else {
-        
+
         mydata <- ddply(mydata, c(type, "variable"), timeAverage, avg.time = avg.time,
                         statistic = statistic, percentile = percentile,
                         data.thresh = data.thresh)
@@ -303,41 +320,41 @@ smoothTrend <- function(mydata, pollutant = "nox", deseason = FALSE,
             results <- data.frame(date = mydata$date, conc = mydata[, "value"])
 
         }
-                              
+
         results
-       
+
     }
-    
-    split.data <- ddply(mydata, c(type, "variable"),  process.cond)
+
+    res <- ddply(mydata, c(type, "variable"),  process.cond)
 
     ## smooth fits so that they can be returned to the user
-    fit <- ddply(split.data, c(type, "variable"), fitGam, x = "date", y = "conc",
+    fit <- ddply(res, c(type, "variable"), fitGam, x = "date", y = "conc",
                  k = k, ...)
     class(fit$date) <- c("POSIXt", "POSIXct")
-    
+
     ## special wd layout
     #(type field in results.grid called type not wd)
-    if (length(type) == 1 & type[1] == "wd" & is.null(extra.args$layout)) {
+    if (length(type) == 1 & type[1] == "wd" & is.null(Args$layout)) {
         ## re-order to make sensible layout
         wds <-  c("NW", "N", "NE", "W", "E", "SW", "S", "SE")
-        split.data$wd <- ordered(split.data$wd, levels = wds)
+        res$wd <- ordered(res$wd, levels = wds)
         ## see if wd is actually there or not
-        wd.ok <- sapply(wds, function (x) {if (x %in% unique(split.data$wd)) FALSE else TRUE })
+        wd.ok <- sapply(wds, function (x) {if (x %in% unique(res$wd)) FALSE else TRUE })
         skip <- c(wd.ok[1:4], TRUE, wd.ok[5:8])
-        split.data$wd <- factor(split.data$wd)  ## remove empty factor levels
-        extra.args$layout = if (type == "wd") c(3, 3) else NULL
-        if(!"skip" %in% names(extra.args))
-            extra.args$skip <- skip
+        res$wd <- factor(res$wd)  ## remove empty factor levels
+        Args$layout = if (type == "wd") c(3, 3) else NULL
+        if(!"skip" %in% names(Args))
+            Args$skip <- skip
     }
-    if(!"skip" %in% names(extra.args))
-         extra.args$skip <- FALSE
+    if(!"skip" %in% names(Args))
+         Args$skip <- FALSE
 
     ## proper names of labelling ###################################################
-    strip.dat <- strip.fun(split.data, type, auto.text)
+    strip.dat <- strip.fun(res, type, auto.text)
     strip <- strip.dat[[1]]
     strip.left <- strip.dat[[2]]
     pol.name <- strip.dat[[3]]
-    
+
     ## colours according to number of percentiles
     npol <- max(length(percentile), length(pollutant)) ## number of pollutants
 
@@ -346,16 +363,32 @@ smoothTrend <- function(mydata, pollutant = "nox", deseason = FALSE,
         openColours(cols, npol+1)[-1] else openColours(cols, npol)
 
     ## information for key
-    npol <- na.omit(unique(split.data$variable))
-    key.lab <- sapply(seq_along(npol), function(x) quickText(npol[x], auto.text))
+    npol <- na.omit(unique(res$variable))
+
+    ## use pollutant names or user-supplied names
+    if (!missing(name.pol)) {
+        key.lab <- sapply(seq_along(name.pol), function(x)
+            quickText(name.pol[x], auto.text))
+    } else {
+        key.lab <- sapply(seq_along(npol), function(x) quickText(npol[x], auto.text))
+    }
 
     if (length(npol) > 1) {
         key.columns <- length(npol)
-        key <- list(lines = list(col = myColors[1 : length(npol)], lty = extra.args$lty, lwd = extra.args$lwd,
-                    pch = extra.args$pch, type = "b", cex = extra.args$cex),
+        key <- list(lines = list(col = myColors[1 : length(npol)],
+                        lty = Args$lty, lwd = Args$lwd,
+                        pch = Args$pch, type = "b", cex = Args$cex),
                     text = list(lab = key.lab),  space = "bottom", columns = key.columns)
-        if (!"ylab" %in% names(extra.args))
-            extra.args$ylab <-  quickText(paste(pollutant, collapse = ", "), auto.text)
+
+        ## use pollutant names or user-supplied names
+        if (!"ylab" %in% names(Args)) {
+            if (!missing(name.pol)) {
+                Args$ylab <-  quickText(paste(name.pol, collapse = ", "), auto.text)
+            } else {
+                Args$ylab <-  quickText(paste(pollutant, collapse = ", "), auto.text)
+            }
+
+        }
 
     } else {
         key <- NULL ## either there is a key or there is not
@@ -365,13 +398,13 @@ smoothTrend <- function(mydata, pollutant = "nox", deseason = FALSE,
     myform <- formula(paste("conc ~ date| ", temp, sep = ""))
 
     #ylab
-    extra.args$ylab <- if("ylab" %in% names(extra.args))
-                           quickText(extra.args$ylab, auto.text) else quickText(pollutant, auto.text)
+    Args$ylab <- if("ylab" %in% names(Args))
+                           quickText(Args$ylab, auto.text) else quickText(pollutant, auto.text)
 
     gap <- difftime(max(mydata$date), min(mydata$date), units = "secs") / 80
     if (is.null(xlim)) xlim <- range(mydata$date) + c(-1 * gap, gap)
 
-    xyplot.args <- list(x = myform, data = split.data, groups = split.data$variable,
+    xyplot.args <- list(x = myform, data = res, groups = res$variable,
                   as.table = TRUE,
                   strip = strip,
                   strip.left = strip.left,
@@ -383,38 +416,45 @@ smoothTrend <- function(mydata, pollutant = "nox", deseason = FALSE,
                   y = list(relation = y.relation, rot = 0)),
                   panel = panel.superpose,
 
-                  panel.groups = function(x, y, group.number, lwd, lty, pch, col, col.line, col.symbol,
-                  subscripts, type = "b",...) {
+                        panel.groups = function(x, y, group.number, lwd, lty, pch, col,
+                            col.line, col.symbol, subscripts, type = "b",...) {
 
 
                       if (group.number == 1) {  ## otherwise this is called every time
 
-                          panel.shade(split.data, start.year, end.year,
+                          panel.shade(res, start.year, end.year,
                                                 ylim = current.panel.limits()$ylim,
                                       shade)
                           panel.grid(-1, 0)
-                          
+
                       }
+
                       panel.xyplot(x, y, type = "b", lwd = lwd, lty = lty, pch = pch,
                                    col.line = myColors[group.number],
                                    col.symbol = myColors[group.number], ...)
 
-                      panel.gam(x, y, col =  myColors[group.number], k = k, myColors[group.number], 
+                      panel.gam(x, y, col =  myColors[group.number], k = k, myColors[group.number],
                                 simulate = simulate, n.sim = n,
                                 autocor = autocor, lty = 1, lwd = 1, se = ci, ...)
-                                           
-                      
+
+                      ## add reference lines
+                      if (!is.null(ref.x)) do.call(panel.abline, ref.x)
+                      if (!is.null(ref.y)) do.call(panel.abline, ref.y)
+
+
                   })
 
-    #reset for extra.args
-    xyplot.args <- listUpdate(xyplot.args, extra.args)
+    ## reset for Args
+    xyplot.args <- listUpdate(xyplot.args, Args)
 
-    #plot
+    ## plot
     plt <- do.call(xyplot, xyplot.args)
-   
+
     ## output ########################################################################
-    if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip, strip.left = strip.left))
-    newdata <- split.data
+    if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip,
+                  strip.left = strip.left))
+
+    newdata <- res
     output <- list(plot = plt, data = list(data = newdata, fit = fit), call = match.call())
     class(output) <- "openair"
 

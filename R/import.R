@@ -149,12 +149,14 @@ import <- function (file = file.choose(), file.type = "csv", sep = ",", header.a
 
     ## set date format - if no time column use date format directly
     if (is.null(time)) {
+        ## use this to show what date looks like
+        exam.date <- do.call("paste", list(head(thedata$date), collapse = ", "))
 
         thedata$date <- as.POSIXct(strptime(thedata$date, format = date.format, tz = tzone),
                                    tz = tzone)
 
         ## if all dates are NA, there is a problem...
-        if (all(is.na(thedata$date))) stop ("Date conversion problems, check that date.format is correct")
+        if (all(is.na(thedata$date))) stop (paste("Date conversion problems, check that date.format is correct.\n First few dates looks like this:", exam.date))
 
     } else {
 

@@ -1,40 +1,55 @@
-## Function to flexibly calculate different averagring times for data frames with
-## option to also set data.thresh threshold.
-## Note that "period" uses those defined in cut.POSIXct e.g. "days", "5 days", and
-## is therefore extremely flexible.
-## The function will also work with mutiple sites.
-## start.date helps to get data frame into nice time sequence
-## NOTE - will only return numeric data apart from site name
-
-
-
-##' Function to calculate timeAverages for data frames
+##' Function to calculate time averages for data frames
 ##'
-##' Function to flexibly aggregate or expand data frames by different time
-##' periods, calculating vector-averaged wind direction where appropriate. The
-##' averaged periods can also take account of data capture rates.
+##' Function to flexibly aggregate or expand data frames by different
+##' time periods, calculating vector-averaged wind direction where
+##' appropriate. The averaged periods can also take account of data
+##' capture rates.
 ##'
-##' This function calculates time averages for a data frame. It also treats
-##' wind direction correctly through vector-averaging. For example, the average
-##' of 350 degrees and 10 degrees is either 0 or 360 - not 180. The
-##' calculations therefore average the wind components.
+##' This function calculates time averages for a data frame. It also
+##' treats wind direction correctly through vector-averaging. For
+##' example, the average of 350 degrees and 10 degrees is either 0 or
+##' 360 - not 180. The calculations therefore average the wind
+##' components.
 ##'
-##' \code{timeAverage} should be useful in many circumstances where it is
-##' necessary to work with different time average data. For example, hourly air
-##' pollution data and 15-minute meteorological data. To merge the two data
-##' sets \code{timeAverage} can be used to make the meteorological data 1-hour
-##' means first. Alternatively, \code{timeAverage} can be used to expand the
-##' hourly data to 15 minute data - see example below.
+##' When a data capture threshold is set through \code{data.thresh} it
+##' is necessary for \code{timeAverage} to know what the original time
+##' interval of the input time series is. The function will try and
+##' calculate this interval based on the most common time gap (and
+##' will print the assumed time gap to the screen). This works fine
+##' most of the time but there are occasions where it may not
+##' e.g. when very few data exist in a data frame or the data are
+##' monthly (i.e. non-regular time interval between months). In this
+##' case the user can explicitly specify the interval through
+##' \code{interval} in the same format as \code{avg.time}
+##' e.g. \code{interval = "month"}. It may also be useful to set
+##' \code{start.date} and \code{end.date} if the time series do not
+##' span the entire period of interest. For example, if a time series
+##' ended in October and annual means are required, setting
+##' \code{end.date} to the end of the year will ensure that the whole
+##' period is covered and that \code{data.thresh} is correctly
+##' calculated. The same also goes for a time series that starts later
+##' in the year where \code{start.date} should be set to the beginning
+##' of the year.
 ##'
-##' For the research community \code{timeAverage} should be useful for dealing
-##' with outputs from instruments where there are a range of time periods used.
+##' \code{timeAverage} should be useful in many circumstances where it
+##' is necessary to work with different time average data. For
+##' example, hourly air pollution data and 15-minute meteorological
+##' data. To merge the two data sets \code{timeAverage} can be used to
+##' make the meteorological data 1-hour means first. Alternatively,
+##' \code{timeAverage} can be used to expand the hourly data to 15
+##' minute data - see example below.
 ##'
-##' It is also very useful for plotting data using \code{\link{timePlot}}.
-##' Often the data are too dense to see patterns and setheiltting different
-##' averaging periods easily helps with interpretation.
+##' For the research community \code{timeAverage} should be useful for
+##' dealing with outputs from instruments where there are a range of
+##' time periods used.
 ##'
-##' @param mydata A data frame containing a \code{date} field . Can be class
-##'   \code{POSIXct} or \code{Date}.
+##' It is also very useful for plotting data using
+##' \code{\link{timePlot}}.  Often the data are too dense to see
+##' patterns and setting different averaging periods easily helps with
+##' interpretation.
+##'
+##' @param mydata A data frame containing a \code{date} field . Can be
+##' class \code{POSIXct} or \code{Date}.
 ##' @param avg.time This defines the time period to average to. Can be
 ##' \dQuote{sec}, \dQuote{min}, \dQuote{hour}, \dQuote{day},
 ##' \dQuote{DSTday}, \dQuote{week}, \dQuote{month}, \dQuote{quarter}
@@ -57,11 +72,14 @@
 ##' successive intervals so that \code{timeAverage} can work out how
 ##' much \sQuote{padding} to apply. To pad-out data in this way choose
 ##' \code{fill = TRUE}.
-##' @param data.thresh The data capture threshold to use (\%). A value of zero
-##'   means that all available data will be used in a particular period
-##'   regardless if of the number of values available. Conversely, a value of
-##'   100 will mean that all data will need to be present for the average to be
-##'   calculated, else it is recorded as \code{NA}.
+##' @param data.thresh The data capture threshold to use (\%). A value
+##' of zero means that all available data will be used in a particular
+##' period regardless if of the number of values
+##' available. Conversely, a value of 100 will mean that all data will
+##' need to be present for the average to be calculated, else it is
+##' recorded as \code{NA}. See also \code{interval}, \code{start.date}
+##' and \code{end.date} to see whether it is advisable to set these
+##' other options.
 ##' @param statistic The statistic to apply when aggregating the data;
 ##' default is the mean. Can be one of \dQuote{mean}, \dQuote{max},
 ##' \dQuote{min}, \dQuote{median}, \dQuote{frequency}, \dQuote{sd},
@@ -71,8 +89,8 @@
 ##' percentile level (\%) between 0-100, which can be set using the
 ##' \dQuote{percentile} option --- see below. Not used if \code{avg.time
 ##' = "default"}.
-##' @param percentile The percentile level in \% used when \code{statistic =
-##'   "percentile"}. The default is 95.
+##' @param percentile The percentile level in \% used when
+##' \code{statistic = "percentile"}. The default is 95.
 ##' @param start.date A string giving a start date to use. This is
 ##' sometimes useful if a time series starts between obvious
 ##' intervals. For example, for a 1-minute time series that starts
@@ -84,6 +102,30 @@
 ##' \dQuote{2009-11-29 12:00:00}, \dQuote{2009-11-29 12:15:00} \ldots{}
 ##' \code{start.date} is therefore used to force this type of
 ##' sequence.
+##' @param end.date A string giving an end date to use. This is
+##' sometimes useful to make sure a time series extends to a known end
+##' point and is useful when \code{data.thresh} > 0 but the input time
+##' series does not extend up to the final full interval. For example,
+##' if a time series ends sometime in October but annual means are
+##' required with a data capture of >75\% then it is necessary to
+##' extend the time series up until the end of the year. Input in the
+##' format yyyy-mm-dd HH:MM.
+##' @param interval The \code{timeAverage} function tries to determine
+##' the interval of the original time series (e.g. hourly) by
+##' calculating the most common interval between time steps. The
+##' interval is needed for calculations where the \code{data.thresh}
+##' >0. For the vast majority of regular time series this works
+##' fine. However, for data with very poor data capture or irregular
+##' time series the automatic detection may not work. Also, for time
+##' series such as monthly time series where there is a variable
+##' difference in time between months users should specify the time
+##' interval explicitly e.g. \code{interval = "month"}. Users can also
+##' supply a time interval to \emph{force} on the time series. See
+##' \code{avg.time} for the format.
+##'
+##' This option can sometimes be useful with \code{start.date} and
+##' \code{end.date} to ensure full periods are considered e.g. a full
+##' year when \code{avg.time = "year"}.
 ##' @param vector.ws Should vector averaging be carried out on wind
 ##' speed if available? The default is \code{FALSE} and scalar
 ##' averages are calculated. Vector averaging of the wind speed is
@@ -99,6 +141,8 @@
 ##' \sQuote{padded out} with \code{NA}. To \sQuote{pad-out} the
 ##' additional data with the first row in each original time interval,
 ##' choose \code{fill = TRUE}.
+##' @param ... Additional arguments for other functions calling
+##' \code{timeAverage}.
 ##' @export
 ##' @importFrom Rcpp evalCpp
 ##' @return Returns a data frame with date in class \code{POSIXct} and will
@@ -127,7 +171,8 @@
 ##'
 timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
                         statistic = "mean", percentile = NA, start.date = NA,
-                        vector.ws = FALSE, fill = FALSE) {
+                        end.date = NA, interval = NA,
+                        vector.ws = FALSE, fill = FALSE, ...) {
 
     ## get rid of R check annoyances
     year = season = month = Uu = Vv = site = NULL
@@ -135,7 +180,11 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
     ## extract variables of interest
     vars <- names(mydata)
 
-    mydata <- checkPrep(mydata, vars, type = "default", remove.calm = FALSE, strip.white = FALSE)
+    ## whether a time series has already been padded to fill time gaps
+    padded <- FALSE
+
+    mydata <- checkPrep(mydata, vars, type = "default", remove.calm = FALSE,
+                        strip.white = FALSE)
 
     ## time zone of data
     TZ <- attr(mydata$date, "tzone")
@@ -165,6 +214,44 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
         ## need to check whether avg.time is > or < actual time gap of data
         ## then data will be expanded or aggregated accordingly
 
+         ## start from a particular time, if given
+        if (!is.na(start.date)) {
+
+            firstLine <- data.frame(date = as.POSIXct(start.date, tz = TZ))
+            if ("site" %in% names (mydata)) firstLine$site <- mydata$site[1]
+
+            mydata <- rbind.fill(firstLine, mydata)
+
+            ## for cutting data must ensure it is in GMT because combining
+            ## data frames when system is not GMT puts it in local time!...
+            ## and then cut makes a string/factor levels with tz lost...
+
+            mydata$date <- as.POSIXct(format(mydata$date), tz = TZ)
+
+        }
+
+         if (!is.na(end.date)) {
+
+            lastLine <- data.frame(date = as.POSIXct(end.date, tz = TZ))
+            if ("site" %in% names (mydata)) lastLine$site <- mydata$site[1]
+
+            mydata <- rbind.fill(mydata, lastLine)
+
+            ## for cutting data must ensure it is in GMT because combining
+            ## data frames when system is not GMT puts it in local time!...
+            ## and then cut makes a string/factor levels with tz lost...
+
+            mydata$date <- as.POSIXct(format(mydata$date), tz = TZ)
+
+        }
+
+        ## if interval specified, then use it
+        if (!is.na(interval)) {
+            mydata <- date.pad2(mydata, interval)
+            padded <- TRUE
+        }
+
+        ## If interval of original time series not specified, calculate it
         ## time diff in seconds of orginal data
         timeDiff <-  as.numeric(strsplit(find.time.interval(mydata$date),
                                          " ")[[1]][1])
@@ -188,16 +275,36 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
 
         seconds <- seconds * int ## interval in seconds
         if (is.na(timeDiff)) timeDiff <- seconds ## when only one row
-        
+
         ## check to see if we need to expand data rather than aggregate it
         ## i.e. chosen time interval less than that of data
         if (seconds < timeDiff) {
-            
+
             ## orginal dates
             theDates <- mydata$date
 
             ## need to add a date to the end when expanding times
             interval <- find.time.interval(mydata$date)
+
+            ## equivalent number of days, used to refine interval for month/year
+            days <- as.numeric(strsplit(interval, split = " ")[[1]][1]) /
+                24 / 3600
+
+            ## find time interval of data
+            if (class(mydata$date)[1] == "Date") {
+
+                interval <- paste(days, "day")
+
+            } else {
+                ## this will be in seconds
+                interval <- find.time.interval(mydata$date)
+
+            }
+
+            ## better interval, most common interval in a year
+            if (days == 31) interval <- "month"
+            if (days %in% c(365, 366)) interval <- "year"
+
             allDates <- seq(min(mydata$date), max(mydata$date), by = interval)
             allDates <- c(allDates, max(allDates) + timeDiff)
 
@@ -206,9 +313,9 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
 
             ## merge with orginal data, which leaves gaps to fill
             mydata <- merge(mydata, allData, by = "date", all = TRUE)
-            
+
             if (fill) {
-                
+
                 ## this will copy-down data to next original row of data
                 ## number of additional lines to fill
                 inflateFac <-  timeDiff / seconds
@@ -234,20 +341,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
 
         }
 
-         ## start from a particular time, if given
-        if (!is.na(start.date)) {
 
-            firstLine <- data.frame(date = as.POSIXct(start.date, tz = TZ))
-
-            mydata <- rbind.fill(firstLine, mydata)
-
-            ## for cutting data must ensure it is in GMT because combining
-            ## data frames when system is not GMT puts it in local time!...
-            ## and then cut makes a string/factor levels with tz lost...
-
-            mydata$date <- as.POSIXct(format(mydata$date), tz = TZ)
-
-        }
 
         ## calculate wind components
         if ("wd" %in% names(mydata)) {
@@ -286,23 +380,24 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
 
 
         } else {
+
             ## cut into sections dependent on period
             mydata$cuts <- cut(mydata$date, avg.time)
-        #    mydata$date <- as.POSIXct(mydata$cuts, tz = TZ)
+
         }
 
 
         if (data.thresh > 0) {
 
-            ## two methods of calculating stats, one that takes account of data capture (slow), the
-            ## other not (faster)
+            ## two methods of calculating stats, one that takes account of
+            ## data capture (slow), the other not (faster)
             ## Note need to know time interval of data to work out data capture, can
             ## be a problem for non-regular time series...
 
             newMethod <- function(x, data.thresh, na.rm) {
 
                 ## calculate mean only if above data capture threshold
-                if (length(na.omit(x)) >= round(length(x) * data.thresh / 100)) {
+                if (length(na.omit(x)) >= length(x) * data.thresh / 100) {
                     res <- eval(parse(text = form))
                 } else {
                     res <- NA
@@ -311,7 +406,9 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
             }
 
             ## need to make sure all data are present..
-            mydata <- date.pad(mydata)
+            ## print out time interval assumed for input time series
+            ## useful for debugging
+            if (!padded) mydata <- date.pad(mydata, print.int = TRUE)
 
             ## cut into sections dependent on period
             mydata$cuts <- cut(mydata$date, avg.time)
@@ -332,7 +429,8 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
         if (data.thresh == 0 & statistic == "mean") {
 
             dailymet <- aggregate(mydata[ , sapply(mydata, class) %in% c("numeric", "integer"),
-                                         drop = FALSE], list(date = mydata$cuts), mean, na.rm = TRUE)
+                                         drop = FALSE], list(date = mydata$cuts),
+                                  mean, na.rm = TRUE)
 
         }
         ## return same date class as went in...
@@ -366,7 +464,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
 
         ## fill missing gaps
         if (avg.time != "season") {
-            
+
             dailymet <- date.pad2(dailymet, interval = avg.time)
         }
 
@@ -375,7 +473,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
         dailymet
 
     }
-    
+
     ## split if several sites
     if ("site" %in% names(mydata)) { ## split by site
         mydata$site <- factor(mydata$site)
@@ -384,6 +482,6 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
     } else {
         mydata <- calc.mean(mydata, start.date)
     }
-  
+
     mydata
 }

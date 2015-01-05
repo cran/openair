@@ -1,6 +1,6 @@
 ##' Linear relations between pollutants
 ##'
-##' This function considers linearRelationships between two pollutants. The
+##' This function considers linear relationships between two pollutants. The
 ##' relationships are calculated on different times bases using a linear model.
 ##' The slope and 95% confidence interval in slope relationships by time unit
 ##' are plotted in many ways. The function is particularly useful when
@@ -93,7 +93,7 @@
 ##'   undertake further analysis.
 ##'
 ##' An openair output can be manipulated using a number of generic operations,
-##'   including \code{print}, \code{plot} and \code{summary}. 
+##'   including \code{print}, \code{plot} and \code{summary}.
 ##' @author David Carslaw
 ##' @seealso \code{\link{calcFno2}}
 ##' @keywords methods
@@ -315,7 +315,14 @@ linearRelation <- function(mydata,
         results$weekday <- ordered(results$weekday, levels = format(ISOdate(2000, 1, 3:9), "%a"))
         if (missing(ylim)) ylim <- rng(results)
 
-        xyplot.args <- list(x = slope ~ weekday | cond, data = results,
+
+        if (condition) {
+            myform <- formula("x = slope ~ weekday | cond")
+        } else {
+            myform <- formula("x = slope ~ weekday")
+        }
+
+        xyplot.args <- list(myform, data = results,
                       as.table = TRUE,
                       ylim = ylim,
                       ylab = quickText(ylab, auto.text),
@@ -351,6 +358,7 @@ linearRelation <- function(mydata,
         results$seslope <- results$seslope * adj
         results <- subset(results, rsquare >= rsq.thresh & N >= n)
         results$weekday <- ordered(results$weekday, levels = format(ISOdate(2000, 1, 3:9), "%A"))
+        if (nrow(results) == 0) stop("Note enough data to plot. Try reducing 'n'.")
 
         eq <- formula(slope ~ hour | weekday)
         if (condition) eq <- formula(slope ~ hour | weekday * cond)

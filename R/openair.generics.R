@@ -219,6 +219,7 @@ openairApply <- function(object, fun=summary, subset = "all",
 #kr 17/12/2010 v 0.0.3
 
 
+##' @method summary openair
 ##' @export
 summary.openair <- function(object, subset = "all", ...)
     openairApply(object, fun=summary, subset=subset, ..., fun.name="summary")
@@ -256,8 +257,10 @@ tail.openair <- function(x, subset = "all", ...)
 #################
 #to do
 #################
+
+##' @method print openair
 ##' @export
-plot.openair <- function(x, subset = "all", silent=TRUE, ...){
+plot.openair <- function(x, subset = "all", silent = TRUE, ...){
 
    if(!is.openair(x)) return(invisible(NULL))
 

@@ -17,15 +17,15 @@ dateTypes <- c("year", "hour", "month", "season", "weekday", "weekend", "monthye
 ## sets up how openair graphics look by default and resets on exit
 
 setGraphics <- function(fontsize = 5) {
-    
+
   current.strip <- trellis.par.get("strip.background")
   trellis.par.set(fontsize = list(text = fontsize))
 
   ## reset graphic parameters
   font.orig <- trellis.par.get("fontsize")$text
-  on.exit(trellis.par.set(strip.background = current.strip, 
+  on.exit(trellis.par.set(strip.background = current.strip,
                           fontsize = list(text = font.orig)))
-  
+
 }
 
 ###############################################################################
@@ -52,7 +52,7 @@ find.time.interval <- function(dates) {
     if ("POSIXt" %in% class(dates)) seconds <- paste(seconds, "sec")
 
     if (class(dates)[1] == "Date") {
-        seconds <- 3600 * 24
+        seconds <- seconds * 3600 * 24
         seconds <- paste(seconds, "sec")
     }
 
@@ -81,35 +81,47 @@ date.pad2 <- function(mydata, type = "default", interval = "month") {
     }
 
     if (type == "site") {
-        mydata <- split(mydata, mydata$site)
-        mydata <- lapply(mydata, date.pad.site, type, interval)
-        mydata <- do.call(rbind, mydata)
+        mydata <- ddply(mydata, .(site), date.pad.site, interval)
     } else {
-        mydata <- date.pad.site(mydata, type, interval
-                                )
+        mydata <- date.pad.site(mydata, type, interval)
     }
     mydata
 }
-#############################################################################################
-## Function to pad out missing time data, optionally dealing with conditioning variable "site"
-date.pad <- function(mydata) {
+## #################################################################
+## Function to pad out missing time data, optionally dealing with
+## conditioning variable "site"
+date.pad <- function(mydata, print.int = FALSE) {
     site <- NULL
 
-    date.pad.site <- function(mydata) {
+    date.pad.site <- function(mydata, print.int) {
         ## function to fill missing data gaps
         ## assume no missing data to begin with
-        if ("site" %in% names(mydata)) site <- mydata$site[1]
 
-        ## pad out missing data for better looking plot
+        ## pad out missing data
         start.date <- min(mydata$date, na.rm = TRUE)
         end.date <- max(mydata$date, na.rm = TRUE)
 
+        ## interval in seconds
+        interval <- find.time.interval(mydata$date)
+
+        ## equivalent number of days, used to refine interval for month/year
+        days <- as.numeric(strsplit(interval, split = " ")[[1]][1]) /
+            24 / 3600
+
         ## find time interval of data
         if (class(mydata$date)[1] == "Date") {
-            interval <- "day"
+
+            interval <- paste(days, "day")
+
         } else {
+            ## this will be in seconds
             interval <- find.time.interval(mydata$date)
+
         }
+
+        ## better interval, most common interval in a year
+        if (days == 31) interval <- "month"
+        if (days %in% c(365, 366)) interval <- "year"
 
         ## only pad if there are missing data
         if (length(unique(diff(mydata$date))) != 1L) {
@@ -119,31 +131,34 @@ date.pad <- function(mydata) {
 
         }
 
+        if (print.int) print(paste0("Input data time interval assumed is ", interval))
+
         ## make sure no gaps in site name are left
-        if ("site" %in% names(mydata)) mydata$site <- site
         if ("code" %in% names(mydata)) mydata$code[1]
 
         mydata
     }
 
     if ("site" %in% names(mydata)) {
-        mydata <- ddply(mydata, .(site), date.pad.site)
+
+        mydata <- ddply(mydata, .(site), date.pad.site, print.int)
 
     } else {
-        mydata <- date.pad.site(mydata)
+        mydata <- date.pad.site(mydata, print.int)
     }
+
+
     mydata
 }
 #############################################################################################
 
-## Function to pad out missing time data, optionally dealing with conditioning variable "site"
-## version where interval is given
+## Function to pad out missing time data, optionally dealing with conditioning
+## variable "site" version where interval is given
 date.pad2 <- function(mydata, interval = "month") {
 
     date.pad.site <- function(mydata) {
         ## function to fill missing data gaps
         ## assume no missing data to begin with
-        if ("site" %in% names(mydata)) site <- mydata$site[1]
 
         ## pad out missing data for better looking plot
         start.date <- min(mydata$date, na.rm = TRUE)
@@ -153,7 +168,6 @@ date.pad2 <- function(mydata, interval = "month") {
         mydata <- merge(mydata, all.dates, all = TRUE)
 
         ## put missing identifiers in gaps
-        if ("site" %in% names(mydata)) mydata$site <- site
         if ("code" %in% names(mydata)) mydata$code[1]
         mydata
     }
@@ -448,6 +462,9 @@ selectByDate <- function (mydata, start = "1/1/2008", end = "31/12/2008", year =
      ## extract variables of interest
     vars <- names(mydata)
 
+    ## check data - mostly date format
+    mydata <- checkPrep(mydata, vars, "default", remove.calm = FALSE, strip.white = FALSE)
+
     weekday.names <- format(ISOdate(2000, 1, 3:9), "%A")
 
 
@@ -584,13 +601,13 @@ panel.gam <- function (x, y, form = y ~ x, method = "loess", k = k, Args, ..., s
 
             pred <- predict(mod, data.frame(x = xseq), se = se)
 
-            
+
             results <- data.frame(date = xseq, pred = pred$fit,
                                   lower = pred$fit - std * pred$se,
                                   upper = pred$fit + std * pred$se)
-            
+
             if (se) {
-                
+
                 panel.polygon(x = c(xseq, rev(xseq)), y = c(pred$fit -
                                                       std * pred$se, rev(pred$fit + std * pred$se)),
                               col = col.se, alpha = alpha.se, border = border)
@@ -598,7 +615,7 @@ panel.gam <- function (x, y, form = y ~ x, method = "loess", k = k, Args, ..., s
             }
 
             panel.lines(xseq, pred, col = col, alpha = alpha, lty = lty, lwd = 2)
-            
+
         } else { ## simulations required
 
             sam.size <- length(x)
@@ -678,9 +695,9 @@ fitGam <- function (thedata, x = "date", y = "conc", form = y ~ x, k = k,
     names(thedata)[id] <- "x"
     id <- which(names(thedata) == y)
     names(thedata)[id] <- "y"
-    
+
     thedata$x <- as.numeric(thedata$x)
-    
+
     tryCatch({
 
         if (!simulate) {
@@ -699,15 +716,15 @@ fitGam <- function (thedata, x = "date", y = "conc", form = y ~ x, k = k,
 
             pred <- predict(mod, data.frame(x = xseq), se = se)
 
-            
+
             results <- data.frame(date = xseq, pred = pred$fit,
                                   lower = pred$fit - std * pred$se,
-                                  upper = pred$fit + std * pred$se)          
-            
+                                  upper = pred$fit + std * pred$se)
+
         } else { ## simulations required
 
             sam.size <- nrow(thedata)
-           
+
             xseq <- seq(min(thedata$x, na.rm = TRUE), max(thedata$x, na.rm = TRUE), length = n)
 
             boot.pred <- matrix(nrow = sam.size, ncol = n.sim)
@@ -748,7 +765,7 @@ fitGam <- function (thedata, x = "date", y = "conc", form = y ~ x, k = k,
 
             results <- as.data.frame(cbind(pred = rowMeans(boot.pred),
                                            lower = percentiles[1, ], upper = percentiles[2, ]))
-         
+
         }
         results
     }, error = function(x) {data.orig})
@@ -893,13 +910,13 @@ makeOpenKeyLegend <- function(key, default.key, fun.name = "function"){
 }
 
  ## polygon that can deal with missing data for use in lattice plots with groups
-    poly.na <- function(x1, y1, x2, y2, group.number, myColors, alpha = 0.4, border = NA) {
-        for(i in seq(2, length(x1)))
-            if (!any(is.na(y2[c(i - 1, i)])))
-                lpolygon(c(x1[i - 1], x1[i], x2[i], x2[i - 1]),
-                         c(y1[i - 1], y1[i], y2[i], y2[i - 1]),
-                         col = myColors[group.number], border = border, alpha = alpha)
-    }
+poly.na <- function(x1, y1, x2, y2, group.number, myColors, alpha = 0.4, border = NA) {
+    for(i in seq(2, length(x1)))
+        if (!any(is.na(y2[c(i - 1, i)])))
+            lpolygon(c(x1[i - 1], x1[i], x2[i], x2[i - 1]),
+                     c(y1[i - 1], y1[i], y2[i], y2[i - 1]),
+                     col = myColors[group.number], border = border, alpha = alpha)
+}
 
 
 ## gives names of lattice strips

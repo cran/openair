@@ -164,7 +164,7 @@ modStats <- function(mydata,  mod = "mod", obs = "obs",
     if ("r" %in% statistic) res.r <- ddply(mydata, type, r, mod, obs, ...) else res.r <- NULL
     if ("COE" %in% statistic) res.COE <- ddply(mydata, type, COE, mod, obs) else res.COE <- NULL
     if ("IOA" %in% statistic) res.IOA <- ddply(mydata, type, IOA, mod, obs) else res.IOA <- NULL
-    
+
     ## merge them all into one data frame
     results <- list(res.n, res.FAC, res.MB, res.MGE, res.NMB, res.NMGE, res.RMSE, res.r,
                     res.COE, res.IOA)

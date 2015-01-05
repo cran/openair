@@ -1,4 +1,48 @@
-Changes in openair 1.0-0 [2013-11-21]
+Changes in openair 1.1 [2015-01-05]
+=====================================
+*	Add ref.y option to timeVariation for y references line(s)
+*	Fix type = "wd" labelling to corPlot
+*	Refine airbaseStats to include site type and city by default
+*	Make trendLevel colour scaling consistent with other functions
+	and allow missing data to be shown in different colour
+*	Allow categorical scales in trendLevel
+* 	Fix type = 'season' in trajLevel (winter period not properly
+	calculated)
+*	Allow multiple reference lines to be added to timePlot,
+	scatterPlot, timeVariation and add to smoothTrend together
+	with full control of their properties. Note - ref.x and
+	ref.y must now be lists; see help file for details.
+*	Don't open graphics window in aqStats
+*	Add more flexibility to timeAverage for irregular time
+	intervals
+*	Add 12-hour interval points on back trajectory lines
+*	Fix bug in percentileRose with stat = "cpf" and non-default
+	type (now uses single percentile based on all data, not
+	each panel)
+*	Check if date is in POSIXt format and throw error if TRUE
+*	Improve date checks in selectByDate
+*	Add dendrogram option to corPlot (thanks to James Durant for
+	the suggestion)
+*	Remove strip in corPlot when type = "default"
+*	Remove statistic description in pollutionRose when annotate =
+	FALSE.
+*	Fix colour scaling bug in scatterPlot/trajPlot when user
+	limits supplied
+*	Check period = "years" or "months" in summaryPlot; some users
+	supplied "year" resulting in incorrect statistics
+*	Give mean and percent calm in pollutionRose when statistic =
+	"prop.mean" (was erroneously percentage)
+*	getMet function for downloading Hysplit met files in manual
+	did not download as binary files; now corrected
+*	Add name.pol argument to smoothTrend for more control over
+	names used for plotting
+*	Show first few dates when import fails to apply correct date format
+	(helps to provide a clue as to actual date format)
+*	Updates to trajectory plots to allow for different map
+	projections using the mapproj package (new dependency)
+*	Fix trajectory frequency calculation - underestimated frequencies.
+
+Changes in openair 1.0-0 [2014-06-09]
 =====================================
 *	Pass all arguments in corPlot
 *	Enhance timeVariation to consider median + quantiles through

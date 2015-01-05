@@ -97,7 +97,7 @@ aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(
 
     vars <- c("date", pollutant, "site")
 
-    mydata <- checkPrep(mydata, vars, "default", remove.calm = FALSE)
+    mydata <- checkPrep(mydata, vars, "default", remove.calm = FALSE, strip.white = FALSE)
 
     ## pre-defined lits of pollutants that need special treatment
     thePolls <- c("no2", "o3", "pm10", "co")

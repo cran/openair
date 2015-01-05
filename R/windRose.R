@@ -18,10 +18,11 @@ pollutionRose <- function(mydata, pollutant = "nox", key.footer = pollutant,
 
     if (is.numeric(breaks) & length(breaks) == 1) {
 
-        breaks2 <- co.intervals(mydata[ , pollutant][is.finite(mydata[ ,pollutant])],
-                                number = 10, overlap = 0)
+        ## breaks from the minimum to 90th percentile, which generally gives sensible
+        ## spacing for skewed data. Maximum is added later.
         breaks <- unique(pretty(c(min(mydata[ , pollutant], na.rm = TRUE),
-                           breaks2[nrow(breaks2), 1]), breaks))
+                                  quantile(mydata[ , pollutant], probs = 0.9, na.rm = TRUE),
+                                  breaks)))
 
     }
 
@@ -195,8 +196,9 @@ pollutionRose <- function(mydata, pollutant = "nox", key.footer = pollutant,
 ##' @param pollutant Alternative data series to be sampled instead of wind
 ##'   speed. The \code{windRose} default NULL is equivalent to \code{pollutant
 ##'   = "ws"}.
-##' @param annotate If \code{TRUE} then the percentage calm and mean values are
-##'   printed in each panel.
+##' @param annotate If \code{TRUE} then the percentage calm and mean
+##' values are printed in each panel together with a description of
+##' the statistic below the plot.
 ##' @param border Border colour for shaded areas. Default is no border.
 ##' @param ... For \code{pollutionRose} other parameters that are
 ##' passed on to \code{windRose}. For \code{windRose} other parameters
@@ -218,7 +220,7 @@ pollutionRose <- function(mydata, pollutant = "nox", key.footer = pollutant,
 ##' undertake further analysis.
 ##'
 ##' An openair output can be manipulated using a number of generic operations,
-##'   including \code{print}, \code{plot} and \code{summarise}. 
+##'   including \code{print}, \code{plot} and \code{summarise}.
 ##'
 ##' Summarised proportions can also be extracted directly using the
 ##'   \code{$data} operator, e.g.  \code{object$data} for \code{output <-
@@ -423,7 +425,8 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
         if (missing(offset)) offset <- 20
         ## set the breaks to cover all the data
         if (is.na(breaks[1])) {
-            max.br <- max(ceiling(abs(c(min(mydata$ws, na.rm = TRUE), max(mydata$ws, na.rm = TRUE)))))
+            max.br <- max(ceiling(abs(c(min(mydata$ws, na.rm = TRUE),
+                                        max(mydata$ws, na.rm = TRUE)))))
             breaks <- c(-1 * max.br, 0, max.br)
         }
 
@@ -434,6 +437,8 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
     if (any(type %in% dateTypes)) vars <- c(vars, "date")
 
     if (!is.null(pollutant)) vars <- c(vars, pollutant)
+
+    mydata <- cutData(mydata, type, ...)
 
     mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE, remove.neg = rm.neg)
 
@@ -472,7 +477,7 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
         ## return if there is nothing to plot
         if (all(is.na(mydata$x))) return()
 
-        levels(mydata$x) <- c(paste("x", 1:length(labs), sep = ""))
+        levels(mydata$x) <- c(paste("Interval", 1:length(labs), sep = ""))
 
         all <- stat.fun(mydata[ , wd])
         calm <- mydata[mydata[ , wd] == -999, ][, pollutant]
@@ -565,8 +570,6 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
         }
     }
 
-    mydata <- cutData(mydata, type, ...)
-
     results.grid <- ddply(mydata, type, prepare.grid)
 
     ## format
@@ -580,7 +583,7 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
         id <- which(tmp == 0)
         if (length(id > 0)) tmp[id] <- 360
         tmp <- table(tmp) ## number of sectors spanned
-        vars <- grep("x", names(results.grid)) ## the frequencies
+        vars <- grep("Interval[1-9]", names(results.grid)) ## the frequencies
         results.grid[, vars] <- results.grid[, vars] * mean(tmp) /tmp
     }
 
@@ -619,97 +622,94 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
 
 
     temp <- paste(type, collapse = "+")
-    myform <- formula(paste("x1 ~ wd | ", temp, sep = ""))
+    myform <- formula(paste("Interval1 ~ wd | ", temp, sep = ""))
 
     mymax <- 2 * max.freq
     myby <- if (is.null(grid.line)) pretty(c(0, mymax), 10)[2] else grid.line
 
     if (myby / mymax > 0.9) myby <- mymax * 0.9
 
-    xyplot.args <- list(x = myform,
-                        xlim = 1.03 * c(-max.freq - off.set, max.freq + off.set),
-                        ylim = 1.03 * c(-max.freq - off.set, max.freq + off.set),
-                        data = results.grid,
-                        type = "n",
-                        sub = stat.lab,
-                        strip = strip,
-                        strip.left = strip.left,
-                        as.table = TRUE,
-                        aspect = 1,
-                        par.strip.text = list(cex = 0.8),
-                        scales = list(draw = FALSE),
+    if (annotate) sub <- stat.lab else sub <- NULL
 
-                        panel = function(x, y, subscripts, ...) {
-                            panel.xyplot(x, y, ...)
-                            angles <- seq(0, 2 * pi, length = 360)
-                            sapply(seq(off.set, mymax, by = myby),
-                                   function(x) llines(x * sin(angles), x * cos(angles),
-                                                      col = "grey85", lwd = 1))
+    xy.args <- list(x = myform,
+                    xlim = 1.03 * c(-max.freq - off.set, max.freq + off.set),
+                    ylim = 1.03 * c(-max.freq - off.set, max.freq + off.set),
+                    data = results.grid,
+                    type = "n",
+                    sub = sub,
+                    strip = strip,
+                    strip.left = strip.left,
+                    as.table = TRUE,
+                    aspect = 1,
+                    par.strip.text = list(cex = 0.8),
+                    scales = list(draw = FALSE),
 
-                            dat <- results.grid[subscripts, ] ## subset of data
-                            upper <- max.freq + off.set
+                    panel = function(x, y, subscripts, ...) {
+                        panel.xyplot(x, y, ...)
+                        angles <- seq(0, 2 * pi, length = 360)
+                        sapply(seq(off.set, mymax, by = myby),
+                               function(x) llines(x * sin(angles), x * cos(angles),
+                                                  col = "grey85", lwd = 1))
 
-                            ## add axis lines
-                            larrows(-upper, 0, upper, 0, code = 3, length = 0.1)
-                            larrows(0, -upper, 0, upper, code = 3, length = 0.1)
+                        dat <- results.grid[subscripts, ] ## subset of data
+                        upper <- max.freq + off.set
 
-                            ltext(upper * -1 * 0.95, 0.07 * upper, "W", cex = 0.7)
-                            ltext(0.07 * upper, upper * -1 * 0.95, "S", cex = 0.7)
-                            ltext(0.07 * upper, upper * 0.95, "N", cex = 0.7)
-                            ltext(upper * 0.95, 0.07 *upper, "E", cex = 0.7)
+                        ## add axis lines
+                        larrows(-upper, 0, upper, 0, code = 3, length = 0.1)
+                        larrows(0, -upper, 0, upper, code = 3, length = 0.1)
 
-                            if (nrow(dat) > 0) {
+                        ltext(upper * -1 * 0.95, 0.07 * upper, "W", cex = 0.7)
+                        ltext(0.07 * upper, upper * -1 * 0.95, "S", cex = 0.7)
+                        ltext(0.07 * upper, upper * 0.95, "N", cex = 0.7)
+                        ltext(upper * 0.95, 0.07 *upper, "E", cex = 0.7)
 
-                                dat$x0 <- 0 ## make a lower bound to refer to
+                        if (nrow(dat) > 0) {
 
-                                for (i in 1:nrow(dat)) { ## go through wind angles 30, 60, ...
+                            dat$Interval0 <- 0 ## make a lower bound to refer to
 
-                                    for (j in seq_along(labs)) { ## go through paddles x1, x2, ...
+                            for (i in 1:nrow(dat)) { ## go through wind angles 30, 60, ...
 
-                                        tmp <- paste("poly(dat$wd[i], dat$x", j - 1,
-                                                      "[i], dat$x", j, "[i], width * box.widths[",
-                                                      j, "], col[", j, "])", sep = "")
+                                for (j in seq_along(labs)) { ## go through paddles x1, x2, ...
+
+                                    tmp <- paste("poly(dat$wd[i], dat$Interval", j - 1,
+                                                 "[i], dat$Interval", j, "[i], width * box.widths[",
+                                                 j, "], col[", j, "])", sep = "")
 
 
-                                        eval(parse(text = tmp))
-                                    }
+                                    eval(parse(text = tmp))
                                 }
                             }
+                        }
 
-                            ltext(seq((myby + off.set), mymax, myby) * sin(pi / 4),
-                                  seq((myby + off.set), mymax, myby) * cos(pi / 4),
-                                  paste(seq(myby, mymax, by = myby), stat.unit,  sep = ""), cex = 0.7)
+                        ltext(seq((myby + off.set), mymax, myby) * sin(pi / 4),
+                              seq((myby + off.set), mymax, myby) * cos(pi / 4),
+                              paste(seq(myby, mymax, by = myby), stat.unit,  sep = ""), cex = 0.7)
 
-                            ## annotations e.g. calms, means etc
-                            if (annotate) ## don't add calms for prop.mean for now...
-                                if (statistic != "prop.mean") {
-                                    if (!diff) {
-                                        ltext(max.freq + off.set, -max.freq - off.set,
-                                              label = paste(stat.lab2, " = ",
-                                              dat$panel.fun[1], "\ncalm = ",
-                                              dat$calm[1], stat.unit, sep = ""),
-                                              adj = c(1, 0), cex = 0.7, col = calm.col)
-                                    }
-                                    if (diff) { ## when two data sets are present
-                                        ltext(max.freq + off.set, -max.freq - off.set,
-                                              label = paste("mean ws = ",
-                                              round(dat$panel.fun[1], 1),
-                                              "\nmean wd = ", round(dat$mean.wd[1], 1),
-                                              sep = ""), adj = c(1, 0), cex = 0.7, col = calm.col)
-                                    }
-                                } else {
-                                    ltext(max.freq + off.set, -max.freq - off.set,
-                                          label = paste(stat.lab2, " = ", dat$panel.fun[1],
-                                          stat.unit, sep = ""), adj = c(1, 0), cex = 0.7,
-                                          col = calm.col)
-                                }
-                        }, legend = legend)
+                        ## annotations e.g. calms, means etc
+                        if (annotate) ## don't add calms for prop.mean for now...
+
+                            if (!diff) {
+                                ltext(max.freq + off.set, -max.freq - off.set,
+                                      label = paste(stat.lab2, " = ",
+                                          dat$panel.fun[1], "\ncalm = ",
+                                          dat$calm[1], stat.unit, sep = ""),
+                                      adj = c(1, 0), cex = 0.7, col = calm.col)
+                            }
+                        if (diff) { ## when two data sets are present
+                            ltext(max.freq + off.set, -max.freq - off.set,
+                                  label = paste("mean ws = ",
+                                      round(dat$panel.fun[1], 1),
+                                      "\nmean wd = ", round(dat$mean.wd[1], 1),
+                                      sep = ""), adj = c(1, 0), cex = 0.7, col = calm.col)
+                        }
+
+                    }, legend = legend)
 
     ## reset for extra
-    xyplot.args <- listUpdate(xyplot.args, extra)
+    xy.args <- listUpdate(xy.args, extra)
 
     ## plot
-    plt <- do.call(xyplot, xyplot.args)
+    plt <- do.call(xyplot, xy.args)
 
 
     ## output ################################################################################

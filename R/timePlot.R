@@ -128,8 +128,16 @@
 ##'   ensures all panels use the same scale and "free" will use panel-specfic
 ##'   scales. The latter is a useful setting when plotting data with very
 ##'   different values.
-##' @param ref.x Add a vertical dashed reference line at this value.
-##' @param ref.y Add a horizontal dashed reference line at this value.
+##' @param ref.x See \code{ref.y} for details. In this case the
+##' correct date format should be used for a vertical line e.g.  \code{ref.x
+##' = list(v = as.POSIXct("2000-06-15"), lty = 5)}.
+##' @param ref.y A list with details of the horizontal lines to be
+##' added representing reference line(s). For example, \code{ref.y =
+##' list(h = 50, lty = 5)} will add a dashed horizontal line at
+##' 50. Several lines can be plotted e.g. \code{ref.y = list(h = c(50,
+##' 100), lty = c(1, 5), col = c("green", "blue"))}. See
+##' \code{panel.abline} in the \code{lattice} package for more details
+##' on adding/controlling lines.
 ##' @param key.columns Number of columns to be used in the key. With many
 ##'   pollutants a single column can make to key too wide. The user can thus
 ##'   choose to use several columns by setting \code{columns} to be less than
@@ -179,7 +187,7 @@
 ##'   further analysis.
 ##'
 ##' An openair output can be manipulated using a number of generic operations,
-##'   including \code{print}, \code{plot} and \code{summary}. 
+##'   including \code{print}, \code{plot} and \code{summary}.
 ##' @author David Carslaw
 ##' @seealso \code{\link{TheilSen}}, \code{\link{smoothTrend}},
 ##'   \code{\link{linearRelation}}, \code{\link{selectByDate}} and
@@ -357,7 +365,7 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
 
             mydata <- ddply(mydata, type, timeAverage, avg.time = avg.time,
                             statistic = statistic, percentile = percentile,
-                            data.thresh = data.thresh)
+                            data.thresh = data.thresh, ...)
         }
     }
 
@@ -579,8 +587,9 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
                                                   lty = 1, lwd = 1, se = ci, k = NULL, ...)
 
                             ## add reference lines
-                            panel.abline(v = ref.x, lty = 5)
-                            panel.abline(h = ref.y, lty = 5)
+
+                            if (!is.null(ref.x)) do.call(panel.abline, ref.x)
+                            if (!is.null(ref.y)) do.call(panel.abline, ref.y)
 
                         })
 

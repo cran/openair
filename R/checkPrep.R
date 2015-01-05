@@ -3,8 +3,8 @@
                                         # Author: DCC
 ###############################################################################
 
-checkPrep <- function(mydata, Names, type, remove.calm = TRUE, remove.neg = TRUE, strip.white = TRUE,
-                      wd = "wd") {
+checkPrep <- function(mydata, Names, type, remove.calm = TRUE, remove.neg = TRUE,
+                      strip.white = TRUE, wd = "wd") {
 
     ## deal with conditioning variable if present, if user-defined, must exist in data
     ## pre-defined types
@@ -14,7 +14,7 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE, remove.neg = TRUE
 
     varNames <- c(Names, type) ## names we want to be there
     matching <- varNames %in% all.vars
-    
+
     if (any(!matching)) {
         ## not all variables are present
         stop(cat("Can't find the variable(s)", varNames[!matching], "\n"))
@@ -34,7 +34,6 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE, remove.neg = TRUE
 
     ## just select data needed
     mydata <- mydata[, Names]
-
 
 
     ## check to see if there are any missing dates, stop if there are
@@ -98,6 +97,9 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE, remove.neg = TRUE
     ## make sure date is ordered in time if present
     if ("date" %in% Names) {
 
+        if ("POSIXlt" %in% class(mydata$date))
+            stop ("date should be in POSIXct format not POSIXlt")
+
         ## if date in format dd/mm/yyyy hh:mm (basic check)
         if (length(grep("/", as.character(mydata$date[1]))) > 0) {
 
@@ -118,7 +120,7 @@ checkPrep <- function(mydata, Names, type, remove.calm = TRUE, remove.neg = TRUE
         ## daylight saving time can cause terrible problems - best avoided!!
         z <- as.POSIXlt(mydata$date[1])
         zz <- attr(z, "tzone")
-        
+
         if (length(zz) == 3L) {
             if (!zz[3] %in%  c("WILDABBR", "   ")) ## means that no DST e.g. for tz = Etc/GMT+5
                 {

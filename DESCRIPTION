@@ -1,16 +1,17 @@
 Package: openair
 Type: Package
-Title: Tools for the analysis of air pollution data
-Version: 1.0
-Date: 2014-06-10
+Title: Tools for the Analysis of Air Pollution Data
+Version: 1.1-0
+Date: 2015-01-05
 Authors@R: c(person("David", "Carslaw", role = c("aut", "cre"), email =
     "david.carslaw@kcl.ac.uk"), person("Karl", "Ropkins", role =
     "aut", email = "K.Ropkins@its.leeds.ac.uk"))
 ByteCompile: true
-Depends: R (>= 2.15.1),
+Depends: R (>= 2.15.1), maps,
 Imports: utils, grid, plyr, reshape2, mgcv, lattice, latticeExtra,
-        cluster, RColorBrewer, Rcpp
-Suggests: hexbin, RgoogleMaps, png, mapdata, KernSmooth
+        cluster, RColorBrewer, mapdata, mapproj, hexbin, RgoogleMaps,
+        Rcpp
+Suggests: png, KernSmooth
 LinkingTo: Rcpp
 Maintainer: David Carslaw <david.carslaw@kcl.ac.uk>
 Description: Tools to analyse, interpret and understand air
@@ -22,9 +23,9 @@ License: GPL (>= 2)
 URL: http://www.openair-project.org/
 LazyLoad: yes
 LazyData: yes
-Packaged: 2014-06-10 10:51:24 UTC; davidcarslaw
+Packaged: 2015-01-05 15:43:07 UTC; davidcarslaw
 Author: David Carslaw [aut, cre],
   Karl Ropkins [aut]
 NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2014-06-10 13:31:19
+Date/Publication: 2015-01-05 21:05:05

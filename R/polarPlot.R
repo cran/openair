@@ -291,7 +291,7 @@
 ##'
 ##' An openair output can be manipulated using a number of generic
 ##' operations, including \code{print}, \code{plot} and
-##' \code{summary}. 
+##' \code{summary}.
 ##'
 ##' \code{polarPlot} surface data can also be extracted directly using
 ##' the \code{results}, e.g.  \code{results(object)} for \code{output
@@ -404,10 +404,10 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
 
     ## set graphics
     current.strip <- trellis.par.get("strip.background")
-    
+
     ## reset graphic parameters
     on.exit(trellis.par.set(strip.background = current.strip))
-        
+
     ## extra.args setup
     extra.args <- list(...)
 
@@ -714,29 +714,29 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
         labs <- pretty(breaks, 7)
         labs <- labs[labs >= min(breaks) & labs <= max(breaks)]
         at <- labs
-        
+
     } else {
-        
+
         ## handle user limits and clipping
         breaks <- seq(min(limits), max(limits), length.out = nlev)
         labs <- pretty(breaks, 7)
         labs <- labs[labs >= min(breaks) & labs <= max(breaks)]
         at <- labs
-        
+
         ## case where user max is < data max
-        if (max(limits) < max(res[["z"]], na.rm = TRUE)) {             
+        if (max(limits) < max(res[["z"]], na.rm = TRUE)) {
             id <- which(res[["z"]] > max(limits))
             res[["z"]][id] <- max(limits)
-            labs[length(labs)] <- paste(">", labs[length(labs)])          
+            labs[length(labs)] <- paste(">", labs[length(labs)])
         }
 
         ## case where user min is > data min
-        if (min(limits) > min(res[["z"]], na.rm = TRUE)) {              
+        if (min(limits) > min(res[["z"]], na.rm = TRUE)) {
             id <- which(res[["z"]] < min(limits))
             res[["z"]][id] <- min(limits)
             labs[1] <- paste("<", labs[1])
         }
-               
+
     }
 
     nlev2 <- length(breaks)
@@ -838,19 +838,19 @@ polarPlot <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", type = "de
     plt <- do.call(levelplot, Args)
 
     ## output #######################################################################
-    
-    
+
+
     if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip,
               strip.left = strip.left))
-    
-    
+
+
 
     newdata <- res
     output <- list(plot = plt, data = newdata, call = match.call())
     class(output) <- "openair"
-    
+
     invisible(output)
- 
+
 }
 
 

@@ -166,10 +166,10 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4,
         ## if type is time based and already exists in data, remove it
         ## because we need to calculate it based on the date
 
-        if (type %in% dateTypes & type %in% names(x)) 
+        if (type %in% dateTypes & type %in% names(x))
              x <- x[ , !(names(x) %in% type)]
-        
-        
+
+
         conds <- c("default", "year", "hour", "month", "season", "weekday", "wd", "site",
                    "weekend", "monthyear", "bstgmt", "gmtbst", "dst", "daylight")
 
@@ -237,7 +237,7 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4,
             ## need to generate month abbrevs on the fly for different languages
              temp <- if (is.axis) "%b" else "%B"
              x[ , type] <- format(x$date, temp)
-             
+
              ## month names
              month.abbs <- format(seq(as.Date("2000-01-01"), as.Date("2000-12-31"), "month"), temp)
 
@@ -350,18 +350,18 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4,
             x[ , type] <- x$site
             x[ , type] <- factor(x[ , type]) ## will get rid of any unused factor levels
         }
-        
+
         if (type %in% c("dst", "bstgmt", "gmtbst")) {
             type <- "dst" ## keep it simple
-            
+
             ## how to extract BST/GMT
             if (is.null(local.tz)) {
                 message("missing time zone, assuming Europe/London")
                 local.tz <- "Europe/London"
             }
-           
+
             attr(x$date, "tzone") <- local.tz
-            
+
             id.nondst <- which(as.POSIXlt(x$date)$isdst == 0)
             id.dst <- which(as.POSIXlt(x$date)$isdst == 1)
 
@@ -370,7 +370,7 @@ cutData <- function(x, type = "default", hemisphere = "northern", n.levels = 4,
             x[id.nondst, type] <- "Non-DST"
             x[id.dst, type] <- "DST"
             x[, type] <- factor(x[, type])
-                        
+
         }
 
         if (type == "daylight") {
