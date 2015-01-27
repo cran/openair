@@ -258,7 +258,7 @@ tail.openair <- function(x, subset = "all", ...)
 #to do
 #################
 
-##' @method print openair
+##' @method plot openair
 ##' @export
 plot.openair <- function(x, subset = "all", silent = TRUE, ...){
 
@@ -332,6 +332,7 @@ plot.openair <- function(x, subset = "all", silent = TRUE, ...){
 #to do
 #################
 ##' @export
+##' @method print openair
 print.openair <- function(x, silent = FALSE, plot = TRUE, ...){
 
    if(!is.openair(x)) return(invisible(NULL))

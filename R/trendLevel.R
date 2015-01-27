@@ -177,15 +177,19 @@ trendLevel <- function(mydata, pollutant = "nox", x = "month", y = "hour",
         trellis.par.set(list(strip.background = list(col = "white")))
 
 
-    ## reset strip color on exit
+    ## set graphics
     current.strip <- trellis.par.get("strip.background")
-    on.exit(trellis.par.set("strip.background", current.strip))
-
+    current.font <- trellis.par.get("fontsize")
+    
+    ## reset graphic parameters
+    on.exit(trellis.par.set(strip.background = current.strip,
+                            fontsize = current.font))
+    
     category <- FALSE ## assume pollutant scale is not a categorical value
 
     if (!is.na(labels) && !is.na(breaks)) category <- TRUE
 
-
+    
     ## check.valid function
     check.valid <- function(a, x, y){
 
@@ -211,13 +215,17 @@ trendLevel <- function(mydata, pollutant = "nox", x = "month", y = "hour",
     extra.args <- list(...)
 
     ## label controls
-    extra.args$xlab <- if("xlab" %in% names(extra.args))
-        quickText(extra.args$xlab, auto.text) else quickText(x, auto.text)
-    extra.args$ylab <- if("ylab" %in% names(extra.args))
-        quickText(extra.args$ylab, auto.text) else quickText(y, auto.text)
-    extra.args$main <- if("main" %in% names(extra.args))
-        quickText(extra.args$main, auto.text) else quickText("", auto.text)
-
+    extra.args$xlab <- if ("xlab" %in% names(extra.args))
+                           quickText(extra.args$xlab, auto.text) else quickText(x, auto.text)
+    
+    extra.args$ylab <- if ("ylab" %in% names(extra.args))
+                           quickText(extra.args$ylab, auto.text) else quickText(y, auto.text)
+    
+    extra.args$main <- if ("main" %in% names(extra.args))
+                           quickText(extra.args$main, auto.text) else quickText("", auto.text)
+    
+    if ("fontsize" %in% names(extra.args))
+        trellis.par.set(fontsize = list(text = extra.args$fontsize))
 
     ## ##############################
     ## check lengths of x, y, type
@@ -290,18 +298,21 @@ trendLevel <- function(mydata, pollutant = "nox", x = "month", y = "hour",
                 stat.fun <- mean
                 stat.args <- list(na.rm = TRUE)
             }
+            
             if (statistic == "max") {
                 stat.fun <- function(x, ...){
                     if (all(is.na(x))) { NA } else  max(x, ...)
                 }
                 stat.args <- list(na.rm = TRUE)
             }
+            
             if (statistic == "frequency") {
                 stat.fun <- function(x, ...){
                     if (all(is.na(x))) { NA } else  length(na.omit(x))
                 }
                 stat.args <- NULL
             }
+            
             stat.name <- statistic
 
         } else {
@@ -358,7 +369,7 @@ trendLevel <- function(mydata, pollutant = "nox", x = "month", y = "hour",
     ## get pollutant value
     ## NOTE: this can be same as one of x, y, type
     ## so need a temp case
-
+    
     ## different n.levels for axis and type
     ## is.axis applied for x and y
     newdata <- cutData(mydata, x, n.levels = n.levels[1], is.axis = TRUE, ...)

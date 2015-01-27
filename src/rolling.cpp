@@ -8,7 +8,7 @@ using namespace Rcpp;
 // than 'cap' else NA is returned.
 
 // The bulk of the calculations are run using the main function
-// The ends are then dpecfically dealt with depending how the window is aligned
+// The ends are then specifically dealt with depending how the window is aligned
 
 // Declarations
 NumericVector ends(NumericVector A, LogicalVector NA, NumericVector res, std::string align, 

@@ -212,7 +212,7 @@
 ##'
 ##' \dots{} see also several of the Air Quality Expert Group (AQEG) reports for
 ##'   the use of similar tests applied to UK/European air quality data, see
-##'   \url{http://www.defra.gov.uk/ENVIRONMENT/airquality/panels/aqeg/}.
+##'   \url{http://uk-air.defra.gov.uk/library/aqeg/}.
 ##' @keywords methods
 ##' @examples
 ##'
@@ -246,9 +246,13 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
     ## get rid of R check annoyances
     a = b = lower.a = lower.b = upper.a = upper.b = slope.start = date.end = intercept.start = date.start = lower.start = intercept.lower.start = upper.start = intercept.upper.start = NULL
 
-    ## reset strip color on exit
+    ## set graphics
     current.strip <- trellis.par.get("strip.background")
-    on.exit(trellis.par.set("strip.background", current.strip))
+    current.font <- trellis.par.get("fontsize")
+    
+    ## reset graphic parameters
+    on.exit(trellis.par.set(strip.background = current.strip,
+                            fontsize = current.font))
 
     ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
@@ -269,10 +273,14 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE, type = "defaul
 
     ## label controls
     ## (xlab currently handled in plot because unqiue action)
-    extra.args$ylab <- if("ylab" %in% names(extra.args))
+    extra.args$ylab <- if ("ylab" %in% names(extra.args))
         quickText(extra.args$ylab, auto.text) else quickText(pollutant, auto.text)
-    extra.args$main <- if("main" %in% names(extra.args))
-        quickText(extra.args$main, auto.text) else quickText("", auto.text)
+
+    extra.args$main <- if ("main" %in% names(extra.args))
+                           quickText(extra.args$main, auto.text) else quickText("", auto.text)
+
+    if ("fontsize" %in% names(extra.args))
+        trellis.par.set(fontsize = list(text = extra.args$fontsize))
     
     xlim <- if ("xlim" %in% names(extra.args))
       extra.args$xlim else  NULL

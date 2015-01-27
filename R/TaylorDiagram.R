@@ -168,15 +168,14 @@
 ##'
 ##' Taylor, K.E.: Summarizing multiple aspects of model performance in a single
 ##'   diagram. J.  Geophys. Res., 106, 7183-7192, 2001 (also see PCMDI Report
-##'   55, \url{http://wwwpcmdi.  llnl.gov/publications/ab55.html})
+##'   55, \url{http://www-pcmdi.llnl.gov/about/staff/Taylor/CV/Taylor_2001_JGR.pdf})
 ##'
 ##' IPCC, 2001: Climate Change 2001: The Scientific Basis, Contribution of
 ##'   Working Group I to the Third Assessment Report of the Intergovernmental
 ##'   Panel on Climate Change [Houghton, J.T., Y. Ding, D.J. Griggs, M. Noguer,
 ##'   P.J. van der Linden, X. Dai, K. Maskell, and C.A.  Johnson (eds.)].
 ##'   Cambridge University Press, Cambridge, United Kingdom and New York, NY,
-##'   USA, 881 pp. (see
-##'   \url{http://www.grida.no/climate/ipcc_tar/wg1/317.htm#fig84})
+##'   USA, 881 pp. 
 ##' @keywords methods
 ##'
 ##' @examples
@@ -248,9 +247,13 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
 
     ## greyscale handling
 
-    ## reset strip color on exit
+    ## set graphics
     current.strip <- trellis.par.get("strip.background")
-    on.exit(trellis.par.set("strip.background", current.strip))
+    current.font <- trellis.par.get("fontsize")
+    
+    ## reset graphic parameters
+    on.exit(trellis.par.set(strip.background = current.strip,
+                            fontsize = current.font))
 
     if (length(cols) == 1 && cols == "greyscale") {
 
@@ -265,13 +268,18 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
     ##extra.args setup
     extra.args <- list(...)
 
-                                        #label controls (some local xlab, ylab management in code)
-    extra.args$xlab <- if("xlab" %in% names(extra.args))
+    ## label controls (some local xlab, ylab management in code)
+    extra.args$xlab <- if ("xlab" %in% names(extra.args))
         quickText(extra.args$xlab, auto.text) else NULL
-    extra.args$ylab <- if("ylab" %in% names(extra.args))
+
+    extra.args$ylab <- if ("ylab" %in% names(extra.args))
         quickText(extra.args$ylab, auto.text) else NULL
-    extra.args$main <- if("main" %in% names(extra.args))
-        quickText(extra.args$main, auto.text) else quickText("", auto.text)
+
+    extra.args$main <- if ("main" %in% names(extra.args))
+                           quickText(extra.args$main, auto.text) else quickText("", auto.text)
+
+    if ("fontsize" %in% names(extra.args))
+        trellis.par.set(fontsize = list(text = extra.args$fontsize))
 
                                         #layout (also code in body)
     if(!"layout" %in% names(extra.args))

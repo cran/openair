@@ -263,6 +263,12 @@ rollingMean <- function(mydata, pollutant = "o3", width = 8, new.name = "rolling
 
     calc.rolling <- function(mydata, ...) {
 
+        ## data needs to be numeric
+        if (!is.numeric(mydata[, pollutant])) {
+            warning("Data are not numeric.")
+            return(mydata)
+        }
+
         ## need to know whether dates added
         dates <- mydata$date
 
@@ -977,3 +983,4 @@ chooseFace <- function (fontface = NULL, font = 1)
     rv$bandwidth <- bandwidth
     return(rv)
 }
+

@@ -58,7 +58,7 @@
 ##' function uses the \sQuote{world} map from the \code{maps}
 ##' package. If \code{map.res = "hires"} then the (much) more detailed
 ##' base map \sQuote{worldHires} from the \code{mapdata} package is
-##' used.
+##' used. Use \code{library(mapdata)}.
 ##' @param map.cols If \code{map.fill = TRUE} \code{map.cols} controls
 ##' the fill colour. Examples include \code{map.fill = "grey40"} and
 ##' \code{map.fill = openColours("default", 10)}. The latter colours
@@ -136,6 +136,24 @@ trajPlot <- function(mydata, lon = "lon", lat = "lat", pollutant = "height",
 
     ## variables needed in trajectory plots
     vars <- c("date", "lat", "lon", "hour.inc", pollutant)
+
+    ## if group is present, need to add that list of variables unless it is a
+    ## pre-defined date-based one
+    if (!is.na(group)){
+
+        if (group %in%  dateTypes | any(type %in% dateTypes)) {
+            if (group %in%  dateTypes) {
+                vars <- unique(c(vars, "date")) ## don't need group because it is
+                ## defined by date
+            } else {
+                vars <- unique(c(vars, "date", group))
+            }
+
+        } else {
+            vars <- unique(c(vars, group))
+        }
+    }
+    
     mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
 
     ## slect only full length trajectories
@@ -154,6 +172,14 @@ trajPlot <- function(mydata, lon = "lon", lat = "lat", pollutant = "height",
     extra.args <- list(...)
     method <- "scatter"
 
+    ## set graphics
+    current.strip <- trellis.par.get("strip.background")
+    current.font <- trellis.par.get("fontsize")
+    
+    ## reset graphic parameters
+    on.exit(trellis.par.set(strip.background = current.strip,
+                            fontsize = current.font))
+
     #aspect, cex
      if (!"plot.type" %in% names(extra.args))
         extra.args$plot.type <- "l"
@@ -167,12 +193,15 @@ trajPlot <- function(mydata, lon = "lon", lat = "lat", pollutant = "height",
     if (!"xlab" %in% names(extra.args))
         extra.args$xlab <- ""
 
+    if ("fontsize" %in% names(extra.args))
+        trellis.par.set(fontsize = list(text = extra.args$fontsize))
+    
 
     if (missing(pollutant)) { ## don't need key
 
         if (is.na(group)) key <- FALSE else key <- TRUE
 
-        if(!"main" %in% names(extra.args))
+        if (!"main" %in% names(extra.args))
              extra.args$main <- NULL
 
         scatterPlot.args <- list(mydata, x = lon, y = lat, z = NA,

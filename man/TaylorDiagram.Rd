@@ -254,15 +254,14 @@ David Carslaw
 \references{
 Taylor, K.E.: Summarizing multiple aspects of model performance in a single
   diagram. J.  Geophys. Res., 106, 7183-7192, 2001 (also see PCMDI Report
-  55, \url{http://wwwpcmdi.  llnl.gov/publications/ab55.html})
+  55, \url{http://www-pcmdi.llnl.gov/about/staff/Taylor/CV/Taylor_2001_JGR.pdf})
 
 IPCC, 2001: Climate Change 2001: The Scientific Basis, Contribution of
   Working Group I to the Third Assessment Report of the Intergovernmental
   Panel on Climate Change [Houghton, J.T., Y. Ding, D.J. Griggs, M. Noguer,
   P.J. van der Linden, X. Dai, K. Maskell, and C.A.  Johnson (eds.)].
   Cambridge University Press, Cambridge, United Kingdom and New York, NY,
-  USA, 881 pp. (see
-  \url{http://www.grida.no/climate/ipcc_tar/wg1/317.htm#fig84})
+  USA, 881 pp.
 }
 \seealso{
 \code{taylor.diagram} from the \code{plotrix} package from which
