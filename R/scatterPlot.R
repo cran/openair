@@ -211,7 +211,7 @@
 ##' out any transformation the options \code{trans = NULL} and
 ##' \code{inv = NULL} should be used.
 ##' @export
-##' @import mapproj hexbin maps mapdata
+##' @import mapproj hexbin mapdata maps
 ##' @return As well as generating the plot itself, \code{scatterPlot} also
 ##'   returns an object of class ``openair''. The object includes three main
 ##'   components: \code{call}, the command used to generate the plot;
@@ -282,7 +282,7 @@
 ##'
 ##' ## bin data and plot it - can see how for high NO2, O3 is also high
 ##' \dontrun{
-##' scatterPlot(mydata, x = "nox", y = "no2", z = "o3", method = "level", x.inc = 10, y.inc = 2)
+##' scatterPlot(mydata, x = "nox", y = "no2", z = "o3", method = "level", dist = 0.02)
 ##' }
 ##'
 ##' ## fit surface for clearer view of relationship - clear effect of
@@ -301,7 +301,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
                         linear = FALSE, ci = TRUE, mod.line = FALSE, cols = "hue",
                         plot.type = "p", key = TRUE, key.title = group,
                         key.columns = 1, key.position = "right", strip = TRUE,
-                        log.x = FALSE, log.y = FALSE, x.inc = 10, y.inc = 10,
+                        log.x = FALSE, log.y = FALSE, x.inc = NULL, y.inc = NULL,
                         limits = NULL, y.relation = "same", x.relation = "same",
                         ref.x = NULL, ref.y = NULL, k = 100, dist = 0.1, 
                         map = FALSE, auto.text = TRUE, ...)   {
@@ -315,6 +315,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
     thekey <- key
 
     xgrid <- NULL; ygrid <- NULL
+    
 
     ## set graphics
     current.strip <- trellis.par.get("strip.background")
@@ -385,9 +386,10 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
             stop ("Can't have an averging period set and a time-based 'type' or 'group'.")
         if ("default" %in% types) mydata$default <- 0 ## FIX ME
 
-        mydata <- ddply(mydata, types, timeAverage, avg.time = avg.time,
+        mydata <- group_by_(mydata, types) %>%
+          do(timeAverage(., avg.time = avg.time,
                         statistic = statistic, percentile = percentile,
-                        data.thresh = data.thresh)
+                        data.thresh = data.thresh))
     }
 
     ## the following makes sure all variables are present, which depends on 'group'
@@ -693,30 +695,38 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
                                 ## in batches
                                 if (Args$traj) {
 
-                                    if (!is.na(z)) {
+                                    ## data of interest
+                                    tmp <- split(mydata[subscripts, ],
+                                                     mydata[subscripts, "date"])
 
+                                    if (!is.na(z)) {
+                                        
                                         ## colour by z
-                                        ddply(mydata[subscripts, ], "date", function (x)
-                                            llines(x$lon, x$lat, col.line = x$col, lwd = lwd,
-                                                   lty = lty))
-                                    } else {
+                                        lapply(tmp, function (dat)
+                                            llines(dat$lon, dat$lat, col.line = x$col,
+                                                   lwd = lwd, lty = lty))
+                                        
+                                      } else {
 
                                         ## colour by a grouping variable
-                                        ddply(mydata[subscripts, ], .(date), function (x)
-                                            llines(x$lon, x$lat, col.line = myColors[group.number],
-                                                   lwd = lwd, lty = lty))
+                                        
+                                          lapply(tmp, function (dat)
+                                              llines(dat$lon, dat$lat,
+                                                     col.line = myColors[group.number],
+                                                    lwd = lwd, lty = lty))
+                                        
 
                                         ## major 12 hour points
-                                        id <- seq(min(subscripts), max(subscripts), by = 12)
+                                       
+                                          id <- seq(min(subscripts), max(subscripts),
+                                                    by = 12)
 
-                                        ddply(mydata[id, ], .(date), function (x)
-                                            lpoints(x$lon, x$lat,
+                                          lapply(tmp, function (dat)
+                                            lpoints(dat[id, "lon"], dat[id, "lat"],
                                                     col = myColors[group.number],
-                                                    pch = 16, cex = 1))
+                                                    pch = 16))
 
-                                    }
-
-
+                                        }
                                 }
 
                                 ## add base map
@@ -827,17 +837,23 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
     ## ######################################################################################
     if (method == "level") {
 
+        if (missing(x.inc)) x.inc <- prettyGap(mydata[[x]])
+        if (missing(y.inc)) y.inc <- prettyGap(mydata[[y]])
+        
         ## bin data
-        mydata$ygrid <- round_any(mydata[ , y], y.inc)
-        mydata$xgrid <- round_any(mydata[ , x], x.inc)
+        mydata$ygrid <- round_any(mydata[[y]], y.inc)
+        mydata$xgrid <- round_any(mydata[[x]], x.inc)
 
-        rhs <- c("xgrid", "ygrid", type)
-        rhs <- paste(rhs, collapse = "+")
-        myform <- formula(paste(z, "~", rhs))
-
-        ## only aggregate if we have to (for data pre-gridded)
+                ## only aggregate if we have to (for data pre-gridded)
         if (nrow(unique(subset(mydata, select = c(xgrid, ygrid)))) != nrow(mydata)) {
-            mydata <- aggregate(myform, data = mydata, mean, na.rm = TRUE)
+                                  
+            mydata <- select_(mydata, "xgrid", "ygrid", type, z) %>%
+              group_by_(., "xgrid", "ygrid", type) %>%
+              summarise_(MN = interp(~ mean(var, na.rm = TRUE), var = as.name(z)))
+
+            names(mydata)[which(names(mydata) == "MN")] <- z
+            
+            
         }
 
         smooth.grid <- function(mydata, z) {
@@ -875,8 +891,9 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
             new.data
         }
 
-        if (smooth) mydata <- ddply(mydata, type, smooth.grid, z)
-
+        if (smooth) mydata <- group_by_(mydata, type) %>%
+          do(smooth.grid(., z))
+           
         ## basic function for lattice call + defaults
         temp <- paste(type, collapse = "+")
         myform <- formula(paste(z, "~ xgrid * ygrid |", temp, sep = ""))
@@ -984,8 +1001,8 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
     if (method %in% c("traj", "map")) {
 
         ## bin data
-        mydata$ygrid <- round_any(mydata[ , y], y.inc)
-        mydata$xgrid <- round_any(mydata[ , x], x.inc)
+        mydata$ygrid <- round_any(mydata[[y]], y.inc)
+        mydata$xgrid <- round_any(mydata[[x]], x.inc)
 
         ## used for map grid
 
@@ -1015,7 +1032,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
         mydata <- transform(mydata, x1 = coord1$x, x2 = coord2$x, x3 = coord3$x, x4 = coord4$x,
                             y1 = coord1$y, y2 = coord2$y, y3 = coord3$y, y4 = coord4$y,
                             xgrid = coordGrid$x, ygrid = coordGrid$y)
-
+        
 
         smooth.grid <- function(mydata, z) {
 
@@ -1051,8 +1068,9 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
             new.data
         }
 
-        if (smooth) mydata <- ddply(mydata, type, smooth.grid, z)
-
+        if (smooth) mydata <- group_by_(mydata, type) %>%
+          do(smooth.grid(., z))
+           
         ## basic function for lattice call + defaults
         temp <- paste(type, collapse = "+")
         if (!smooth) myform <- formula(paste(z, "~ x1 * y1 |", temp, sep = ""))
@@ -1208,8 +1226,8 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
     if (method == "density") {
         prepare.grid <- function(subdata) {
             n <- nrow(subdata) ## for intensity estimate
-            x <- subdata[, x]
-            y <- subdata[, y]
+            x <- subdata[[x]]
+            y <- subdata[[y]]
             xy <- xy.coords(x, y, "xlab", "ylab")
             xlab <-  xy$xlab
             ylab <- xy$ylab
@@ -1232,7 +1250,9 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
 
         ## ###########################################################################
 
-        results.grid <-  ddply(mydata, type, prepare.grid)
+        results.grid <- group_by_(mydata, type) %>%
+          do(prepare.grid(.))
+            
 
         ## auto-scaling
         nlev <- nrow(mydata)  ## preferred number of intervals
@@ -1328,10 +1348,10 @@ add.map <- function (Args, ...) {
     
     if (Args$map.fill) {
 
-        mp <- map(database = res, plot = FALSE, fill = TRUE, projection = Args$projection,
+        mp <- maps::map(database = res, plot = FALSE, fill = TRUE, projection = Args$projection,
                   parameters = Args$parameters, orientation = Args$orientation,
                   xlim = Args$trajLims[1:2], ylim = Args$trajLims[3:4])
-        mp <- map.wrap(mp)
+        mp <- maps::map.wrap(mp)
 
         panel.polygon(mp$x, mp$y, col = Args$map.cols, border = "white",
                       alpha = Args$map.alpha)
@@ -1339,9 +1359,9 @@ add.map <- function (Args, ...) {
 
     } else {
 
-        mp <- map(database = res, plot = FALSE, projection = Args$projection,
+        mp <- maps::map(database = res, plot = FALSE, projection = Args$projection,
                   parameters = Args$parameters, orientation = Args$orientation)
-        mp <- map.wrap(mp)
+        mp <- maps::map.wrap(mp)
         llines(mp$x, mp$y, col = "black")
 
     }
