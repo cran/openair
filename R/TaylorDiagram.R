@@ -74,6 +74,14 @@
 ##'   different models and can be a factor or character. The total number of
 ##'   models compared will be equal to the number of unique values of
 ##'   \code{group}.
+##'
+##' \code{group} can also be of length two e.g. \code{group =
+##' c("model", "site")}. In this case all model-site combinations will
+##' be shown but they will only be differentiated by colour/symbol by
+##' the first grouping variable ("model" in this case). In essence the
+##' plot removes the differentiation by the second grouping
+##' variable. Because there will be different values of \code{obs} for
+##' each group, \code{normalise = TRUE} should be used.
 ##' @param type \code{type} determines how the data are split
 ##' i.e. conditioned, and then plotted. The default is will produce a
 ##' single plot using the entire data. Type can be one of the built-in
@@ -281,22 +289,23 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
     if ("fontsize" %in% names(extra.args))
         trellis.par.set(fontsize = list(text = extra.args$fontsize))
 
-                                        #layout (also code in body)
-    if(!"layout" %in% names(extra.args))
+                                        
+    if (!"layout" %in% names(extra.args))
         extra.args$layout <- NULL
 
-                                        #pch, cex (also code in body)
-    if(!"pch" %in% names(extra.args))
+                                       
+    if (!"pch" %in% names(extra.args))
         extra.args$pch <- 20
-    if(!"cex" %in% names(extra.args))
+    
+    if (!"cex" %in% names(extra.args))
         extra.args$cex <- 2
 
     ## #######################################################################################
-
+    
     ## check to see if two data sets are present
     combine <- FALSE
 
-    if (length(mod) ==2) combine <- TRUE
+    if (length(mod) == 2) combine <- TRUE
 
     if (any(type %in%  dateTypes)) {
 
@@ -307,8 +316,25 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
         vars <- c(obs, mod)
     }
 
-    ## if group is present, need to add that list of variables unless it is a pre-defined date-based one
+    twoGrp <- FALSE
+
+    ## if group is present, need to add that list of variables unless it is
+    ## a pre-defined date-based one
     if (!missing(group)){
+       
+        ## if group is of length 2
+        if (length(group) == 2L) {
+            
+            twoGrp <- TRUE
+            grp1 <- group[1]
+            grp2 <- group[2]
+
+            if (missing(key.title)) key.title <- grp1
+            vars <- c(vars, grp1, grp2)
+            mydata$newgrp <- paste(mydata[[group[1]]], mydata[[group[2]]], sep = "-")
+            group <- "newgrp"
+            
+        }
 
         if (group %in%  dateTypes | any(type %in% dateTypes)) {
             if (group %in%  dateTypes) {
@@ -322,7 +348,7 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
             vars <- unique(c(vars, group))
         }
     }
-
+    
     if (!missing(group)) if (group %in% type) stop ("Can't have 'group' also in 'type'.")
 
     ## data checks, for base and new data if necessary
@@ -350,6 +376,7 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
 
     npol <- length(levels(mydata[ , group]))
 
+
     ## function to calculate stats for TD
     calcStats <- function(mydata, obs = obs, mod = mod) {
         R <- cor(mydata[[obs]], mydata[[mod]], use = "pairwise")
@@ -365,7 +392,7 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
     }
 
     results <- plyr::ddply(mydata, c(group, type), calcStats, obs = obs, mod = mod[1])
-
+    
     results.new <- NULL
     if (combine) results.new <- plyr::ddply(mydata, c(group, type), calcStats,
                                       obs = obs, mod = mod[2])
@@ -376,7 +403,16 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
 
     ## set up colours
     myColors <- openColours(cols, npol)
+    pch.orig <- extra.args$pch
+    
+    ## combined colours if two groups
+    if (twoGrp) {
+        myColors <- rep(openColours(cols, length(unique(mydata[[grp1]]))),
+                        each = length(unique(mydata[[grp2]])))
 
+        extra.args$pch <- rep(extra.args$pch, each = length(unique(mydata[[grp2]])))
+    }
+    
     ## basic function for lattice call + defaults
     temp <- paste(type, collapse = "+")
 
@@ -385,16 +421,23 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
     scales <- list(x = list(rot = 0), y = list(rot = 0))
 
     pol.name <- sapply(levels(mydata[ , group]), function(x) quickText(x, auto.text))
+    
 
     if (key & npol > 1 & !combine) {
-
-        key <- list(points = list(col = myColors[1:npol]), pch = extra.args$pch, cex = extra.args$cex,
-                    text = list(lab = pol.name, cex = 0.8), space = key.pos,
-                    columns = key.columns,
+        thecols <- unique(myColors)
+        if (twoGrp) {
+            pol.name <- levels(factor(mydata[[grp1]]))
+            
+        }
+        
+        key <- list(points = list(col = thecols), pch = pch.orig,
+                    cex = extra.args$cex, text = list(lab = pol.name, cex = 0.8),
+                    space = key.pos, columns = key.columns,
                     title = quickText(key.title, auto.text),
                     cex.title = 0.8, lines.title = 3)
-    } else if (key & npol > 1 & combine) {
-
+        
+       } else if (key & npol > 1 & combine) {
+        
         key <- list(lines = list(col = myColors[1:npol]), lwd = arrow.lwd,
                     text = list(lab = pol.name, cex = 0.8), space = key.pos,
                     columns = key.columns,
@@ -422,7 +465,7 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
         extra.args$skip <- FALSE
 
 
-    ## proper names of labelling ##############################################################################
+    ## proper names of labelling ####################################################
 
     stripName <- sapply(levels(mydata[ , type[1]]), function(x) quickText(x, auto.text))
     if (strip) strip <- strip.custom(factor.levels = stripName)
@@ -459,6 +502,7 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
     if(is.null(extra.args$xlab))
         extra.args$xlab <- extra.args$ylab
 
+    
     ## plot
     xyplot.args <- list(x = myform,  data = results, groups = results$MyGroupVar,
                         aspect = 1,
@@ -488,7 +532,7 @@ TaylorDiagram <- function(mydata, obs = "obs", mod = "mod", group = NULL, type =
 
     ## plot
     plt <- do.call(xyplot, xyplot.args)
-
+    
 
     if (length(type) == 1) plot(plt) else plot(useOuterStrips(plt, strip = strip, strip.left = strip.left))
     newdata <- results
