@@ -44,61 +44,73 @@
 ##' great flexibility for understanding the variation of different
 ##' variables and how they depend on one another.
 ##'
-##' \code{type} can be up length two e.g. \code{type = c("season",
-##' "weekday")} will produce a 2x2 plot split by season and day of the
-##' week. Note, when two types are provided the first forms the
-##' columns and the second the rows.
+##'     \code{type} can be up length two e.g. \code{type = c("season",
+##'     "weekday")} will produce a 2x2 plot split by season and day of
+##'     the week. Note, when two types are provided the first forms
+##'     the columns and the second the rows.
 ##' @param map Should a base map be drawn? If \code{TRUE} the world
-##' base map from the \code{maps} package is used.
+##'     base map from the \code{maps} package is used.
 ##' @param group It is sometimes useful to group and colour
-##' trajectories according to a grouping variable. See example below.
+##'     trajectories according to a grouping variable. See example
+##'     below.
 ##' @param map.fill Should the base map be a filled polygon? Default
-##' is to fill countries.
+##'     is to fill countries.
 ##' @param map.res The resolution of the base map. By default the
-##' function uses the \sQuote{world} map from the \code{maps}
-##' package. If \code{map.res = "hires"} then the (much) more detailed
-##' base map \sQuote{worldHires} from the \code{mapdata} package is
-##' used. Use \code{library(mapdata)}. Also available is a map showing
-##' the US states. In this case \code{map.res = "state"} should be
-##' used.
+##'     function uses the \sQuote{world} map from the \code{maps}
+##'     package. If \code{map.res = "hires"} then the (much) more
+##'     detailed base map \sQuote{worldHires} from the \code{mapdata}
+##'     package is used. Use \code{library(mapdata)}. Also available
+##'     is a map showing the US states. In this case \code{map.res =
+##'     "state"} should be used.
 ##' @param map.cols If \code{map.fill = TRUE} \code{map.cols} controls
-##' the fill colour. Examples include \code{map.fill = "grey40"} and
-##' \code{map.fill = openColours("default", 10)}. The latter colours
-##' the countries and can help differentiate them.
+##'     the fill colour. Examples include \code{map.fill = "grey40"}
+##'     and \code{map.fill = openColours("default", 10)}. The latter
+##'     colours the countries and can help differentiate them.
 ##' @param map.alpha The transpency level of the filled map which
-##' takes values from 0 (full transparency) to 1 (full
-##' opacity). Setting it below 1 can help view trajectories,
-##' trajectory surfaces etc. \emph{and} a filled base map.
+##'     takes values from 0 (full transparency) to 1 (full
+##'     opacity). Setting it below 1 can help view trajectories,
+##'     trajectory surfaces etc. \emph{and} a filled base map.
 ##' @param projection The map projection to be used. Different map
-##' projections are possible through the \code{mapproj}
-##' package. See \code{?mapproj} for extensive details and information
-##' on setting other parameters and orientation (see below).
+##'     projections are possible through the \code{mapproj}
+##'     package. See \code{?mapproject} for extensive details and
+##'     information on setting other parameters and orientation (see
+##'     below).
 ##' @param parameters From the \code{mapproj} package. Optional
-##' numeric vector of parameters for use with the projection
-##' argument. This argument is optional only in the sense that certain
-##' projections do not require additional parameters. If a projection
-##' does not require additional parameters then set to null
-##' i.e. \code{parameters = NULL}.
+##'     numeric vector of parameters for use with the projection
+##'     argument. This argument is optional only in the sense that
+##'     certain projections do not require additional parameters. If a
+##'     projection does not require additional parameters then set to
+##'     null i.e. \code{parameters = NULL}.
 ##' @param orientation From the \code{mapproj} package. An optional
-##' vector c(latitude, longitude, rotation) which describes where the
-##' "North Pole" should be when computing the projection. Normally
-##' this is c(90, 0), which is appropriate for cylindrical and conic
-##' projections. For a planar projection, you should set it to the
-##' desired point of tangency. The third value is a clockwise rotation
-##' (in degrees), which defaults to the midrange of the longitude
-##' coordinates in the map.
+##'     vector c(latitude, longitude, rotation) which describes where
+##'     the "North Pole" should be when computing the
+##'     projection. Normally this is c(90, 0), which is appropriate
+##'     for cylindrical and conic projections. For a planar
+##'     projection, you should set it to the desired point of
+##'     tangency. The third value is a clockwise rotation (in
+##'     degrees), which defaults to the midrange of the longitude
+##'     coordinates in the map.
 ##' @param grid.col The colour of the map grid to be used. To remove
-##' the grid set \code{grid.col = "transparent"}.
+##'     the grid set \code{grid.col = "transparent"}.
+##' @param npoints A dot is placed every \code{npoints} along each
+##'     full trajectory. For hourly back trajectories points are
+##'     plotted every \code{npoint} hours. This helps to understand
+##'     where the air masses were at particular times and get a feel
+##'     for the speed of the air (points closer togther correspond to
+##'     slower moving air masses).
+##' @param origin If true a filled circle dot is shown to mark the
+##'     receptor point.
 ##' @param ... other arguments are passed to \code{cutData} and
-##' \code{scatterPlot}. This provides access to arguments used in both
-##' these functions and functions that they in turn pass arguments on
-##' to. For example, \code{plotTraj} passes the argument \code{cex} on
-##' to \code{scatterPlot} which in turn passes it on to the
-##' \code{lattice} function \code{xyplot} where it is applied to set
-##' the plot symbol size.
+##'     \code{scatterPlot}. This provides access to arguments used in
+##'     both these functions and functions that they in turn pass
+##'     arguments on to. For example, \code{plotTraj} passes the
+##'     argument \code{cex} on to \code{scatterPlot} which in turn
+##'     passes it on to the \code{lattice} function \code{xyplot}
+##'     where it is applied to set the plot symbol size.
 ##' @export
-##' @seealso \code{\link{importTraj}} to import trajectory data from the King's
-##' College server and \code{\link{trajLevel}} for trajectory binning functions.
+##' @seealso \code{\link{importTraj}} to import trajectory data from
+##'     the King's College server and \code{\link{trajLevel}} for
+##'     trajectory binning functions.
 ##' @author David Carslaw
 ##' @examples
 ##'
@@ -132,9 +144,9 @@ trajPlot <- function(mydata, lon = "lon", lat = "lat", pollutant = "height",
                      map.res = "default", map.cols = "grey40",
                      map.alpha = 0.4, projection = "lambert",
                      parameters = c(51, 51), orientation = c(90, 0, 0),
-                     grid.col = "deepskyblue", ...)
+                     grid.col = "deepskyblue", npoints = 12, origin = TRUE, ...)
 {
-    len <- NULL ## silence R check
+    len <- NULL; hour.inc <- NULL ## silence R check
 
     ## variables needed in trajectory plots
     vars <- c("date", "lat", "lon", "hour.inc", pollutant)
@@ -170,9 +182,18 @@ trajPlot <- function(mydata, lon = "lon", lat = "lat", pollutant = "height",
 
     mydata <- subset(mydata, len == n)
 
-    ##extra.args
-    extra.args <- list(...)
+    ##Args
+    Args <- list(...)
     method <- "scatter"
+
+    ## location of receptor for map projection, used to show location on maps
+    origin_xy <- head(subset(mydata, hour.inc == 0), 1) ## origin
+    tmp <- mapproject(x = origin_xy[["lon"]][1],
+                      y = origin_xy[["lat"]][1],
+                      projection = projection,
+                      parameters = parameters,
+                      orientation = orientation)
+    receptor <- c(tmp$x, tmp$y)
 
     ## set graphics
     current.strip <- trellis.par.get("strip.background")
@@ -183,28 +204,50 @@ trajPlot <- function(mydata, lon = "lon", lat = "lat", pollutant = "height",
                             fontsize = current.font))
 
     #aspect, cex
-     if (!"plot.type" %in% names(extra.args))
-        extra.args$plot.type <- "l"
+     if (!"plot.type" %in% names(Args))
+        Args$plot.type <- "l"
 
-    if (!"cex" %in% names(extra.args))
-        extra.args$cex <- 0.1
+    if (!"cex" %in% names(Args))
+        Args$cex <- 0.1
 
-    if (!"ylab" %in% names(extra.args))
-        extra.args$ylab <- ""
+    if (!"ylab" %in% names(Args))
+        Args$ylab <- ""
 
-    if (!"xlab" %in% names(extra.args))
-        extra.args$xlab <- ""
+    if (!"xlab" %in% names(Args))
+        Args$xlab <- ""
 
-    if ("fontsize" %in% names(extra.args))
-        trellis.par.set(fontsize = list(text = extra.args$fontsize))
+    if ("fontsize" %in% names(Args))
+        trellis.par.set(fontsize = list(text = Args$fontsize))
+
+    ## xlim and ylim set by user
+    if (!"xlim" %in% names(Args))
+        Args$xlim <- range(mydata$lon)
+
+    if (!"ylim" %in% names(Args))
+        Args$ylim <- range(mydata$lat)
+
+    ## extent of data (or limits set by user) in degrees
+    trajLims <- c(Args$xlim, Args$ylim)
+    
+    ## need *outline* of boundary for map limits
+    Args <- setTrajLims(mydata, Args, projection, parameters, orientation)
+
+    ## transform data for map projection
+    tmp <- mapproject(x = mydata[["lon"]],
+                      y = mydata[["lat"]],
+                      projection = projection,
+                      parameters = parameters,
+                      orientation = orientation)
+    mydata[["lon"]] <- tmp$x
+    mydata[["lat"]] <- tmp$y
     
     
     if (missing(pollutant)) { ## don't need key
 
         if (is.na(group)) key <- FALSE else key <- TRUE
 
-        if (!"main" %in% names(extra.args))
-             extra.args$main <- NULL
+        if (!"main" %in% names(Args))
+             Args$main <- NULL
 
         scatterPlot.args <- list(mydata, x = lon, y = lat, z = NA,
                                  type = type, method = method,
@@ -213,11 +256,13 @@ trajPlot <- function(mydata, lon = "lon", lat = "lat", pollutant = "height",
                                  map.cols = map.cols, map.alpha = map.alpha,
                                  traj = TRUE, projection = projection,
                                  parameters = parameters, orientation = orientation,
-                                 grid.col = grid.col)
+                                 grid.col = grid.col, trajLims = trajLims,
+                                 receptor = receptor, npoints = npoints,
+                                 origin = origin)
 
     } else {
-         if(!"main" %in% names(extra.args))
-             extra.args$main <- pollutant
+         if(!"main" %in% names(Args))
+             Args$main <- pollutant
 
         scatterPlot.args <- list(mydata, x = lon, y = lat, z = pollutant,
                                  type = type, method = method,
@@ -226,17 +271,64 @@ trajPlot <- function(mydata, lon = "lon", lat = "lat", pollutant = "height",
                                  map.cols = map.cols,
                                  map.alpha = map.alpha, traj = TRUE, projection = projection,
                                  parameters = parameters, orientation = orientation,
-                                 grid.col = grid.col)
+                                 grid.col = grid.col, trajLims = trajLims,
+                                 receptor = receptor,  npoints = npoints,
+                                 origin = origin)
     }
 
-    #reset for extra.args
-    scatterPlot.args <- listUpdate(scatterPlot.args, extra.args)
+    #reset for Args
+    scatterPlot.args <- listUpdate(scatterPlot.args, Args)
 
     #plot
     do.call(scatterPlot, scatterPlot.args)
 
 
 
+}
+
+
+setTrajLims <- function(mydata, Args, projection, parameters, orientation) {
+
+    ## xlim and ylim set by user
+    if ("xlim" %in% names(Args)) {
+
+        x1 <- Args$xlim[1]
+        x2 <- Args$xlim[2]
+
+    } else {
+
+        x1 <- min(mydata$lon)
+        x2 <- max(mydata$lon)
+
+    }
+
+    if ("ylim" %in% names(Args)) {
+
+        y1 <- Args$ylim[1]
+        y2 <- Args$ylim[2]
+
+    } else {
+
+        y1 <- min(mydata$lat)
+        y2 <- max(mydata$lat)
+
+    }
+
+    n <- 40 ## number of points along each vertex
+    
+    X <- c(seq(x1, x1, length.out = n), seq(x1, x2, length.out = n),
+       seq(x2, x2, length.out = n), seq(x2, x1, length.out = n))
+
+    Y <- c(seq(y1, y2, length.out = n), seq(y2, y2, length.out = n),
+           seq(y2, y1, length.out = n), seq(y1, y1, length.out = n))
+    
+    tmp <- mapproject(x = X, y = Y, projection = projection,
+                      parameters = parameters, orientation = orientation)
+    
+    Args$xlim <- tmp$range[1:2]
+    Args$ylim <- tmp$range[3:4]
+    Args
+    
 }
 
 ## function from mapproj to add grid lines to a map

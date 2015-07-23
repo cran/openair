@@ -130,7 +130,7 @@ timeProp <- function(mydata, pollutant = "nox", proportion = "cluster", avg.time
                      key.position = "right", auto.text = TRUE, ...) {
 
     ## keep check happy
-    sums <- NULL; freq <- NULL; Var1 <- NULL
+    sums <- NULL; freq <- NULL; Var1 <- NULL; means <- NULL
 
     ## greyscale handling
     if (length(cols) == 1 && cols == "greyscale") {
@@ -207,27 +207,41 @@ timeProp <- function(mydata, pollutant = "nox", proportion = "cluster", avg.time
     procData <- function(mydata, avg.time, ...) {
 
         ## time frequencies
-        freqs <- plyr::ddply(mydata, proportion, timeAverage, avg.time = avg.time, statistic = "frequency")
-
+        freqs <- plyr::ddply(mydata, proportion, timeAverage, avg.time = avg.time,
+                             statistic = "frequency")
+        
         ## the values
-        values <- plyr::ddply(mydata, proportion, timeAverage, avg.time = avg.time, statistic = "mean")
-
+        values <- plyr::ddply(mydata, proportion, timeAverage, avg.time = avg.time,
+                              statistic = "mean")
+        
         ## do not weight by concentration if statistic = frequency, just repeat overall mean
         ## by proportion
         if (statistic == "frequency") {
-
+            ## scales frequencies by daily mean
             tmp <- timeAverage(mydata, avg.time)
-            values[, pollutant] <- rep(tmp[, pollutant], length(unique(mydata[, proportion])))
-        }
+            tmp$means <- tmp[[pollutant]]
 
+            values <- merge(values, tmp[c("date", "means")], by = "date", all = TRUE)
+            values <- sortDataFrame(values, key = c(proportion, "date"))
+        }
+        
         ## add frequencies
         values$freq <- freqs[[pollutant]]
 
-        ## conc * freq
+        ## conc * freq weighting
         values$sums <- freqs[[pollutant]] * values[[pollutant]]
 
-        ## weighted conc
-        res <- plyr::ddply(values, .(date), transform, Var1 = sums / sum(freq, na.rm = TRUE))
+        if (statistic == "mean") {
+            ## weighted conc
+            res <- plyr::ddply(values, .(date), transform,
+                               Var1 = sums / sum(freq, na.rm = TRUE))
+            
+        } else {
+
+            res <- plyr::ddply(values, .(date), transform,
+                               Var1 = means * freq / sum(freq, na.rm = TRUE))
+            
+        }
 
         ## normlaise to 100 if needed
         if (normalise) res <- plyr::ddply(res, .(date), transform,

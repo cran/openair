@@ -1,6 +1,10 @@
 # openair
 
 [![Travis-CI Build Status](https://travis-ci.org/davidcarslaw/openair.svg?branch=master)](https://travis-ci.org/davidcarslaw/openair)
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/openair)](http://cran.r-project.org/web/packages/openair)
+![](http://cranlogs.r-pkg.org/badges/grand-total/openair)
+[![Downloads from the RStudio CRAN mirror](http://cranlogs.r-pkg.org/badges/openair)](http://cran.rstudio.com/package=openair)
+
 
 # openair - R package for air quality data analysis
 
@@ -11,7 +15,13 @@ quality data - or more generally atmospheric composition data. The
 package is extensively used in academia, the public and private
 sectors. The project was initially funded by the UK Natural
 Environment Research Council ([NERC](http://www.nerc.ac.uk/)), with
-additional funds from Defra.
+additional funds from Defra. The most up to date information on
+openair can be found in the package itself and the
+[manual](https://www.dropbox.com/s/2n7wdyursdul8dk/openairManual.pdf?dl=0)
+which provides an introduction to R with a focus on air quality data
+as well as extensive reproducible examples. An archive of newsletters in also available at the same location.
+
+The current newsletter (Issue 18) summarises some of the recent changes to the package and is available [here](http://rpubs.com/carslaw/newsletter18).
 
 ## Installation
 
@@ -25,11 +35,15 @@ require(devtools)
 install_github('davidcarslaw/openair')
 ```
 
+I also try to keep up to date versions of the package
+[here](https://www.dropbox.com/sh/x8mmf5d54wfo5vq/AACpKqsrPkTC0guiu5ftiKNna?dl=0)
+if you can't build the package yourself.
+
 ## Description
 
 openair has developed over several years to help analyse atmospheric composition data; initially focused on air quality data. 
 
-This package icontinues to develop and input from other developers would be welcome. A summary of some of the features are:
+This package continues to develop and input from other developers would be welcome. A summary of some of the features are:
 
 - **Access to data** from several hundred UK air pollution monitoring
   sites through the `importAURN` and `importKCL` functions as well as
@@ -107,7 +121,7 @@ sub <- selectByDate(kc1, day = "weekday", year = 2012, month = 6:9, hour = 7:19)
 12421 London N. Kensington  KC1
 ```
 
-Similalry it is easy to time-average data in many flexible ways. For
+Similarly it is easy to time-average data in many flexible ways. For
 example, 2-week means can be calculated as
 
 ```R

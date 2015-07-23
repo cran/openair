@@ -146,7 +146,7 @@
 ##' trajectory surfaces etc. \emph{and} a filled base map.
 ##' @param projection The map projection to be used. Different map
 ##' projections are possible through the \code{mapproj}
-##' package. See \code{?mapproj} for extensive details and information
+##' package. See \code{?mapproject} for extensive details and information
 ##' on setting other parameters and orientation (see below).
 ##' @param parameters From the \code{mapproj} package. Optional
 ##' numeric vector of parameters for use with the projection
@@ -164,6 +164,7 @@
 ##' coordinates in the map.
 ##' @param grid.col The colour of the map grid to be used. To remove
 ##' the grid set \code{grid.col = "transparent"}.
+##' @param origin should the receptor origin be shown by a black dot?
 ##' @param ... other arguments are passed to \code{cutData} and
 ##' \code{scatterPlot}. This provides access to arguments used in both
 ##' these functions and functions that they in turn pass arguments on
@@ -230,17 +231,17 @@ trajLevel <- function(mydata, lon = "lon", lat = "lat",
                       map.fill = TRUE, map.res = "default", map.cols = "grey40",
                       map.alpha = 0.3, projection = "lambert",
                       parameters = c(51, 51), orientation = c(90, 0, 0),
-                      grid.col = "deepskyblue", ...)  {
+                      grid.col = "deepskyblue", origin = TRUE, ...)  {
 
     ## mydata can be a list of several trajectory files; in which case combine them
     ## before averaging
-
+    hour.inc <- NULL
     ## variables needed in trajectory plots
     vars <- c("date", "lat", "lon", "hour.inc", pollutant)
     mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
     
-    ## extra.args
-    extra.args <- list(...)
+    ## Args
+    Args <- list(...)
 
     ## set graphics
     current.strip <- trellis.par.get("strip.background")
@@ -252,38 +253,75 @@ trajLevel <- function(mydata, lon = "lon", lat = "lat",
 
     statistic <- tolower(statistic)
 
-    if (!"ylab" %in% names(extra.args))
-        extra.args$ylab <- ""
+    if (!"ylab" %in% names(Args))
+        Args$ylab <- ""
 
-    if (!"xlab" %in% names(extra.args))
-        extra.args$xlab <- ""
+    if (!"xlab" %in% names(Args))
+        Args$xlab <- ""
 
-    if (!"main" %in% names(extra.args))
-        extra.args$main <- ""
+    if (!"main" %in% names(Args))
+        Args$main <- ""
 
-    if (!"border" %in% names(extra.args))
-        extra.args$border <- NA
+    if (!"border" %in% names(Args))
+        Args$border <- NA
 
-    if ("fontsize" %in% names(extra.args))
-        trellis.par.set(fontsize = list(text = extra.args$fontsize))
+    if ("fontsize" %in% names(Args))
+        trellis.par.set(fontsize = list(text = Args$fontsize))
 
-    if (!"key.header" %in% names(extra.args)) {
-        if (statistic == "frequency") extra.args$key.header <- "% trajectories"
-        if (statistic == "pscf") extra.args$key.header <- "PSCF \nprobability"
-        if (statistic == "difference") extra.args$key.header <- quickText(paste("gridded differences", "\n(", percentile, "th percentile)", sep = ""))
+    if (!"key.header" %in% names(Args)) {
+        if (statistic == "frequency") Args$key.header <- "% trajectories"
+        if (statistic == "pscf") Args$key.header <- "PSCF \nprobability"
+        if (statistic == "difference") Args$key.header <- quickText(paste("gridded differences", "\n(", percentile, "th percentile)", sep = ""))
     }
 
-     if(!"key.footer" %in% names(extra.args))
-         extra.args$key.footer <- ""
+     if(!"key.footer" %in% names(Args))
+         Args$key.footer <- ""
 
-    extra.args$trajStat <- statistic
+    ## xlim and ylim set by user
+    if (!"xlim" %in% names(Args))
+        Args$xlim <- range(mydata$lon)
 
-    if (!"method" %in% names(extra.args)) {
+    if (!"ylim" %in% names(Args))
+        Args$ylim <- range(mydata$lat)
+
+    ## extent of data (or limits set by user) in degrees
+    trajLims <- c(Args$xlim, Args$ylim)
+
+    ## need *outline* of boundary for map limits
+    Args <- setTrajLims(mydata, Args, projection, parameters, orientation)
+
+
+    Args$trajStat <- statistic
+
+    if (!"method" %in% names(Args)) {
         method <- "traj"
     } else {
-        method <- extra.args$method
+        method <- Args$method
         statistic = "XX" ## i.e. it wont touch the data
     }
+
+    ## location of receptor for map projection, used to show location on maps
+    origin_xy <- head(subset(mydata, hour.inc == 0), 1) ## origin
+    tmp <- mapproject(x = origin_xy[["lon"]][1],
+                      y = origin_xy[["lat"]][1],
+                      projection = projection,
+                      parameters = parameters,
+                      orientation = orientation)
+    receptor <- c(tmp$x, tmp$y)
+    
+
+    if (method == "hexbin") {
+
+        ## transform data for map projection
+        tmp <- mapproject(x = mydata[["lon"]],
+                      y = mydata[["lat"]],
+                      projection = projection,
+                      parameters = parameters,
+                      orientation = orientation)
+        mydata[["lon"]] <- tmp$x
+        mydata[["lat"]] <- tmp$y
+    }
+
 
     if (method == "density") stop ("Use trajPlot with method = 'density' instead")
 
@@ -414,10 +452,11 @@ trajLevel <- function(mydata, lon = "lon", lat = "lat",
                              map.cols = map.cols, map.alpha = map.alpha, traj = TRUE,
                              projection = projection,
                              parameters = parameters, orientation = orientation,
-                             grid.col = grid.col)
+                             grid.col = grid.col, trajLims = trajLims,
+                             receptor = receptor, origin = origin)
 
-    ## reset for extra.args
-    scatterPlot.args <- listUpdate(scatterPlot.args, extra.args)
+    ## reset for Args
+    scatterPlot.args <- listUpdate(scatterPlot.args, Args)
 
     ## plot
     do.call(scatterPlot, scatterPlot.args)

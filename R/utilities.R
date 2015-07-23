@@ -62,7 +62,7 @@ find.time.interval <- function(dates) {
 ###############################################################################
 ## when interval is known
 date.pad2 <- function(mydata, type = "default", interval = "month") {
-
+    
     site <- NULL
 
     date.pad.site <- function(mydata, type = type, interval = interval) {
@@ -73,7 +73,7 @@ date.pad2 <- function(mydata, type = "default", interval = "month") {
         ## pad out missing data for better looking plot
         start.date <- min(mydata$date, na.rm = TRUE)
         end.date <- max(mydata$date, na.rm = TRUE)
-
+        
         all.dates <- data.frame(date = seq(start.date, end.date, by = interval))
         mydata <- merge(mydata, all.dates, all = TRUE)
 
@@ -85,7 +85,7 @@ date.pad2 <- function(mydata, type = "default", interval = "month") {
     if (type == "site") {
         
         mydata <- group_by(mydata, site) %>%
-          do(date.pad.site(., interval))
+          do(date.pad.site(., interval = interval))
         
     } else {
         
@@ -593,10 +593,10 @@ panel.gam <- function (x, y, form = y ~ x, method = "loess", k = k, Args, ..., s
         if (!simulate) {
 
             if (is.null(k)) {
-                mod <- gam(y ~ s(x), select = TRUE, data = thedata, ...)
+                mod <- suppressWarnings(gam(y ~ s(x), select = TRUE, data = thedata, ...))
 
             } else {
-                mod <- gam(y ~ s(x, k = k), select = TRUE, data = thedata, ...)
+                mod <- suppressWarnings(gam(y ~ s(x, k = k), select = TRUE, data = thedata, ...))
             }
 
 
@@ -711,10 +711,10 @@ fitGam <- function (thedata, x = "date", y = "conc", form = y ~ x, k = k,
         if (!simulate) {
 
             if (is.null(k)) {
-                mod <- gam(y ~ s(x), select = TRUE, data = thedata, ...)
+                mod <- suppressWarnings(gam(y ~ s(x), select = TRUE, data = thedata, ...))
 
             } else {
-                mod <- gam(y ~ s(x, k = k), select = TRUE, data = thedata, ...)
+                mod <- suppressWarnings(gam(y ~ s(x, k = k), select = TRUE, data = thedata, ...))
             }
 
             xseq <- seq(min(thedata$x, na.rm = TRUE), max(thedata$x, na.rm = TRUE), length = n)

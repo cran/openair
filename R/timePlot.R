@@ -28,7 +28,7 @@
 ##' used for selecting particular date ranges quickly and easily. See examples
 ##' below.
 ##'
-##' By default plots are shown with a colour key at the bottom and in teh case
+##' By default plots are shown with a colour key at the bottom and in the case
 ##' of multiple pollutants or sites, strips on the left of each plot. Sometimes
 ##' this may be overkill and the user can opt to remove the key and/or the
 ##' strip by setting \code{key} and/or \code{strip} to \code{FALSE}. One reason
@@ -120,12 +120,29 @@
 ##'   can be useful for plotting data for several different pollutants that
 ##'   exist on very different scales. It is therefore useful to use \code{log =
 ##'   TRUE} together with \code{group = TRUE}.
+##' @param windflow This option allows a scatter plot to show the wind
+##' speed/direction as an arrow. The option is a list
+##' e.g. \code{windflow = list(col = "grey", lwd = 2, scale =
+##' 0.1)}. This option requires wind speed (\code{ws}) and wind
+##' direction (\code{wd}) to be available.
+##'
+##' The maximum length of the arrow plotted is a fraction of the plot
+##' dimension with the longest arrow being \code{scale} of the plot
+##' x-y dimension. Note, if the plot size is adjusted manually by the
+##' user it should be re-plotted to ensure the correct wind angle. The
+##' list may contain other options to \code{panel.arrows} in the
+##' \code{lattice} package. Other useful options include
+##' \code{length}, which controls the length of the arrow head and
+##' \code{angle}, which controls the angle of the arrow head.
+##'
+##' This option works best where there are not too many data to ensure
+##' over-plotting does not become a problem.
 ##' @param smooth Should a smooth line be applied to the data? The default is
 ##'   \code{FALSE}.
 ##' @param ci If a smooth fit line is applied, then \code{ci} determines
-##'   whether the 95\% confidence intervals aer shown.
+##'   whether the 95\% confidence intervals are shown.
 ##' @param y.relation This determines how the y-axis scale is plotted. "same"
-##'   ensures all panels use the same scale and "free" will use panel-specfic
+##'   ensures all panels use the same scale and "free" will use panel-specific
 ##'   scales. The latter is a useful setting when plotting data with very
 ##'   different values.
 ##' @param ref.x See \code{ref.y} for details. In this case the
@@ -248,7 +265,7 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
                      normalise = NULL, avg.time = "default", data.thresh = 0,
                      statistic = "mean", percentile = NA, date.pad = FALSE,
                      type = "default", cols = "brewer1", plot.type = "l",
-                     key = TRUE, log = FALSE, smooth = FALSE, ci = TRUE,
+                     key = TRUE, log = FALSE, windflow = NULL, smooth = FALSE, ci = TRUE,
                      y.relation = "same", ref.x = NULL, ref.y = NULL,
                      key.columns = 1, name.pol = pollutant, date.breaks = 7,
                      date.format = NULL, auto.text = TRUE, ...)   {
@@ -289,40 +306,40 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
 
     ## ################################################################################
 
-    ## extra.args setup
-    extra.args <- list(...)
+    ## Args setup
+    Args <- list(...)
 
     #label controls
     #(further xlab handling in code body)
-    extra.args$xlab <- if ("xlab" %in% names(extra.args))
-                           quickText(extra.args$xlab, auto.text) else quickText("", auto.text)
-    extra.args$ylab <- if ("ylab" %in% names(extra.args))
-                           quickText(extra.args$ylab, auto.text) else NULL
-    extra.args$main <- if ("main" %in% names(extra.args))
-                           quickText(extra.args$main, auto.text) else quickText("", auto.text)
+    Args$xlab <- if ("xlab" %in% names(Args))
+                           quickText(Args$xlab, auto.text) else quickText("", auto.text)
+    Args$ylab <- if ("ylab" %in% names(Args))
+                           quickText(Args$ylab, auto.text) else NULL
+    Args$main <- if ("main" %in% names(Args))
+                           quickText(Args$main, auto.text) else quickText("", auto.text)
 
-    if ("fontsize" %in% names(extra.args))
-        trellis.par.set(fontsize = list(text = extra.args$fontsize))
+    if ("fontsize" %in% names(Args))
+        trellis.par.set(fontsize = list(text = Args$fontsize))
     
-    xlim <- if ("xlim" %in% names(extra.args))
-        extra.args$xlim else  NULL
+    xlim <- if ("xlim" %in% names(Args))
+        Args$xlim else  NULL
 
-    if(!"pch" %in% names(extra.args))
-        extra.args$pch <- NA
-    if(!"lwd" %in% names(extra.args))
-        extra.args$lwd <- 1
-    if(!"lty" %in% names(extra.args))
-        extra.args$lty <- NULL
+    if(!"pch" %in% names(Args))
+        Args$pch <- NA
+    if(!"lwd" %in% names(Args))
+        Args$lwd <- 1
+    if(!"lty" %in% names(Args))
+        Args$lty <- NULL
 
     ## layout
     ## (type and group handling in code body)
-    if(!"layout" %in% names(extra.args))
-        extra.args$layout <- NULL
+    if(!"layout" %in% names(Args))
+        Args$layout <- NULL
 
     ## strip
     ## extensive handling in main code body)
-    strip <- if("strip" %in% names(extra.args))
-        extra.args$strip else TRUE
+    strip <- if("strip" %in% names(Args))
+        Args$strip else TRUE
 
     ## ### warning messages and other checks ################################################
 
@@ -342,6 +359,9 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
         avg.time <- "month"}
 
     ## #######################################################################################
+    
+     if (!is.null(windflow))
+        vars <- unique(c(vars, "wd", "ws"))
 
     ## data checks
     mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
@@ -375,8 +395,15 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
                             data.thresh = data.thresh)
         }
     }
-
-    mydata <- melt(mydata, id.var = c("date", type))
+    
+    if (!is.null(windflow)) {
+        
+         mydata <- melt(mydata, id.var = c("date", type, "ws", "wd"))
+         
+     } else {
+         
+          mydata <- melt(mydata, id.var = c("date", type))
+     }
 
     if (type != "default")  group <- TRUE ## need to group pollutants if conditioning
 
@@ -384,7 +411,7 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
     npol <- length(unique(mydata$variable)) ## number of pollutants
 
     ## layout - stack vertically
-    if (is.null(extra.args$layout) & !group & !stack) extra.args$layout <- c(1, npol)
+    if (is.null(Args$layout) & !group & !stack) Args$layout <- c(1, npol)
 
     ## function to normalise data ##################################
     divide.by.mean <- function(x) {
@@ -409,8 +436,8 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
 
     if (!missing(normalise)) {
 
-        if(is.null(extra.args$ylab))
-            extra.args$ylab <- "normalised level"
+        if(is.null(Args$ylab))
+            Args$ylab <- "normalised level"
 
         if (normalise == "mean") {
 
@@ -426,8 +453,8 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
     }
 
     #set ylab as pollutant(s) if not already set
-    if(is.null(extra.args$ylab))
-        extra.args$ylab <- quickText(paste(pollutant, collapse = ", "), auto.text)
+    if(is.null(Args$ylab))
+        Args$ylab <- quickText(paste(pollutant, collapse = ", "), auto.text)
 
 
     mylab <- sapply(seq_along(pollutant), function(x) quickText(pollutant[x], auto.text))
@@ -444,7 +471,7 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
     ## basic function for lattice call + defaults
     myform <- formula(paste("value ~ date |", type))
 
-    if(is.null(extra.args$strip))
+    if(is.null(Args$strip))
         strip <- TRUE
 
     strip.left <- FALSE
@@ -464,7 +491,7 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
     ## layout changes depening on plot type
 
     if (!group) { ## sepate panels per pollutant
-        if(is.null(extra.args$strip))
+        if(is.null(Args$strip))
             strip <- FALSE
 
         myform <- formula("value ~ date | variable")
@@ -479,20 +506,20 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
         scales <- list(x = list(at = dates, format = formats), y = list(relation = "free",
                                                                rot = 0, log = nlog))
 
-        if (is.null(extra.args$lty)) extra.args$lty <- 1 ## don't need different line types here
+        if (is.null(Args$lty)) Args$lty <- 1 ## don't need different line types here
     }
 
     ## set lty if not set by this point
-    if(is.null(extra.args$lty))
-        extra.args$lty <- 1:length(pollutant)
+    if(is.null(Args$lty))
+        Args$lty <- 1:length(pollutant)
 
     if (type == "default") strip <- FALSE
 
     ## if stacking of plots by year is needed
     if (stack) {
         mydata$year <- format(mydata$date, "%Y")
-        if(is.null(extra.args$layout))
-            extra.args$layout <- c(1, length(unique(mydata$year)))
+        if(is.null(Args$layout))
+            Args$layout <- c(1, length(unique(mydata$year)))
         strip <- FALSE
         myform <- formula("value ~ date | year")
         strip.left <- strip.custom(par.strip.text = list(cex = 0.9), horizontal = FALSE)
@@ -511,14 +538,14 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
 
     if (key) {
         ## type of key depends on whether points are plotted or not
-        if (any(!is.na(extra.args$pch))) {
-            key <- list(lines = list(col = myColors[1:npol], lty = extra.args$lty,
-                        lwd = extra.args$lwd), points = list(pch = extra.args$pch,
+        if (any(!is.na(Args$pch))) {
+            key <- list(lines = list(col = myColors[1:npol], lty = Args$lty,
+                        lwd = Args$lwd), points = list(pch = Args$pch,
                                                col = myColors[1:npol]),
                         text = list(lab = mylab),  space = "bottom", columns = key.columns)
         } else {
-            key <- list(lines = list(col = myColors[1:npol], lty = extra.args$lty,
-                        lwd = extra.args$lwd),
+            key <- list(lines = list(col = myColors[1:npol], lty = Args$lty,
+                        lwd = Args$lwd),
                         text = list(lab = mylab),  space = "bottom", columns = key.columns)
         }
     } else {
@@ -534,7 +561,7 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
     }
 
     ## special layout if type = "wd"
-    if (length(type) == 1 & type[1] == "wd" & is.null(extra.args$layout)) {
+    if (length(type) == 1 & type[1] == "wd" & is.null(Args$layout)) {
         ## re-order to make sensible layout
         wds <-  c("NW", "N", "NE", "W", "E", "SW", "S", "SE")
         mydata$wd <- ordered(mydata$wd, levels = wds)
@@ -545,12 +572,12 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
 
         mydata$wd <- factor(mydata$wd)  ## remove empty factor levels
 
-        extra.args$layout <- c(3, 3)
-        if(!"skip" %in% names(extra.args))
-            extra.args$skip <- skip
+        Args$layout <- c(3, 3)
+        if(!"skip" %in% names(Args))
+            Args$skip <- skip
     }
-    if(!"skip" %in% names(extra.args))
-         extra.args$skip <- FALSE
+    if(!"skip" %in% names(Args))
+         Args$skip <- FALSE
 
     ## allow reasonable gaps at ends, default has too much padding
     gap <- difftime(max(mydata$date), min(mydata$date), units = "secs") / 80
@@ -565,10 +592,11 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
                         xlim = xlim,
                         strip = strip,
                         strip.left = strip.left,
+                        windflow = windflow, 
                         yscale.components = yscale.components.log10ticks,
                         panel =  panel.superpose,
                         panel.groups = function(x, y, col.line, col.symbol, col, col.se, type,
-                        group.number, lty, lwd, pch, subscripts,...) {
+                            group.number, lty, lwd, pch, subscripts, windflow, ...) {
 
                             if (group.number == 1) {
                                 panel.grid(-1, 0)
@@ -584,11 +612,19 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
                                          col.line = myColors[group.number],...)
                             ## deal with points separately - useful if missing data where line
                             ## does not join consequtive points
-                            if (any(!is.na(extra.args$pch))) {
+                            if (any(!is.na(Args$pch))) {
 
-                                lpoints(x, y, type = "p", pch = extra.args$pch[group.number],
+                                lpoints(x, y, type = "p", pch = Args$pch[group.number],
                                         col.symbol = myColors[group.number],...)
                             }
+                            
+                            if (!is.null(windflow)) {
+                                    list1 <- list(x, y, dat = mydata, subscripts)
+                                    list2 <- windflow
+                                    flow.args <- listUpdate(list1, list2)
+                                    do.call(panel.windflow, flow.args)
+                                }
+                            
                             if (smooth) panel.gam(x, y, col = myColors[group.number] ,
                                                   col.se =  myColors[group.number],
                                                   lty = 1, lwd = 1, se = ci, k = NULL, ...)
@@ -600,8 +636,8 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
 
                         })
 
-    ## reset for extra.args
-    xyplot.args<- listUpdate(xyplot.args, extra.args)
+    ## reset for Args
+    xyplot.args<- listUpdate(xyplot.args, Args)
 
     #plot
     plt <- do.call(xyplot, xyplot.args)
@@ -616,6 +652,45 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
     invisible(output)
 
 }
+
+
+## function to plot wind flow arrows
+panel.windflow <- function (x, y, dat, subscripts, scale = 0.2, ws = "ws", wd = "wd",
+                            col = "black", lwd = 1, length = 0.1, angle = 20, ...) {
+    
+    max.ws <- max(dat[[ws]], na.rm = TRUE)
+    
+    delta.x <- scale * diff(current.panel.limits()$xlim)
+    delta.y <- scale * diff(current.panel.limits()$ylim)
+
+    ## actual shape of the plot window
+    delta.x.cm <-  diff(current.panel.limits(unit = "cm")$xlim)
+    delta.y.cm <-  diff(current.panel.limits(unit = "cm")$ylim)
+
+    ## physical size of plot windows, correct so wd is right when plotted.
+    ## need to replot if window re-scaled by user
+    if (delta.x.cm > delta.y.cm) {
+
+        delta.y <- delta.y * delta.x.cm / delta.y.cm
+        
+    } else {
+
+        delta.x <- delta.x * delta.y.cm / delta.x.cm
+    }
+    
+    x0 <- delta.x * dat[[ws]][subscripts] * 
+        sin(2 * pi * dat[[wd]][subscripts] / 360) / max.ws
+    
+    y0 <- delta.y * dat[[ws]][subscripts] * 
+        cos(2 * pi * dat[[wd]][subscripts] / 360) / max.ws
+    
+    panel.arrows(x0 = x - x0 / 2,
+                 y0 = y - y0 / 2,
+                 x1 = x + x0 / 2,
+                 y1 = y + y0 / 2,  length = length, angle = angle, code = 1,
+                 col = col, lwd = lwd)
+}
+
 
 
 
