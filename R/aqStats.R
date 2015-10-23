@@ -145,7 +145,7 @@ aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(
           rename_(median = pollutant)
 
         dataCapture <- group_by(mydata, year) %>%
-          do(timeAverage(., avg.time = "year", statistic = "data.cap", data.thresh,
+          do(timeAverage(., avg.time = "year", statistic = "data.cap",
                          type = "site")) %>%
           rename_(dat.cap = pollutant)
 
@@ -277,7 +277,7 @@ aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(
 
     bySite <- function (mydata, pollutant, data.thresh = data.thresh,
                         percentile = percentile, ...) {
-
+        
         ## dates should be unique; issue warning if not
         if (any(duplicated(mydata$date))) warning ("Duplicate dates detected - more than one site?",
                                                    call. = FALSE)
@@ -287,15 +287,15 @@ aqStats <- function(mydata, pollutant = "no2", data.thresh = 75, percentile = c(
                                                             data.thresh = data.thresh,
                                                             percentile = percentile, ...))
 
-        
-        results <- rbind_all(results)
+        ## supress warnings about binding factors
+        results <- suppressWarnings(bind_rows(results))
         results$year <- as.numeric(results$year)
         results
     }
 
-
+    
     results <- group_by(mydata, site) %>%
-      do(bySite(mydata, pollutant = pollutant, data.thresh = data.thresh,
+      do(bySite(., pollutant = pollutant, data.thresh = data.thresh,
                 percentile = percentile,...))
     
 

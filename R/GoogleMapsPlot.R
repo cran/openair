@@ -266,7 +266,7 @@ GoogleMapsPlot <- function(mydata,
 #uses
 #RgoogleMaps MapBackground, etc.
  
-
+    
 ##################
 #need to confirm this has not changed
 #check depends with Markus
@@ -325,7 +325,7 @@ GoogleMapsPlot <- function(mydata,
 
     #pollutant only 1 allowed
     #see suggestions
-    if(length(pollutant) > 1){
+    if (length(pollutant) > 1){
         warning(paste("GoogleMapsPlot only allows one 'pollutant'",
             "\n\t[ignoring all but first]", sep=""), call.=FALSE)
         pollutant <- pollutant[1]
@@ -397,9 +397,10 @@ GoogleMapsPlot <- function(mydata,
     ############################
     #pollutant, cols, etc.
     ############################
-
-    #z pollutant if set else default
-    z <-  mydata[, pollutant]
+    
+                                        #z pollutant if set else default
+    if (is.null(pollutant)) pollutant <- latitude
+    z <-  mydata[[pollutant]]
 
     #cex.range setup
     if(is.null(cex.range))
@@ -562,7 +563,7 @@ my.size <- if(my.y > my.x)
                c(640, ceiling((my.y/my.x) * 640))
 
         #override some RgoogleMaps defaults
-        map <- list(lon = temp2$lonR, lat = temp2$latR, destfile = "XtempX.png",
+        map <- list(lon = temp2$lonR, lat = temp2$latR, destfile = tempfile(),
                      maptype = "terrain", size = my.size)
 
         #catch all missing x/y dimensions
@@ -629,8 +630,8 @@ if(is.null(extra.args$aspect))
 
 
 #latitude, longitude
-temp <- LatLon2XY.centered(map, mydata[, latitude],
-                                mydata[, longitude])
+temp <- LatLon2XY.centered(map, mydata[[latitude]],
+                                mydata[[longitude]])
 mydata[, longitude] <- temp$newX
 mydata[, latitude] <- temp$newY
 
@@ -809,11 +810,12 @@ openairMapManager <- function(map){
     #native raster handler
     #######################
 
-    if("nativeRaster" %in% class(map$myTile)){
+    if ("nativeRaster" %in% class(map$myTile)) {
 
-        #do to png native output
-        png::writePNG(map$myTile, "XtempX.png")
-        map$myTile <- png::readPNG("XtempX.png", native = FALSE)
+        ## do to png native output
+        tmpFile <- tempfile()
+        png::writePNG(map$myTile, tmpFile)
+        map$myTile <- png::readPNG(tmpFile, native = FALSE)
         attr(map$myTile, "type") <- "rgb"
 
     }
