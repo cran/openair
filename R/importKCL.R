@@ -459,13 +459,13 @@
 ##' \dontrun{my1 <- importKCL(site = "my1", year = 2008, met = TRUE)}
 ##'
 ##' ## reshape the data so that each column represents a pollutant/site
-##' \dontrun{thedata <- importKCL(site = c("my1", "kc1"), year = 2008,
+##' \dontrun{
+##' require(reshape2)
+##' thedata <- importKCL(site = c("my1", "kc1"), year = 2008,
 ##' pollutant = "o3")
 ##' thedata <- melt(thedata, measure.vars="o3")
 ##' thedata <- dcast(thedata, ... ~ site + code + variable)
 ##' ## thedata now has columns for O3 at MY1 and KC1
-##' ## now can export as a csv file:
-##' write.csv(thedata, file = "~/temp/thedata.csv")
 ##'
 ##' }
 ##'
