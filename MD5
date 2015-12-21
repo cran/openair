@@ -1,4 +1,4 @@
-a08d07d69d9ddbe5b590fbecb3028c00 *DESCRIPTION
+6a76dfbc03ef3e2a9c27c4cea9c9a444 *DESCRIPTION
 81451123c181fd94761ce7247cd3fb09 *NAMESPACE
 988377b4f91fce4f0cb2fe126ce3c059 *NEWS
 f67466763adfbb8c29a5f6ef72af1e83 *R/GoogleMapsPlot.R
@@ -13,7 +13,7 @@ ac8c789659687ecb3b58ada9a8a66800 *R/aqStats.R
 82c1dea1f6f99179f19e37e8659a9211 *R/calcFno2.R
 0b828f0e196cb77aef48df53d858d6cd *R/calcPercentile.R
 b5bb1c12de14266de89449d5feaf8dd5 *R/calendarPlot.R
-621c176417649fde0e134489da15f24b *R/checkPrep.R
+4c201a7f24072f7d0655661344f5e3ed *R/checkPrep.R
 f92ec93948290d3f248b86ccb95216b1 *R/conditionalEval.R
 21f3eb69b973892277681c59bd34f056 *R/conditionalQuantile.R
 31c9eaa4dc96a5e78ad81877ffe975ea *R/corPlot.R
@@ -31,7 +31,7 @@ da2037c15b0fa6ace1590f2d8225dfa2 *R/importKCL.R
 3448d129ddd44d26345a267f2f5e67a5 *R/importSAQN.R
 e747796556edde3aac72307b4f8321cd *R/importTraj.R
 c46cfe521b98d5e28c1f704aa50df37d *R/kernelExceed.R
-938f169842471573847f0cabc17307cc *R/linearRelation.R
+28cf619bd9e6c4bc4474cdb6a6d82741 *R/linearRelation.R
 e1b8dd0d1b1a2a91f153f1278d67a6b1 *R/modStats.R
 b8f701ebed4b21ad9e9c1598fa641977 *R/mydata.R
 f0e551929054e7830e4799ce6fc27a5c *R/openColours.R
@@ -49,16 +49,16 @@ ed6c5743e43074caa0c93f3246c41c02 *R/selectRunning.R
 9a12e5551f2720c8b18c770a87b238b7 *R/senTheil.R
 eae85a63c0b1794d594652cd3a9bbc11 *R/smoothTrend.R
 32ea16fdb17511a6738a67f1bbe96526 *R/summaryPlot.R
-99b01b83bc3cc41ba11405676000bbb9 *R/timeAverage.R
+5f4d0496c76ccbd348be6fca479140bc *R/timeAverage.R
 d0f02727d7ae726b44c3f4a7241734c5 *R/timePlot.R
 93afdde8e24db062a998c375e6ec67c7 *R/timeProp.R
 13365b44a76a8abcd9129412b4fd0ed1 *R/timeVariation.R
 b784904c85538eefeb21a0c55f264c3e *R/trajCluster.R
 c169cb15401968ebf3081a1483a070fc *R/trajLevel.R
 d9c63ddec051e409744515eb69102120 *R/trajPlot.R
-cc261b64ad614b007983f1d8a6fbcb8e *R/trendLevel.R
+5273b5135b4ac063602462935b9eb5c0 *R/trendLevel.R
 23207b13f07e12b90c14f26618a290c2 *R/utilities.R
-4afb866d6113edab3e277be695eef1cd *R/windRose.R
+287ab2611d1d4ded90d1541da68320d0 *R/windRose.R
 46b292b9e5018e4445a4f4d6f2c5e0d6 *R/zzz.R
 c7353b78590797d206b0bdde9bdd682f *README.md
 5b5e8e0440fc42f5257e81b6a17fc303 *data/mydata.rda
@@ -93,7 +93,7 @@ b31670b370e1ddf0e8b9178de76de13a *man/importAURN.Rd
 4d79457b4d7c00c163c755dc9571b50a *man/importSAQN.Rd
 21959e7eefab5bcd5d3fdcb450fa3a52 *man/importTraj.Rd
 ffc304aeebaf326a2cb4f1bb782a09d6 *man/kernelExceed.Rd
-4a90d9aafa5502180806dd114d2f8d8e *man/linearRelation.Rd
+256ae3b26bdbca9b7b778390bd7bdea4 *man/linearRelation.Rd
 ce65e57ad4f5e15042bb1dbf77da2485 *man/modStats.Rd
 464af701bfd21bd83ff6fc523fc91ab3 *man/mydata.Rd
 db8bd81912463370a67dd6cd217cc6c6 *man/openColours.Rd
@@ -118,7 +118,7 @@ b77e32c2743004a2540635a836901e0b *man/timeVariation.Rd
 2be93a99ae85a93550d6cba22f8089b7 *man/trajCluster.Rd
 2be8d3ccd1750ca65e3978708b6d3cd8 *man/trajLevel.Rd
 9f7817478c52addebf15246c8676bf06 *man/trajPlot.Rd
-06e43fd3941bad2fcd66cdd486a52e7a *man/trendLevel.Rd
+dbac32dfa42f6bdf6e8cef014ddb387c *man/trendLevel.Rd
 5fda502acd11d30700d89cafe9435c7d *man/windRose.Rd
 5e00862185c9b7b021078e82f2ff13d0 *src/Cquantile.cpp
 489b262d4f81136a32f0bb09936fe53e *src/Makevars
