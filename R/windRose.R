@@ -220,6 +220,8 @@ pollutionRose <- function(mydata, pollutant = "nox", key.footer = pollutant,
 ##' \code{quickText} to handle routine formatting.
 ##'
 ##' @export windRose pollutionRose
+##' @import dplyr
+##' @import lazyeval
 ##' @importFrom plyr ddply ldply dlply llply numcolwise . 
 ##' @importFrom graphics abline
 ##' @importFrom grDevices col2rgb colorRampPalette grey rgb xy.coords
@@ -468,8 +470,13 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
     mydata <- cutData(mydata, type, ...)
 
     mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE, remove.neg = rm.neg)
-
-    mydata <- na.omit(mydata)
+  
+    # remove lines where ws is missing
+    # wd can be NA and ws 0 (calm)
+    id <- which(is.na(mydata[[ws]]))
+    
+    if (length(id) > 0)
+    mydata <- mydata[-id, ]
 
     if (is.null(pollutant)) pollutant <- ws
 
@@ -516,7 +523,6 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
             
             all <- stat.fun(mydata[[wd]])
             calm <- mydata[mydata[[wd]] == -999, ][[pollutant]]
-            mydata <- mydata[mydata[[wd]] != -999, ]
 
             calm <- stat.fun(calm)
 
@@ -610,7 +616,8 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
     }
 
     
-    results <- ddply(mydata, type, prepare.grid)
+    results <- group_by_(mydata, type) %>%
+      do(prepare.grid(.))
     
     ## format
     results$calm <- stat.labcalm(results$calm)

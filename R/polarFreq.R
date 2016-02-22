@@ -286,27 +286,27 @@ polarFreq <- function(mydata,
 
         if (statistic == "mean")
         {
-            weights <- tapply(mydata[, pollutant],
+            weights <- tapply(mydata[[pollutant]],
                               list(wd, ws), function(x) mean(x, na.rm = TRUE))}
 
         if (statistic == "median")
         {
-            weights <- tapply(mydata[, pollutant],
+            weights <- tapply(mydata[[pollutant]],
                               list(wd, ws), function(x) median(x, na.rm = TRUE))}
 
         if (statistic == "max")
         {
-            weights <- tapply(mydata[, pollutant],
+            weights <- tapply(mydata[[pollutant]],
                               list(wd, ws), function(x) max(x, na.rm = TRUE))}
 
         if (statistic == "stdev")
         {
-            weights <- tapply(mydata[, pollutant],
+            weights <- tapply(mydata[[pollutant]],
                               list(wd, ws), function(x) sd(x, na.rm = TRUE))}
 
         if (statistic == "weighted.mean")
         {
-            weights <- tapply(mydata[, pollutant], list(wd, ws),
+            weights <- tapply(mydata[[pollutant]], list(wd, ws),
                               function(x) (mean(x) * length(x) / nrow(mydata)))
 
             ## note sum for matrix
@@ -341,7 +341,10 @@ polarFreq <- function(mydata,
         lpolygon(c(x1, x2), c(y1, y2), col = colour, border = border.col, lwd = 0.5)
     }
 
-    results.grid <- plyr::ddply(mydata, type, prepare.grid)
+  
+    results.grid <- group_by_(mydata, type) %>%
+      do(prepare.grid(.))
+    
     results.grid <- na.omit(results.grid)
 
     ## proper names of labelling ###################################################

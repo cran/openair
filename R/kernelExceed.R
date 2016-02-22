@@ -191,8 +191,8 @@ kernelExceed <- function(polar,
     if(nrow(subdata) == 0) stop(call. = FALSE, "No data above threshold to plot")
 
     prepare.grid <- function(subdata) {
-        x <- subdata[ , x]
-        y <- subdata[ , y]
+        x <- subdata[[x]]
+        y <- subdata[[y]]
 
         xy <- xy.coords(x, y, "xlab", "ylab")
         xlab <-  xy$xlab
@@ -219,7 +219,8 @@ kernelExceed <- function(polar,
 
 #############################################################################
 
-    results.grid <-  plyr::ddply(subdata, type, prepare.grid)
+    results.grid <- group_by_(subdata, type) %>%
+      do(prepare.grid(.))
 
     ## adjust to get number of exceedance days
     total.sum <-  sum(unique(results.grid$freq)) ## by each condition
