@@ -91,10 +91,14 @@
 ##'   option --- see below. Not used if \code{avg.time = "default"}.
 ##'   
 ##' @param type \code{type} allows \code{timeAverage} to be applied to
-##'   cases where there are groups of data that need to be split and
-##'   the function applied to each group. The most common example is
-##'   data with mutiple sites identified with a column represeneting
-##'   site name e.g. \code{type = "site"}.
+##'   cases where there are groups of data that need to be split and 
+##'   the function applied to each group. The most common example is 
+##'   data with multiple sites identified with a column representing 
+##'   site name e.g. \code{type = "site"}. More generally, \code{type}
+##'   should be used where the date repeats for a particular grouping 
+##'   variable. However, if type is not supplied the data will still
+##'   be averaged but the grouping variables (character or factor)
+##'   will be dropped.
 ##' @param percentile The percentile level in \% used when 
 ##'   \code{statistic = "percentile"}. The default is 95.
 ##' @param start.date A string giving a start date to use. This is 
@@ -174,7 +178,17 @@
 ##' min15 <-  timeAverage(mydata, avg.time = "15 min", fill = TRUE)
 ##' }
 ##' 
+##' # average by grouping variable
+##' \dontrun{
+##' dat <- importAURN(c("kc1", "my1"), year = 2011:2013)
+##' timeAverage(dat, avg.time = "year", type = "site")
 ##' 
+##' # can also retain site code
+##' timeAverage(dat, avg.time = "year", type = c("site", "code"))
+##' 
+##' # or just average all the data, dropping site/code
+##' timeAverage(dat, avg.time = "year")
+##' }
 timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
                         statistic = "mean", type = "default", percentile = NA,
                         start.date = NA, end.date = NA, interval = NA,
@@ -273,7 +287,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
     if (!is.na(interval)) {
       
       mydata <- group_by_(mydata, .dots = type) %>%
-        do(date.pad2(., interval = interval))
+        do(date.pad2(., type = type, interval = interval))
       
       ## make sure missing types are inserted
       mydata[[type]] <- mydata[[type]][1]
@@ -342,7 +356,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
       allData <- data.frame(date = seq(min(allDates), max(allDates), avg.time))
       
       ## merge with orginal data, which leaves gaps to fill
-      mydata <- inner_join(mydata, allData, by = "date")
+      mydata <- full_join(mydata, allData, by = "date")
       
       if (fill) {
         
@@ -422,7 +436,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
       ## need to make sure all data are present..
       ## print out time interval assumed for input time series
       ## useful for debugging
-      if (!padded) mydata <- date.pad(mydata)
+      if (!padded) mydata <- date.pad(mydata, type = type)
       
       if (avg.time != "season") mydata$cuts <- cut(mydata$date, avg.time)
       
@@ -510,7 +524,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
     ## fill missing gaps
     if (avg.time != "season") {
       
-      avmet <- date.pad2(avmet, interval = avg.time)
+      avmet <- date.pad2(avmet, type = type, interval = avg.time)
     }
     
     avmet

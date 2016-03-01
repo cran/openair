@@ -78,6 +78,8 @@
 ##' @param by.type The percentage of the total number of trajectories
 ##'   is given for all data by default. Setting \code{by.type = TRUE}
 ##'   will make each panel add up to 100.
+##' @param origin If \code{TRUE} a filled circle dot is shown to mark the
+##'     receptor point.   
 ##' @param ... Other graphical parameters passed onto 
 ##'   \code{lattice:levelplot} and \code{cutData}. Similarly, common 
 ##'   axis and title labelling options (such as \code{xlab}, 
@@ -86,8 +88,10 @@
 ##' @export
 ##' @useDynLib openair
 ##' @import cluster
-##' @return Returns original data frame with a new (factor) variable 
-##'   \code{cluster} giving the calculated cluster.
+##' @return Returns a list with two data components. The first
+##'   (\code{data}) contains the orginal data with the cluster
+##'   identified. The second (\code{results}) contains the data used
+##'   to plot the clustered trajectories.
 ##' @seealso \code{\link{importTraj}}, \code{\link{trajPlot}},
 ##'   \code{\link{trajLevel}}
 ##' @author David Carslaw
@@ -114,8 +118,10 @@ trajCluster <- function(traj, method = "Euclid", n.cluster = 5,
                         map.cols = "grey40", map.alpha = 0.4,
                         projection = "lambert",
                         parameters = c(51, 51), orientation = c(90, 0, 0),
-                        by.type = FALSE, ...) {
-  freq <- NULL
+                        by.type = FALSE, origin = TRUE, ...) {
+  
+  # silence R check
+  freq <- hour.inc <- NULL
   
   if (tolower(method) == "euclid")  
     method <- "distEuclid" else method <- "distAngle"
@@ -192,12 +198,24 @@ trajCluster <- function(traj, method = "Euclid", n.cluster = 5,
       
     }
     
+    # trajectory origin
+    origin_xy <- head(subset(traj, hour.inc == 0), 1) ## origin
+    tmp <- mapproject(x = origin_xy[["lon"]][1],
+                      y = origin_xy[["lat"]][1],
+                      projection = projection,
+                      parameters = parameters,
+                      orientation = orientation)
+    receptor <- c(tmp$x, tmp$y)
+    
     if (plot) {
       ## calculate the mean trajectories by cluster
       
       agg <- select_(traj, "lat", "lon", "date", "cluster", "hour.inc", type) %>% 
         group_by_(., "cluster", "hour.inc", type) %>% 
         summarise_each(funs(mean))
+      
+      # the data frame we want to return before it is transformed
+      resRtn <- agg
       
       ## proportion of total clusters
       
@@ -245,7 +263,8 @@ trajCluster <- function(traj, method = "Euclid", n.cluster = 5,
                         map.cols = map.cols, map.alpha = map.alpha,
                         projection = projection, parameters = parameters,
                         orientation = orientation, traj = TRUE, trajLims = trajLims,
-                        clusters = clusters)
+                        clusters = clusters, receptor = receptor, 
+                        origin = origin)
       
       ## reset for Args
       plot.args <- listUpdate(plot.args, Args)
@@ -255,7 +274,10 @@ trajCluster <- function(traj, method = "Euclid", n.cluster = 5,
       
     }
     
-    invisible(traj)
+    
+    output <- list(plot = plt, data = traj, results = resRtn, call = match.call())
+    class(output) <- "openair"
+    invisible(output)
     
 }
 
