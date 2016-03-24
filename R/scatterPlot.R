@@ -379,8 +379,14 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
   if (!"lwd" %in% names(Args))
     Args$lwd <- 1
   
+  if (!"fill" %in% names(Args))
+    Args$fill <- "transparent"
+  
   if (!"lty" %in% names(Args))
     Args$lty <- 1
+  
+  if (!"cex" %in% names(Args))
+    Args$cex <- 1
   
   if (!"layout" %in% names(Args))
     Args$layout <- NULL
@@ -683,7 +689,8 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
     
     if (key & npol > 1) {
       if (plot.type == "p") {
-        key <- list(points = list(col = myColors[1:npol]),
+        key <- list(points = list(col = myColors[1:npol], fill = Args$fill,
+                                  cex = Args$cex),
                     pch = if("pch" %in% names(Args)) Args$pch else 1,
                     text = list(lab = pol.name, cex = 0.8),
                     space = key.position, columns = key.columns,
@@ -782,7 +789,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
                               subscripts, windflow, ...)
       {
         
-        
+       
         ## maximum number of actual groups in this panel
         groupMax <- 
           length(unique(factor(mydata$MyGroupVar[subscripts])))
@@ -819,11 +826,19 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
                        col.line = myColors[group.number],
                        lty = lty, lwd = lwd,
                        as.table = TRUE,...)
+     
+        # check if grouping variable to use correct name in equation
+        y.nam <-
+          if (group == "MyGroupVar")
+            y.nam
+        else
+          mydata[["MyGroupVar"]][subscripts[1]]
         
-        if (linear & npol == 1)
-          panel.linear(x, y, col = "black", myColors[group.number],
+        if (linear)
+          panel.linear(x, y, col = "black", myColors = Args$fill,
                        lwd = 1, lty = 5, x.nam = x.nam,
-                       y.nam = y.nam, se = ci,  ...)
+                       y.nam = y.nam, 
+                       se = ci,  group.number = group.number, ...)
         
         
         if (smooth)
@@ -877,12 +892,12 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
       yscale.components = yscale.components.log10ticks,
       xscale.components = xscale.components.log10ticks,
       par.strip.text = list(cex = 0.8),
-      colorkey = TRUE,
+      colorkey = TRUE, cex.labels = 0.8, cex.title = 1,
       colramp = function(n) {openColours(method.col, n)},
-      ...,
-      panel = function(x, lty, lwd, ...) {
+      ..., 
+      panel = function(x, ...) {
         if (!Args$traj) panel.grid(-1, -1)
-        panel.hexbinplot(x,...)
+        panel.hexbinplot(x, ...)
         
         if (mod.line)
           panel.modline(log.x, log.y)
@@ -1564,7 +1579,8 @@ panel.linear <- function (x, y, form = y ~ x, method = "loess", x.nam, y.nam, ..
                           se = TRUE, level = 0.95, n = 100, col = plot.line$col,
                           col.se = col, lty = plot.line$lty, lwd = plot.line$lwd,
                           alpha = plot.line$alpha, alpha.se = 0.25, border = NA,
-                          subscripts, group.number, group.value, type, col.line,
+                          subscripts, group.number, myColors = myColors,
+                          group.value, type, col.line,
                           col.symbol, fill, pch, cex, font, fontface, fontfamily)
 {
   ## get rid of R check annoyances
@@ -1573,6 +1589,9 @@ panel.linear <- function (x, y, form = y ~ x, method = "loess", x.nam, y.nam, ..
   
   thedata <- data.frame(x = x, y = y)
   thedata <- na.omit(thedata)
+  
+  # make sure equation is shown
+  if (length(myColors) == 1) myColors <- "black"
   
   tryCatch({mod <- lm(y ~ x, data = thedata)
   
@@ -1598,7 +1617,7 @@ panel.linear <- function (x, y, form = y ~ x, method = "loess", x.nam, y.nam, ..
   
   x <- current.panel.limits()$xlim[1]
   
-  y <- 0.95 * current.panel.limits()$ylim[2]
+  y <- (1 - group.number / 20) * current.panel.limits()$ylim[2]
   
   r.sq <- summary(mod)$r.squared
   slope <- coef(mod)[2]
@@ -1609,7 +1628,8 @@ panel.linear <- function (x, y, form = y ~ x, method = "loess", x.nam, y.nam, ..
                                    "[", x.nam, "]", symb,
                                    format(intercept, digits = 2),
                                    " R2=",  format(r.sq, digits = 2),
-                                   sep = "")), cex = 0.7, pos = 4)
+                                   sep = "")), cex = 0.7, pos = 4,
+             col = myColors[group.number])
   
   }, error = function(x) return)
 }

@@ -337,6 +337,9 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
     ## reset graphic parameters
     on.exit(trellis.par.set(strip.background = current.strip,
                             fontsize = current.font))
+    
+    # make sure ws and wd and numeric
+    mydata <- checkNum(mydata, vars = c(ws, wd))
 
     if (360 / angle != round(360 / angle)) {
         warning("In windRose(...):\n  angle will produce some spoke overlap",
@@ -468,6 +471,7 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
     if (!is.null(pollutant)) vars <- c(vars, pollutant)
 
     mydata <- cutData(mydata, type, ...)
+    
 
     mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE, remove.neg = rm.neg)
   
@@ -631,7 +635,7 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
         if (length(id > 0)) tmp[id] <- 360
         tmp <- table(tmp) ## number of sectors spanned
         vars <- grep("Interval[1-9]", names(results)) ## the frequencies
-        results[, vars] <- results[, vars] * mean(tmp) /tmp
+        results[-1, vars] <- results[-1, vars] * mean(tmp) /tmp
     }
 
     ## proper names of labelling###########################################

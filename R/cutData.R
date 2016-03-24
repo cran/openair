@@ -1,13 +1,3 @@
-#######################
-#file contains
-#scripts for:
-#######################
-#function: cutData
-#function: cutDaylight
-#
-
-
-
 ##' Function to split data in different ways for conditioning
 ##' 
 ##' Utility function to split data frames up in various ways for
@@ -48,16 +38,13 @@
 ##' sunset to give either daylight or nighttime. The cut is made by
 ##' \code{cutDaylight} but more conveniently accessed via
 ##' \code{cutData}, e.g. \code{cutData(mydata, type = "daylight",
-##' latitude=my.latitude, longitude=my.longitude)}. The daylight
+##' latitude = my.latitude, longitude = my.longitude)}. The daylight
 ##' estimation, which is valid for dates between 1901 and 2099, is 
 ##' made using the measurement location, date, time and astronomical
 ##' algorithms to estimate the relative positions of the Sun and the
 ##' measurement location on the Earth's surface, and is based on NOAA
-##' methods (\url{http://www.esrl.noaa.gov/gmd/grad/solcalc/}). The 
-##' \code{local.hour.offset} is zero if you are working in UTC/GMT,
-##' otherwise see
-##' \url{http://www.srrb.noaa.gov/highlights/sunrise/timezone.html}
-##' for local time zones corrections. Measurement location should be
+##' methods. 
+##' Measurement location should be
 ##' set using \code{latitude} (+ to North; - to South) and
 ##' \code{longitude} (+ to East; - to West).
 ##' 
@@ -94,25 +81,19 @@
 ##' from a column \code{date}. If a user already has a column with a 
 ##' name of one of the date-based types it will not be used.
 ##' 
-##' @aliases cutData cutDaylight
-##' @usage cutData(x, type = "default", hemisphere = "northern",
-##'   n.levels = 4, start.day, is.axis = FALSE, local.tz = NULL, ...)
-##'   
-##'   cutDaylight(x, local.hour.offset = 0, latitude = 51.522393,
-##'   longitude = -0.154700, ...)
 ##' @param x A data frame containing a field \code{date}.
 ##' @param type A string giving the way in which the data frame should
-##'   be split. Pre-defined values are: \dQuote{default},
-##'   \dQuote{year}, \dQuote{hour}, \dQuote{month}, \dQuote{season},
-##'   \dQuote{weekday}, \dQuote{site}, \dQuote{weekend},
-##'   \dQuote{monthyear}, \dQuote{daylight}, \dQuote{dst} (daylight
+##'   be split. Pre-defined values are: \dQuote{default}, 
+##'   \dQuote{year}, \dQuote{hour}, \dQuote{month}, \dQuote{season}, 
+##'   \dQuote{weekday}, \dQuote{site}, \dQuote{weekend}, 
+##'   \dQuote{monthyear}, \dQuote{daylight}, \dQuote{dst} (daylight 
 ##'   saving time).
 ##'   
-##'   \code{type} can also be the name of a numeric or factor. If a
-##'   numeric column name is supplied \code{cutData} will split the
-##'   data into four quantiles. Factors levels will be used to split
+##'   \code{type} can also be the name of a numeric or factor. If a 
+##'   numeric column name is supplied \code{cutData} will split the 
+##'   data into four quantiles. Factors levels will be used to split 
 ##'   the data without any adjustment.
-##' @param hemisphere Can be \code{"northern"} or \code{"southern"},
+##' @param hemisphere Can be \code{"northern"} or \code{"southern"}, 
 ##'   used to split data into seasons.
 ##' @param n.levels Number of quantiles to split numeric data into.
 ##' @param start.day What day of the week should the \code{type = 
@@ -120,34 +101,25 @@
 ##'   supplying an integer between 0 and 6. Sunday = 0, Monday = 1, 
 ##'   \ldots For example to start the weekday plots on a Saturday, 
 ##'   choose \code{start.day = 6}.
-##' @param is.axis A logical (\code{TRUE}/\code{FALSE}), used to
+##' @param is.axis A logical (\code{TRUE}/\code{FALSE}), used to 
 ##'   request shortened cut labels for axes.
 ##' @param local.tz Used for identifying whether a date has daylight 
-##'   savings time (DST) applied or not. Examples include
-##'   \code{local.tz = "Europe/London"}, \code{local.tz =
-##'   "America/New_York"} i.e. time zones that assume DST.
+##'   savings time (DST) applied or not. Examples include 
+##'   \code{local.tz = "Europe/London"}, \code{local.tz = 
+##'   "America/New_York"} i.e. time zones that assume DST. 
 ##'   \url{http://en.wikipedia.org/wiki/List_of_zoneinfo_time_zones} 
 ##'   shows time zones that should be valid for most systems. It is 
 ##'   important that the original data are in GMT (UTC) or a fixed 
 ##'   offset from GMT. See \code{import} and the openair manual for 
 ##'   information on how to import data and ensure no DST is applied.
-##' @param ... All additional parameters are passed on to next
-##'   function(s). For example, with \code{cutData} all additional
-##'   parameters are passed on to \code{cutDaylight} allowing direct
-##'   access to \code{cutDaylight} via either \code{cutData} or any
-##'   \code{openair} using \code{cutData} for \code{type}
-##'   conditioning.
-##' @param local.hour.offset,latitude,longitude Parameters used by 
-##'   \code{cutDaylight} to estimate if the measurement was collected
-##'   during daylight or nighttime hours.  \code{local.hour.offset}
-##'   gives the measurement timezone and \code{latitude} and
-##'   \code{longitude} give the measurement location. NOTE: The
-##'   default settings for these three parameters are the London
-##'   Marylebone Road AURN site associated with the \code{mydata}
-##'   example data set. See \code{\dots{}} and Details below for 
-##'   further information.
+##' @param latitude The decimal latitude used in \code{type =
+##'   "daylight"}.
+##' @param longitude The decimal longitude. Note that locations west
+##'   of Greenwich are negative.
+##' @param ... All additional parameters are passed on to next 
+##'   function(s).
 ##' @export
-##' @return Returns a data frame with a column \code{cond} that is
+##' @return Returns a data frame with a column \code{cond} that is 
 ##'   defined by \code{type}.
 ##' @author David Carslaw (cutData) and Karl Ropkins (cutDaylight)
 ##' @keywords methods
@@ -159,7 +131,8 @@
 ##'
 cutData <- function(x, type = "default", hemisphere = "northern", 
                     n.levels = 4, start.day = 1, is.axis = FALSE, 
-                    local.tz = NULL, ...) {
+                    local.tz = NULL, latitude = 51, longitude = -0.5,
+                    ...) {
   
   ## function to cutData depending on choice of variable
   ## pre-defined types and user-defined types
@@ -176,8 +149,10 @@ cutData <- function(x, type = "default", hemisphere = "northern",
     ## if type is time based and already exists in data, 
     ## just return data
     
-    if (type %in% dateTypes & type %in% names(x)) 
+    if (type %in% dateTypes & type %in% names(x)) {
+      message(paste("Using", type, "in data frame and not date-based openair version."))
       return(x)
+    }
     
     conds <- c("default", "year", "hour", "month", "season", 
                "weekday", "wd", "site", "weekend", "monthyear", 
@@ -397,7 +372,7 @@ cutData <- function(x, type = "default", hemisphere = "northern",
     }
     
     if (type == "daylight") {
-      x <- cutDaylight(x, ...)
+      x <- cutDaylight(x, latitude, longitude, ...)
     }
     
     x
@@ -412,158 +387,185 @@ cutData <- function(x, type = "default", hemisphere = "northern",
 
 ###########################################################################################
 #cutDaylight function
-cutDaylight <- function(x, local.hour.offset = 0,
-                  latitude = 51.522393, longitude = -0.154700, ...
-                  ){
-
-##long, hour.off
-
-#condition openair data by daylight
-#using date (POSIXt)
-#kr v 0.2
-#################################
-#based on noaa methods
-#http://www.srrb.noaa.gov/highlights/sunrise/calcdetails.html
-#by Chris Cornwall, Aaron Horiuchi and Chris Lehman
-#
-
-######################
-#notes
-######################
-#calculations use
-#(lat, long) position relative to sun
-#to estimate if daylight or nighttime hour
-######################
-#solar.noon.lst, etc are factions of day
-#seconds into that day = p.time * 86400
-#so for example sunset time is
-#as.POSIXct(sunset.time.lst * 86400, origin = format(x$date, "%Y-%m-%d"))
-#(assuming you do not run into next day!)
-######################
-#currently unsure about extremes
-#long nights and days at poles need checking
-#
-
-##################
-#suggestions:
-##################
-#local hour offset could be a lookup table linked to tz
-#
-
-if(!"POSIXt" %in% class(x$date))
-   stop("required field 'date' missing or not POSIXt\n", call. = FALSE)
-
-###################
-#temp functions
-###################
-rad <- function(x) x * pi / 180
-degrees <- function(x) x * (180 / pi)
-
-###############
-#get local time
-###############
-temp <- x$date
-
-#################
-#make julian.refs
-#################
-#ref Gregorian calendar back extrapolated.
-#assumed good for years between 1800 and 2100
-
-p.day <- (as.numeric(format(temp, "%H")) * 3600) +
-         (as.numeric(format(temp, "%M")) * 60) +
-         as.numeric(format(temp, "%S"))
-p.day <- p.day/86400
-
-#julian century (via julian day)
-julian.century <- as.numeric(as.Date(temp, format= "%m/%d/%Y")) + 2440587.5 + p.day - (local.hour.offset/24)
-julian.century <- (julian.century-2451545)/36525
-
-##################
-#main calcs
-##################
-#as of noaa
-
-geom.mean.long.sun.deg <- (280.46646 + julian.century *(36000.76983 + julian.century * 0.0003032)) %% 360
-
-geom.mean.anom.sun.deg <- 357.52911 + julian.century * (35999.05029 - 0.0001537 * julian.century)
-
-eccent.earth.orbit <- 0.016708634 - julian.century * (0.000042037 + 0.0001537 * julian.century)
-
-sun.eq.of.ctr <- sin(rad(geom.mean.anom.sun.deg)) *
-                 (1.914602 - julian.century * (0.004817 + 0.000014*julian.century)) +
-                 sin(rad(2 * geom.mean.anom.sun.deg)) *
-                 (0.019993 - 0.000101*julian.century) +
-                 sin(rad(3 * geom.mean.anom.sun.deg)) * 0.000289
-
-sun.true.long.deg <- sun.eq.of.ctr + geom.mean.long.sun.deg
-
-sun.app.long.deg <- sun.true.long.deg - 0.00569 - 0.00478 *
-                    sin(rad(125.04 - 1934.136 * julian.century))
-
-mean.obliq.ecliptic.deg <- 23 + (26 + ((21.448 - julian.century *
-                           (46.815 + julian.century *
-                           (0.00059 - julian.century
-                           * 0.001813)))) / 60) / 60
-
-obliq.corr.deg <- mean.obliq.ecliptic.deg +
-                  0.00256 * cos(rad(125.04 - 1934.136 * julian.century))
-
-sun.declin.deg <- degrees(asin(sin(rad(obliq.corr.deg)) *
-                  sin(rad(sun.app.long.deg))))
-
-vary <- tan(rad(obliq.corr.deg / 2)) * tan(rad(obliq.corr.deg/2))
-
-eq.of.time.minutes <- 4 * degrees(vary * sin(2 * rad(geom.mean.long.sun.deg)) -
-                      2 * eccent.earth.orbit * sin(rad(geom.mean.anom.sun.deg)) +
-                      4 * eccent.earth.orbit * vary * sin(rad(geom.mean.anom.sun.deg)) *
-                      cos(2 * rad(geom.mean.long.sun.deg)) - 0.5 * vary * vary *
-                      sin(4 * rad(geom.mean.long.sun.deg)) - 1.25 * eccent.earth.orbit *
-                      eccent.earth.orbit * sin(2 * rad(geom.mean.anom.sun.deg)))
-
-#original nooa code
-##
-#ha.sunrise.deg <- degrees(acos(cos(rad(90.833)) /
-#                  (cos(rad(latitude)) * cos(rad(sun.declin.deg))) -
-#                  tan(rad(latitude)) * tan(rad(sun.declin.deg))))
-##
-#R error catcher added
-#for long nights>24hours/short nights<0
-
-ha.sunrise.deg <- cos(rad(90.833)) /
-                  (cos(rad(latitude)) * cos(rad(sun.declin.deg))) -
-                  tan(rad(latitude)) * tan(rad(sun.declin.deg))
-ha.sunrise.deg <- ifelse(ha.sunrise.deg > 1, 1, ha.sunrise.deg)
-ha.sunrise.deg <- ifelse(ha.sunrise.deg < -1, -1, ha.sunrise.deg)
-ha.sunrise.deg <- degrees(acos(ha.sunrise.deg))
-
-solar.noon.lst <- (720 - 4 * longitude - eq.of.time.minutes + local.hour.offset * 60) / 1440
-
-sunrise.time.lst <- solar.noon.lst - ha.sunrise.deg * 4 / 1440
-
-sunset.time.lst <- solar.noon.lst + ha.sunrise.deg * 4 / 1440
-
-sunlight.duration.minutes <- 8 * ha.sunrise.deg
-
-#################################
-#daylight factor
-#################################
-#need to confirm dusk/dawn handing
-
-daylight <- ifelse(sunlight.duration.minutes == 0, FALSE,
-                 ifelse(sunlight.duration.minutes == 1440, TRUE,
-                     ifelse(sunrise.time.lst < sunset.time.lst,
-                          ifelse(p.day < sunset.time.lst & p.day > sunrise.time.lst, TRUE, FALSE),
-                          ifelse(p.day <= sunrise.time.lst & p.day >= sunset.time.lst, FALSE, TRUE)
-             )))
-#as ordered factor
-daylight <- factor(daylight, levels=c(TRUE, FALSE), labels=c("daylight", "nighttime"))
-
-###############################
-#output
-###############################
-x <- cbind(x, daylight = daylight)
-
+cutDaylight <- function(x, latitude = 51.522393, longitude = -0.154700, ...){
+  
+  ##long, hour.off
+  
+  #condition openair data by daylight
+  #using date (POSIXt)
+  #kr v 0.2
+  #################################
+  #based on noaa methods
+  #http://www.srrb.noaa.gov/highlights/sunrise/calcdetails.html
+  #by Chris Cornwall, Aaron Horiuchi and Chris Lehman
+  #
+  
+  ######################
+  #notes
+  ######################
+  #calculations use
+  #(lat, long) position relative to sun
+  #to estimate if daylight or nighttime hour
+  ######################
+  #solar.noon.lst, etc are factions of day
+  #seconds into that day = p.time * 86400
+  #so for example sunset time is
+  #as.POSIXct(sunset.time.lst * 86400, origin = format(x$date, "%Y-%m-%d"))
+  #(assuming you do not run into next day!)
+  ######################
+  #currently unsure about extremes
+  #long nights and days at poles need checking
+  #
+  
+  ##################
+  #suggestions:
+  ##################
+  #local hour offset could be a lookup table linked to tz
+  #
+  
+  if(!"POSIXt" %in% class(x$date))
+    stop("required field 'date' missing or not POSIXt\n", call. = FALSE)
+  
+  # local hour offset
+  
+  local.hour.offset <- as.numeric(lubridate::force_tz(x$date[1], "UTC") - x$date[1])
+  
+  ###################
+  #temp functions
+  ###################
+  rad <- function(x) x * pi / 180
+  degrees <- function(x) x * (180 / pi)
+  
+  ###############
+  #get local time
+  ###############
+  temp <- x$date
+  
+  #################
+  #make julian.refs
+  #################
+  #ref Gregorian calendar back extrapolated.
+  #assumed good for years between 1800 and 2100
+  
+  p.day <- (as.numeric(format(temp, "%H")) * 3600) +
+    (as.numeric(format(temp, "%M")) * 60) +
+    as.numeric(format(temp, "%S"))
+  p.day <- p.day / 86400
+  
+  #julian century (via julian day)
+  julian.century <-
+    as.numeric(as.Date(temp, format = "%m/%d/%Y")) + 2440587.5 +
+    p.day - (local.hour.offset / 24)
+  julian.century <- (julian.century - 2451545) / 36525
+  
+  ##################
+  #main calcs
+  ##################
+  #as of noaa
+  
+  geom.mean.long.sun.deg <-
+    (280.46646 + julian.century * (36000.76983 + julian.century * 0.0003032)) %% 360
+  
+  geom.mean.anom.sun.deg <-
+    357.52911 + julian.century * (35999.05029 - 0.0001537 * julian.century)
+  
+  eccent.earth.orbit <-
+    0.016708634 - julian.century * (0.000042037 + 0.0001537 * julian.century)
+  
+  sun.eq.of.ctr <- sin(rad(geom.mean.anom.sun.deg)) *
+    (1.914602 - julian.century * (0.004817 + 0.000014 * julian.century)) +
+    sin(rad(2 * geom.mean.anom.sun.deg)) *
+    (0.019993 - 0.000101 * julian.century) +
+    sin(rad(3 * geom.mean.anom.sun.deg)) * 0.000289
+  
+  sun.true.long.deg <- sun.eq.of.ctr + geom.mean.long.sun.deg
+  
+  sun.app.long.deg <- sun.true.long.deg - 0.00569 - 0.00478 *
+    sin(rad(125.04 - 1934.136 * julian.century))
+  
+  mean.obliq.ecliptic.deg <- 23 + (26 + ((
+    21.448 - julian.century *
+      (46.815 + julian.century *
+         (0.00059 - julian.century
+          * 0.001813))
+  )) / 60) / 60
+  
+  obliq.corr.deg <- mean.obliq.ecliptic.deg +
+    0.00256 * cos(rad(125.04 - 1934.136 * julian.century))
+  
+  sun.declin.deg <- degrees(asin(sin(rad(obliq.corr.deg)) *
+                                   sin(rad(sun.app.long.deg))))
+  
+  vary <- tan(rad(obliq.corr.deg / 2)) * tan(rad(obliq.corr.deg / 2))
+  
+  eq.of.time.minutes <-
+    4 * degrees(
+      vary * sin(2 * rad(geom.mean.long.sun.deg)) -
+        2 * eccent.earth.orbit * sin(rad(geom.mean.anom.sun.deg)) +
+        4 * eccent.earth.orbit * vary * sin(rad(geom.mean.anom.sun.deg)) *
+        cos(2 * rad(geom.mean.long.sun.deg)) - 0.5 * vary * vary *
+        sin(4 * rad(geom.mean.long.sun.deg)) - 1.25 * eccent.earth.orbit *
+        eccent.earth.orbit * sin(2 * rad(geom.mean.anom.sun.deg))
+    )
+  
+  #original nooa code
+  ##
+  #ha.sunrise.deg <- degrees(acos(cos(rad(90.833)) /
+  #                  (cos(rad(latitude)) * cos(rad(sun.declin.deg))) -
+  #                  tan(rad(latitude)) * tan(rad(sun.declin.deg))))
+  ##
+  #R error catcher added
+  #for long nights>24hours/short nights<0
+  
+  ha.sunrise.deg <- cos(rad(90.833)) /
+    (cos(rad(latitude)) * cos(rad(sun.declin.deg))) -
+    tan(rad(latitude)) * tan(rad(sun.declin.deg))
+  ha.sunrise.deg <- ifelse(ha.sunrise.deg > 1, 1, ha.sunrise.deg)
+  ha.sunrise.deg <- ifelse(ha.sunrise.deg < -1,-1, ha.sunrise.deg)
+  ha.sunrise.deg <- degrees(acos(ha.sunrise.deg))
+  
+  solar.noon.lst <-
+    (720 - 4 * longitude - eq.of.time.minutes + local.hour.offset * 60) / 1440
+  
+  sunrise.time.lst <- solar.noon.lst - ha.sunrise.deg * 4 / 1440
+  
+  sunset.time.lst <- solar.noon.lst + ha.sunrise.deg * 4 / 1440
+  
+  sunlight.duration.minutes <- 8 * ha.sunrise.deg
+  
+  #################################
+  #daylight factor
+  #################################
+  #need to confirm dusk/dawn handing
+  
+  daylight <- ifelse(
+    sunlight.duration.minutes == 0,
+    FALSE,
+    ifelse(
+      sunlight.duration.minutes == 1440,
+      TRUE,
+      ifelse(
+        sunrise.time.lst < sunset.time.lst,
+        ifelse(p.day < sunset.time.lst &
+                 p.day > sunrise.time.lst, TRUE, FALSE),
+        ifelse(p.day <= sunrise.time.lst &
+                 p.day >= sunset.time.lst, FALSE, TRUE)
+      )
+    )
+  )
+  #as ordered factor
+  daylight <-
+    factor(
+      daylight,
+      levels = c(TRUE, FALSE),
+      labels = c("daylight", "nighttime")
+    )
+  
+  ###############################
+  #output
+  ###############################
+  x <- cbind(x, daylight = daylight)
+  
 }
 
 
