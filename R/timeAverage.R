@@ -290,7 +290,8 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
         do(date.pad2(., type = type, interval = interval))
       
       ## make sure missing types are inserted
-      mydata[[type]] <- mydata[[type]][1]
+    #  mydata[[type]] <- mydata[[type]][1]
+      mydata[type] <- mydata[1, type]
       
       padded <- TRUE
     }
@@ -356,7 +357,8 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
       allData <- data.frame(date = seq(min(allDates), max(allDates), avg.time))
       
       ## merge with orginal data, which leaves gaps to fill
-      mydata <- full_join(mydata, allData, by = "date")
+      mydata <- full_join(mydata, allData, by = "date") %>%
+        arrange(date)
       
       if (fill) {
         

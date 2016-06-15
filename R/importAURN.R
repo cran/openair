@@ -378,6 +378,7 @@
 ##'   is however not to as most users will not be interested in using
 ##'   hydrocarbon data and the resulting data frames are considerably larger.
 ##' @export
+##' @importFrom utils download.file
 ##' @return Returns a data frame of hourly mean values with date in POSIXct
 ##'   class and time zone GMT.
 ##' @author David Carslaw
@@ -422,21 +423,23 @@ importAURN <- function(site = "my1", year = 2009, pollutant = "all", hc = FALSE)
 
 
     loadData <- function(x) {
-        tryCatch({
-             fileName <- paste("http://uk-air.defra.gov.uk/openair/R_data/", x, ".RData", sep = "")
-             con <- url(fileName, method = "libcurl")
-             load(con)
-             
-             close(con)
-             
-             dat <- get(x)
-             
-             return(dat)
-             },
-                  error = function(ex) {cat(x, "does not exist - ignoring that one.\n")})
-
-     }
-
+      tryCatch({
+        # download to tmp file
+        # need to do this because of https, certificate problems
+        tmp <- tempfile()
+        
+        fileName <- paste("https://uk-air.defra.gov.uk/openair/R_data/", x, ".RData", sep = "")
+        download.file(fileName, method = "libcurl", destfile = tmp)
+        load(tmp)
+        
+        dat <- get(x)
+        
+        return(dat)
+      },
+      error = function(ex) {cat(x, "does not exist - ignoring that one.\n")})
+      
+    }
+    
 
     thedata <- plyr::ldply(files, loadData)
     
@@ -478,6 +481,9 @@ importAURN <- function(site = "my1", year = 2009, pollutant = "all", hc = FALSE)
 
      ## make sure it is in GMT
     attr(thedata$date, "tzone") <- "GMT"
+    
+    # make sure class is correct for lubridate
+    class(thedata$date) <- c("POSIXct" , "POSIXt")
 
     thedata
 }

@@ -49,7 +49,12 @@
 ##' ## make a GoogleMapsPlot
 ##' GoogleMapsPlot(annual, pollutant = "no2")
 ##' }
+
 importMeta <- function(source = "aurn", all = FALSE) {
+  
+  # keep R check quiet
+  AURN_metadata <- NULL
+  SCOT_metadata <- NULL
 
     ## get rid of R check annoyances
     site = code = latitude = longitude = site.type = site_name = site_id = NULL
@@ -64,9 +69,14 @@ importMeta <- function(source = "aurn", all = FALSE) {
     if (!source %in% meta.source) stop ("Meta data sources are 'aurn', 'kcl' and 'saqn.")
 
     if (source == "aurn") {
-        con <- url("http://uk-air.defra.gov.uk/openair/R_data/AURN_metadata.RData")
-        meta <- get(load(con))
-        close(con)
+        
+        tmp <- tempfile()
+        
+        fileName <- "http://uk-air.defra.gov.uk/openair/R_data/AURN_metadata.RData"
+        download.file(fileName, method = "libcurl", destfile = tmp)
+        load(tmp)
+        
+        meta <- AURN_metadata
         ## only extract one line per site to make it easier to use file
         ## mostly interested in coordinates
 
@@ -80,9 +90,15 @@ importMeta <- function(source = "aurn", all = FALSE) {
     }
 
     if (source == "saqn") {
-        con <- url("http://www.scottishairquality.co.uk/openair/R_data/SCOT_metadata.RData")
-        meta <- get(load(con))
-        close(con)
+        
+        tmp <- tempfile()
+        
+        fileName <- "http://www.scottishairquality.co.uk/openair/R_data/SCOT_metadata.RData"
+        download.file(fileName, method = "libcurl", destfile = tmp)
+        load(tmp)
+        
+        meta <- SCOT_metadata
+        
         ## only extract one line per site to make it easier to use file
         ## mostly interested in coordinates
 

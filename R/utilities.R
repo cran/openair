@@ -11,8 +11,9 @@ startMonth <- function(dat) as.numeric(format(min(dat[order(dat)]), "%m"))
 endMonth <- function(dat) as.numeric(format(max(dat[order(dat)]), "%m"))
 
 ## these are pre-defined type that need a field "date"; used by cutData
-dateTypes <- c("year", "hour", "month", "season", "weekday", "weekend", "monthyear",
-                   "gmtbst", "bstgmt", "dst", "daylight")
+dateTypes <- c("year", "hour", "month", "season", "weekday", "weekend",
+               "monthyear", "gmtbst", "bstgmt", "dst", "daylight",
+               "seasonyear", "yearseason")
 
 ## sets up how openair graphics look by default and resets on exit
 
@@ -41,12 +42,8 @@ find.time.interval <- function(dates) {
     ## find the most common time gap in all the data
     dates <- unique(dates)  ## make sure they are unique
 
-    len <- length(dates)
-
-    ## sample only 100 rather than everything
-    len <- min(c(100, len))
-
-    id <- which.max(table(diff(as.numeric(dates[order(dates[1 : len])]))))
+    # work out the most common time gap of unique, ordered dates
+    id <- which.max(table(diff(as.numeric(unique(dates[order(dates)])))))
     seconds <- as.numeric(names(id))
 
     if ("POSIXt" %in% class(dates)) seconds <- paste(seconds, "sec")
@@ -689,6 +686,9 @@ fitGam <- function (thedata, x = "date", y = "conc", form = y ~ x, k = k,
     names(thedata)[id] <- "x"
     id <- which(names(thedata) == y)
     names(thedata)[id] <- "y"
+    
+    # can only fit numeric, so convert back after fitting
+    class_x <- class(thedata$x)
 
     thedata$x <- as.numeric(thedata$x)
 
@@ -761,6 +761,9 @@ fitGam <- function (thedata, x = "date", y = "conc", form = y ~ x, k = k,
                                            lower = percentiles[1, ], upper = percentiles[2, ]))
 
         }
+      
+      # convert class back to orginal
+      class(results$x) <- class_x
         results
     }, error = function(x) {data.orig})
 }
