@@ -385,7 +385,7 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
             stat.unit <- "%"
             stat.scale <- "all"
             stat.lab <- "Frequency of counts by wind direction (%)"
-            stat.fun2 <- function(x) signif(mean(x, na.rm = TRUE), 3)
+            stat.fun2 <- function(x) format(mean(x, na.rm = TRUE), digits = 5)
             stat.lab2 <- "mean"
             stat.labcalm <- function(x) round(x, 1)
         }
@@ -395,7 +395,7 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
             stat.unit <- "%"
             stat.scale <- "panel"
             stat.lab <- "Proportion contribution to the mean (%)"
-            stat.fun2 <- function(x) signif(mean(x, na.rm = TRUE), 3)
+            stat.fun2 <- function(x) format(mean(x, na.rm = TRUE), digits = 5)
             stat.lab2 <- "mean"
             stat.labcalm <- function(x) round(x, 1)
         }
@@ -518,7 +518,7 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
         ## these are all calms...
         if (all(is.na(mydata$x))) {
             
-            weights <- data.frame(Interval1 = NA, wd = NA,
+            weights <- data_frame(Interval1 = NA, wd = NA,
                                   calm = 100, panel.fun = NA, mean.wd = NA, freqs = NA)
             
         } else {
@@ -532,6 +532,7 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
 
             weights <- tapply(mydata[[pollutant]], list(mydata[[wd]], mydata$x),
                               stat.fun)
+            
             freqs <- tapply(mydata[[pollutant]], mydata[[wd]], length)
 
             ## scaling
@@ -557,8 +558,8 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
             panel.fun <- stat.fun2(mydata[[pollutant]])
 
             ## calculate mean wd - useful for cases comparing two met data sets
-            u <- mean(sin(2 * pi * mydata[[wd]] / 360))
-            v <- mean(cos(2 * pi * mydata[[wd]] / 360))
+            u <- mean(sin(2 * pi * mydata[[wd]] / 360), na.rm = TRUE)
+            v <- mean(cos(2 * pi * mydata[[wd]] / 360), na.rm = TRUE)
             mean.wd <- atan2(u, v) * 360 / 2 / pi
 
             if (all(is.na(mean.wd))) {
@@ -569,11 +570,10 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
                 if (mean.wd > 180) mean.wd <- mean.wd - 360
             }
 
-
-            weights <- cbind(data.frame(weights), wd = as.numeric(row.names(weights)),
-                             calm = calm, panel.fun = panel.fun, mean.wd = mean.wd, freqs = freqs)
-
-            
+            weights <- bind_cols(as_data_frame(weights), 
+                                 data_frame(wd = as.numeric(row.names(weights)),
+                             calm = calm, panel.fun = panel.fun, 
+                             mean.wd = mean.wd, freqs = freqs))
 
         }
 
@@ -622,7 +622,7 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
     
     results <- group_by_(mydata, .dots = type) %>%
       do(prepare.grid(.))
-    
+   
     ## format
     results$calm <- stat.labcalm(results$calm)
     results$mean.wd <- stat.labcalm(results$mean.wd)
@@ -673,9 +673,7 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
     }
     
     if (is.null(max.freq)) {
-        max.freq <- max(results[, (length(type) + 1):(length(labs) +
-                                                             length(type))],
-                        na.rm = TRUE)
+        max.freq <- max(results[results$wd != -999, grep("Interval", names(results))])
     } else {
         max.freq <- max.freq
     }
@@ -704,8 +702,6 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
 
     if (annotate) sub <- stat.lab else sub <- NULL
 
-    
-
     xy.args <- list(x = myform,
                     xlim = 1.03 * c(-max.freq - off.set, max.freq + off.set),
                     ylim = 1.03 * c(-max.freq - off.set, max.freq + off.set),
@@ -727,13 +723,13 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
                                                   col = "grey85", lwd = 1))
 
                         dat <- results[subscripts, ] ## subset of data
-                        dat <- filter(dat, wd <= 360)
+                        dat <- filter(dat, wd <= 360, wd >= 0)
                         
                         upper <- max.freq + off.set
 
                         ## add axis lines
-                        larrows(-upper, 0, upper, 0, code = 3, length = 0.1)
-                        larrows(0, -upper, 0, upper, code = 3, length = 0.1)
+                        lsegments(-upper, 0, upper, 0)
+                        lsegments(0, -upper, 0, upper)
 
                         ltext(upper * -1 * 0.95, 0.07 * upper, "W", cex = 0.7)
                         ltext(0.07 * upper, upper * -1 * 0.95, "S", cex = 0.7)
@@ -775,10 +771,11 @@ windRose <- function (mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
                                           dat$calm[1], stat.unit, sep = ""),
                                       adj = c(1, 0), cex = 0.7, col = calm.col)
                             }
+                        
                         if (diff) { ## when two data sets are present
                             ltext(max.freq + off.set, -max.freq - off.set,
                                   label = paste("mean ws = ",
-                                      round(dat$panel.fun[1], 1),
+                                      round(as.numeric(dat$panel.fun[1]), 1),
                                       "\nmean wd = ", round(dat$mean.wd[1], 1),
                                       sep = ""), adj = c(1, 0), cex = 0.7, col = calm.col)
                         }
