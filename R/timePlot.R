@@ -534,8 +534,9 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
                                        factor.levels = mylab)
         }
 
-        scales <- list(x = list(at = dates, format = formats), y = list(relation = "free",
-                                                               rot = 0, log = nlog))
+        scales <- list(x = list(at = dates, format = formats), 
+                       y = list(relation = y.relation,
+                                rot = 0, log = nlog))
 
         if (is.null(Args$lty)) Args$lty <- 1 ## don't need different line types here
     }
@@ -640,7 +641,8 @@ timePlot <- function(mydata, pollutant = "nox", group = FALSE, stack = FALSE,
                             }
 
                             panel.xyplot(x, y, type = plot.type, lty = lty, lwd = lwd, pch = pch,
-                                         col.line = myColors[group.number],...)
+                                         col.line = myColors[group.number],
+                                         col.symbol = myColors[group.number],...)
                             ## deal with points separately - useful if missing data where line
                             ## does not join consequtive points
                             if (any(!is.na(Args$pch))) {
