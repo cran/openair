@@ -12,7 +12,7 @@ scatterPlot(mydata, x = "nox", y = "no2", z = NA, method = "scatter",
   key.position = "right", strip = TRUE, log.x = FALSE, log.y = FALSE,
   x.inc = NULL, y.inc = NULL, limits = NULL, windflow = NULL,
   y.relation = "same", x.relation = "same", ref.x = NULL, ref.y = NULL,
-  k = 100, dist = 0.1, map = FALSE, auto.text = TRUE, ...)
+  k = NA, dist = 0.02, map = FALSE, auto.text = TRUE, ...)
 }
 \arguments{
 \item{mydata}{A data frame containing at least two numeric variables to
@@ -365,13 +365,12 @@ x.inc = 10, y.inc = 2, smooth = TRUE)
 
 
 }
-\author{
-David Carslaw
-}
 \seealso{
 \code{\link{linearRelation}}, \code{\link{timePlot}} and
   \code{\link{timeAverage}} for details on selecting averaging times and
   other statistics in a flexible way
 }
+\author{
+David Carslaw
+}
 \keyword{methods}
-

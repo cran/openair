@@ -102,6 +102,9 @@ date.pad2 <-  function(mydata, type = NULL, interval = "month") {
 
 date.pad <- function(mydata, type = NULL, print.int = FALSE) {
  
+  # if one line, just return
+  if (nrow(mydata) < 2) return(mydata)
+  
   ## time zone of data
   TZ <- attr(mydata$date, "tzone")
   if (is.null(TZ)) TZ <- "GMT" ## as it is on Windows for BST
@@ -802,10 +805,10 @@ errorInMean <- function (x, mult = qt((1 + conf.int)/2, n - 1), conf.int = 0.95,
 }
 
 ## bootsrap confidence intervals in the mean from Hmisc
-bootMean <- function (x, conf.int = 0.95, B = 1000, na.rm = TRUE, reps = FALSE, ...)
+bootMean <- function (x, conf.int = 0.95, B = 1000, ...)
 {
-    if (na.rm)
-        x <- x[!is.na(x)]
+    
+    x <- x[!is.na(x)] # remove missings
     n <- length(x)
     xbar <- mean(x)
     if (n < 2)
@@ -815,12 +818,40 @@ bootMean <- function (x, conf.int = 0.95, B = 1000, na.rm = TRUE, reps = FALSE, 
     quant <- quantile(z, c((1 - conf.int) / 2, (1 + conf.int) / 2))
     names(quant) <- NULL
     res <- c(Mean = xbar, Lower = quant[1], Upper = quant[2])
-    if (reps)
-        attr(res, "reps") <- z
+  
     res
 }
 
-bootMeanDiff <- function (mydata, x = "x", y = "y", conf.int = 0.95, B = 1000, na.rm = TRUE, reps = TRUE)
+
+#' Bootsrap confidence intervals in the mean
+#' 
+#' A utility function to calculation the uncertainty intervals in the mean of a
+#' vector. The function removes any missing data before the calculation.
+#' 
+#' @param x A vector from which the mean and bootstrap confidence intervals in
+#'   the mean are to be calculated
+#' @param conf.int The confidence interval; default = 0.95.
+#' @param B The number of bootstrap simulations
+#'   
+#' @return Returns a data frame with the mean, lower uncertainty, upper
+#'   uncertainty and number of values used in the calculation
+#' @export
+#'
+#' @examples
+#' test <- rnorm(20, mean = 10)
+#' bootMeanDF(test)
+bootMeanDF <- function (x, conf.int = 0.95, B = 1000) {
+  
+  if (!is.vector(x))
+    stop("x should be a vector.")
+  
+  res <- bootMean(x = x, conf.int = conf.int, B = B)
+  res <- data.frame(mean = res[1], min = res[2], max = res[3], n = length(na.omit(x)))
+  res <- return(res)
+}
+
+
+bootMeanDiff <- function (mydata, x = "x", y = "y", conf.int = 0.95, B = 1000)
 {
 
     ## calculates bootstrap mean differences
@@ -842,8 +873,8 @@ bootMeanDiff <- function (mydata, x = "x", y = "y", conf.int = 0.95, B = 1000, n
 
     }
 
-    x <- attr(bootMean(x,  B = B, reps = TRUE), 'reps')
-    y <- attr(bootMean(y,  B = B, reps = TRUE), 'reps')
+    x <- bootMean(x,  B = B)
+    y <- bootMean(y,  B = B)
     quant1 <- quantile(x, c((1 - conf.int) / 2, (1 + conf.int) / 2))
     quant2 <- quantile(y, c((1 - conf.int) / 2, (1 + conf.int) / 2))
     quant <- quantile(y - x, c((1 - conf.int) / 2, (1 + conf.int) / 2))
@@ -1033,4 +1064,73 @@ checkNum <- function(mydata, vars) {
   
   return(mydata)
 }
+
+
+
+#' Bin data, calculate mean and bootstrap 95\% confidence interval in the mean
+#' 
+#' Bin a variable and calculate mean an uncertainties in mean
+#' 
+#' This function summarises data by intervals and calculates the mean and
+#' bootstrap 95\% confidence intervals in the mean of a chosen variable in a data
+#' frame. Any other numeric variables are summarised by their mean intervals.
+#' 
+#' There are three options for binning. The default is to bon \code{bin} into 40
+#' intervals. Second, the user can choose an binning interval e.g.
+#' \code{interval = 5}. Third, the user can supply their own breaks to use as
+#' binning intervals.
+#' 
+#' @param mydata Name of the data frame to process.
+#' @param bin The name of the column to divide into intervals
+#' @param uncer The name of the column for which the mean, lower and upper
+#'   uncertainties should be calculated for each interval of \code{bin}.
+#' @param n The number of intervals to split \code{bin} into.
+#' @param interval The interval to be used for binning the data.
+#' @param breaks User specified breaks to use for binning.
+#'   
+#' @return Retruns a summarised data frame with new columns for the mean and
+#'   upper / lower 95\% confidence intervals in the mean.
+#' @export
+#' 
+#' @examples
+#' # how does nox vary by intervals of wind speed?
+#' results <- binData(mydata, bin = "ws", uncer = "nox")
+#' 
+#' # easy to plot this using ggplot2
+#' \dontrun{
+#' library(ggplot2)
+#' ggplot(results, aes(ws, mean, ymin = min, ymax = max)) + 
+#' geom_pointrange()
+#' 
+#' }
+binData <- function(mydata, bin = "nox", uncer = "no2", n = 40, interval = NA,
+                   breaks = NA) {
+  
+  if (!is.na(interval)) {
+    
+    mydata$interval <- cut(mydata[[bin]], sort(unique(round_any(mydata[[bin]], interval))),
+                            include.lowest = TRUE)
+    
+  }  else if (!anyNA(breaks)) {
+    
+    mydata$interval <- cut(mydata[[bin]], breaks = breaks, include.lowest = TRUE)   
+    
+  } else {
+    
+    mydata$interval <- cut(mydata[[bin]], breaks = n) 
+    
+  }
+  
+  # calculate 95% CI in mean
+  uncert <- group_by(mydata, interval) %>%
+    do(bootMeanDF(.[[uncer]]))
+  
+  mydata <- group_by(mydata, interval) %>% 
+    summarise_if(is.numeric, mean, na.rm = TRUE) 
+  
+  mydata <- inner_join(mydata, uncert, by = "interval")
+  
+  mydata
+}
+
 

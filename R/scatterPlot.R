@@ -229,7 +229,7 @@
 ##' out any transformation the options \code{trans = NULL} and
 ##' \code{inv = NULL} should be used.
 ##' @export
-##' @import mapproj hexbin maps
+##' @import mapproj hexbin
 ##' @return As well as generating the plot itself, \code{scatterPlot} also
 ##'   returns an object of class ``openair''. The object includes three main
 ##'   components: \code{call}, the command used to generate the plot;
@@ -322,7 +322,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
                         key.columns = 1, key.position = "right", strip = TRUE,
                         log.x = FALSE, log.y = FALSE, x.inc = NULL, y.inc = NULL,
                         limits = NULL, windflow = NULL, y.relation = "same", x.relation = "same",
-                        ref.x = NULL, ref.y = NULL, k = 100, dist = 0.1, 
+                        ref.x = NULL, ref.y = NULL, k = NA, dist = 0.02, 
                         map = FALSE, auto.text = TRUE, ...)   {
   
   ## basic function to plot single/multiple time series in flexible waysproduce scatterPlot
@@ -952,10 +952,21 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
     ## only aggregate if we have to (for data pre-gridded)
     if (nrow(unique(subset(mydata, select = c(xgrid, ygrid)))) != nrow(mydata)) {
       
-      mydata <- select_(mydata, "xgrid", "ygrid", .dots = type, z) %>%
-        group_by_(., "xgrid", "ygrid", .dots = type) %>%
-        summarise_(MN = interp(~mean(var, na.rm = TRUE), var = as.name(z)))
+      if (statistic == "frequency")
+        mydata <- select_(mydata, "xgrid", "ygrid", .dots = type, z) %>%
+          group_by_(., "xgrid", "ygrid", .dots = type) %>%
+          summarise_(MN = interp(~length(var), var = as.name(z)))
       
+      if (statistic == "mean")
+        mydata <- select_(mydata, "xgrid", "ygrid", .dots = type, z) %>%
+          group_by_(., "xgrid", "ygrid", .dots = type) %>%
+          summarise_(MN = interp(~mean(var, na.rm = TRUE), var = as.name(z)))  
+      
+      if (statistic == "median")
+        mydata <- select_(mydata, "xgrid", "ygrid", .dots = type, z) %>%
+          group_by_(., "xgrid", "ygrid", .dots = type) %>%
+          summarise_(MN = interp(~median(var, na.rm = TRUE), var = as.name(z)))  
+     
       names(mydata)[which(names(mydata) == "MN")] <- z
       
       
@@ -963,8 +974,8 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
     
     smooth.grid <- function(mydata, z) {
       
-      myform <- formula(paste(z, "~ s(xgrid, ygrid, k = ", k , ")", sep = ""))
-      res <- 101
+      myform <- formula(paste(z, "~ ti(xgrid, k = ", k, ") + ti(ygrid, k = ", k, ") + ti(xgrid, ygrid, k = ", k , ")", sep = ""))
+      res <- 201
       
       mydata <- na.omit(mydata)
       
@@ -1494,6 +1505,7 @@ add.map <- function (Args, ...) {
   
   
   if (Args$map.res == "default") {
+    try_require("maps", "scatterPlot")
     res <- "world"
   } else {
     
