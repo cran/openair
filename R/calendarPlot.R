@@ -263,8 +263,8 @@ calendarPlot <- function(mydata, pollutant = "nox", year = 2003, month = 1:12,
     lattice.options(default.theme = cal.theme)
 
     ## all the days in the year
-    all.dates <- seq(as.Date(paste(year, "-01-01", sep = "")),
-                     as.Date(paste(year, "-12-31", sep = "")), by = "day")
+    all.dates <- seq(as_date(paste(year, "-01-01", sep = "")),
+                     as_date(paste(year, "-12-31", sep = "")), by = "day")
 
     prepare.grid <- function(mydata, pollutant) {
 
@@ -327,11 +327,11 @@ calendarPlot <- function(mydata, pollutant = "nox", year = 2003, month = 1:12,
 
         results
     }
-    
+  
     ## calculate daily means
     if ("POSIXt" %in% class(mydata$date) && !is.factor(mydata[, pollutant])) {
         mydata <- timeAverage(mydata, "day", statistic = statistic, data.thresh = data.thresh)
-        mydata$date <- as.Date(mydata$date)
+        mydata$date <- as_date(mydata$date)
     }
 
     ## type not yet used, set to month

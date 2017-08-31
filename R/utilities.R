@@ -261,7 +261,7 @@ rollingMean <- function(mydata, pollutant = "o3", width = 8, new.name = "rolling
         ## make sure function is not called with window width longer than data
         if (width > nrow(mydata)) return(mydata)
 
-        mydata[[new.name]] <- .Call("rollingMean", mydata[[pollutant]],
+        mydata[[new.name]] <- .Call("rollMean", mydata[[pollutant]],
                                     width, data.thresh, align,
                                     PACKAGE = "openair")
 
@@ -349,7 +349,7 @@ one more label than date")
 
         if (class(mydata$date)[1] == "Date") {
 
-            dates <- as.Date(as.POSIXct(strptime(dates, "%d/%m/%Y"), "GMT"))
+            dates <- as_date(as.POSIXct(strptime(dates, "%d/%m/%Y"), "GMT"))
 
         } else {
 
@@ -361,7 +361,7 @@ one more label than date")
 
         if (class(mydata$date)[1] == "Date") {
 
-            dates <- as.Date(dates)
+            dates <- as_date(dates)
 
         } else {
 
@@ -424,7 +424,7 @@ one more label than date")
 ##' Friday) and \dQuote{weekend} for convenience.
 ##' @param hour An hour or hours to select from 0-23 e.g. \code{hour = 0:12} to
 ##'   select hours 0 to 12 inclusive.
-##' @importFrom lubridate dst year month hour force_tz day
+##' @importFrom lubridate dst year month hour force_tz day as_date
 ##' @export
 ##' @author David Carslaw
 ##' @keywords methods
@@ -468,17 +468,17 @@ selectByDate <- function (mydata, start = "1/1/2008",
 
         if (length(grep("/", start)) > 0 & length(grep("/", end)) > 0) {
             ## assume UK date format
-            start <- as.Date(start, "%d/%m/%Y")
-            end <- as.Date(end, "%d/%m/%Y")
+            start <- as_date(start, "%d/%m/%Y")
+            end <- as_date(end, "%d/%m/%Y")
         }
 
         if (length(grep("-", start)) > 0 & length(grep("-", end)) > 0) {
             ## assume R date format
-            start <- as.Date(start)
-            end <- as.Date(end)
+            start <- as_date(start)
+            end <- as_date(end)
         }
 
-        mydata <- subset(mydata, as.Date(date) >= start & as.Date(date) <= end)
+        mydata <- subset(mydata, as_date(date) >= start & as_date(date) <= end)
 
     }
     
@@ -1018,23 +1018,6 @@ chooseFace <- function (fontface = NULL, font = 1)
     return(rv)
 }
 
-
-Cquantile <- function(x, probs = 0.5) {
-    ## Quick (but basic) C++ quantile function
-
-    if (!is.numeric(x))
-        stop("Quantiles only work for numeric data")
-    
-    if (any(probs < 0) | any(probs > 1))
-        stop("Probabilities should be betweem 0 and 1")
-
-    if (all(is.na(x))) return(NA)
-
-    res <- Cquant(x, probs)
-    
-    return(res)
-    
-}
 
 
 

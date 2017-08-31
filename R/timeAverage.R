@@ -224,11 +224,16 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
     stop("Statistic not recognised")
   
   if (statistic == "mean") FUN <- function (x) mean(x, na.rm = TRUE)
-  if (statistic == "median") FUN <- function (x) Cquantile(x, probs = 0.50)
+  if (statistic == "median") FUN <- function (x) median(x, na.rm = TRUE)
   if (statistic == "frequency") FUN <- function (x) length(na.omit(x))
-  if (statistic == "max") FUN <- function (x) Cquantile(x, probs = 1.0)
-  if (statistic == "min") FUN <- function (x) Cquantile(x, probs = 0)
-  if (statistic == "sum") FUN <- function (x) sum(x, na.rm = TRUE)
+  if (statistic == "max") FUN <- function (x) {
+    if (all(is.na(x))) NA else max(x, na.rm = TRUE)
+  }
+  if (statistic == "min") FUN <- function (x) min(x, na.rm = TRUE)
+  if (statistic == "sum") FUN <- function (x) {
+    if (all(is.na(x))) NA else sum(x, na.rm = TRUE)
+  }
+  
   if (statistic == "sd") FUN <- function (x) sd(x, na.rm = TRUE)
   if (statistic == "data.cap") FUN <- function (x) {
     
@@ -244,7 +249,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
   }
   
   if (statistic == "percentile") FUN <- function (x)
-    Cquantile(x, probs = percentile)
+    quantile(x, probs = percentile, na.rm = TRUE)
   
   calc.mean <- function(mydata, start.date) { ## function to calculate means
     
@@ -291,7 +296,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
       
       ## make sure missing types are inserted
     #  mydata[[type]] <- mydata[[type]][1]
-      mydata[type] <- mydata[1, type]
+      mydata[type] <- mydata[type] <- mydata[1, type]
       
       padded <- TRUE
     }
@@ -359,6 +364,9 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
       ## merge with orginal data, which leaves gaps to fill
       mydata <- full_join(mydata, allData, by = "date") %>%
         arrange(date)
+      
+      ## make sure missing types are inserted
+      mydata[type] <- mydata[type] <- mydata[1, type]
       
       if (fill) {
         
