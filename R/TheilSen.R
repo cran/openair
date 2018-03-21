@@ -162,6 +162,10 @@
 ##'   automatically. The user can therefore increase or decrease the
 ##'   number of intervals by adjusting the value of \code{date.breaks}
 ##'   up or down.
+##' @param plot Should a plot be produced. \code{FALSE} can be useful when
+##'   analysing data to extract trend components and plotting them in other
+##'   ways.
+##' @param silent When \code{FALSE} the function will give updates on trend-fitting progress.
 ##' @param ... Other graphical parameters passed onto \code{cutData}
 ##'   and \code{lattice:xyplot}. For example, \code{TheilSen} passes
 ##'   the option \code{hemisphere = "southern"} on to \code{cutData}
@@ -253,7 +257,8 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE,
                      trend = list(lty = c(1, 5), lwd = c(2, 1), col = c("red", "red")),
                      text.col = "darkgreen", slope.text = NULL, cols = NULL,
                      shade = "grey95", auto.text = TRUE,
-                     autocor = FALSE, slope.percent = FALSE, date.breaks = 7, ...) {
+                     autocor = FALSE, slope.percent = FALSE, date.breaks = 7,
+                     plot = TRUE, silent = FALSE,  ...) {
 
   ## get rid of R check annoyances
   a <- b <- lower.a <- lower.b <- upper.a <- upper.b <- slope.start <- date.end <- intercept.start <- date.start <- lower.start <- intercept.lower.start <- upper.start <- intercept.upper.start <- NULL
@@ -427,7 +432,7 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE,
 
     ## now calculate trend, uncertainties etc ###########################
     if (nrow(results) < 6) return(results) ## need enough data to calculate trend
-    MKresults <- MKstats(results$date, results$conc, alpha, autocor)
+    MKresults <- MKstats(results$date, results$conc, alpha, autocor, silent = silent)
 
     ## make sure missing data are put back in for plotting
     results <- merge(all.results, MKresults, by = "date", all = TRUE)
@@ -658,13 +663,17 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE,
 
 
   ## output ##########################################################
-
-  if (length(type) == 1) {
-    plot(plt)
-  } else {
-    plot(useOuterStrips(plt, strip = strip, strip.left = strip.left))
+  
+  if (plot) {
+    
+    if (length(type) == 1) {
+      plot(plt)
+    } else {
+      plot(useOuterStrips(plt, strip = strip, strip.left = strip.left))
+    }
+    
   }
-
+  
   newdata <- list(
     main.data = split.data, res2 = res2,
     subsets = c("main.data", "res2")
@@ -711,8 +720,8 @@ panel.shade <- function(split.data, start.year, end.year, ylim,
     ))
 }
 
-MKstats <- function(x, y, alpha, autocor) {
-  estimates <- regci(as.numeric(x), y, alpha = alpha, autocor = autocor)$regci
+MKstats <- function(x, y, alpha, autocor, silent) {
+  estimates <- regci(as.numeric(x), y, alpha = alpha, autocor = autocor, pr = silent)$regci
 
   p <- estimates[2, 5]
 
