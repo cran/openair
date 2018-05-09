@@ -455,11 +455,11 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
       ## print out time interval assumed for input time series
       ## useful for debugging
       if (!padded) mydata <- date.pad(mydata, type = type)
-
-      if (avg.time != "season") mydata$date <- as.POSIXct(cut(mydata$date, avg.time), TZ)
-
+      
+      if (avg.time != "season") mydata$date <- floor_date(mydata$date, avg.time)
+      
       if (statistic == "mean") { ## faster for some reason?
-
+        
         avmet <- group_by(mydata, UQS(syms(vars))) %>%
           summarise_all(
             funs(
@@ -486,7 +486,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
 
       ## faster if do not need data capture
       if (avg.time != "season") {
-        mydata$date <- as.POSIXct(cut(mydata$date, avg.time), TZ)
+        mydata$date <- floor_date(mydata$date, avg.time)
       }
 
       avmet <- # select(mydata, -date) %>%
@@ -501,7 +501,7 @@ timeAverage <- function(mydata, avg.time = "day", data.thresh = 0,
     }
 
 
-    if ("wd" %in% names(mydata)) {
+    if ("wd" %in% names(mydata) && statistic != "data.cap") {
       if (is.numeric(mydata$wd)) {
 
         ## mean wd

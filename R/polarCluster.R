@@ -171,7 +171,7 @@ polarCluster <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", n.clust
 
   ## reset graphic parameters
   on.exit(trellis.par.set(
-    strip.background = current.strip,
+     
     fontsize = current.font
   ))
 
@@ -284,7 +284,7 @@ polarCluster <- function(mydata, pollutant = "nox", x = "ws", wd = "wd", n.clust
     mydata$cluster <- as.factor(temp[cbind(mydata$u.id, mydata$v.id)])
 
     mydata <- mydata[, c("date", "cluster", ".id")] ## just need date/cluster
-    mydata <- merge(data.orig, mydata, by = ".id")
+    mydata <- merge(data.orig, mydata, by = c(".id", "date"))
     results <- mydata
     myform <- formula("cluster ~ u * v")
   }

@@ -539,7 +539,7 @@ polarPlot <-
 
     ## reset graphic parameters
     on.exit(trellis.par.set(
-      strip.background = current.strip,
+       
       fontsize = current.font
     ))
 
@@ -700,7 +700,7 @@ polarPlot <-
           sep = ""
         )
       } else {
-        Pval <- quantile(mydata[, pollutant], probs = percentile / 100, na.rm = TRUE)
+        Pval <- quantile(mydata[[pollutant]], probs = percentile / 100, na.rm = TRUE)
 
         sub <- paste(
           "CPF at the ", percentile,
