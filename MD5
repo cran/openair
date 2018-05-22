@@ -1,9 +1,9 @@
-5d56528dd79f28daa73d202ebfaf0094 *DESCRIPTION
+e370229ddb1ae9bfec3d8d77cb625556 *DESCRIPTION
 c49e762fd46155a7ba840e09dcd3c211 *NAMESPACE
 988377b4f91fce4f0cb2fe126ce3c059 *NEWS
 30e377f2762d9c6e85d7fe1bcae29303 *R/TaylorDiagram.R
 4141f2ea22d895d03564912ee1a01a01 *R/TheilSen.R
-47b74115426836deb0ac24f340e429b5 *R/aqStats.R
+dbfc32df565c9862814cd506420bea2f *R/aqStats.R
 120e7fe475718f45d6fb470198f4c95d *R/calcFno2.R
 e6f5ddb0429622c7c8057cc613af00c6 *R/calcPercentile.R
 10341ed697a9dc26d4f67b5dfdf63a4e *R/calendarPlot.R
@@ -27,7 +27,7 @@ b01d26d40c4013b92a93907d6039df20 *R/importTraj.R
 11755cd6b5bc21cce96c4b1ff7da7a51 *R/linearRelation.R
 6aae7267118da6a11b2d3bf1654740a8 *R/modStats.R
 c5089cc2d9a09043a5b0d98e510f7522 *R/mydata.R
-add7ca13c59c3719eea112314847141f *R/openColours.R
+3e5145ce3ba672dd67a251f456063d14 *R/openColours.R
 c24b82cb924e0c3607569aa5a5cb3df8 *R/openair-package.R
 335e5a1e2e076c2d756e61b57bf72583 *R/openair.generics.R
 72be224c19462ec266ec708d666e72ac *R/percentileRose.R
@@ -61,7 +61,7 @@ c2679538b510b059a132335e857c536c *inst/CITATION
 5f751befac7420ad19c9f79b59323227 *inst/windRosePM10.png
 9f55cc2eb9edf02255fdd11ee0ca0fdc *man/TaylorDiagram.Rd
 3aff9a032c690b90d90675c8e11a870e *man/TheilSen.Rd
-067bb2c3dd5cf34e26dfd988b0a550bc *man/aqStats.Rd
+3b0968ca639fff06ff7981d2254af746 *man/aqStats.Rd
 bfba960799ab7d2e55cc74e2aa9a1d82 *man/binData.Rd
 541ece6f55cea34299d818c43973f293 *man/bootMeanDF.Rd
 3c37d2b0a1c41ada699fa06f6c043b01 *man/calcFno2.Rd
@@ -84,7 +84,7 @@ d9a66dcb24f29268d7b19c410155eba7 *man/importMeta.Rd
 581d90f354356b8cd5f0076cda8f11d9 *man/linearRelation.Rd
 860b7bfa886fe632e257bcde696fc826 *man/modStats.Rd
 3192cc4b15f77d6450feeb9ff31defd6 *man/mydata.Rd
-3b19b2d85ee1cd16e4d81cf1612af09c *man/openColours.Rd
+4e9ff8585bf1ae1e44665907aa5c6c98 *man/openColours.Rd
 27535523f9e82da0c3f550aa9d798ad5 *man/openair.Rd
 d8b1e7336cbce95e6b24a3550db8585e *man/percentileRose.Rd
 615a6ab442d6f2500e17324038de8030 *man/polarAnnulus.Rd
