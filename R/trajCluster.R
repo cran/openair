@@ -129,7 +129,21 @@ trajCluster <- function(traj, method = "Euclid", n.cluster = 5,
     method <- "distAngle"
   }
 
-
+  # remove any missing lat/lon
+  traj <- filter(traj, !is.na(lat), !is.na(lon))
+  
+  # check to see if all back trajectories are the same length
+  traj <- group_by(traj, date) %>% 
+    mutate(traj_len = length(date))
+  
+  if (length(unique(traj$traj_len)) > 1) {
+    warning("Trajectory lengths differ, using most common length.")
+    ux <- unique(traj$traj_len)
+    nmax <- ux[which.max(tabulate(match(traj$traj_len, ux)))]
+    traj <- ungroup(traj) %>% 
+      filter(traj_len == nmax)
+  }
+  
   Args <- list(...)
 
   ## set graphics
@@ -240,7 +254,7 @@ trajCluster <- function(traj, method = "Euclid", n.cluster = 5,
     vars <- c(type, "cluster")
 
     clusters <- group_by(traj, UQS(syms(vars))) %>%
-      summarise(n = n()) %>%
+      tally() %>%
       mutate(freq = round(100 * n / sum(n), 1))
 
     ## make each panel add up to 100
