@@ -1,4 +1,4 @@
-afca99cceb0ddc2d88a03c814fc403ee *DESCRIPTION
+8ca72ff835b609098e6f7aa111e68df0 *DESCRIPTION
 b2540375dde4448ba9ec3f30b9680287 *NAMESPACE
 988377b4f91fce4f0cb2fe126ce3c059 *NEWS
 30e377f2762d9c6e85d7fe1bcae29303 *R/TaylorDiagram.R
@@ -14,14 +14,14 @@ cf65080473fa836eca0cef2366f69e62 *R/conditionalQuantile.R
 fa74131c062e030fb5eba8f8b2072103 *R/cutData.R
 23d49e52824b43549306755c12bda339 *R/date.breaks.R
 b928eaf18872fcc2e0739de535c689c9 *R/drawOpenKey.R
-1fc56ec9bb7ccd46b93b1633dfd1c41a *R/getMeta.R
+78e90b6d2420156a3e8ddd8398c6f6ab *R/getMeta.R
 9cb2dec5adbcf26c1173e2bcad4f83e9 *R/import.2.R
 337518b4f9e73574c88c074e1c791ee3 *R/import.R
 380516d822c94649c72e433868ef50a4 *R/importADMS.R
 4d084dab411c288f1c1da3906f7bc946 *R/importAURN.R
 6404670038979aec6fef83edb6d79156 *R/importAURNCsv.R
 02539cbced307c3b237a8dcf2ab3066e *R/importKCL.R
-7270fc7c9b0010c955b5dffc874bd738 *R/importSAQN.R
+2c003e991cf8d20df68c09ac52615672 *R/importSAQN.R
 b01d26d40c4013b92a93907d6039df20 *R/importTraj.R
 9ede5f98d9bf1583c8151830775b4509 *R/kernelExceed.R
 11755cd6b5bc21cce96c4b1ff7da7a51 *R/linearRelation.R
@@ -53,7 +53,7 @@ b569dc69f31ca767903caeec8b80efa6 *R/trendLevel.R
 47deea47a7a950ce22c5aae54fe2657b *R/utilities.R
 c132596083f3cde45633f7e757bbe36e *R/windRose.R
 4c7d60afc0ab86ae40d849088995404e *R/zzz.R
-e254893ad2f96444477ae7f5d9832df7 *README.md
+d611171f1d22f79805bb88a782b09953 *README.md
 6f333a171d7880ea6854d0e470285da0 *data/mydata.rda
 c2679538b510b059a132335e857c536c *inst/CITATION
 5b5eb6ff78ef20072a589da2ec6bf6e6 *inst/plume.png
@@ -78,7 +78,7 @@ a2467379eb99b686539ed454bd6aba7f *man/importAURN.Rd
 6e8db0250acde5bfd3cdd1d6cbcf7b49 *man/importAURNCsv.Rd
 3ac8808c499f91d09ee56b43dfd6d600 *man/importKCL.Rd
 94c54fd21ab9a4323babd5fd4d8c5384 *man/importMeta.Rd
-3a350db2da30b7c6edd5bf3573de77a5 *man/importSAQN.Rd
+38d52597a97d3259ca26c3a57fc82a54 *man/importSAQN.Rd
 36ca26d1009f8251535d54fd6c4c3b94 *man/importTraj.Rd
 5b8aad1a11350cea739d8f83f7ba3085 *man/kernelExceed.Rd
 65bf5a86d08fe81ffa5cb9c5598b4c7a *man/linearRelation.Rd
@@ -113,5 +113,5 @@ b22bbd971113ea9d5757308e95f301b8 *src/Makevars.win
 a5a6b24cd598c0f0793bc33c555ea5a5 *src/cluster.cpp
 c9c11ce5f81613ed7e2d8577be44a87c *src/init.c
 4e5c8b3a2d257eb4aa7721013d36df65 *src/rolling.cpp
-82862a38c73f711bbc0a2301c075a28e *tools/unnamed-chunk-6-1.png
-6d56acae78c74ed20e76d86ca07d3128 *tools/unnamed-chunk-7-1.png
+5c9b4999ccc364a5b770e878f10b296c *tools/unnamed-chunk-6-1.png
+4a71988928a5dc542baaf6c30297466e *tools/unnamed-chunk-7-1.png
