@@ -604,8 +604,9 @@ panel.gam <- function(x, y, form = y ~ x, method = "loess", k = k, Args, ..., si
       ## for uncertainties
       std <- qnorm(level / 2 + 0.5)
 
-      pred <- predict(mod, data.frame(x = xseq), se = se)
+      pred <- predict(mod, data.frame(x = xseq), se = TRUE)
 
+      panel.lines(xseq, pred$fit, col = col, alpha = alpha, lty = lty, lwd = 2)
 
       results <- data.frame(
         date = xseq, pred = pred$fit,
@@ -621,10 +622,12 @@ panel.gam <- function(x, y, form = y ~ x, method = "loess", k = k, Args, ..., si
         )
         pred <- pred$fit
       }
-
-      panel.lines(xseq, pred, col = col, alpha = alpha, lty = lty, lwd = 2)
+      
     } else { ## simulations required
 
+      x <- thedata$x
+      y <- thedata$y
+      
       sam.size <- length(x)
 
       lims <- current.panel.limits()
@@ -1131,9 +1134,14 @@ binData <- function(mydata, bin = "nox", uncer = "no2", n = 40, interval = NA,
     mydata$interval <- cut(mydata[[bin]], breaks = n)
   }
 
+  # remove any missing intervals
+  id <- which(is.na(mydata$interval))
+  if (length(id) > 0)
+    mydata <- mydata[-id, ]
+  
   # calculate 95% CI in mean
   uncert <- group_by(mydata, interval) %>%
-    do(bootMeanDF(.[[uncer]]))
+    do(bootMeanDF(.[[uncer]], B = 250)) 
 
   mydata <- group_by(mydata, interval) %>%
     summarise_if(is.numeric, mean, na.rm = TRUE)
@@ -1142,3 +1150,4 @@ binData <- function(mydata, bin = "nox", uncer = "no2", n = 40, interval = NA,
 
   mydata
 }
+
