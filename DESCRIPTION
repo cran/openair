@@ -1,8 +1,8 @@
 Package: openair
 Type: Package
 Title: Tools for the Analysis of Air Pollution Data
-Version: 2.6-4
-Date: 2019-03-25
+Version: 2.6-5
+Date: 2019-04-05
 Authors@R: c(person("David", "Carslaw", role = c("aut", "cre"), email =
     "david.carslaw@york.ac.uk"), person("Karl", "Ropkins", role =
     "aut", email = "K.Ropkins@its.leeds.ac.uk"))
@@ -27,8 +27,8 @@ LazyData: yes
 Encoding: UTF-8
 RoxygenNote: 6.1.1
 NeedsCompilation: yes
-Packaged: 2019-03-28 08:43:34 UTC; David
+Packaged: 2019-04-08 13:57:29 UTC; davidcarslaw
 Author: David Carslaw [aut, cre],
   Karl Ropkins [aut]
 Repository: CRAN
-Date/Publication: 2019-03-28 09:40:03 UTC
+Date/Publication: 2019-04-08 14:30:04 UTC
