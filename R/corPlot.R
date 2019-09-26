@@ -272,9 +272,9 @@ corPlot <- function(mydata, pollutants = NULL, type = "default",
   }
 
   # main results in lists
-  results.grid <- group_by(mydata, UQS(syms(type))) %>% 
-    nest() %>% 
-    mutate(results = map(data, prepare.cond))
+   results.grid <- group_by(mydata, UQS(syms(type))) %>% 
+     group_nest() %>% 
+     mutate(results = map(data, prepare.cond))
   
   # cluster model
   clust <- results.grid %>% 
@@ -303,12 +303,12 @@ corPlot <- function(mydata, pollutants = NULL, type = "default",
   results.grid <- results.grid %>% 
     mutate(out = map(results, 1)) %>% 
     select(UQS(syms(type)), out) %>% 
-    unnest()
+    unnest(cols = c(out))
 
   div.col <- function(x) openColours(cols, x)
 
   ## labelleing of strips
-  pol.name <- sapply(levels(results.grid[, type]), function(x) quickText(x, auto.text))
+  pol.name <- sapply(levels(results.grid[[type]]), function(x) quickText(x, auto.text))
   strip <- strip.custom(factor.levels = pol.name)
   if (type == "default") strip <- FALSE
 
@@ -319,13 +319,13 @@ corPlot <- function(mydata, pollutants = NULL, type = "default",
     ## starting point code as of ManKendall
 
     wds <- c("NW", "N", "NE", "W", "E", "SW", "S", "SE")
-    results.grid[, type] <- ordered(results.grid[, type], levels = wds)
+    results.grid[[type]] <- ordered(results.grid[[type]], levels = wds)
     wd.ok <- sapply(wds, function(x) {
-      if (x %in% unique(results.grid[, type])) FALSE else TRUE
+      if (x %in% unique(results.grid[[type]])) FALSE else TRUE
     })
 
     skip <- c(wd.ok[1:4], TRUE, wd.ok[5:8])
-    results.grid[, type] <- factor(results.grid[, type])
+    results.grid[[type]] <- factor(results.grid[[type]])
     extra.args$layout <- c(3, 3)
     if (!"skip" %in% names(extra.args)) {
       extra.args$skip <- skip

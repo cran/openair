@@ -73,8 +73,13 @@
 ##'   to 2000 use \code{year = 1990:2000}. To import several specfic years use
 ##'   \code{year = c(1990, 1995, 2000)} for example.
 ##' @param pollutant Pollutants to import. If omitted will import all pollutants
-##'   ffrom a site. To import only NOx and NO2 for example use \code{pollutant =
+##'   from a site. To import only NOx and NO2 for example use \code{pollutant =
 ##'   c("nox", "no2")}.
+##' @param meta Should meta data be returned? If \code{TRUE} the site type,
+##'   latitude and longitude are returned.
+##' @param to_narrow By default the returned data has a column for each
+##'   pollutant/variable. When \code{to_narrow = TRUE} the data are stacked into
+##'   a narrow format with a column identifying the pollutant name.
 ##' @return Returns a data frame of hourly mean values with date in POSIXct
 ##'   class and time zone GMT.
 ##' @author David Carslaw and Trevor Davies (AEA)
@@ -96,7 +101,9 @@
 ##' \dontrun{all <- importSAQN(site = c("gla3", "dun3"), year = 2009)}
 ##'
 ##' 
-importSAQN <- function(site = "gla4", year = 2009, pollutant = "all") {
+importSAQN <- function(site = "gla4", year = 2009, pollutant = "all", 
+                       meta = FALSE,
+                       to_narrow = FALSE) {
   site <- toupper(site)
 
 
@@ -180,6 +187,29 @@ importSAQN <- function(site = "gla4", year = 2009, pollutant = "all") {
 
   ## make sure it is in GMT
   attr(thedata$date, "tzone") <- "GMT"
+  
+  if (meta) {
+    meta_data <- importMeta(source = "saqn")
+    # suppress warnings about factors
+    thedata <- suppressWarnings(inner_join(thedata, meta_data, by = c("code", "site")))
+  }
+  
+  if (to_narrow) {
+    
+    if (meta) {
+      
+      thedata <- pivot_longer(thedata, -c(date, site, code, latitude, longitude, site.type), 
+                              names_to = "pollutant") %>% 
+        arrange(site, code, pollutant, date)
+      
+    } else {
+      
+      thedata <- pivot_longer(thedata, -c(date, site, code), names_to = "pollutant") %>% 
+        arrange(site, code, pollutant, date)
+      
+    }
+  }
+  
 
-  thedata
+  as_tibble(thedata)
 }
