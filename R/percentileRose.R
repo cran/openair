@@ -217,7 +217,7 @@ percentileRose <- function(mydata, pollutant = "nox", wd = "wd", type = "default
   if (length(ids) > 0 & smooth != TRUE) {
     extra <- mydata[rep(1, length(ids)), ]
     extra[[wd]] <- seq(angle, 360, by = angle)[ids]
-    extra[pollutant, ] <- NA
+    extra[[pollutant]] <- NA
     mydata <- rbind(mydata, extra)
   }
 
@@ -384,8 +384,9 @@ percentileRose <- function(mydata, pollutant = "nox", wd = "wd", type = "default
         do(data.frame(V1 = quantile(.[[pollutant]], probs = percentile / 100, na.rm = TRUE)))
 
       names(percentiles)[names(percentiles) == "V1"] <- pollutant
-
-      percentiles$percentile <- percentile
+  
+      percentiles$percentile <- rep(percentile, nrow(percentiles) / length(percentile))
+     # percentiles$percentile <- percentile
     }
 
     if (tolower(method) == "cpf") {
@@ -417,7 +418,7 @@ percentileRose <- function(mydata, pollutant = "nox", wd = "wd", type = "default
       summarise_if(is.numeric, funs(mean), na.rm = TRUE)
     
     percentiles$percentile <- 999
-  
+    
     Mean <- map_df(999, mod.percentiles)
 
     if (stat == "percentile") results <- results else results <- Mean
@@ -453,7 +454,7 @@ percentileRose <- function(mydata, pollutant = "nox", wd = "wd", type = "default
   results.grid <- group_by(mydata, UQS(syms(type))) %>%
     do(prepare.grid(., stat = "percentile"))
   
-
+  
   if (method == "cpf") {
     ## useful labelling
     sub <- paste(
@@ -556,12 +557,20 @@ percentileRose <- function(mydata, pollutant = "nox", wd = "wd", type = "default
 
           if (i == 1) {
             subdata <- subset(results.grid[subscripts, ], percentile == value)
-            lpolygon(subdata$x, subdata$y, col = "white", border = NA)
+            
+            if(length(percentile) > 1)            
+              lpolygon(subdata$x, subdata$y, col = col[1], border = NA)  
+            else
+              lpolygon(subdata$x, subdata$y, col = "white", border = NA)
+            
           } else {
-           
-            subdata1 <- results.grid[subscripts, ] %>% filter(percentile == UQ(value))
+            
+            subdata1 <- results.grid[subscripts, ] %>%
+              filter(percentile == UQ(value))
+            
             value2 <- percentile[i - 1]
-            subdata2 <- results.grid[subscripts, ] %>% filter(percentile == UQ(value2))
+            subdata2 <- results.grid[subscripts, ] %>%
+              filter(percentile == UQ(value2))
 
             poly.na(
               x1 = subdata1$x, x2 = subdata2$x, y1 = subdata1$y, y2 = subdata2$y,

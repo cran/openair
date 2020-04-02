@@ -1,8 +1,8 @@
 Package: openair
 Type: Package
 Title: Tools for the Analysis of Air Pollution Data
-Version: 2.7-0
-Date: 2019-11-24
+Version: 2.7-2
+Date: 2020-04-01
 Authors@R: c(person("David", "Carslaw", role = c("aut", "cre"), email =
     "david.carslaw@york.ac.uk"), person("Karl", "Ropkins", role =
     "aut", email = "K.Ropkins@its.leeds.ac.uk"))
@@ -25,10 +25,10 @@ BugReports: https://github.com/davidcarslaw/openair/issues
 LazyLoad: yes
 LazyData: yes
 Encoding: UTF-8
-RoxygenNote: 7.0.0
+RoxygenNote: 7.1.0
 NeedsCompilation: yes
-Packaged: 2019-11-24 09:44:07 UTC; davidcarslaw
+Packaged: 2020-04-02 07:13:27 UTC; davidcarslaw
 Author: David Carslaw [aut, cre],
   Karl Ropkins [aut]
 Repository: CRAN
-Date/Publication: 2019-11-24 10:10:02 UTC
+Date/Publication: 2020-04-02 07:40:02 UTC
