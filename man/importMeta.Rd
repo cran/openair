@@ -8,8 +8,8 @@ importMeta(source = "aurn", all = FALSE)
 }
 \arguments{
 \item{source}{The data source for the meta data. Can be \dQuote{aurn},
-\dQuote{kcl}, \dQuote{saqn} (or \dQuote{aqd}), \dQuote{aqe} or
-\dQuote{europe}; upper or lower case.}
+\dQuote{saqn} (or \dQuote{saqd}), \dQuote{aqe}, \dQuote{ni}, \dQuote{kcl}
+or \dQuote{europe}; upper or lower case.}
 
 \item{all}{When \code{all = FALSE} only the site code, site name, latitude
 and longitude and site type are imported. Setting \code{all = TRUE} will
@@ -23,39 +23,46 @@ A data frame with meta data.
 Function to import meta data for air quality monitoring sites
 }
 \details{
-This function imports site meta data from four networks in the UK: the Defra
-Automatic Urban and Rural Network (AURN), King's College London networks,
-the Scottish Air Quality Network, Welsh Air Quality Network and Air Quality
-England sites. Additionally, meta data are available for Airbase/e-reporting
-sites across Europe based on the \code{saqgetr} package. The meta data
-includes site location (latitude, longitude and OS easting and northing ---
-the latter for KCL networks), site type and it's start/close data, as well
-as other information.
+This function imports site meta data from several networks in the UK and
+Europe:
 
-The Scottish and Welsh air quality networks are available as SAQN (or SAQD)
-and WAQN.
+\itemize{
 
-The meta information can usefully be combined with matching air pollution
-data and produce maps of concentration --- see examples below.
+\item \dQuote{aurn}, The UK Automatic Urban and Rural Network.
+
+\item \dQuote{saqn}, The Scottish Air Quality Network.
+
+\item \dQuote{waqn}, The Welsh Air Quality Network.
+
+\item \dQuote{ni}, The Northern Ireland Air Quality Network.
+
+\item \dQuote{aqe}, The Air Quality England Network.
+
+\item \dQuote{kcl}, King's College London networks.
+
+\item \dQuote{europe}, Import hourly European data (Airbase/e-reporting)
+based on a simplified version of the \code{saqgetr} package.
+}
+
+By default, the function will return the site latitude, longitude and site
+type. If the option \code{all = TRUE} is used, much more detailed
+information is returned. For most networks, this detailed information
+includes per-pollutant summaries, opening and closing dates of sites etc.
 
 Thanks go to Trevor Davies (Ricardo), Dr Stuart Grange (EMPA) and Dr Ben
 Barratt (KCL) and  for making these data available.
 }
 \examples{
-## import AQ data and add meta data to data frame
-\dontrun{
-aq <- importAURN(site = c("kc1", "my1"), year = 2009)
-meta <- importMeta(source = "aurn")
-aq <- merge(aq, meta, by = "site")
-}
+## basic data
 
-## aggregate first before adding meta data (useful for many sites/years)
 \dontrun{
-aq <- importAURN(site = c("kc1", "my1"), year = 2009)
 meta <- importMeta(source = "aurn")
-## calculate annual means
-annual <- timeAverage(aq, avg.time = "year", type = "site")
-annual <- merge(annual, meta, by = "site")
+
+# more detailed information:
+meta <- importMeta(source = "aurn", all = TRUE)
+
+# from the Scottish Air Quality Network
+meta <- importMeta(source = "saqn", all = TRUE)
 }
 }
 \seealso{

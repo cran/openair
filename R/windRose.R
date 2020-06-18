@@ -566,7 +566,7 @@ windRose <- function(mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
 
     ## these are all calms...
     if (all(is.na(mydata$x))) {
-      weights <- data_frame(
+      weights <- tibble(
         Interval1 = NA, wd = NA,
         calm = 100, panel.fun = NA, mean.wd = NA, freqs = NA
       )
@@ -621,8 +621,8 @@ windRose <- function(mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
       }
 
       weights <- bind_cols(
-        as_data_frame(weights),
-        data_frame(
+        as_tibble(weights),
+        tibble(
           wd = as.numeric(row.names(weights)),
           calm = calm, panel.fun = panel.fun,
           mean.wd = mean.wd, freqs = freqs
