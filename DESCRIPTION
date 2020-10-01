@@ -1,8 +1,8 @@
 Package: openair
 Type: Package
 Title: Tools for the Analysis of Air Pollution Data
-Version: 2.7-4
-Date: 2020-06-17
+Version: 2.7-6
+Date: 2020-10-01
 Authors@R: c(person("David", "Carslaw", role = c("aut", "cre"), email =
     "david.carslaw@york.ac.uk"), person("Karl", "Ropkins", role =
     "aut", email = "K.Ropkins@its.leeds.ac.uk"))
@@ -20,15 +20,15 @@ Description: Tools to analyse, interpret and understand air
     can be analysed.  Many functions can also be applied to
     other data, including meteorological and traffic data.
 License: GPL (>= 2)
-URL: http://davidcarslaw.github.io/openair/
+URL: https://davidcarslaw.github.io/openair/
 BugReports: https://github.com/davidcarslaw/openair/issues
 LazyLoad: yes
 LazyData: yes
 Encoding: UTF-8
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 NeedsCompilation: yes
-Packaged: 2020-06-17 16:42:00 UTC; davidcarslaw
+Packaged: 2020-10-01 09:54:08 UTC; davidcarslaw
 Author: David Carslaw [aut, cre],
   Karl Ropkins [aut]
 Repository: CRAN
-Date/Publication: 2020-06-18 17:40:02 UTC
+Date/Publication: 2020-10-01 10:30:02 UTC

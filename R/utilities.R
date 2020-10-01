@@ -13,7 +13,7 @@ endMonth <- function(dat) as.numeric(format(max(dat[order(dat)]), "%m"))
 ## these are pre-defined type that need a field "date"; used by cutData
 dateTypes <- c(
   "year", "hour", "month", "season", "weekday", "weekend",
-  "monthyear", "gmtbst", "bstgmt", "dst", "daylight",
+  "monthyear", "gmtbst", "bstgmt", "dst", "daylight", "week",
   "seasonyear", "yearseason"
 )
 
@@ -688,7 +688,7 @@ panel.gam <- function(x, y, form = y ~ x, method = "loess", k = k, Args, ..., si
       panel.lines(xseq, pred.input, col = col, alpha = alpha, lty = lty, lwd = 2)
     }
     results
-  }, error = function(x) return)
+  }, error = function(x) return())
 }
 
 
