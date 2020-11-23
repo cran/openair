@@ -1,5 +1,5 @@
-0530f76224908c5c241d1498616a4085 *DESCRIPTION
-79106745083d6a4b1067c9fd2285f0d5 *NAMESPACE
+490fd15462658ccc84999d7b1439a050 *DESCRIPTION
+41b82332b839f6a19a626a0b3a280a5a *NAMESPACE
 988377b4f91fce4f0cb2fe126ce3c059 *NEWS
 0538b0445e79e7f152d0b92a219d1d52 *R/RColorBrewer.R
 30e377f2762d9c6e85d7fe1bcae29303 *R/TaylorDiagram.R
@@ -38,9 +38,10 @@ ccc13998019867d50b87dae1726ba758 *R/openColours.R
 335e5a1e2e076c2d756e61b57bf72583 *R/openair.generics.R
 c275129529e585a2de145f28cee3fba7 *R/percentileRose.R
 c346f8d1b7f364c8119ed97024b7b733 *R/polarAnnulus.R
-e8468b132f86660101b172e38c8d82a7 *R/polarCluster.R
+d00788b66e57246d7ffffadf3bb4e27c *R/polarCluster.R
+3121ffc3b9a5bb167e8ae829c689db9f *R/polarDiff.R
 21492e200d86f566303c4f4f08449e75 *R/polarFreq.R
-ebd62b7f75e778405a24ca3fd52aad62 *R/polarPlot.R
+87f7bfbf23076b9295278a6d1cf0539d *R/polarPlot.R
 6a85a6aff1c446c166bcbe3767b1bc53 *R/quickText.R
 12a17d42d1664d48e461b94ee9826296 *R/samp.boot.block.R
 4e9e2dbd9c28b076118d3adc2a8d7fbd *R/scatterPlot.R
@@ -48,7 +49,7 @@ ebd62b7f75e778405a24ca3fd52aad62 *R/polarPlot.R
 11616ea2b60cfa3e5de41f9d4ecf9136 *R/senTheil.R
 2f384fe5cef74b1e04898d1306a37004 *R/smoothTrend.R
 ea3897c538898848b60c126010652013 *R/summaryPlot.R
-714cf67bb1e91b0b0758b04d7a02fe3d *R/timeAverage.R
+6f1242449378fe456bcad02c69997137 *R/timeAverage.R
 6c9420ede9f9586123590ccf6ab49c7a *R/timePlot.R
 8ed412ac4db109f776377dd112279ba0 *R/timeProp.R
 ab611b0d4ad94cf26703e3a0f2abb5c6 *R/timeVariation.R
@@ -57,8 +58,8 @@ ab611b0d4ad94cf26703e3a0f2abb5c6 *R/timeVariation.R
 cc063662da5c56d1fe8778ae98acb595 *R/trajPlot.R
 b569dc69f31ca767903caeec8b80efa6 *R/trendLevel.R
 f80c0f8267a6220f8d3a75e5986a9a30 *R/utilities.R
-93645c216e0aaa00ae23a629801e045f *R/windRose.R
-9e6eca81f2ae4ec22859992ff9461687 *R/zzz.R
+bb82118e8dc63949256a292078878222 *R/windRose.R
+592c75bd955522fc77a5c2817f3e431d *R/zzz.R
 928ef247b037fdedf673c653ace24d68 *README.md
 6f333a171d7880ea6854d0e470285da0 *data/mydata.rda
 c2679538b510b059a132335e857c536c *inst/CITATION
@@ -94,7 +95,8 @@ fb480e381d7ed90f8e6b01d725a140b4 *man/importKCL.Rd
 111edd77ed3fe3cea19aed4bcc541a22 *man/openair.Rd
 9310e81137d8247a3bfca7309bf1450b *man/percentileRose.Rd
 3ac39b40d2fe85dd5dc7235d405e7bed *man/polarAnnulus.Rd
-7312dac334e1aa1bc6042eddb6c92bb1 *man/polarCluster.Rd
+af23a9c0491c56254f180a4510825062 *man/polarCluster.Rd
+8d365b7e453ba9ce06d200a0bb4219e3 *man/polarDiff.Rd
 0a86e5eb74ac43c7bc5d6bb28fc0eb59 *man/polarFreq.Rd
 465a76dde309d823a349ff48fbf6737b *man/polarPlot.Rd
 41000f79502201bd04a473926edae3a5 *man/quickText.Rd
@@ -105,7 +107,7 @@ ea6ca149900762ba72741eaa61b19ce4 *man/scatterPlot.Rd
 aef0c61dbdbdc97aee138446bedbbd93 *man/smoothTrend.Rd
 be1b18f3ae4a6145aad0d2cd249e9f56 *man/splitByDate.Rd
 4030fc16f84bb9c00164b9b6d7a532ec *man/summaryPlot.Rd
-ea0f5183f179ed9f06f01f1cf0464e82 *man/timeAverage.Rd
+f1276b7ce0b6a782d3245e1e89905515 *man/timeAverage.Rd
 fbd8f37937902263276b1241b81486a7 *man/timePlot.Rd
 d634994ed172493264723ac776927c46 *man/timeProp.Rd
 0ff718b4b13ac0cbe517f1e6aab93eec *man/timeVariation.Rd
