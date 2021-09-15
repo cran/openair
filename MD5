@@ -1,4 +1,4 @@
-242c286d30a8f681f5cb3a1bd6ffddb2 *DESCRIPTION
+cebe6ef235f67e9d9f684beb9e4a3148 *DESCRIPTION
 50cab243d6ee60d9141b22b565deec70 *NAMESPACE
 988377b4f91fce4f0cb2fe126ce3c059 *NEWS
 0538b0445e79e7f152d0b92a219d1d52 *R/RColorBrewer.R
@@ -48,7 +48,7 @@ c346f8d1b7f364c8119ed97024b7b733 *R/polarAnnulus.R
 6169097d76191c5693442e385193c437 *R/selectRunning.R
 11616ea2b60cfa3e5de41f9d4ecf9136 *R/senTheil.R
 2f384fe5cef74b1e04898d1306a37004 *R/smoothTrend.R
-ea3897c538898848b60c126010652013 *R/summaryPlot.R
+da13cb1c5deffe42281e7254ac3d0e3f *R/summaryPlot.R
 9b2f5b0e55ad42c1cefd9748c0e63d7d *R/timeAverage.R
 6c9420ede9f9586123590ccf6ab49c7a *R/timePlot.R
 8ed412ac4db109f776377dd112279ba0 *R/timeProp.R
@@ -106,7 +106,7 @@ ea6ca149900762ba72741eaa61b19ce4 *man/scatterPlot.Rd
 3f8f03591fa891684ff59822265732c7 *man/selectRunning.Rd
 aef0c61dbdbdc97aee138446bedbbd93 *man/smoothTrend.Rd
 be1b18f3ae4a6145aad0d2cd249e9f56 *man/splitByDate.Rd
-4030fc16f84bb9c00164b9b6d7a532ec *man/summaryPlot.Rd
+5c6825ad709f7bf9b67e9016e2ddeeb9 *man/summaryPlot.Rd
 f1276b7ce0b6a782d3245e1e89905515 *man/timeAverage.Rd
 fbd8f37937902263276b1241b81486a7 *man/timePlot.Rd
 d634994ed172493264723ac776927c46 *man/timeProp.Rd
