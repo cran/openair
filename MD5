@@ -1,4 +1,4 @@
-cebe6ef235f67e9d9f684beb9e4a3148 *DESCRIPTION
+6e2f5c02180fbc840708332f27736f90 *DESCRIPTION
 50cab243d6ee60d9141b22b565deec70 *NAMESPACE
 988377b4f91fce4f0cb2fe126ce3c059 *NEWS
 0538b0445e79e7f152d0b92a219d1d52 *R/RColorBrewer.R
@@ -41,11 +41,11 @@ c346f8d1b7f364c8119ed97024b7b733 *R/polarAnnulus.R
 288b2b8a1fbd879f9a5ece438064b023 *R/polarCluster.R
 3121ffc3b9a5bb167e8ae829c689db9f *R/polarDiff.R
 21492e200d86f566303c4f4f08449e75 *R/polarFreq.R
-87f7bfbf23076b9295278a6d1cf0539d *R/polarPlot.R
+fb76fae4c3bd0d1dbbc6fc7f4cf1c6db *R/polarPlot.R
 6a85a6aff1c446c166bcbe3767b1bc53 *R/quickText.R
 12a17d42d1664d48e461b94ee9826296 *R/samp.boot.block.R
 4e9e2dbd9c28b076118d3adc2a8d7fbd *R/scatterPlot.R
-6169097d76191c5693442e385193c437 *R/selectRunning.R
+635f28410509c0d5addc926c85097cb8 *R/selectRunning.R
 11616ea2b60cfa3e5de41f9d4ecf9136 *R/senTheil.R
 2f384fe5cef74b1e04898d1306a37004 *R/smoothTrend.R
 da13cb1c5deffe42281e7254ac3d0e3f *R/summaryPlot.R
@@ -58,8 +58,8 @@ da13cb1c5deffe42281e7254ac3d0e3f *R/summaryPlot.R
 cc063662da5c56d1fe8778ae98acb595 *R/trajPlot.R
 b569dc69f31ca767903caeec8b80efa6 *R/trendLevel.R
 24b2299a79c13857bd7e9e693a0ba98a *R/utilities.R
-dc89631cb28d7394782c47fe87519c55 *R/windRose.R
-592c75bd955522fc77a5c2817f3e431d *R/zzz.R
+9814d8491b51cbd87343c6e84b1d95d6 *R/windRose.R
+8272428bf68c075d60967035a84dbb85 *R/zzz.R
 7d62ee8b97321aced1f0dca32c67fe8a *README.md
 6f333a171d7880ea6854d0e470285da0 *data/mydata.rda
 c2679538b510b059a132335e857c536c *inst/CITATION
@@ -103,7 +103,7 @@ af23a9c0491c56254f180a4510825062 *man/polarCluster.Rd
 270f69263b6d1af21954b3870f585b46 *man/rollingMean.Rd
 ea6ca149900762ba72741eaa61b19ce4 *man/scatterPlot.Rd
 811143731772d460407c9ea9980129c0 *man/selectByDate.Rd
-3f8f03591fa891684ff59822265732c7 *man/selectRunning.Rd
+d75b967bdd85616713ff1632029e53e1 *man/selectRunning.Rd
 aef0c61dbdbdc97aee138446bedbbd93 *man/smoothTrend.Rd
 be1b18f3ae4a6145aad0d2cd249e9f56 *man/splitByDate.Rd
 5c6825ad709f7bf9b67e9016e2ddeeb9 *man/summaryPlot.Rd
