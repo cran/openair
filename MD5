@@ -1,4 +1,4 @@
-6e2f5c02180fbc840708332f27736f90 *DESCRIPTION
+98c2239c53c73dd09c989bcf416a0872 *DESCRIPTION
 50cab243d6ee60d9141b22b565deec70 *NAMESPACE
 988377b4f91fce4f0cb2fe126ce3c059 *NEWS
 0538b0445e79e7f152d0b92a219d1d52 *R/RColorBrewer.R
@@ -7,12 +7,12 @@
 10265ebb2e84e91ab5f14f6021e162d3 *R/aqStats.R
 a9cfa05648ead6953d079e061d7e8984 *R/calcFno2.R
 f2d54295e624d901ab4e0844a625a6f6 *R/calcPercentile.R
-9bea99415b3b66d28b5519001c903ac3 *R/calendarPlot.R
+801b65a51d99e841017a64f639a6ddef *R/calendarPlot.R
 bc2a586fe143ae51a1c35369aab5eca3 *R/checkPrep.R
 bee87fc4f0062a651491f0aca6e7d63f *R/conditionalEval.R
 7253b6387647ff930500bc9f8014fff8 *R/conditionalQuantile.R
 9db2c5e7acf62345e431dfe8846e9aec *R/corPlot.R
-7cc143d41e6b111641fb02f601dd03a0 *R/cutData.R
+ef22ef430f30540b691e6aca7bbac4f5 *R/cutData.R
 23d49e52824b43549306755c12bda339 *R/date.breaks.R
 b928eaf18872fcc2e0739de535c689c9 *R/drawOpenKey.R
 dba7d682dfce6bd954fc140450b905e2 *R/getMeta.R
@@ -20,14 +20,14 @@ dba7d682dfce6bd954fc140450b905e2 *R/getMeta.R
 337518b4f9e73574c88c074e1c791ee3 *R/import.R
 380516d822c94649c72e433868ef50a4 *R/importADMS.R
 4ca6084bb776a5d9fdfa3a42b329e3fa *R/importAQE.R
-ccf0285f6cd61871dda72e7cc1249f50 *R/importAURN.R
+d8030d9ac48c848060e613fa8cbbca25 *R/importAURN.R
 6404670038979aec6fef83edb6d79156 *R/importAURNCsv.R
 5f86e426e3707ec4ad73166e2c08cdc9 *R/importEUR.R
 a790ff35d1ffc70804a2158ebcbcaa67 *R/importKCL.R
 15985edd2eb003ae2023a9906e62529d *R/importNI.R
 61e34b49bba2e066dacadc28748722ae *R/importSAQN.R
 b1d9e69c3cabf1f89fc9190e1818d4be *R/importTraj.R
-fb9f25351423acc7a2cc2c5934592f60 *R/importUKAQ.R
+b3be3d88c20527a57e7b7cd477b83bbd *R/importUKAQ.R
 9016c9504279651b37dc050d606f56ac *R/importWAQN.R
 9ede5f98d9bf1583c8151830775b4509 *R/kernelExceed.R
 5fb23de7bf4dff9a7f257ec9a587c9fd *R/linearRelation.R
@@ -59,7 +59,7 @@ cc063662da5c56d1fe8778ae98acb595 *R/trajPlot.R
 b569dc69f31ca767903caeec8b80efa6 *R/trendLevel.R
 24b2299a79c13857bd7e9e693a0ba98a *R/utilities.R
 9814d8491b51cbd87343c6e84b1d95d6 *R/windRose.R
-8272428bf68c075d60967035a84dbb85 *R/zzz.R
+95d63e18b15679ecbaddf07b6106ddd2 *R/zzz.R
 7d62ee8b97321aced1f0dca32c67fe8a *README.md
 6f333a171d7880ea6854d0e470285da0 *data/mydata.rda
 c2679538b510b059a132335e857c536c *inst/CITATION
@@ -81,7 +81,7 @@ ff0e5841a251ca53919bf9078a4e18ff *man/calcFno2.Rd
 3c9f4ff507f46392a8d58f588d523992 *man/drawOpenKey.Rd
 d34eae83fee2989b125eaf3488df0b19 *man/import.Rd
 99f4485e3cf41131d7eb9b1e29dcc930 *man/importADMS.Rd
-60a7ba49f5f4ac8a22ffae111be1e518 *man/importAURN.Rd
+3900fd01ee78594040a506904f5afaf6 *man/importAURN.Rd
 68433cbe9f17c70474dce37d90ed34dc *man/importAURNCsv.Rd
 4b3cd85dbff91bde615755a13cecf80f *man/importEurope.Rd
 fb480e381d7ed90f8e6b01d725a140b4 *man/importKCL.Rd
