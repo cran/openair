@@ -18,7 +18,7 @@ importUKAQ <- function(site = "my1", year = 2009, data_type = "hourly",
   if (source == "saqn") {
     
     url_data <- "http://www.scottishairquality.scot/openair/R_data/"
-    source_meta <- "aurn"
+    source_meta <- "saqn"
     
   } 
   
@@ -49,16 +49,10 @@ importUKAQ <- function(site = "my1", year = 2009, data_type = "hourly",
   
   if (meta | ratified)
     meta_data <- importMeta(source = source_meta, all = TRUE)
-  
-  # Create file name vector
-  if (data_type %in% c("annual", "monthly")) {
-    
-  } else {
+
   
   files <- map(site, ~ paste0(.x, "_", year)) %>% 
     flatten_chr()
-  
-  }
   
   # Download and load data. 
     

@@ -12,6 +12,7 @@
 importAQE(
   site = "yk13",
   year = 2018,
+  data_type = "hourly",
   pollutant = "all",
   meta = FALSE,
   ratified = FALSE,
@@ -33,6 +34,7 @@ importAURN(
 importNI(
   site = "bel0",
   year = 2018,
+  data_type = "hourly",
   pollutant = "all",
   meta = FALSE,
   ratified = FALSE,
@@ -42,6 +44,7 @@ importNI(
 importSAQN(
   site = "gla4",
   year = 2009,
+  data_type = "hourly",
   pollutant = "all",
   meta = FALSE,
   ratified = FALSE,
@@ -51,6 +54,7 @@ importSAQN(
 importWAQN(
   site = "card",
   year = 2018,
+  data_type = "hourly",
   pollutant = "all",
   meta = FALSE,
   ratified = FALSE,
@@ -66,6 +70,16 @@ Road. Several sites can be imported with \code{site = c("my1", "nott")}
 to 2000 use \code{year = 1990:2000}. To import several specific years use
 \code{year = c(1990, 1995, 2000)} for example.}
 
+\item{data_type}{The data type averaging period. These include:
+  
+ \itemize{
+ \item{"hourly"}{ Default is to return hourly data.}
+ \item{"daily"}{ Daily average data.}
+ \item{"monthly"}{ Monthly average data with data capture information for the whole network.}
+ \item{"annual"}{ Annual average data with data capture information for the whole network.}
+ \item{"15min"}{ To import 15-minute average SO2 concentrations.}
+}}
+
 \item{pollutant}{Pollutants to import. If omitted will import all pollutants
 from a site. To import only NOx and NO2 for example use \code{pollutant =
 c("nox", "no2")}.}
@@ -74,22 +88,11 @@ c("nox", "no2")}.}
 latitude and longitude are returned.}
 
 \item{ratified}{If \code{TRUE} columns are returned indicating when each
-species was ratified i.e. quality-checked.}
+species was ratified i.e. quality-checked. Available for hourly data only.}
 
 \item{to_narrow}{By default the returned data has a column for each
 pollutant/variable. When \code{to_narrow = TRUE} the data are stacked into
 a narrow format with a column identifying the pollutant name.}
-
-\item{data_type}{For Data from the UK AURN, many different sources of data
-  are available. These include:
-  
- \itemize{
- \item{"hourly"}{ Default is to return hourly data.}
- \item{"daily"}{ Daily average data.}
- \item{"monthly"}{ Monthly average data with data capture information.}
- \item{"annual"}{ Annual average data with data capture information.}
- \item{"15min"}{ To import 15-minute average SO2 concentrations.}
-}}
 
 \item{hc}{A few sites have hydrocarbon measurements available and setting
 \code{hc = TRUE} will ensure hydrocarbon data are imported. The default is
@@ -105,7 +108,7 @@ Returns a data frame of hourly mean values with date in POSIXct
   class and time zone GMT.
 }
 \description{
-Functions for importing hourly mean air pollution data from a range of UK
+Functions for importing air pollution data from a range of UK
 networks including the Automatic Urban and Rural Network. Files are imported
 from a remote server operated by Ricardo that provides air quality data
 files as R data objects.
@@ -133,8 +136,11 @@ site name is imported and used in \code{openair} functions.
 
 The data are imported by stacking sites on top of one another and will have
 field names \code{site}, \code{code} (the site code) and \code{pollutant}.
-Sometimes it is useful to have columns of site data. This can be done using
-the \code{reshape} function --- see examples below.
+
+By default, the function returns hourly average data. However, annual, 
+monthly, daily and 15 minute data (for SO2) can be returned using the option \code{data_type}.
+Annual and monthly data provide whole network information including data capture
+statistics.
 
 All units are expressed in mass terms for gaseous species (ug/m3 for NO,
 NO2, NOx (as NO2), SO2 and hydrocarbons; and mg/m3 for CO). PM10
@@ -155,7 +161,7 @@ direction (\code{wd}) and ambient temperature (\code{air_temp}) if available
 (generally from around 2010). These values are modelled using the WRF model
 operated by Ricardo.
 
-The few BAM (Beta-Attenuation Monitor) instruments that have been
+The BAM (Beta-Attenuation Monitor) instruments that have been
 incorporated into the network throughout its history have been scaled by 1.3
 if they have a heated inlet (to account for loss of volatile particles) and
 0.83 if they do not have a heated inlet. The few TEOM instruments in the
@@ -190,7 +196,11 @@ FDMS PM2.5 (where available) is shown in the 'v2.5' column.
 \dontrun{thedata <- importAURN(site = c("my1", "nott"), year = 2000,
 pollutant = c("nox", "no2", "o3"))}
 
-# Other functions work in the same way e.g. to import Cardiff Centre data:
+# Other functions work in the same way e.g. to import Cardiff Centre data
+
+# Import annual data over a period, make it narrow format and return site information
+
+aq <- importAURN(year = 2010:2020, data_type = "annual", meta = TRUE, to_narrow = TRUE)
 
 \dontrun{cardiff <- importWAQN(site = "card", year = 2020)}
 }

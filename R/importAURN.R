@@ -1,6 +1,6 @@
 ##' Import data from the UK Air Pollution Networks
 ##'
-##' Functions for importing hourly mean air pollution data from a range of UK
+##' Functions for importing air pollution data from a range of UK
 ##' networks including the Automatic Urban and Rural Network. Files are imported
 ##' from a remote server operated by Ricardo that provides air quality data
 ##' files as R data objects.
@@ -27,8 +27,11 @@
 ##'
 ##' The data are imported by stacking sites on top of one another and will have
 ##' field names \code{site}, \code{code} (the site code) and \code{pollutant}.
-##' Sometimes it is useful to have columns of site data. This can be done using
-##' the \code{reshape} function --- see examples below.
+##' 
+##' By default, the function returns hourly average data. However, annual, 
+##' monthly, daily and 15 minute data (for SO2) can be returned using the option \code{data_type}.
+##' Annual and monthly data provide whole network information including data capture
+##' statistics.
 ##'
 ##' All units are expressed in mass terms for gaseous species (ug/m3 for NO,
 ##' NO2, NOx (as NO2), SO2 and hydrocarbons; and mg/m3 for CO). PM10
@@ -49,7 +52,7 @@
 ##' (generally from around 2010). These values are modelled using the WRF model
 ##' operated by Ricardo.
 ##'
-##' The few BAM (Beta-Attenuation Monitor) instruments that have been
+##' The BAM (Beta-Attenuation Monitor) instruments that have been
 ##' incorporated into the network throughout its history have been scaled by 1.3
 ##' if they have a heated inlet (to account for loss of volatile particles) and
 ##' 0.83 if they do not have a heated inlet. The few TEOM instruments in the
@@ -70,14 +73,13 @@
 ##' @param year Year or years to import. To import a sequence of years from 1990
 ##'   to 2000 use \code{year = 1990:2000}. To import several specific years use
 ##'   \code{year = c(1990, 1995, 2000)} for example.
-##' @param data_type For Data from the UK AURN, many different sources of data
-##'   are available. These include:
+##' @param data_type The data type averaging period. These include:
 ##'   
 ##'  \itemize{
 ##'  \item{"hourly"}{ Default is to return hourly data.}
 ##'  \item{"daily"}{ Daily average data.}
-##'  \item{"monthly"}{ Monthly average data with data capture information.}
-##'  \item{"annual"}{ Annual average data with data capture information.}
+##'  \item{"monthly"}{ Monthly average data with data capture information for the whole network.}
+##'  \item{"annual"}{ Annual average data with data capture information for the whole network.}
 ##'  \item{"15min"}{ To import 15-minute average SO2 concentrations.}
 ##
 ##' }
@@ -92,7 +94,7 @@
 ##' @param meta Should meta data be returned? If \code{TRUE} the site type,
 ##'   latitude and longitude are returned.
 ##' @param ratified If \code{TRUE} columns are returned indicating when each
-##'   species was ratified i.e. quality-checked.
+##'   species was ratified i.e. quality-checked. Available for hourly data only.
 ##' @param to_narrow By default the returned data has a column for each
 ##'   pollutant/variable. When \code{to_narrow = TRUE} the data are stacked into
 ##'   a narrow format with a column identifying the pollutant name.
@@ -116,7 +118,11 @@
 ##' \dontrun{thedata <- importAURN(site = c("my1", "nott"), year = 2000,
 ##' pollutant = c("nox", "no2", "o3"))}
 ##'
-##' # Other functions work in the same way e.g. to import Cardiff Centre data:
+##' # Other functions work in the same way e.g. to import Cardiff Centre data
+##' 
+##' # Import annual data over a period, make it narrow format and return site information
+##' 
+##' aq <- importAURN(year = 2010:2020, data_type = "annual", meta = TRUE, to_narrow = TRUE)
 ##'
 ##' \dontrun{cardiff <- importWAQN(site = "card", year = 2020)}
 importAURN <- function(site = "my1", year = 2009, 
@@ -138,7 +144,22 @@ importAURN <- function(site = "my1", year = 2009,
                     data_type, "_AURN_", year, ".rds")
     
    
-    aq_data <- map_df(files, readSummaryAURN, data_type = data_type, to_narrow = to_narrow)
+    aq_data <- map_df(files, readSummaryData, 
+                      data_type = data_type, 
+                      to_narrow = to_narrow,
+                      meta = meta)
+    
+    # add meta data?
+    if (meta) {
+      
+      meta_data <- importMeta(source = "aurn")
+      
+      meta_data <- distinct(meta_data, site, .keep_all = TRUE) %>% 
+        select(site, code, latitude, longitude, site_type)
+      # suppress warnings about factors
+      aq_data <- left_join(aq_data, meta_data, by = c("code", "site"))
+      
+    }
     
     
   } else {
@@ -152,14 +173,14 @@ importAURN <- function(site = "my1", year = 2009,
   
   }
   
-  return(aq_data)
+  return(as_tibble(aq_data))
   
 
 }
 
 # function to read annual or monthly files
 
-readSummaryAURN <- function(fileName, data_type, to_narrow) {
+readSummaryData <- function(fileName, data_type, to_narrow, meta) {
   
  
   thedata <- try(readRDS(url(fileName)), TRUE)
@@ -181,29 +202,34 @@ readSummaryAURN <- function(fileName, data_type, to_narrow) {
   
   if (data_type == "annual") {
     
-    thedata <- rename(thedata, date = year)
-    thedata <- mutate(thedata, date = ymd(paste0(date, "01-01"), tz = "UTC"))
+    thedata <- rename(thedata, date = year) %>% 
+      drop_na(date) %>% 
+      mutate(date = ymd(paste0(date, "-01-01"), tz = "UTC"))
     
   }
   
   if (to_narrow) {
     
-    values <- select(thedata, !contains("capture"))
-    capture <- select(thedata, contains("capture") | date:site)
+    # make sure numbers are numbers
+    values <- select(thedata, !contains("capture")) %>% 
+      select(!matches("uka_code")) 
     
-    values <- pivot_longer(values, -c(date, uka_code, code, site), 
+    capture <- select(thedata, contains("capture") | date:site) %>% 
+      select(!matches("uka_code"))
+    
+    values <- pivot_longer(values, -c(date, code, site), 
                            values_to = "value", names_to = "species")
     
-    capture <- pivot_longer(capture, -c(date, uka_code, code, site), 
+    capture <- pivot_longer(capture, -c(date, code, site), 
                             values_to = "data_capture", names_to = "species")
     
     capture$species <- gsub("_capture", "", capture$species)
     
     thedata <- left_join(values, capture, 
-                         by = c("date", "uka_code", "code", "site", "species"))
+                         by = c("date", "code", "site", "species"))
     
   }
-    
+  
     
   return(thedata)
 }

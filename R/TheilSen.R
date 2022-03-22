@@ -37,7 +37,7 @@
 ##' ***, p $<$ 0.01 = **, p $<$ 0.05 = * and p $<$ 0.1 = $+$.
 ##'
 ##' Some of the code used in \code{TheilSen} is based on that from
-##' Rand Wilcox \url{https://dornsife.usc.edu/labs/rwilcox/software/}. This mostly
+##' Rand Wilcox. This mostly
 ##' relates to the Theil-Sen slope estimates and uncertainties.
 ##' Further modifications have been made to take account of correlated
 ##' data based on Kunsch (1989). The basic function has been adapted
@@ -526,7 +526,7 @@ TheilSen <- function(mydata, pollutant = "nox", deseason = FALSE,
   vars <- c(type, "p.stars")
 
   res2 <- group_by(split.data, UQS(syms(vars))) %>%
-    summarise_all(funs(mean(., na.rm = TRUE)))
+    summarise(across(everything(), ~ mean(.x, na.rm = TRUE)))
 
   ## calculate percentage changes in slope and uncertainties need
   ## start and end dates (in days) to work out concentrations at those
