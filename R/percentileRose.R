@@ -239,7 +239,7 @@ percentileRose <- function(mydata, pollutant = "nox", wd = "wd", type = "default
     }
     ## use pollutants as conditioning variables
   
-    mydata <- gather(mydata, key = variable, value = value, UQS(syms(pollutant)))
+    mydata <- gather(mydata, key = variable, value = value, pollutant)
     ## now set pollutant to "value"
     pollutant <- "value"
     if (type == "default") {
@@ -438,20 +438,21 @@ percentileRose <- function(mydata, pollutant = "nox", wd = "wd", type = "default
     mydata <- mydata %>%
       group_by(variable) %>%
       mutate(
-      lower = quantile(UQ(sym(pollutant)), probs = min(UQ(percentile)) / 100, na.rm = TRUE),
-      upper = quantile(UQ(sym(pollutant)), probs = max(UQ(percentile)) / 100, na.rm = TRUE)
+      lower = quantile(.data[[pollutant]], probs = min(percentile) / 100, na.rm = TRUE),
+      upper = quantile(.data[[pollutant]], probs = max(percentile) / 100, na.rm = TRUE)
     ) %>%
       ungroup()
     
   } else {
     mydata <- mutate(
       mydata,
-      lower = quantile(UQ(sym(pollutant)), probs = min(UQ(percentile)) / 100, na.rm = TRUE),
-      upper = quantile(UQ(sym(pollutant)), probs = max(UQ(percentile)) / 100, na.rm = TRUE)
+      lower = quantile(.data[[pollutant]], probs = min(percentile) / 100, na.rm = TRUE),
+      upper = quantile(.data[[pollutant]], probs = max(percentile) / 100, na.rm = TRUE)
     )
   }
   
-  results.grid <- group_by(mydata, UQS(syms(type))) %>%
+  results.grid <- mydata %>% 
+    group_by(across(type)) %>%
     do(prepare.grid(., stat = "percentile"))
   
   
@@ -471,7 +472,8 @@ percentileRose <- function(mydata, pollutant = "nox", wd = "wd", type = "default
 
 
   if (mean) {
-    Mean <- group_by(mydata, UQS(syms(type))) %>%
+    Mean <- mydata %>% 
+      group_by(across(type)) %>%
       do(prepare.grid(., stat = "mean"))
 
     results.grid <- bind_rows(results.grid, Mean)
@@ -566,11 +568,11 @@ percentileRose <- function(mydata, pollutant = "nox", wd = "wd", type = "default
           } else {
             
             subdata1 <- results.grid[subscripts, ] %>%
-              filter(percentile == UQ(value))
+              filter(percentile == {{ value }})
             
             value2 <- percentile[i - 1]
             subdata2 <- results.grid[subscripts, ] %>%
-              filter(percentile == UQ(value2))
+              filter(percentile == {{ value2 }})
 
             poly.na(
               x1 = subdata1$x, x2 = subdata2$x, y1 = subdata1$y, y2 = subdata2$y,
