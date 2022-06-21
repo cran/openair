@@ -1419,7 +1419,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
     col.scale <- breaks
 
     ## this is the default
-    if (trajStat %in% c("cwt", "pscf", "mean", "frequency")) {
+    if (trajStat %in% c("cwt", "pscf", "mean", "frequency", "sqtba")) {
       legend <- list(
         col = col, at = breaks, labels = list(labels = labs),
         space = key.position,
@@ -1504,7 +1504,7 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
         ## add mark for receptor location
         if (Args$origin) {
           lpoints(
-            Args$receptor[1], Args$receptor[2],
+            Args$receptor[["x"]], Args$receptor[["y"]],
             pch = 16,
             cex = 1.5, col = "black"
           )
@@ -1675,10 +1675,10 @@ scatterPlot <- function(mydata, x = "nox", y = "no2", z = NA, method = "scatter"
 
 add.map <- function(Args, ...) {
   if (Args$map.res == "default") {
-    try_require("maps", "scatterPlot")
+    #try_require("maps", "scatterPlot")
     res <- "world"
   } else {
-    try_require("mapdata", "scatterPlot")
+  #  try_require("mapdata", "scatterPlot")
     res <- "worldHires"
   }
 

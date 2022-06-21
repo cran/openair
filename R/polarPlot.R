@@ -152,14 +152,16 @@
 #'   than relying on the potentially small number of values in a wind
 #'   speed-direction interval.
 #'
-#'   \item \code{"robust.slope"} is another option for pair-wise statisitics and
+#'   \item \code{"robust_slope"} is another option for pair-wise statistics and
 #'   \code{"quantile.slope"}, which uses quantile regression to estimate the
 #'   slope for a particular quantile level (see also \code{tau} for setting the
-#'   quantile level). }
+#'   quantile level). 
 #'
-#' @param resolution Two plot resolutions can be set: \dQuote{normal} and
-#'   \dQuote{fine} (the default), for a smoother plot. It should be noted that
-#'   plots with a \dQuote{fine} resolution can take longer to render.
+#'   \item \code{"york_slope"} is another option for pair-wise statistics which
+#'   uses the \emph{York regression method} to estimate the slope. In this
+#'   method the uncertainties in \code{x} and \code{y} are used in the
+#'   determination of the slope. The uncertainties are provided by
+#'   \code{x_error} and \code{y_error} --- see below.}
 #'
 #' @param limits The function does its best to choose sensible limits
 #'   automatically. However, there are circumstances when the user will wish to
@@ -313,9 +315,14 @@
 #'   statistics are used such as \emph{r}. Default is \code{0.5}.
 #'
 #' @param wd_spread The value of sigma used for Gaussian kernel weighting of
-#'   wind direction when \code{statistic = "nwr"} or when correlation and regression
-#'   statistics are used such as \emph{r}. Default is
-#'   \code{4}.
+#'   wind direction when \code{statistic = "nwr"} or when correlation and
+#'   regression statistics are used such as \emph{r}. Default is \code{4}.
+#'
+#' @param x_error The \code{x} error / uncertainty used when \code{statistic =
+#'   "york_slope"}.
+#'
+#' @param y_error The \code{y} error / uncertainty used when \code{statistic =
+#'   "york_slope"}.
 #'
 #' @param kernel Type of kernel used for the weighting procedure for when
 #'   correlation or regression techniques are used. Only \code{"gaussian"} is
@@ -441,13 +448,14 @@
 #' @export
 polarPlot <-
   function(mydata, pollutant = "nox", x = "ws", wd = "wd",
-           type = "default", statistic = "mean", resolution = "fine",
+           type = "default", statistic = "mean", 
            limits = NA, exclude.missing = TRUE, uncertainty = FALSE,
            percentile = NA, cols = "default", weights = c(0.25, 0.5, 0.75),
            min.bin = 1, mis.col = "grey", alpha = 1, upper = NA, angle.scale = 315,
            units = x, force.positive = TRUE, k = 100, normalise = FALSE,
            key.header = "", key.footer = pollutant, key.position = "right",
-           key = TRUE, auto.text = TRUE, ws_spread = 0.5, wd_spread = 4,
+           key = TRUE, auto.text = TRUE, ws_spread = 1.5, wd_spread = 5,
+           x_error = NA, y_error = NA,
            kernel = "gaussian", tau = 0.5, ...) {
 
     ## get rid of R check annoyances
@@ -469,8 +477,8 @@ polarPlot <-
     # Build vector for many checks
     correlation_stats <- c(
       "r", "slope", "intercept", "robust_slope",
-      "robust_intercept", "quantile_slope",
-      "quantile_intercept", "Pearson", "Spearman", "trend"
+      "robust_intercept", "quantile_slope", 
+      "quantile_intercept", "Pearson", "Spearman", "york_slope", "trend"
     )
 
     if (statistic %in% correlation_stats && length(pollutant) != 2) {
@@ -495,7 +503,7 @@ polarPlot <-
     }
 
     if (!statistic %in% c(
-      "mean", "median", "frequency", "max", "stdev",
+      "mean", "median", "frequency", "max", "stdev", "trend",
       "weighted_mean", "percentile", "cpf", "nwr", correlation_stats
     )) {
       stop(paste0("statistic '", statistic, "' not recognised."), call. = FALSE)
@@ -551,6 +559,13 @@ polarPlot <-
     if ("fontsize" %in% names(extra.args)) {
       trellis.par.set(fontsize = list(text = extra.args$fontsize))
     }
+    
+    # if clustering, return lower resolution plot
+    extra.args$cluster <- if ("cluster" %in% names(extra.args)) {
+      TRUE
+    } else {
+      FALSE
+    }
 
     ## layout default
     if (!"layout" %in% names(extra.args)) {
@@ -559,6 +574,9 @@ polarPlot <-
 
     ## extract variables of interest
     vars <- c(wd, x, pollutant)
+    
+    if (statistic == "york_slope")
+      vars <- c(vars, x_error, y_error)
 
     if (any(type %in% dateTypes)) vars <- c(vars, "date")
 
@@ -622,10 +640,10 @@ polarPlot <-
       clip <- FALSE
     }
 
-    ## for resolution of grid plotting (default = 101; fine =201)
-    if (resolution == "normal") int <- 101
-    if (resolution == "fine") int <- 201
-    if (resolution == "ultra.fine") int <- 401 ## very large files!
+    # resolution deprecated, int is resolution of GAM surface predictions over int * int grid
+    # 51 works well with bilinear interpolation of results
+    
+    int <- 51
 
     ## binning wd data properly
     ## use 10 degree binning of wd if already binned, else 5
@@ -716,7 +734,7 @@ polarPlot <-
         include.lowest = TRUE
       )
 
-      if (!statistic %in% c(correlation_stats, "nwr")) {
+      if (!statistic %in% c(correlation_stats, "nwr", "trend")) {
         binned <- switch(
           statistic,
           frequency = tapply(mydata[[pollutant]], list(wd, x), function(x) {
@@ -764,8 +782,9 @@ polarPlot <-
         binned <- as.vector(t(binned))
       } else if (toupper(statistic) == "NWR") {
         binned <- rowwise(ws.wd) %>%
-          do(simple_kernel(
-            ., mydata,
+          summarise(simple_kernel(
+            across(),
+            mydata,
             x = nam.x, y = nam.wd, pollutant = pollutant,
             ws_spread = ws_spread, wd_spread = wd_spread, kernel
           ))
@@ -774,8 +793,9 @@ polarPlot <-
         
       } else if (toupper(statistic) == "TREND") {
         binned <- rowwise(ws.wd) %>%
-          do(simple_kernel_trend(
-            ., mydata,
+          summarise(simple_kernel_trend(
+            across(),
+            mydata,
             x = nam.x, y = nam.wd, pollutant = pollutant, "date",
             ws_spread = ws_spread, wd_spread = wd_spread, kernel,
             tau = tau
@@ -784,12 +804,15 @@ polarPlot <-
         binned <- binned$conc  
         
       } else {
+        
         binned <- rowwise(ws.wd) %>%
-          do(calculate_weighted_statistics(
-            ., mydata,
+          summarise(calculate_weighted_statistics(
+            across(),
+            mydata,
             statistic = statistic,
             x = nam.x, y = nam.wd, pol_1 = pollutant[1], pol_2 = pollutant[2],
-            ws_spread = ws_spread, wd_spread = wd_spread, kernel, tau = tau
+            ws_spread = ws_spread, wd_spread = wd_spread, kernel, tau = tau,
+            x_error = x_error, y_error = y_error
           ))
 
         # Get vector
@@ -829,10 +852,25 @@ polarPlot <-
         Mgam <- try(gam(binned^n ~ s(u, v, k = k), weights = W), TRUE)
 
         if (!inherits(Mgam, "try-error")) {
+          
           pred <- predict.gam(Mgam, input.data)
           pred <- pred^(1 / n)
           pred <- as.vector(pred)
-          results <- data.frame(u = input.data$u, v = input.data$v, z = pred)
+          
+          # interpolate results for speed, but not for clustering
+          if (extra.args$cluster) {
+            
+            results <- interp_grid(input.data, z = pred, n = 101)
+            int <- 101
+            
+          } else {
+            
+            results <- interp_grid(input.data, z = pred, n = 201)
+            int <- 201
+            
+          }
+          
+  
         } else {
           results <- data.frame(u = u, v = v, z = binned)
           exclude.missing <- FALSE
@@ -900,19 +938,19 @@ polarPlot <-
       min.bin <- 0
       res1 <- mydata %>% 
         group_by(across(type)) %>%
-        do(prepare.grid(.))
+        summarise(prepare.grid(across()))
 
       min.bin <- tmp
 
       res <- mydata %>% 
         group_by(across(type)) %>%
-        do(prepare.grid(.))
+        summarise(prepare.grid(across()))
 
       res$miss <- res1$z
     } else {
       res <- mydata %>% 
         group_by(across(type)) %>%
-        do(prepare.grid(.))
+        summarise(prepare.grid(across()))
     }
 
     ## with CPF make sure not >1 due to surface fitting
@@ -969,6 +1007,8 @@ polarPlot <-
     if (statistic == "robust_slope") key.header <- "robust\nslope"
 
     if (statistic == "robust_intercept") key.header <- "robust\nintercept"
+    
+    if (statistic == "york_slope") key.header <- "York regression\nslope"
 
     if (statistic == "quantile_slope") {
       key.header <- paste0("quantile slope\n(tau: ", tau, ")")
@@ -1129,7 +1169,7 @@ polarPlot <-
           # Build label
           # To-do: use quickText
           label_formula <- quickText(
-            paste0("Formula:\n", pollutant[1], " ~ ", pollutant[2])
+            paste0("Formula:\n", pollutant[1], " = m.", pollutant[2], " + c")
           )
 
           # Add to plot
@@ -1203,35 +1243,31 @@ simple_kernel_trend <- function(data, mydata, x = "ws",
   # Centres
   ws1 <- data[[1]]
   wd1 <- data[[2]]
+
+  # Gaussian bivariate density function
+  gauss_dens <- function(x, y, mx, my, sx, sy) {
+    
+    (1 / (2 * pi * sx *sy )) * 
+      exp((-1/2) * ((x - mx) ^ 2 / sx ^ 2 + (y - my) ^ 2 / sy^2))
+    
+  }
   
-  # Gaussian kernel for wd
+  # centred ws, wd
+  ws_cent <- mydata[[x]] - ws1
+  wd_cent <- mydata[[y]] - wd1
+  wd_cent = ifelse(wd_cent < -180, wd_cent + 360, wd_cent)
   
-  # Scale wd
-  mydata$wd.scale <- mydata[[y]] - wd1
+  weight <- gauss_dens(ws_cent, wd_cent, 0, 0, ws_spread, wd_spread) 
+  weight <- weight / max(weight)
   
-  # get correct angular distance
-  mydata$wd.scale <- (mydata$wd.scale + 180) %% 360 - 180
-  
-  # Scale with kernel
-  mydata$wd.scale <- mydata$wd.scale * 2 * pi / 360
-  
-  # Scale with kernel
-  mydata$wd.scale <- (2 * pi)^-0.5 * exp(-0.5 * (mydata$wd.scale / (2 * pi * wd_spread / 360))^2)
-  
-  # Scale ws
-  mydata$ws.scale <- (mydata[[x]] - ws1) / (max(mydata[[x]]) - min(mydata[[x]]))
-  
-  # Apply kernel smoother
-  mydata$ws.scale <- (2 * pi)^-0.5 * exp(-0.5 * (mydata$ws.scale / (ws_spread / (max(mydata[[x]]) - min(mydata[[x]]))))^2)
-  
-  mydata$weights <- mydata$wd.scale * mydata$ws.scale
-  
+  mydata$weight <- weight
+ 
   # quantreg is a Suggests package, so make sure it is there
   try_require("quantreg", "polarPlot")
-  
+
   # don't fit all data - takes too long with no gain
-  mydata <- filter(mydata, weights > 0.00001)
-  
+  mydata <- filter(mydata, weight > 0.00001)
+
   # Drop dplyr's data frame for formula
   mydata <- data.frame(mydata)
   
@@ -1240,7 +1276,7 @@ simple_kernel_trend <- function(data, mydata, x = "ws",
     fit <- try(quantreg::rq(
       mydata[[pollutant[1]]] ~ mydata[[date]],
       tau = tau,
-      weights = mydata[["weights"]], method = "fn"
+      weights = mydata[["weight"]], method = "fn"
     ), TRUE)
   )
   
@@ -1260,46 +1296,48 @@ simple_kernel_trend <- function(data, mydata, x = "ws",
 
 
 # No export
-calculate_weighted_statistics <- function(data, mydata, statistic, x = "ws",
-                                          y = "wd", pol_1, pol_2,
-                                          ws_spread, wd_spread, kernel, tau) {
+calculate_weighted_statistics <- 
+  function(data, mydata, statistic, x = "ws",
+           y = "wd", pol_1, pol_2,
+           ws_spread, wd_spread, kernel, tau,
+           x_error, y_error) {
   weight <- NULL
   # Centres
   ws1 <- data[[1]]
   wd1 <- data[[2]]
-
-  # Scale ws
-  mydata$ws.scale <- (mydata[[x]] - ws1) / (max(mydata[[x]]) - min(mydata[[x]]))
-
-  # Apply kernel smoother
-  mydata$ws.scale <- (2 * pi) ^ -0.5 * exp(-0.5 * (mydata$ws.scale / (ws_spread / (max(mydata[[x]]) - min(mydata[[x]]))))^2)
-
-  # Scale wd
-  mydata$wd.scale <- mydata[[y]] - wd1
-
-  # Make non-real scale real
-  # get correct angular distance
-  mydata$wd.scale <- (mydata$wd.scale + 180) %% 360 - 180
-
-  # Scale with kernel
-  mydata$wd.scale <- mydata$wd.scale * 2 * pi / 360
-
-  # Apply kernel smoother
-  mydata$wd.scale <- (2 * pi) ^ -0.5 * exp(-0.5 * (mydata$wd.scale / (2 * pi * wd_spread / 360))^2)
-
-  # Final weighting multiplies two kernels for ws and wd
-  mydata$weight <- mydata$ws.scale * mydata$wd.scale
-
-  # Normalise
-  mydata$weight <- mydata$weight / max(mydata$weight, na.rm = TRUE)
-
+  
+  # Gaussian bivariate density function
+  gauss_dens <- function(x, y, mx, my, sx, sy) {
+    
+    (1 / (2 * pi * sx *sy )) * 
+      exp((-1/2) * ((x - mx) ^ 2 / sx ^ 2 + (y - my) ^ 2 / sy^2))
+    
+  }
+  
+  # centred ws, wd
+  ws_cent <- mydata[[x]] - ws1
+  wd_cent <- mydata[[y]] - wd1
+  wd_cent = ifelse(wd_cent < -180, wd_cent + 360, wd_cent)
+  
+  weight <- gauss_dens(ws_cent, wd_cent, 0, 0, ws_spread, wd_spread) 
+  weight <- weight / max(weight)
+  
+  mydata$weight <- weight
+  
   # Select and filter
-  thedata <- select(mydata, pol_1, pol_2, "weight")
-  thedata <- thedata[complete.cases(thedata), ]
+  vars <- c(pol_1, pol_2, "weight")
+  
+  if (!all(is.na(c(x_error, y_error))))
+    vars <- c(vars, x_error, y_error)
+  thedata <- mydata[vars]
+#  thedata <- thedata[complete.cases(thedata), ]
 
   # don't fit all data - takes too long with no gain
-  thedata <- filter(thedata, weight > 0.00001)
-
+  thedata <- thedata[which(thedata$weight > 0.001), ]
+  
+  # don't try and calculate stats is there's not much data
+  if (nrow(thedata) < 100) return(data.frame(ws1, wd1, NA))
+  
   # useful for showing what the weighting looks like as a surface
   # openair::scatterPlot(mydata, x = "ws", y = "wd", z = "weight", method = "level")
 
@@ -1326,11 +1364,38 @@ calculate_weighted_statistics <- function(data, mydata, statistic, x = "ws",
     fit <- lm(thedata[, pol_1] ~ thedata[, pol_2], weights = thedata[, "weight"])
 
     # Extract statistics
-    if (statistic == "slope") stat_weighted <- fit$coefficients[22]
+    if (statistic == "slope") stat_weighted <- fit$coefficients[2]
     if (statistic == "intercept") stat_weighted <- fit$coefficients[1]
 
     # Bind together
     result <- data.frame(ws1, wd1, stat_weighted)
+  }
+  
+  if (statistic == "york_slope") {
+    
+    thedata <- as.data.frame(thedata) # so formula works
+    
+    result <- try(YorkFit(thedata, 
+                          X = names(thedata)[2], 
+                          Y = names(thedata)[1],
+                          Xstd = x_error, Ystd = y_error,
+                          weight = thedata$weight), TRUE)
+    
+    # Extract statistics
+    if (!inherits(result, "try-error")) {
+      
+      # Extract statistics
+      stat_weighted <- result$Slope
+      
+    } else {
+      
+      stat_weighted <- NA
+     
+    }
+    
+   
+    result <- data.frame(ws1, wd1, stat_weighted)
+    
   }
 
   # Robust linear regression with weights
@@ -1515,3 +1580,151 @@ wrank <- function(x, w = rep(1, length(x))) {
   rnk[rord]
 }
 
+YorkFit <- function(input_data, X = "X", Y = "Y",
+                    Xstd = "Xstd", Ystd = "Ystd",
+                    weight = NA,
+                    Ri = 0, eps = 1e-7) {
+  # weight can be supplied to apply to errors
+  
+  tol <- 1e-7 # need to refine
+ 
+  # b0 initial guess at slope for OLR
+  form <- formula(paste(Y, "~", X))
+  mod <- lm(form, data = input_data)
+  b0 <- mod$coefficients[2]
+  
+  X <- input_data[[X]]
+  Y <- input_data[[Y]]
+  
+  Xstd <- input_data[[Xstd]]
+  Ystd <- input_data[[Ystd]]
+  
+  # used in polar plots - Gaussian kernel weighting
+  if (!all(is.na(weight))) {
+    
+    Xstd <- Xstd / weight
+    Ystd <- Ystd / weight
+    
+  }
+  
+  Xw <- 1 / (Xstd^2) # X weights
+  Yw <- 1 / (Ystd^2) # Y weights
+  
+  
+  # ITERATIVE CALCULATION OF SLOPE AND INTERCEPT #
+  
+  b <- b0
+  b.diff <- tol + 1
+  
+  n <- 0 # counter for debugging
+  
+  while (b.diff > tol && n < 100) {
+    
+    n <- n + 1 # counter to keep a check on convergence
+    
+    b.old <- b
+    alpha.i <- sqrt(Xw * Yw)
+    Wi <- (Xw * Yw) / ((b^2) * Yw + Xw - 2 * b * Ri * alpha.i)
+    WiX <- Wi * X
+    WiY <- Wi * Y
+    sumWiX <- sum(WiX, na.rm = TRUE)
+    sumWiY <- sum(WiY, na.rm = TRUE)
+    sumWi <- sum(Wi, na.rm = TRUE)
+    Xbar <- sumWiX / sumWi
+    Ybar <- sumWiY / sumWi
+    Ui <- X - Xbar
+    Vi <- Y - Ybar
+    
+    Bi <- Wi * ((Ui / Yw) + (b * Vi / Xw) - (b * Ui + Vi) * Ri / alpha.i)
+    wTOPint <- Bi * Wi * Vi
+    wBOTint <- Bi * Wi * Ui
+    sumTOP <- sum(wTOPint, na.rm = TRUE)
+    sumBOT <- sum(wBOTint, na.rm = TRUE)
+    b <- sumTOP / sumBOT
+    
+    b.diff <- abs(b - b.old)
+  }
+  
+  a <- Ybar - b * Xbar
+  wYorkFitCoefs <- c(a, b)
+  
+  # ERROR CALCULATION #
+  
+  Xadj <- Xbar + Bi
+  WiXadj <- Wi * Xadj
+  sumWiXadj <- sum(WiXadj, na.rm = TRUE)
+  Xadjbar <- sumWiXadj / sumWi
+  Uadj <- Xadj - Xadjbar
+  wErrorTerm <- Wi * Uadj * Uadj
+  errorSum <- sum(wErrorTerm, na.rm = TRUE)
+  b.err <- sqrt(1 / errorSum)
+  a.err <- sqrt((1 / sumWi) + (Xadjbar^2) * (b.err^2))
+  wYorkFitErrors <- c(a.err, b.err)
+  
+  # GOODNESS OF FIT CALCULATION #
+  lgth <- length(X)
+  wSint <- Wi * (Y - b * X - a)^2
+  sumSint <- sum(wSint, na.rm = TRUE)
+  wYorkGOF <- c(sumSint / (lgth - 2), sqrt(2 / (lgth - 2))) # GOF (should equal 1 if assumptions are valid), #standard error in GOF
+  
+  ans <- tibble(Intercept = a, Slope = b, 
+                Int_error = a.err, Slope_error = b.err,
+                OLS_slope = b0)
+
+  return(ans)
+}
+
+# bi-linear interpolation on a regular grid
+# allows surface predictions at a low resolution to be interpolated, rather than using a GAM
+interp.surface <- function(obj, loc) {
+  
+  # obj is a surface or image  object like the list for contour, persp or image.
+  # loc a matrix of 2 d locations -- new points to evaluate the surface.
+  x <- obj$x
+  y <- obj$y
+  z <- obj$z
+  nx <- length(x)
+  ny <- length(y)
+  # this clever idea for finding the intermediate coordinates at the new points
+  # is from J-O Irisson
+  lx <- approx(x, 1:nx, loc[, 1])$y
+  ly <- approx(y, 1:ny, loc[, 2])$y
+  lx1 <- floor(lx)
+  ly1 <- floor(ly)
+  # x and y distances between each new point and the closest grid point in the lower left hand corner.
+  ex <- lx - lx1
+  ey <- ly - ly1
+  # fix up weights to handle the case when loc are equal to
+  # last grid point.  These have been set to NA above.
+  ex[lx1 == nx] <- 1
+  ey[ly1 == ny] <- 1
+  lx1[lx1 == nx] <- nx - 1
+  ly1[ly1 == ny] <- ny - 1
+  # bilinear interpolation finds simple weights based on the
+  # the four corners of the grid box containing the new
+  # points.
+  return(z[cbind(lx1, ly1)] * (1 - ex) * (1 - ey) + z[cbind(lx1 + 
+                                                              1, ly1)] * ex * (1 - ey) + z[cbind(lx1, ly1 + 1)] * (1 - 
+                                                                                                                     ex) * ey + z[cbind(lx1 + 1, ly1 + 1)] * ex * ey)
+}
+
+# function to do bilinear interpolation given input grid and number of points required
+interp_grid <- function(input.data, x = "u", y = "v", z, n = 201) {
+  
+  # current number of points
+  int <- length(unique(input.data[[x]]))
+  
+  obj <- list(x = seq(min(input.data[[x]]), max(input.data[[x]]), length.out = int), 
+              y = seq(min(input.data[[y]]), max(input.data[[y]]), length.out = int),
+              z = matrix(z, nrow = int))
+  
+  loc <- expand.grid(x = seq(min(input.data[[x]]), max(input.data[[x]]), length.out = n), 
+                     y = seq(min(input.data[[y]]), max(input.data[[y]]), length.out = n))
+  
+  res.interp <- interp.surface(obj, loc)
+  
+  out <- expand.grid(u = seq(min(input.data[[x]]), max(input.data[[x]]), length.out = n), 
+                     v = seq(min(input.data[[y]]), max(input.data[[y]]), length.out = n))
+  
+  results <- data.frame(out, z = res.interp)
+}

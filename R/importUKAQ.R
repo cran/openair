@@ -17,7 +17,7 @@ importUKAQ <- function(site = "my1", year = 2009, data_type = "hourly",
   
   if (source == "saqn") {
     
-    url_data <- "http://www.scottishairquality.scot/openair/R_data/"
+    url_data <- "https://www.scottishairquality.scot/openair/R_data/"
     source_meta <- "saqn"
     
   } 
@@ -76,6 +76,9 @@ importUKAQ <- function(site = "my1", year = 2009, data_type = "hourly",
   ## change nox as no2
   id <- which(names(thedata) %in% "noxasno2")
   if (length(id) == 1) names(thedata)[id] <- "nox"
+  
+  # change code to character
+  thedata$code <- as.character(thedata$code)
   
   
   ## should hydrocarbons be imported?
@@ -147,27 +150,14 @@ importUKAQ <- function(site = "my1", year = 2009, data_type = "hourly",
 loadData <- function(x, verbose, ratified, meta_data, url_data, data_type) {
   tryCatch({
     
-    # Download file to temp directory
-    # need to do this because of https, certificate problems
-    tmp <- tempfile()
-    
     # Build the file name
     fileName <- paste0(
       url_data, x,
       ".RData"
     )
     
-    # No warnings needed, function gives message if file is not present
-    suppressWarnings(
-      download.file(
-        fileName,
-        method = "libcurl", destfile = tmp,
-        quiet = !verbose
-      )
-    )
-    
     # Load the rdata object
-    load(tmp)
+    load(url(fileName))
     
     if (data_type == "hourly")
       x <- x
@@ -177,6 +167,15 @@ loadData <- function(x, verbose, ratified, meta_data, url_data, data_type) {
     
     if (data_type == "daily")
       x <- paste0(x, "_daily_mean")
+    
+    if (data_type == "8_hour")
+      x <- paste0(x, "_8hour_mean")
+    
+    if (data_type == "24_hour")
+      x <- paste0(x, "_24hour_mean")
+    
+    if (data_type == "daily_max_8")
+      x <- paste0(x, "_daily_max_8hour")
     
     
     # Reasign

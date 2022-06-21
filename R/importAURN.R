@@ -1,9 +1,9 @@
 ##' Import data from the UK Air Pollution Networks
 ##'
-##' Functions for importing air pollution data from a range of UK
-##' networks including the Automatic Urban and Rural Network. Files are imported
-##' from a remote server operated by Ricardo that provides air quality data
-##' files as R data objects.
+##' Functions for importing air pollution data from a range of UK networks
+##' including the Automatic Urban and Rural Network. Files are imported from a
+##' remote server operated by Ricardo that provides air quality data files as R
+##' data objects.
 ##'
 ##' This family of functions has been written to make it easy to import data
 ##' from across several UK air quality networks. Ricardo have provided .RData
@@ -27,11 +27,11 @@
 ##'
 ##' The data are imported by stacking sites on top of one another and will have
 ##' field names \code{site}, \code{code} (the site code) and \code{pollutant}.
-##' 
-##' By default, the function returns hourly average data. However, annual, 
-##' monthly, daily and 15 minute data (for SO2) can be returned using the option \code{data_type}.
-##' Annual and monthly data provide whole network information including data capture
-##' statistics.
+##'
+##' By default, the function returns hourly average data. However, annual,
+##' monthly, daily and 15 minute data (for SO2) can be returned using the option
+##' \code{data_type}. Annual and monthly data provide whole network information
+##' including data capture statistics.
 ##'
 ##' All units are expressed in mass terms for gaseous species (ug/m3 for NO,
 ##' NO2, NOx (as NO2), SO2 and hydrocarbons; and mg/m3 for CO). PM10
@@ -52,16 +52,16 @@
 ##' (generally from around 2010). These values are modelled using the WRF model
 ##' operated by Ricardo.
 ##'
-##' The BAM (Beta-Attenuation Monitor) instruments that have been
-##' incorporated into the network throughout its history have been scaled by 1.3
-##' if they have a heated inlet (to account for loss of volatile particles) and
-##' 0.83 if they do not have a heated inlet. The few TEOM instruments in the
-##' network after 2008 have been scaled using VCM (Volatile Correction Model)
-##' values to account for the loss of volatile particles. The object of all
-##' these scaling processes is to provide a reasonable degree of comparison
-##' between data sets and with the reference method and to produce a consistent
-##' data record over the operational period of the network, however there may be
-##' some discontinuity in the time series associated with instrument changes.
+##' The BAM (Beta-Attenuation Monitor) instruments that have been incorporated
+##' into the network throughout its history have been scaled by 1.3 if they have
+##' a heated inlet (to account for loss of volatile particles) and 0.83 if they
+##' do not have a heated inlet. The few TEOM instruments in the network after
+##' 2008 have been scaled using VCM (Volatile Correction Model) values to
+##' account for the loss of volatile particles. The object of all these scaling
+##' processes is to provide a reasonable degree of comparison between data sets
+##' and with the reference method and to produce a consistent data record over
+##' the operational period of the network, however there may be some
+##' discontinuity in the time series associated with instrument changes.
 ##'
 ##' No corrections have been made to the PM2.5 data. The volatile component of
 ##' FDMS PM2.5 (where available) is shown in the 'v2.5' column.
@@ -74,15 +74,25 @@
 ##'   to 2000 use \code{year = 1990:2000}. To import several specific years use
 ##'   \code{year = c(1990, 1995, 2000)} for example.
 ##' @param data_type The data type averaging period. These include:
-##'   
-##'  \itemize{
-##'  \item{"hourly"}{ Default is to return hourly data.}
-##'  \item{"daily"}{ Daily average data.}
-##'  \item{"monthly"}{ Monthly average data with data capture information for the whole network.}
-##'  \item{"annual"}{ Annual average data with data capture information for the whole network.}
-##'  \item{"15min"}{ To import 15-minute average SO2 concentrations.}
-##
-##' }
+##'
+##'   \itemize{ 
+##'   \item{"hourly"}{ Default is to return hourly data.}
+##'   \item{"daily"}{ Daily average data.} 
+##'   \item{"monthly"}{ Monthly average
+##'   data with data capture information for the whole network.}
+##'   \item{"annual"}{ Annual average data with data capture information for the
+##'   whole network.} 
+##'   \item{"15_min"}{ To import 15-minute average SO2
+##'   concentrations.} 
+##'   \item{"8_hour"}{ To import 8-hour rolling mean
+##'   concentrations for O3 and CO.} 
+##'   \item{"24_hour"}{ To import 24-hour rolling
+##'   mean concentrations for particulates.} 
+##'   \item{"daily_max_8"}{ To import maximum daily rolling 8-hour maximum for O3 and CO.} 
+##'   \item{"daqi"}{ To import Daily
+##'   Air Quality Index (DAQI). See
+##'   \href{https://uk-air.defra.gov.uk/air-pollution/daqi?view=more-info&pollutant=ozone#pollutant}{here}
+##'    for more details of how the index is defined.} }
 ##' @param pollutant Pollutants to import. If omitted will import all pollutants
 ##'   from a site. To import only NOx and NO2 for example use \code{pollutant =
 ##'   c("nox", "no2")}.
@@ -119,9 +129,9 @@
 ##' pollutant = c("nox", "no2", "o3"))}
 ##'
 ##' # Other functions work in the same way e.g. to import Cardiff Centre data
-##' 
+##'
 ##' # Import annual data over a period, make it narrow format and return site information
-##' 
+##'
 ##' \dontrun{aq <- importAURN(year = 2010:2020, data_type = "annual", meta = TRUE, to_narrow = TRUE)}
 ##'
 ##' \dontrun{cardiff <- importWAQN(site = "card", year = 2020)}
@@ -130,9 +140,14 @@ importAURN <- function(site = "my1", year = 2009,
                        hc = FALSE, meta = FALSE, ratified = FALSE,
                        to_narrow = FALSE, verbose = FALSE) {
   
-  if (!data_type %in% c("hourly", "daily", "15min", "monthly", "annual")) {
+  if (!tolower(data_type) %in% 
+      c("hourly", "daily", "15min", "monthly", "annual", "daqi", "15_min",
+        "24_hour", "8_hour", "daily_max_8")) {
     
-    warning("data_type should be one of 'hourly', 'daily', 'monthly', 'annual'")
+    warning("data_type should be one of 'hourly', 'daily', 
+            'monthly', 'annual', '15_min', '24_hour', '8_hour',
+            'daily_max_8', 'daqi'")
+    
     data_type <- "hourly"
     
   }
@@ -153,15 +168,25 @@ importAURN <- function(site = "my1", year = 2009,
     # add meta data?
     if (meta) {
       
-      meta_data <- importMeta(source = "aurn")
-      
-      meta_data <- distinct(meta_data, site, .keep_all = TRUE) %>% 
-        select(site, code, latitude, longitude, site_type)
-      # suppress warnings about factors
-      aq_data <- left_join(aq_data, meta_data, by = c("code", "site"))
+      aq_data <- add_meta(source = "aurn", aq_data)
       
     }
     
+  } else if (data_type == "daqi") {
+    
+    # daily air quality index
+    files <- paste0("https://uk-air.defra.gov.uk/openair/R_data/annual_DAQI_AURN_", 
+                    year, ".rds")
+    
+    aq_data <- map_df(files, readDAQI)
+    
+
+    if (meta) {
+      
+      aq_data <- add_meta(source = "aurn", aq_data)
+      
+    }
+
     
   } else {
 
@@ -200,7 +225,8 @@ readSummaryData <- function(fileName, data_type, to_narrow, meta, hc) {
     thedata <- thedata %>%
       select(any_of(c(
         "date", "uka_code", "code", "site", "year",
-        "o3", "o3_capture", "o3.daily.max.8hour", "o3.aot40v",
+        "o3", "o3_capture", "o3.summer_capture",
+        "o3.daily.max.8hour", "o3.aot40v",
         "o3.aot40f", "somo35", "somo35_capture", "no",
         "no_capture", "no2", "no2_capture", "nox",
         "nox_capture", "so2", "so2_capture", "co",
@@ -243,11 +269,49 @@ readSummaryData <- function(fileName, data_type, to_narrow, meta, hc) {
     
     capture$species <- gsub("_capture", "", capture$species)
     
-    thedata <- left_join(values, capture, 
+    thedata <- full_join(values, capture, 
                          by = c("date", "code", "site", "species"))
     
   }
   
+  thedata <- thedata %>% 
+    mutate(site = as.character(site),
+           code = as.character(code))
+  
     
   return(thedata)
+}
+
+readDAQI <- function(fileName) {
+  
+  thedata <- try(readRDS(url(fileName)), TRUE)
+  
+  if (inherits(thedata, "try-error")) 
+    return()
+  
+  thedata <- thedata %>% 
+    mutate(code = as.character(code),
+           site = as.character(site),
+           pollutant = as.character(pollutant),
+           date = ymd(Date, tz = "GMT"),
+           measurement_period = as.character(measurement_period)
+           ) %>% 
+    select(-Date) %>% 
+    relocate(date, .after = pollutant)
+  
+  return(thedata)
+}
+
+# function to add meta data based on network and supply of aq data
+add_meta <- function(source, aq_data) {
+
+    meta_data <- importMeta(source = source)
+    
+    meta_data <- distinct(meta_data, site, .keep_all = TRUE) %>% 
+      select(site, code, latitude, longitude, site_type)
+    
+    aq_data <- left_join(aq_data, meta_data, by = c("code", "site"))
+    
+  return(aq_data)
+    
 }
