@@ -119,6 +119,11 @@
 ##'   column that differentiates different sites (commonly a column named
 ##'   \code{site}). Note that indivisual site maps are normalised first by
 ##'   dividing by their mean value.
+##' @param sigma For the SQTBA approach \code{sigma} determines the amount of
+##'   back trajectory spread based on the Gaussian plume equation. Values in the
+##'   literature suggest 5.4 km after one hour. However, testing suggests lower
+##'   values reveal source regions more effectively while not introducing too
+##'   much noise.
 ##' @param map.fill Should the base map be a filled polygon? Default is to fill
 ##'   countries.
 ##' @param map.res The resolution of the base map. By default the function uses
@@ -215,7 +220,7 @@ trajLevel <- function(mydata, lon = "lon", lat = "lat",
                       pollutant = "height", type = "default", smooth = FALSE,
                       statistic = "frequency", percentile = 90,
                       map = TRUE, lon.inc = 1.0, lat.inc = 1.0, min.bin = 1,
-                      .combine = NA,
+                      .combine = NA, sigma = 1.5,
                       map.fill = TRUE, map.res = "default", map.cols = "grey40",
                       map.alpha = 0.3, projection = "lambert",
                       parameters = c(51, 51), orientation = c(90, 0, 0),
@@ -297,8 +302,8 @@ trajLevel <- function(mydata, lon = "lon", lat = "lat",
     Args$xlim <- range(mydata$lon)
     
     # tweak for SQTBA
-    Args$xlim <- c(round(quantile(mydata$lon, probs = 0.01)), 
-                   round(quantile(mydata$lon, probs = 0.99)))
+    Args$xlim <- c(round(quantile(mydata$lon, probs = 0.002)), 
+                   round(quantile(mydata$lon, probs = 0.998)))
   }
   
   if (!"ylim" %in% names(Args)) {
@@ -306,8 +311,8 @@ trajLevel <- function(mydata, lon = "lon", lat = "lat",
     Args$ylim <- range(mydata$lat)
     
     # tweak for SQTBA
-    Args$ylim <- c(round(quantile(mydata$lat, probs = 0.01)), 
-                   round(quantile(mydata$lat, probs = 0.99)))
+    Args$ylim <- c(round(quantile(mydata$lat, probs = 0.002)), 
+                   round(quantile(mydata$lat, probs = 0.998)))
   }
   
   ## extent of data (or limits set by user) in degrees
@@ -465,16 +470,16 @@ trajLevel <- function(mydata, lon = "lon", lat = "lat",
     
     # calculate sigma
     mydata <- mydata %>% 
-      mutate(sigma = 5.4 * abs(hour.inc)) %>%
+      mutate(sigma = sigma * abs(hour.inc)) %>%
       drop_na({{ pollutant }})
     
     # receptor grid
     # use trajectory data to determine grid size - don't go to extremes
     r_grid <- expand_grid(
-      lat = seq(round(quantile(mydata$lat, probs = 0.01)), 
-                round(quantile(mydata$lat, probs = 0.99)), by = lat.inc),
-      lon = seq(round(quantile(mydata$lon, probs = 0.01)), 
-                round(quantile(mydata$lon, probs = 0.99)), by = lon.inc)
+      lat = seq(round(quantile(mydata$lat, probs = 0.002)), 
+                round(quantile(mydata$lat, probs = 0.998)), by = lat.inc),
+      lon = seq(round(quantile(mydata$lon, probs = 0.002)), 
+                round(quantile(mydata$lon, probs = 0.998)), by = lon.inc)
     ) %>% 
       as.matrix(.)
     
@@ -573,14 +578,23 @@ pred_Q <- function(i, traj_data, r_grid, pollutant) {
   
   x_origin <- traj_data$lon[i]
   y_origin <- traj_data$lat[i]
+  Q <- numeric(nrow(r_grid))
+  Q_c <- Q
   
-  dist <- acos(sin(y_origin * pi / 180) * sin(r_grid[, "lat"] * pi / 180) +
+  # only calculate near receptor (within 4 degrees)
+  id <- which(r_grid[, "lat"] > y_origin - 4 & 
+                r_grid[, "lat"] < y_origin + 4 & 
+                r_grid[, "lon"] > x_origin - 4 & 
+                r_grid[, "lon"] < x_origin + 4)
+  
+  # subtract 1E-7 from acos - numerical imprecision results in value being greater than 1
+  dist <- acos(sin(y_origin * pi / 180) * sin(r_grid[id, "lat"] * pi / 180) +
                  cos(y_origin * pi / 180) *
-                 cos(r_grid[, "lat"] * pi / 180) *
-                 cos(r_grid[, "lon"] * pi / 180 - x_origin * pi / 180)) * 6378.137
+                 cos(r_grid[id, "lat"] * pi / 180) *
+                 cos(r_grid[id, "lon"] * pi / 180 - x_origin * pi / 180) - 1e-7) * 6378.137
   
-  Q <- (1 / traj_data$sigma[i]^2) * exp(-0.5 * (dist / traj_data$sigma[i])^2)
-  Q_c <- Q * traj_data[[pollutant]][i]
+  Q[id] <- (1 / traj_data$sigma[i]^2) * exp(-0.5 * (dist / traj_data$sigma[i])^2)
+  Q_c[id] <- Q[id] * traj_data[[pollutant]][i]
   
   cbind(Q, Q_c)
 }

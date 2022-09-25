@@ -10,7 +10,8 @@ windRose(mydata, ws = "ws", wd = "wd", ws2 = NA, wd2 = NA,
   = "default", grid.line = NULL, width = 1, seg = NULL, auto.text
   = TRUE, breaks = 4, offset = 10, normalise = FALSE, max.freq =
   NULL, paddle = TRUE, key.header = NULL, key.footer = "(m/s)",
-  key.position = "bottom", key = TRUE, dig.lab = 5, statistic =
+  key.position = "bottom", key = TRUE, dig.lab = 5, include.lowest = FALSE,
+  statistic =
   "prop.count", pollutant = NULL, annotate = TRUE, angle.scale =
   315, border = NA, ...)
 
@@ -147,6 +148,11 @@ See \code{drawOpenKey} for further details.}
 \item{dig.lab}{The number of signficant figures at which
 scientific number formatting is used in break point and key
 labelling. Default 5.}
+
+\item{include.lowest}{Logical. If \code{FALSE} (the default), the first wind
+speed interval will be left exclusive and right inclusive. If \code{TRUE},
+the first interval will be left and right inclusive. Passed to the
+\code{include.lowest} argument of \code{cut()}.}
 
 \item{statistic}{The \code{statistic} to be applied to each data
 bin in the plot. Options currently include \dQuote{prop.count},

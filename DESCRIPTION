@@ -1,8 +1,8 @@
 Package: openair
 Type: Package
 Title: Tools for the Analysis of Air Pollution Data
-Version: 2.10-0
-Date: 2022-06-21
+Version: 2.11
+Date: 2022-09-24
 Authors@R: c(person("David", "Carslaw", role = c("aut", "cre"), email =
     "david.carslaw@york.ac.uk"), person("Karl", "Ropkins", role =
     "aut", email = "K.Ropkins@its.leeds.ac.uk"))
@@ -14,21 +14,17 @@ Imports: grid, dplyr (>= 1.0), purrr, tidyr, readr, mgcv, lattice,
 Suggests: KernSmooth, maps, mapdata, quantreg
 LinkingTo: Rcpp
 Maintainer: David Carslaw <david.carslaw@york.ac.uk>
-Description: Tools to analyse, interpret and understand air
-    pollution data. Data are typically hourly time series
-    and both monitoring data and dispersion model output
-    can be analysed.  Many functions can also be applied to
-    other data, including meteorological and traffic data.
+Description: Tools to analyse, interpret and understand air pollution data. Data are typically regular time series and air quality measurement, meteorological data and dispersion model output can be analysed. The package is described in Carslaw and Ropkins (2012, <doi:10.1016/j.envsoft.2011.09.008>) and subsequent papers.
 License: GPL (>= 2)
 URL: https://davidcarslaw.github.io/openair/
 BugReports: https://github.com/davidcarslaw/openair/issues
 LazyLoad: yes
 LazyData: yes
 Encoding: UTF-8
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.1
 NeedsCompilation: yes
-Packaged: 2022-06-21 12:25:31 UTC; davidcarslaw
+Packaged: 2022-09-25 10:44:02 UTC; davidcarslaw
 Author: David Carslaw [aut, cre],
   Karl Ropkins [aut]
 Repository: CRAN
-Date/Publication: 2022-06-21 13:00:02 UTC
+Date/Publication: 2022-09-25 14:50:02 UTC

@@ -89,7 +89,7 @@
 ##' @useDynLib openair, .registration = TRUE
 ##' @import cluster
 ##' @return Returns a list with two data components. The first
-##'   (\code{data}) contains the orginal data with the cluster
+##'   (\code{data}) contains the original data with the cluster
 ##'   identified. The second (\code{results}) contains the data used
 ##'   to plot the clustered trajectories.
 ##' @seealso \code{\link{importTraj}}, \code{\link{trajPlot}},
@@ -314,10 +314,14 @@ trajCluster <- function(traj, method = "Euclid", n.cluster = 5,
 
     ## plot
     plt <- do.call(scatterPlot, plot.args)
+    
+    ## create output with plot
+    output <- list(plot = plt, data = list(traj = traj, results = resRtn), call = match.call())
+    class(output) <- "openair"
+    invisible(output)
+  } else {
+    ## create output without plot
+    return(traj)
   }
 
-
-  output <- list(plot = plt, data = traj, results = resRtn, call = match.call())
-  class(output) <- "openair"
-  invisible(output)
 }
