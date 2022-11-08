@@ -114,6 +114,9 @@
 ##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
 ##'   \code{TRUE} titles and axis labels will automatically try and format
 ##'   pollutant names and units properly e.g.  by subscripting the `2' in NO2.
+##' @param plot Should a plot be produced? \code{FALSE} can be useful when
+##'   analysing data to extract calendar plot components and plotting them in
+##'   other ways.
 ##' @param ... Other graphical parameters are passed onto the \code{lattice}
 ##'   function \code{lattice:levelplot}, with common axis and title labelling
 ##'   options (such as \code{xlab}, \code{ylab}, \code{main}) being passed to
@@ -172,7 +175,7 @@ calendarPlot <- function(mydata, pollutant = "nox", year = 2003, month = 1:12,
                          breaks = NA, w.shift = 0, remove.empty = TRUE,
                          main = NULL,
                          key.header = "", key.footer = "",
-                         key.position = "right", key = TRUE, auto.text = TRUE,
+                         key.position = "right", key = TRUE, auto.text = TRUE, plot = TRUE,
                          ...) {
   conc.mat <- NULL ## keep R check quiet
 
@@ -272,6 +275,7 @@ calendarPlot <- function(mydata, pollutant = "nox", year = 2003, month = 1:12,
 
     ## need to do in reverse to plot easily
     conc <- rev(mydata[[pollutant]])
+    actual_date <- rev(mydata$date)
 
     ## day of the month
     theDates <- as.numeric(format(mydata$date, "%d"))
@@ -279,6 +283,8 @@ calendarPlot <- function(mydata, pollutant = "nox", year = 2003, month = 1:12,
 
     daysAtEnd <- 42 - pad.start - nrow(mydata) ## 7x6 regular grid
     conc <- c(rep(NA, daysAtEnd), conc)
+    
+    actual_date <- c(rep(NA, daysAtEnd), actual_date)
 
     ## get relevant days in previous and next month, like a real calendar
     endDates <- mydata$date[nrow(mydata)] + (1:daysAtEnd)
@@ -290,6 +296,8 @@ calendarPlot <- function(mydata, pollutant = "nox", year = 2003, month = 1:12,
     beginDates <- as.numeric(format(beginDates, "%d"))
 
     conc <- c(conc, rep(NA, pad.start))
+    
+    actual_date <- c(actual_date, rep(NA, pad.start))
 
     if (pad.start != 0) theDates <- c(theDates, beginDates)
 
@@ -302,18 +310,21 @@ calendarPlot <- function(mydata, pollutant = "nox", year = 2003, month = 1:12,
     ## convert to matrix
     conc.mat <- matrix(conc, ncol = 7, byrow = TRUE)
     date.mat <- matrix(theDates, ncol = 7, byrow = TRUE)
+    actual_date.mat <- matrix(actual_date, ncol = 7, byrow = TRUE)
     colour.mat <- matrix(dateColour, ncol = 7, byrow = TRUE)
 
     ## need to reverse each row for calendar format
     conc.mat <- as.vector(apply(conc.mat, 1, rev))
     date.mat <- as.vector(apply(date.mat, 1, rev))
+    actual_date.mat <- as.vector(apply(actual_date.mat, 1, rev))
     colour.mat <- as.vector(apply(colour.mat, 1, rev))
 
     grid <- data.frame(expand.grid(x = 1:7, y = 1:6))
-    results <- suppressWarnings(data.frame(
+    results <- tibble(
       x = grid$x, y = grid$y, conc.mat,
-      date.mat = date.mat, dateColour = colour.mat
-    ))
+      date.mat = date.mat, dateColour = colour.mat,
+      date = lubridate::as_date(actual_date.mat)
+    )
 
     results
   }
@@ -339,11 +350,13 @@ calendarPlot <- function(mydata, pollutant = "nox", year = 2003, month = 1:12,
   
   if (remove.empty) {
     mydata <- group_by(mydata, cuts) %>% 
-      mutate(empty = all(is.na(pollutant))) %>% 
-      filter(empty == FALSE)
+      mutate(empty = all(is.na(across(pollutant))))  %>% 
+      filter(empty == FALSE) %>% 
+      ungroup()
   }
   
   baseData <- mydata # for use later
+  original_data <- mydata
   
   # timeAverage will pad-out missing months
   if (!missing(month)) {
@@ -352,7 +365,8 @@ calendarPlot <- function(mydata, pollutant = "nox", year = 2003, month = 1:12,
 
   mydata <- mydata %>% 
     group_by(across(type)) %>%
-    do(prepare.grid(., pollutant))
+    do(prepare.grid(., pollutant)) %>% 
+    ungroup()
 
   mydata$value <- mydata$conc.mat ## actual numerical value (retain for categorical scales)
 
@@ -375,7 +389,8 @@ calendarPlot <- function(mydata, pollutant = "nox", year = 2003, month = 1:12,
 
     wd <- baseData %>% 
       group_by(across(type)) %>%
-      do(prepare.grid(., "wd"))
+      do(prepare.grid(., "wd")) %>% 
+      ungroup()
 
     wd$value <- wd$conc.mat ## actual numerical value (retain for categorical scales)
   }
@@ -385,11 +400,13 @@ calendarPlot <- function(mydata, pollutant = "nox", year = 2003, month = 1:12,
 
     ws <- baseData %>% 
       group_by(across(type)) %>%
-      do(prepare.grid(., "ws"))
+      do(prepare.grid(., "ws")) %>% 
+      ungroup()
 
     wd <- baseData %>% 
       group_by(across(type)) %>%
-      do(prepare.grid(., "wd"))
+      do(prepare.grid(., "wd")) %>% 
+      ungroup()
 
     ## normalise wind speeds to highest daily mean
     ws$conc.mat <- ws$conc.mat / max(ws$conc.mat, na.rm = TRUE)
@@ -557,16 +574,22 @@ calendarPlot <- function(mydata, pollutant = "nox", year = 2003, month = 1:12,
   lv.args <- listUpdate(lv.args, extra.args)
 
   ## plot
-  print(do.call(levelplot, lv.args))
-
+  if (plot) {
+    print(do.call(levelplot, lv.args))
+  }
+  
   ## reset theme
   lattice.options(default.theme = def.theme)
 
-  ## ###############
-  ## output
-  ## ###############
+  #
+  # output
+
   plt <- trellis.last.object()
-  newdata <- mydata
+  
+  # add in ws and wd if there
+  newdata <- left_join(mydata, original_data %>% select(any_of(c("date", "ws", "wd"))), 
+                       by = "date")
+  
   output <- list(plot = plt, data = newdata, call = match.call())
   class(output) <- "openair"
   invisible(output)
