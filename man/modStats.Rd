@@ -17,10 +17,10 @@ modStats(
 \arguments{
 \item{mydata}{A data frame.}
 
-\item{mod}{Name of a variable in \code{mydata} that respresents modelled
+\item{mod}{Name of a variable in \code{mydata} that represents modelled
 values.}
 
-\item{obs}{Name of a variable in \code{mydata} that respresents measured
+\item{obs}{Name of a variable in \code{mydata} that represents measured
 values.}
 
 \item{statistic}{The statistic to be calculated. See details below
@@ -53,8 +53,31 @@ ranked. The ranking is based the COE performance, as that
 indicator is arguably the best single model performance indicator
 available.}
 
-\item{...}{Other aruments to be passed to \code{cutData} e.g.
-\code{hemisphere = "southern"}}
+\item{...}{
+  Arguments passed on to \code{\link[=cutData]{cutData}}
+  \describe{
+    \item{\code{x}}{A data frame containing a field \code{date}.}
+    \item{\code{hemisphere}}{Can be \code{"northern"} or \code{"southern"}, used to
+split data into seasons.}
+    \item{\code{n.levels}}{Number of quantiles to split numeric data into.}
+    \item{\code{start.day}}{What day of the week should the \code{type = "weekday"}
+start on?  The user can change the start day by supplying an integer
+between 0 and 6. Sunday = 0, Monday = 1, \ldots For example to start the
+weekday plots on a Saturday, choose \code{start.day = 6}.}
+    \item{\code{is.axis}}{A logical (\code{TRUE}/\code{FALSE}), used to request
+shortened cut labels for axes.}
+    \item{\code{local.tz}}{Used for identifying whether a date has daylight savings time
+(DST) applied or not. Examples include \code{local.tz = "Europe/London"},
+\code{local.tz = "America/New_York"} i.e. time zones that assume DST.
+\url{https://en.wikipedia.org/wiki/List_of_zoneinfo_time_zones} shows time
+zones that should be valid for most systems. It is important that the
+original data are in GMT (UTC) or a fixed offset from GMT. See
+\code{import} and the openair manual for information on how to import data
+and ensure no DST is applied.}
+    \item{\code{latitude}}{The decimal latitude used in \code{type = "daylight"}.}
+    \item{\code{longitude}}{The decimal longitude. Note that locations west of Greenwich
+are negative.}
+  }}
 }
 \value{
 Returns a data frame with model evaluation statistics.
@@ -84,7 +107,7 @@ evaluation statistics. These include (to be mathematically defined later):
 \item \eqn{RMSE}, the root mean squared error.
 
 \item \eqn{r}, the Pearson correlation coefficient. Note, can also
-supply and aurument \code{method} e.g. \code{method = "spearman"}
+supply and argument \code{method} e.g. \code{method = "spearman"}
 
 \item \eqn{COE}, the \emph{Coefficient of Efficiency} based on
 Legates and McCabe (1999, 2012). There have been many suggestions
@@ -123,8 +146,6 @@ All statistics are based on complete pairs of \code{mod} and \code{obs}.
 
 Conditioning is possible through setting \code{type}, which can be
 a vector e.g. \code{type = c("weekday", "season")}.
-
-Details of the formulas are given in the openair manual.
 }
 \examples{
 
@@ -151,7 +172,13 @@ Willmott, C.J., Robeson, S.M., Matsuura, K., 2011. A
 refined index of model performance. International Journal of
 Climatology.
 }
+\seealso{
+Other model evaluation functions: 
+\code{\link{TaylorDiagram}()},
+\code{\link{conditionalEval}()},
+\code{\link{conditionalQuantile}()}
+}
 \author{
 David Carslaw
 }
-\keyword{methods}
+\concept{model evaluation functions}

@@ -1,139 +1,133 @@
-##' Function to rapidly provide an overview of air quality data
-##'
-##' This function provides a quick graphical and numerical summary of data. The
-##' location presence/absence of data are shown, with summary statistics and
-##' plots of variable distributions. \code{summaryPlot} can also provide
-##' summaries of a single pollutant across many sites.
-##'
-##'
-##' \code{summaryPlot} produces two panels of plots: one showing the
-##' presence/absence of data and the other the distributions. The left panel
-##' shows time series and codes the presence or absence of data in different
-##' colours. By stacking the plots one on top of another it is easy to compare
-##' different pollutants/variables. Overall statistics are given for each
-##' variable: mean, maximum, minimum, missing hours (also expressed as a
-##' percentage), median and the 95th percentile. For each year the data capture
-##' rate (expressed as a percentage of hours in that year) is also given.
-##'
-##' The right panel shows either a histogram or a density plot depending on the
-##' choice of \code{type}. Density plots avoid the issue of arbitrary bin sizes
-##' that can sometimes provide a misleading view of the data distribution.
-##' Density plots are often more appropriate, but their effectiveness will
-##' depend on the data in question.
-##'
-##' \code{summaryPlot} will only show data that are numeric or integer type.
-##' This is useful for checking that data have been imported properly. For
-##' example, if for some reason a column representing wind speed erroneosly had
-##' one or more fields with charcters in, the whole column would be either
-##' character or factor type. The absence of a wind speed variable in the
-##' \code{summaryPlot} plot would therefore indicate a problem with the input
-##' data. In this particular case, the user should go back to the source data
-##' and remove the characters or remove them using R functions.
-##'
-##' If there is a field \code{site}, which would generally mean there is more
-##' than one site, \code{summaryPlot} will provide information on a
-##' \emph{single} pollutant across all sites, rather than provide details on all
-##' pollutants at a \emph{single} site. In this case the user should also
-##' provide a name of a pollutant e.g. \code{pollutant = "nox"}. If a pollutant
-##' is not provided the first numeric field will automatically be chosen.
-##'
-##' \bold{It is strongly recommended that the \code{summaryPlot} function is
-##' applied to all new imported data sets to ensure the data are imported as
-##' expected.}
-##'
-##' @param mydata A data frame to be summarised. Must contain a \code{date}
-##'   field and at least one other parameter.
-##' @param na.len Missing data are only shown with at least \code{na.len}
-##'   \emph{contiguous} missing vales. The purpose of setting \code{na.len} is
-##'   for clarity: with long time series it is difficult to see where individual
-##'   missing hours are. Furthermore, setting \code{na.len = 96}, for example
-##'   would show where there are at least 4 days of continuous missing data.
-##' @param clip When data contain outliers, the histogram or density plot can
-##'   fail to show the distribution of the main body of data. Setting \code{clip
-##'   = TRUE}, will remove the top 1 % of data to yield what is often a better
-##'   display of the overall distribution of the data. The amount of clipping
-##'   can be set with \code{percentile}.
-##' @param percentile This is used to clip the data. For example,
-##'   \code{percentile = 0.99} (the default) will remove the top 1 percentile of
-##'   values i.e. values greater than the 99th percentile will not be used.
-##' @param type \code{type} is used to determine whether a histogram (the
-##'   default) or a density plot is used to show the distribution of the data.
-##' @param pollutant \code{pollutant} is used when there is a field \code{site}
-##'   and there is more than one site in the data frame.
-##' @param period \code{period} is either \code{years} (the default) or
-##'   \code{months}. Statistics are calculated depending on the \code{period}
-##'   chosen.
-##' @param avg.time This defines the time period to average the time series
-##'   plots. Can be \dQuote{sec}, \dQuote{min}, \dQuote{hour}, \dQuote{day} (the
-##'   default), \dQuote{week}, \dQuote{month}, \dQuote{quarter} or
-##'   \dQuote{year}. For much increased flexibility a number can precede these
-##'   options followed by a space. For example, a timeAverage of 2 months would
-##'   be \code{avg.time = "2 month"}.
-##' @param print.datacap Should the data capture \% be shown for each period?
-##' @param breaks Number of histogram bins. Sometime useful but not easy to set
-##'   a single value for a range of very different variables.
-##' @param plot.type The \code{lattice} plot type, which is a line
-##'   (\code{plot.type = "l"}) by default. Another useful option is
-##'   \code{plot.type = "h"}, which draws vertical lines.
-##' @param col.trend Colour to be used to show the monthly trend of the data,
-##'   shown as a shaded region. Type \code{colors()} into R to see the full
-##'   range of colour names.
-##' @param col.data Colour to be used to show the \emph{presence} of data. Type
-##'   \code{colors()} into R to see the full range of colour names.
-##' @param col.mis Colour to be used to show missing data.
-##' @param col.hist Colour for the histogram or density plot.
-##' @param cols Predefined colour scheme, currently only enabled for
-##'   \code{"greyscale"}.
-##' @param date.breaks Number of major x-axis intervals to use. The function
-##'   will try and choose a sensible number of dates/times as well as formatting
-##'   the date/time appropriately to the range being considered.  This does not
-##'   always work as desired automatically. The user can therefore increase or
-##'   decrease the number of intervals by adjusting the value of
-##'   \code{date.breaks} up or down.
-##' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
-##'   \code{TRUE} titles and axis labels will automatically try and format
-##'   pollutant names and units properly e.g.  by subscripting the \sQuote{2} in
-##'   NO2.
-##' @param plot Should a plot be produced? \code{FALSE} can be useful when
-##'   analysing data to extract plot components and plotting them in other ways.
-##' @param debug Should data types be printed to the console? \code{TRUE} can be
-##'   useful for debugging.
-##' @param ... Other graphical parameters. Commonly used examples include the
-##'   axis and title labelling options (such as \code{xlab}, \code{ylab} and
-##'   \code{main}), which are all passed to the plot via \code{quickText} to
-##'   handle routine formatting. As \code{summaryPlot} has two components, the
-##'   axis labels may be a vector. For example, the default case (\code{type =
-##'   "histogram"}) sets y labels equivalent to \code{ylab = c("", "Percent of
-##'   Total")}.
-##' @export
-##' @author David Carslaw
-##' @keywords methods
-##' @examples
-##'
-##'
-##' # load example data from package
-##' data(mydata)
-##'
-##' # do not clip density plot data
-##' \dontrun{summaryPlot(mydata, clip = FALSE)}
-##'
-##' # exclude highest 5 % of data etc.
-##' \dontrun{summaryPlot(mydata, percentile = 0.95)}
-##'
-##' # show missing data where there are at least 96 contiguous missing
-##' # values (4 days)
-##' \dontrun{summaryPlot(mydata, na.len = 96)}
-##'
-##' # show data in green
-##' \dontrun{summaryPlot(mydata, col.data = "green")}
-##'
-##' # show missing data in yellow
-##' \dontrun{summaryPlot(mydata, col.mis = "yellow")}
-##'
-##' # show density plot line in black
-##' \dontrun{summaryPlot(mydata, col.dens = "black")}
-##'
-##' 
+#' Function to rapidly provide an overview of air quality data
+#'
+#' This function provides a quick graphical and numerical summary of data. The
+#' location presence/absence of data are shown, with summary statistics and
+#' plots of variable distributions. \code{summaryPlot} can also provide
+#' summaries of a single pollutant across many sites.
+#'
+#'
+#' \code{summaryPlot} produces two panels of plots: one showing the
+#' presence/absence of data and the other the distributions. The left panel
+#' shows time series and codes the presence or absence of data in different
+#' colours. By stacking the plots one on top of another it is easy to compare
+#' different pollutants/variables. Overall statistics are given for each
+#' variable: mean, maximum, minimum, missing hours (also expressed as a
+#' percentage), median and the 95th percentile. For each year the data capture
+#' rate (expressed as a percentage of hours in that year) is also given.
+#'
+#' The right panel shows either a histogram or a density plot depending on the
+#' choice of \code{type}. Density plots avoid the issue of arbitrary bin sizes
+#' that can sometimes provide a misleading view of the data distribution.
+#' Density plots are often more appropriate, but their effectiveness will
+#' depend on the data in question.
+#'
+#' \code{summaryPlot} will only show data that are numeric or integer type.
+#' This is useful for checking that data have been imported properly. For
+#' example, if for some reason a column representing wind speed erroneously had
+#' one or more fields with characters in, the whole column would be either
+#' character or factor type. The absence of a wind speed variable in the
+#' \code{summaryPlot} plot would therefore indicate a problem with the input
+#' data. In this particular case, the user should go back to the source data
+#' and remove the characters or remove them using R functions.
+#'
+#' If there is a field \code{site}, which would generally mean there is more
+#' than one site, \code{summaryPlot} will provide information on a
+#' \emph{single} pollutant across all sites, rather than provide details on all
+#' pollutants at a \emph{single} site. In this case the user should also
+#' provide a name of a pollutant e.g. \code{pollutant = "nox"}. If a pollutant
+#' is not provided the first numeric field will automatically be chosen.
+#'
+#' \bold{It is strongly recommended that the \code{summaryPlot} function is
+#' applied to all new imported data sets to ensure the data are imported as
+#' expected.}
+#'
+#' @param mydata A data frame to be summarised. Must contain a \code{date}
+#'   field and at least one other parameter.
+#' @param na.len Missing data are only shown with at least \code{na.len}
+#'   \emph{contiguous} missing vales. The purpose of setting \code{na.len} is
+#'   for clarity: with long time series it is difficult to see where individual
+#'   missing hours are. Furthermore, setting \code{na.len = 96}, for example
+#'   would show where there are at least 4 days of continuous missing data.
+#' @param clip When data contain outliers, the histogram or density plot can
+#'   fail to show the distribution of the main body of data. Setting \code{clip
+#'   = TRUE}, will remove the top 1 % of data to yield what is often a better
+#'   display of the overall distribution of the data. The amount of clipping
+#'   can be set with \code{percentile}.
+#' @param percentile This is used to clip the data. For example,
+#'   \code{percentile = 0.99} (the default) will remove the top 1 percentile of
+#'   values i.e. values greater than the 99th percentile will not be used.
+#' @param type \code{type} is used to determine whether a histogram (the
+#'   default) or a density plot is used to show the distribution of the data.
+#' @param pollutant \code{pollutant} is used when there is a field \code{site}
+#'   and there is more than one site in the data frame.
+#' @param period \code{period} is either \code{years} (the default) or
+#'   \code{months}. Statistics are calculated depending on the \code{period}
+#'   chosen.
+#' @param avg.time This defines the time period to average the time series
+#'   plots. Can be \dQuote{sec}, \dQuote{min}, \dQuote{hour}, \dQuote{day} (the
+#'   default), \dQuote{week}, \dQuote{month}, \dQuote{quarter} or
+#'   \dQuote{year}. For much increased flexibility a number can precede these
+#'   options followed by a space. For example, a timeAverage of 2 months would
+#'   be \code{avg.time = "2 month"}.
+#' @param print.datacap Should the data capture % be shown for each period?
+#' @param breaks Number of histogram bins. Sometime useful but not easy to set
+#'   a single value for a range of very different variables.
+#' @param plot.type The \code{lattice} plot type, which is a line
+#'   (\code{plot.type = "l"}) by default. Another useful option is
+#'   \code{plot.type = "h"}, which draws vertical lines.
+#' @param col.trend Colour to be used to show the monthly trend of the data,
+#'   shown as a shaded region. Type \code{colors()} into R to see the full
+#'   range of colour names.
+#' @param col.data Colour to be used to show the \emph{presence} of data. Type
+#'   \code{colors()} into R to see the full range of colour names.
+#' @param col.mis Colour to be used to show missing data.
+#' @param col.hist Colour for the histogram or density plot.
+#' @param cols Predefined colour scheme, currently only enabled for
+#'   \code{"greyscale"}.
+#' @param date.breaks Number of major x-axis intervals to use. The function
+#'   will try and choose a sensible number of dates/times as well as formatting
+#'   the date/time appropriately to the range being considered.  This does not
+#'   always work as desired automatically. The user can therefore increase or
+#'   decrease the number of intervals by adjusting the value of
+#'   \code{date.breaks} up or down.
+#' @param auto.text Either \code{TRUE} (default) or \code{FALSE}. If
+#'   \code{TRUE} titles and axis labels will automatically try and format
+#'   pollutant names and units properly e.g.  by subscripting the \sQuote{2} in
+#'   NO2.
+#' @param plot Should a plot be produced? \code{FALSE} can be useful when
+#'   analysing data to extract plot components and plotting them in other ways.
+#' @param debug Should data types be printed to the console? \code{TRUE} can be
+#'   useful for debugging.
+#' @param ... Other graphical parameters. Commonly used examples include the
+#'   axis and title labelling options (such as \code{xlab}, \code{ylab} and
+#'   \code{main}), which are all passed to the plot via \code{quickText} to
+#'   handle routine formatting. As \code{summaryPlot} has two components, the
+#'   axis labels may be a vector. For example, the default case (\code{type =
+#'   "histogram"}) sets y labels equivalent to \code{ylab = c("", "Percent of
+#'   Total")}.
+#' @export
+#' @author David Carslaw
+#' @examples
+#' # do not clip density plot data
+#' \dontrun{summaryPlot(mydata, clip = FALSE)}
+#'
+#' # exclude highest 5 % of data etc.
+#' \dontrun{summaryPlot(mydata, percentile = 0.95)}
+#'
+#' # show missing data where there are at least 96 contiguous missing
+#' # values (4 days)
+#' \dontrun{summaryPlot(mydata, na.len = 96)}
+#'
+#' # show data in green
+#' \dontrun{summaryPlot(mydata, col.data = "green")}
+#'
+#' # show missing data in yellow
+#' \dontrun{summaryPlot(mydata, col.mis = "yellow")}
+#'
+#' # show density plot line in black
+#' \dontrun{summaryPlot(mydata, col.dens = "black")}
+#'
+#'
 summaryPlot <- function(mydata,
                         na.len = 24,
                         clip = TRUE,
@@ -198,7 +192,7 @@ summaryPlot <- function(mydata,
 
   ## reset graphic parameters
   on.exit(trellis.par.set(
-     
+
     fontsize = current.font
   ))
 
@@ -263,18 +257,18 @@ summaryPlot <- function(mydata,
       ## id of first numeric column (pollutant)
       id <- which(sapply(mydata, class) %in% c("numeric", "integer"))[1]
       if (missing(pollutant)) pollutant <- names(mydata)[id]
-      
+
       if (pollutant %in% names(mydata) == FALSE) {
         stop(cat("Can't find the variable", pollutant, "\n"))
       }
-      
+
       mydata <- subset(mydata, select = c("date", "site", pollutant))
       names(mydata) <- c("date", "variable", "value")
-      
-      
-      mydata <- tidyr::spread(mydata, 
+
+
+      mydata <- tidyr::spread(mydata,
                               key = variable, value = value)
-      
+
       warning(paste("More than one site detected, using", pollutant))
     }
   }
@@ -287,7 +281,7 @@ summaryPlot <- function(mydata,
   ## remove variables where all are NA
   mydata <- mydata[, sapply(mydata, function(x) !all(is.na(x)))]
 
-  ## force to be date/time class, even if orginally Date class
+  ## force to be date/time class, even if originally Date class
   mydata$date <- as.POSIXct(mydata$date, "GMT")
 
   ## proper names of labelling
@@ -308,21 +302,21 @@ summaryPlot <- function(mydata,
   mydata <- full_join(mydata, all.dates, by = "date") %>%
     arrange(date)
 
-  
-  
+
+
   ## means for trend line
 
   meanLine <- timeAverage(mydata, avg.time)
   meanLine <- gather(meanLine, key = variable, value = value, -date)
-  
+
   # ensure order of pollutants is correct
   meanLine <- mutate(meanLine,
                    variable = factor(variable, levels = unique(variable)))
-  
+
   meanLine <- split(meanLine, meanLine$variable)
 
   mydata <- gather(mydata, key = variable, value = value, -date)
-  
+
   # ensure order of pollutants is correct
   mydata <- mutate(mydata,
                    variable = factor(variable, levels = unique(variable)))
@@ -567,15 +561,15 @@ summaryPlot <- function(mydata,
   if (length(cols) == 1 && cols == "greyscale") {
     trellis.par.set("strip.background", current.strip)
   }
-  
+
   if (plot) {
     print(plt1, position = c(0, 0, 0.7, y.upp), more = TRUE)
     print(plt2, position = c(0.7, 0, 1, 0.975 * y.upp))
-    
+
     ## use grid to add an overall title
     grid.text(main, 0.5, y.upp, gp = gpar(fontsize = 14))
   }
-  
+
   ## create output with plot
   output <- list(plot = list(plt1, plt2), data = dummy.dat, call = match.call())
   class(output) <- "openair"

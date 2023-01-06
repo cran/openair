@@ -2,7 +2,7 @@
 % Please edit documentation in R/corPlot.R
 \name{corPlot}
 \alias{corPlot}
-\title{corrgram plot with conditioning}
+\title{Correlation matrices with conditioning}
 \usage{
 corPlot(
   mydata,
@@ -28,18 +28,18 @@ corPlot(
 \dQuote{all} use all available valid (numeric) data.}
 
 \item{type}{\code{type} determines how the data are split i.e. conditioned,
-  and then plotted. The default is will produce a single plot using the
-  entire data. Type can be one of the built-in types as detailed in
-  \code{cutData} e.g. \dQuote{season}, \dQuote{year}, \dQuote{weekday} and
-  so on. For example, \code{type = "season"} will produce four plots --- one
-  for each season.
+and then plotted. The default is will produce a single plot using the
+entire data. Type can be one of the built-in types as detailed in
+\code{cutData} e.g. \dQuote{season}, \dQuote{year}, \dQuote{weekday} and
+so on. For example, \code{type = "season"} will produce four plots --- one
+for each season.
 
-  It is also possible to choose \code{type} as another variable in the data
-  frame. If that variable is numeric, then the data will be split into four
-  quantiles (if possible) and labelled accordingly. If type is an existing
-  character or factor variable, then those categories/levels will be used
-  directly. This offers great flexibility for understanding the variation of
-  different variables and how they depend on one another.}
+It is also possible to choose \code{type} as another variable in the data
+frame. If that variable is numeric, then the data will be split into four
+quantiles (if possible) and labelled accordingly. If type is an existing
+character or factor variable, then those categories/levels will be used
+directly. This offers great flexibility for understanding the variation of
+different variables and how they depend on one another.}
 
 \item{cluster}{Should the data be ordered according to cluster analysis. If
 \code{TRUE} hierarchical clustering is applied to the correlation matrices
@@ -81,18 +81,7 @@ with common axis and title labelling options (such as \code{xlab},
 routine formatting.}
 }
 \value{
-As well as generating the plot itself, \code{corPlot} also returns
-  an object of class \dQuote{openair}. The object includes three main
-  components: \code{call}, the command used to generate the plot;
-  \code{data}, the data frame of summarised information used to make the
-  plot; and \code{plot}, the plot itself. If retained, e.g. using
-  \code{output <- corPlot(mydata)}, this output can be used to recover the
-  data, reproduce or rework the original plot or undertake further analysis.
-  Note the denogram when \code{cluster = TRUE} can aslo be returned and
-  plotted. See examples.
-
-  An openair output can be manipulated using a number of generic operations,
-  including \code{print}, \code{plot} and \code{summary}.
+an \link[=openair-package]{openair} object
 }
 \description{
 Function to to draw and visualise correlation matrices using lattice. The
@@ -111,7 +100,7 @@ positive correlation a line at 45 degrees positive slope is drawn. For zero
 correlation the shape becomes a circle. See examples below.
 
 With many different variables it can be difficult to see relationships
-between variables i.e. which variables tend to behave most like one another.
+between variables, i.e., which variables tend to behave most like one another.
 For this reason hierarchical clustering is applied to the correlation
 matrices to group variables that are most similar to one another (if
 \code{cluster = TRUE}).
@@ -127,14 +116,11 @@ data in many flexible ways, although this may become difficult to visualise
 with too many panels.
 }
 \examples{
-
-# load openair data if not loaded already
-data(mydata)
 ## basic corrgram plot
 corPlot(mydata)
 ## plot by season ... and so on
 corPlot(mydata, type = "season")
-## recover dendogram when cluster = TRUE and plot it
+## recover dendrogram when cluster = TRUE and plot it
 res <-corPlot(mydata)
 plot(res$clust)
 \dontrun{
@@ -149,17 +135,16 @@ corPlot(hc)
 }
 \references{
 Sarkar, D. (2007). Lattice Multivariate Data Visualization with
-  R. New York: Springer.
+R. New York: Springer.
 
-  Friendly, M. (2002). Corrgrams : Exploratory displays for correlation
-  matrices. American Statistician, 2002(4), 1-16. doi:10.1198/000313002533
+Friendly, M. (2002). Corrgrams : Exploratory displays for correlation
+matrices. American Statistician, 2002(4), 1-16. doi:10.1198/000313002533
 }
 \seealso{
 \code{taylor.diagram} from the \code{plotrix} package from which
-  some of the annotation code was used.
+some of the annotation code was used.
 }
 \author{
 David Carslaw --- but mostly based on code contained in Sarkar
-  (2007)
+(2007)
 }
-\keyword{methods}

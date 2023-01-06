@@ -5,8 +5,7 @@ importUKAQ <- function(site = "my1", year = 2009, data_type = "hourly",
                        pollutant = "all",
                        hc = FALSE, meta = FALSE, ratified = FALSE,
                        to_narrow = FALSE, verbose = FALSE,
-                       source = "aurn", lmam_subfolder) {
-
+                       source = "aurn", lmam_subfolder, progress = TRUE) {
   # force source to be lowercase
   source <- tolower(source)
 
@@ -36,14 +35,16 @@ importUKAQ <- function(site = "my1", year = 2009, data_type = "hourly",
   }
 
   # combine site with year to create file names
-  files <- map(site, ~ paste0(.x, "_", year)) %>%
-    flatten_chr()
+  files <- purrr::map(site, ~ paste0(.x, "_", year)) %>%
+    purrr::list_c()
 
   # Download and load data.
-  thedata <- map_df(files, ~ loadData(
-    .x, verbose, ratified, meta_data,
-    url_data, data_type
-  ))
+  if (progress) progress <- "Importing Air Quality Data"
+  thedata <- purrr::map(files,
+                        ~ loadData(.x, verbose, ratified, meta_data,
+                                   url_data, data_type),
+                        .progress = progress) %>%
+    purrr::list_rbind()
 
   # Return if no data
   if (nrow(thedata) == 0) {
@@ -70,8 +71,6 @@ importUKAQ <- function(site = "my1", year = 2009, data_type = "hourly",
   if (hc) {
     thedata <- thedata
   } else {
-
-
     ## no hydrocarbons - therefore select conventional pollutants
     theNames <- c(
       "site", "code", "date", "co", "nox", "no2", "no", "o3", "so2", "pm10",
@@ -108,20 +107,20 @@ importUKAQ <- function(site = "my1", year = 2009, data_type = "hourly",
       return()
     }
 
-    if (meta) {
-      thedata <- pivot_longer(thedata, -c(
-        date, site, code, latitude,
-        longitude, site_type
-      ),
-      names_to = "pollutant"
-      ) %>%
-        arrange(site, code, pollutant, date)
-    } else {
-      thedata <- pivot_longer(thedata, -c(date, site, code),
+    # variables to selct or not select
+    the_vars <- c(
+      "date", "site", "code",
+      "latitude", "longitude", "site_type",
+      "ws", "wd", "air_temp"
+    )
+
+    thedata <- thedata %>%
+      pivot_longer(
+        cols = -any_of(the_vars),
         names_to = "pollutant"
       ) %>%
-        arrange(site, code, pollutant, date)
-    }
+      relocate(any_of(the_vars)) %>%
+      arrange(site, code, pollutant, date)
   }
 
   as_tibble(thedata)
@@ -134,7 +133,6 @@ importUKAQ <- function(site = "my1", year = 2009, data_type = "hourly",
 loadData <- function(x, verbose, ratified, meta_data, url_data, data_type) {
   tryCatch(
     {
-
       # Build the file name
       fileName <- paste0(
         url_data, x,
@@ -191,8 +189,8 @@ loadData <- function(x, verbose, ratified, meta_data, url_data, data_type) {
 
         for (i in 1:nrow(meta_data)) {
           dat <- add_ratified(dat,
-            variable = meta_data$variable[i],
-            ratified_to = meta_data$ratified_to[i]
+                              variable = meta_data$variable[i],
+                              ratified_to = meta_data$ratified_to[i]
           )
         }
       }
@@ -201,7 +199,6 @@ loadData <- function(x, verbose, ratified, meta_data, url_data, data_type) {
       return(dat)
     },
     error = function(ex) {
-
       # Print a message
       if (verbose) {
         message(x, "does not exist - ignoring that one.")

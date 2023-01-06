@@ -9,7 +9,8 @@ importEurope(
   year = 2018,
   tz = "UTC",
   meta = FALSE,
-  to_narrow = FALSE
+  to_narrow = FALSE,
+  progress = TRUE
 )
 }
 \arguments{
@@ -27,9 +28,12 @@ latitude and longitude are returned.}
 \item{to_narrow}{By default the returned data has a column for each
 pollutant/variable. When \code{to_narrow = TRUE} the data are stacked into
 a narrow format with a column identifying the pollutant name.}
+
+\item{progress}{Show a progress bar when many sites/years are being imported?
+Defaults to \code{TRUE}.}
 }
 \value{
-A tibble of data.
+a \link[tibble:tibble-package]{tibble}
 }
 \description{
 This function is a simplified version of the \code{saqgetr} package (see
@@ -54,3 +58,17 @@ stuttgart <- importEurope("debw118", year = 2010:2019, meta = TRUE)
 }
 
 }
+\seealso{
+Other import functions: 
+\code{\link{importADMS}()},
+\code{\link{importAQE}()},
+\code{\link{importAURN}()},
+\code{\link{importKCL}()},
+\code{\link{importLocal}()},
+\code{\link{importMeta}()},
+\code{\link{importNI}()},
+\code{\link{importSAQN}()},
+\code{\link{importTraj}()},
+\code{\link{importWAQN}()}
+}
+\concept{import functions}
