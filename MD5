@@ -1,6 +1,6 @@
-34eebbe35282532e09a63cf6c6effe87 *DESCRIPTION
+73da0ac95c0a204effdaf6cea2709d0c *DESCRIPTION
 25910795d9ada51f8a83dc4449a8e114 *NAMESPACE
-fab5a6705fee1858be305d0d85076e3c *NEWS.md
+762c6c46ef9af89bb67409cd7b83f5aa *NEWS.md
 0538b0445e79e7f152d0b92a219d1d52 *R/RColorBrewer.R
 2c26cd7a62c15b1d75ccaca93369975f *R/TaylorDiagram.R
 47aff40bc9c5d92a968761d836a2cdf0 *R/TheilSen.R
@@ -25,7 +25,7 @@ d97da807d923b383805633868a22a2a5 *R/importADMS.R
 4f4bc37ba41da24594cc780fa20cf046 *R/importNI.R
 394b2dfec2db0b47a92e81f81410b23f *R/importSAQN.R
 1588f7172c78828c2ed1365b9f7ff59e *R/importTraj.R
-18c91c6391770af519ac3ea5ab7b8b39 *R/importUKAQ.R
+ba6375cc7739396e97d76760417e15bf *R/importUKAQ.R
 82e6b5e29dc7aaa978264340ca462e9b *R/importWAQN.R
 961194cac4c2260b4e5a97c2eddc7974 *R/linearRelation.R
 1af7a8372a5b176ba669dd94d74126e6 *R/modStats.R
@@ -38,7 +38,7 @@ a7fa29f2463614ddab7fb56ffd3797f4 *R/polarAnnulus.R
 56b486aa70910d0a19e8be040a0b1070 *R/polarCluster.R
 61406da17c02410a4bcccf7e3ca00926 *R/polarDiff.R
 6ea174fb0f58fc5eade7a78da8f17b4e *R/polarFreq.R
-8a983f7724d1bd08be74f58e23b84bd1 *R/polarPlot.R
+c654715ca661a7d61e379a6d19380d9e *R/polarPlot.R
 f04dee11db4abb8ea4ab2b8bea489732 *R/quickText.R
 12a17d42d1664d48e461b94ee9826296 *R/samp.boot.block.R
 fca30fe501f957f3e20bd3929bc88b82 *R/scatterPlot.R
@@ -60,7 +60,7 @@ aa194352ec06b347c83bb2ca460f1038 *R/utilities.R
 dfde36e6f68d07c354aa6f4186888945 *README.md
 ea124a494ad7922985532ad3b308e4d5 *build/partial.rdb
 6f333a171d7880ea6854d0e470285da0 *data/mydata.rda
-c2679538b510b059a132335e857c536c *inst/CITATION
+860502461397264295b78b12d248b276 *inst/CITATION
 45bbaf8ce1ef2bbe35c330ad0aee11fb *inst/WORDLIST
 5b5eb6ff78ef20072a589da2ec6bf6e6 *inst/plume.png
 966aac99b5c0df5fb3524bceffab055f *inst/windRose.png
