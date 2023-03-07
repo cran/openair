@@ -244,7 +244,7 @@
 #' @param alpha The alpha transparency to use for the plotting surface (a value
 #'   between 0 and 1 with zero being fully transparent and 1 fully opaque).
 #'   Setting a value below 1 can be useful when plotting surfaces on a map using
-#'   the package \code{openairmapss}.
+#'   the package \code{openairmaps}.
 #'
 #' @param upper This sets the upper limit wind speed to be used. Often there are
 #'   only a relatively few data points at very high wind speeds and plotting all
@@ -460,7 +460,7 @@ polarPlot <-
            alpha = 1,
            plot = TRUE,
            ...) {
-    
+
     ## get rid of R check annoyances
     z <- . <- NULL
 
@@ -785,7 +785,7 @@ polarPlot <-
         binned <- as.vector(t(binned))
       } else if (toupper(statistic) == "NWR") {
         binned <- rowwise(ws.wd) %>%
-          summarise(simple_kernel(
+          reframe(simple_kernel(
             across(.cols = everything()),
             mydata,
             x = nam.x, y = nam.wd, pollutant = pollutant,
@@ -796,7 +796,7 @@ polarPlot <-
 
       } else if (toupper(statistic) == "TREND") {
         binned <- rowwise(ws.wd) %>%
-          summarise(simple_kernel_trend(
+          reframe(simple_kernel_trend(
             across(.cols = everything()),
             mydata,
             x = nam.x, y = nam.wd, pollutant = pollutant, "date",
@@ -809,7 +809,7 @@ polarPlot <-
       } else {
 
         binned <- rowwise(ws.wd) %>%
-          summarise(calculate_weighted_statistics(
+          reframe(calculate_weighted_statistics(
             across(.cols = everything()),
             mydata,
             statistic = statistic,
@@ -941,19 +941,19 @@ polarPlot <-
       min.bin <- 0
       res1 <- mydata %>%
         group_by(across(type)) %>%
-        summarise(prepare.grid(across(.cols = everything())))
+        reframe(prepare.grid(across(.cols = everything())))
 
       min.bin <- tmp
 
       res <- mydata %>%
         group_by(across(type)) %>%
-        summarise(prepare.grid(across(.cols = everything())))
+        reframe(prepare.grid(across(.cols = everything())))
 
       res$miss <- res1$z
     } else {
       res <- mydata %>%
         group_by(across(type)) %>%
-        summarise(prepare.grid(across(.cols = everything())))
+        reframe(prepare.grid(across(.cols = everything())))
     }
 
     ## with CPF make sure not >1 due to surface fitting
@@ -1648,13 +1648,13 @@ YorkFit <- function(input_data, X = "X", Y = "Y",
     sumTOP <- sum(wTOPint, na.rm = TRUE)
     sumBOT <- sum(wBOTint, na.rm = TRUE)
     b <- sumTOP / sumBOT
-    
+
     # zero or problematic data
-    if (anyNA(b, b.old)) 
+    if (anyNA(b, b.old))
       return(tibble(Intercept = NA, Slope = NA,
                     Int_error = NA, Slope_error = NA,
-                    OLS_slope = NA)) 
-    
+                    OLS_slope = NA))
+
     b.diff <- abs(b - b.old)
   }
 
