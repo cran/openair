@@ -1,6 +1,26 @@
-# openair (development version)
+# openair (development)
+
+# openair (2.17-0)
+
+## New Features
+
+- add option `meteo` to `importAURN()` family of functions. By default modelled wind speed, direction and ambient temperature are returned if available, but not if `meteo = FALSE`.
 
 - added a new column to `modStats()`, "P", which represents the P-value of the correlation as reported by `cor.test()`.
+
+- update processing of ADMS meteorological (.MOP) files to return stability and tidier data.
+
+- refined the output of `pollutionRose()` where the `ws2` and `wd2` options are provided; instead of the misleading N/E/S/W, the markers become 0, +90, +/-180, -90.
+
+- the `timeAverage()` progress bar is now powered by `{cli}`/`{purrr}` and can be silenced using the new `progress` argument.
+
+- the `polarCluster()` progress bar is now also powered by `{cli}`/`{purrr}`.
+
+- colours corresponding to the UK daily air quality index (<https://uk-air.defra.gov.uk/air-pollution/daqi>) have been added as options to `openColours()`.
+
+- the `{openair}` object's `data` property returned by the `trajLevel()` function is now consistently formatted regardless of `statistic` choice, and contains relevant statistic-specific information (e.g., `sigma` for `"SQTBA"`).
+
+## Bug Fixes
 
 - fixed issue with `modStats()` such that "method" can now be changed (e.g., to "spearman").
 
@@ -8,12 +28,15 @@
 
 - fixed issue with `conditionalQuantile()` where the plot would fail to be produced when "type" was not specified.
 
-- update processing of ADMS meteorological (.MOP) files to return stability and tidier data.
-
-- add option `meteo` to `importAURN` family of functions. By default modelled wind speed, direction and ambient temperature are returned if available, but not if `meteo = FALSE`.
-
 - fixed issue with `cutData()` where "season" wouldn't respect system locale (e.g., would still show "(DJF)" on Italian systems, instead of the correct "(gla)"). Note that the season name itself (e.g., "Winter") cannot be automatically converted.
 
+- fixed the `theilSen()` `silent` argument. The message "taking bootstrap samples. please wait" is also now sent via `message()` rather than `print()` and only appears once per function call.
+
+- fixed issue where `trajCluster()` proportions would overlap when clustering forward trajectories. Proportions should now appear at the end of cluster paths, regardless of whether the trajectory is back or forward.
+
+- fixed issue where not all `{openair}` plotting functions would properly return an openair S3 object, and that not all `data` objects were tibbles.
+
+- Fixed issue with `timeAverage` where date formatting caused problems, possibly due to latest version of R (4.3.0).
 
 # openair 2.15
 
@@ -67,7 +90,7 @@
 - add option to `TaylorDiagram` for annotation of observed data.
 - fix issue with `timevariation` when `difference = TRUE`
 - fix `trajCluster` issue to do with `dplyr`
-- access other time-averaged air quality data using `importAURN`, `importSAQN`, `importWAQN`, `importAQE` and `importNI`. New option `data_type`, which can be "hourly" (default), "annual", "monthly", "daily" and "15min" (for SO~2~). These new data sources should make it much easier to work with long-term time series with many sites. See [the openair manual](https://bookdown.org/david_carslaw/openair/UK-air-quality-data.html) for more details.
+- access other time-averaged air quality data using `importAURN`, `importSAQN`, `importWAQN`, `importAQE` and `importNI`. New option `data_type`, which can be "hourly" (default), "annual", "monthly", "daily" and "15min" (for SO~2~). These new data sources should make it much easier to work with long-term time series with many sites. See [the openair manual](https://bookdown.org/david_carslaw/openair/sections/data-access/UK-air-quality-data.html) for more details.
 - fix terrible spelling in `selectRunning`.
 
 # openair 2.8-6

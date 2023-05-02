@@ -117,9 +117,7 @@
 #'   handling and \code{levelplot} in \code{lattice} for finer control of the
 #'   plot itself.
 #' @export
-#' @return an [openair][openair-package] object. Summary statistics can also be
-#'   extracted directly using \code{results}, e.g., \code{results(object)} for
-#'   \code{output <- trendLevel(mydata)}.
+#' @return an [openair][openair-package] object.
 #' @author Karl Ropkins and David Carslaw
 #' @family time series and trend functions
 #' @examples
@@ -658,7 +656,9 @@ trendLevel <- function(mydata, pollutant = "nox", x = "month", y = "hour",
   ## ############################
   if (plot) plot(plt)
 
-  output <- list(plot = plt, data = newdata, call = match.call())
+  output <- list(plot = plt,
+                 data = dplyr::tibble(newdata),
+                 call = match.call())
   class(output) <- "openair"
   invisible(output)
 }

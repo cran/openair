@@ -251,10 +251,9 @@
 #'   of them can reduce the useful information in the plot.
 #'
 #' @param angle.scale Sometimes the placement of the scale may interfere with an
-#'   interesting feature. The user can therefore set \code{angle.scale} to
-#'   any value between 0 and 360 degrees to mitigate such problems. For
-#'   example \code{angle.scale = 45} will draw the scale heading in a NE
-#'   direction.
+#'   interesting feature. The user can therefore set \code{angle.scale} to any
+#'   value between 0 and 360 degrees to mitigate such problems. For example
+#'   \code{angle.scale = 45} will draw the scale heading in a NE direction.
 #'
 #' @param units The units shown on the polar axis scale.
 #'
@@ -342,12 +341,10 @@
 #'
 #' @import lattice
 #' @import mgcv
-#' @return an [openair][openair-package] object. \code{polarPlot} surface data
-#'   can also be extracted directly using the \code{results}, e.g.
-#'   \code{results(object)} for \code{output <- polarPlot(mydata, "nox")}. This
-#'   returns a data frame with four set columns: \code{cond}, conditioning based
-#'   on \code{type}; \code{u} and \code{v}, the translational vectors based on
-#'   \code{ws} and \code{wd}; and the local \code{pollutant} estimate.
+#' @return an [openair][openair-package] object. `data` contians four set
+#'   columns: \code{cond}, conditioning based on \code{type}; \code{u} and
+#'   \code{v}, the translational vectors based on \code{ws} and \code{wd}; and
+#'   the local \code{pollutant} estimate.
 #' @author David Carslaw
 #' @family polar directional analysis functions
 #' @references
@@ -785,7 +782,7 @@ polarPlot <-
         binned <- as.vector(t(binned))
       } else if (toupper(statistic) == "NWR") {
         binned <- rowwise(ws.wd) %>%
-          reframe(simple_kernel(
+          summarise(simple_kernel(
             across(.cols = everything()),
             mydata,
             x = nam.x, y = nam.wd, pollutant = pollutant,
@@ -796,7 +793,7 @@ polarPlot <-
 
       } else if (toupper(statistic) == "TREND") {
         binned <- rowwise(ws.wd) %>%
-          reframe(simple_kernel_trend(
+          summarise(simple_kernel_trend(
             across(.cols = everything()),
             mydata,
             x = nam.x, y = nam.wd, pollutant = pollutant, "date",
@@ -809,7 +806,7 @@ polarPlot <-
       } else {
 
         binned <- rowwise(ws.wd) %>%
-          reframe(calculate_weighted_statistics(
+          summarise(calculate_weighted_statistics(
             across(.cols = everything()),
             mydata,
             statistic = statistic,
@@ -941,19 +938,19 @@ polarPlot <-
       min.bin <- 0
       res1 <- mydata %>%
         group_by(across(type)) %>%
-        reframe(prepare.grid(across(.cols = everything())))
+        group_modify(~ prepare.grid(.))
 
       min.bin <- tmp
 
       res <- mydata %>%
         group_by(across(type)) %>%
-        reframe(prepare.grid(across(.cols = everything())))
+        group_modify(~ prepare.grid(.))
 
       res$miss <- res1$z
     } else {
       res <- mydata %>%
         group_by(across(type)) %>%
-        reframe(prepare.grid(across(.cols = everything())))
+        group_modify(~ prepare.grid(.))
     }
 
     ## with CPF make sure not >1 due to surface fitting

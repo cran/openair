@@ -1,8 +1,8 @@
 Type: Package
 Package: openair
 Title: Tools for the Analysis of Air Pollution Data
-Version: 2.16-0
-Date: 2023-02-07
+Version: 2.17-0
+Date: 2023-05-02
 Authors@R: c(
     person("David", "Carslaw", , "david.carslaw@york.ac.uk", role = c("aut", "cre")),
     person("Jack", "Davison", , "jack.davison@ricardo.com", role = "aut"),
@@ -18,10 +18,10 @@ License: GPL (>= 2)
 URL: https://davidcarslaw.github.io/openair/
 BugReports: https://github.com/davidcarslaw/openair/issues
 Depends: R (>= 3.2.0)
-Imports: cluster, dplyr (>= 1.0), graphics, grDevices, grid, hexbin,
-        lattice, latticeExtra, lubridate, mapproj, MASS, methods, mgcv,
-        purrr (>= 1.0.0), Rcpp, readr, rlang, stats, tibble, tidyr,
-        utils
+Imports: cli, cluster, dplyr (>= 1.0), graphics, grDevices, grid,
+        hexbin, lattice, latticeExtra, lubridate, mapproj, MASS,
+        methods, mgcv, purrr (>= 1.0.0), Rcpp, readr, rlang, stats,
+        tibble, tidyr, utils
 Suggests: KernSmooth, mapdata, maps, quantreg, spelling
 LinkingTo: Rcpp
 ByteCompile: true
@@ -31,9 +31,9 @@ LazyData: yes
 LazyLoad: yes
 RoxygenNote: 7.2.3
 NeedsCompilation: yes
-Packaged: 2023-03-07 10:43:20 UTC; davidcarslaw
+Packaged: 2023-05-02 14:10:52 UTC; davidcarslaw
 Author: David Carslaw [aut, cre],
   Jack Davison [aut],
   Karl Ropkins [aut]
 Repository: CRAN
-Date/Publication: 2023-03-07 12:30:02 UTC
+Date/Publication: 2023-05-02 19:00:02 UTC
