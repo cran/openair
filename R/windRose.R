@@ -676,8 +676,9 @@ windRose <- function(
   corr_bias <- function(results) {
 
     # check to see if data for this type combination are rounded to 10 degrees
+    # round wd so that tiny differences between integer a numeric do not arise
     wd_select <- inner_join(mydata_orig, results[1, type], by = type)
-    if (!all(wd_select[[wd]] %% 10 == 0, na.rm = TRUE)) return(results)
+    if (!all(round(wd_select[[wd]]) %% 10 == 0, na.rm = TRUE)) return(results)
 
     wds <- seq(10, 360, 10)
     tmp <- angle * ceiling(wds / angle - 0.5)
@@ -920,7 +921,7 @@ windRose <- function(
         lsegments(0, -upper, 0, upper)
 
         if (!is.na(ws2) & !is.na(wd2)) {
-          axislabs <- c("0", "+90", paste0("\u2213", 180), "-90")
+          axislabs <- c("0", "+90", paste0("+/-", 180), "-90")
           s_adj <- 0.1
         } else {
           axislabs <- c("N", "E", "S", "W")

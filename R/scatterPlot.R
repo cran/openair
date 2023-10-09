@@ -1783,15 +1783,21 @@ panel.linear <- function(x, y, x.nam = "x", y.nam = "y",
     slope <- coef(mod)[2]
     intercept <- coef(mod)[1]
 
-    if (intercept > 0) symb <- "+" else symb <- ""
+    if (intercept >= 0) symb <- "+" else symb <- ""
     panel.text(
       x, y, quickText(paste(
-        y.nam, "=", format(slope, digits = 2),
-        "[", x.nam, "]", symb,
-        format(intercept, digits = 2),
-        " R2=", format(r.sq, digits = 2),
+        y.nam,
+        "=",
+        sprintf(slope, fmt = "%#.2f"),
+        "[",
+        x.nam,
+        "]",
+        symb,
+        sprintf(intercept, fmt = "%#.2f"),
+        " R2=",
+        sprintf(r.sq, fmt = "%#.2f"),
         sep = ""
-      )),
+      )), 
       cex = 0.7, pos = 4,
       col = myColors[group.number]
     )

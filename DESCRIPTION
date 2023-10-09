@@ -1,8 +1,8 @@
 Type: Package
 Package: openair
 Title: Tools for the Analysis of Air Pollution Data
-Version: 2.17-0
-Date: 2023-05-02
+Version: 2.18-0
+Date: 2023-10-05
 Authors@R: c(
     person("David", "Carslaw", , "david.carslaw@york.ac.uk", role = c("aut", "cre")),
     person("Jack", "Davison", , "jack.davison@ricardo.com", role = "aut"),
@@ -15,7 +15,8 @@ Description: Tools to analyse, interpret and understand air pollution
     analysed. The package is described in Carslaw and Ropkins (2012,
     <doi:10.1016/j.envsoft.2011.09.008>) and subsequent papers.
 License: GPL (>= 2)
-URL: https://davidcarslaw.github.io/openair/
+URL: https://davidcarslaw.github.io/openair/,
+        https://github.com/davidcarslaw/openair
 BugReports: https://github.com/davidcarslaw/openair/issues
 Depends: R (>= 3.2.0)
 Imports: cli, cluster, dplyr (>= 1.0), graphics, grDevices, grid,
@@ -31,9 +32,9 @@ LazyData: yes
 LazyLoad: yes
 RoxygenNote: 7.2.3
 NeedsCompilation: yes
-Packaged: 2023-05-02 14:10:52 UTC; davidcarslaw
+Packaged: 2023-10-05 11:28:35 UTC; davidcarslaw
 Author: David Carslaw [aut, cre],
   Jack Davison [aut],
   Karl Ropkins [aut]
 Repository: CRAN
-Date/Publication: 2023-05-02 19:00:02 UTC
+Date/Publication: 2023-10-09 14:10:05 UTC

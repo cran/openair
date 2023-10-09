@@ -77,12 +77,15 @@
 #'   -units -auto.text -plot
 #' @export
 #' @import cluster
-#' @return an [openair][openair-package] object. The object includes three main
+#' @return an [openair][openair-package] object. The object includes four main
 #'   components: \code{call}, the command used to generate the plot;
-#'   \code{data}, by default the original data frame with a new field \code{cluster}
-#'   identifying the cluster; and \code{plot}, the plot itself. Note that any
-#'   rows where the value of \code{pollutant} is \code{NA} are ignored so that
-#'   the returned data frame may have fewer rows than the original.
+#'   \code{data}, by default the original data frame with a new field
+#'   \code{cluster} identifying the cluster, \code{clust_stats} giving the
+#'   contributions made by each cluster to number of measurements, their
+#'   percentage and the percentage by pollutant; and \code{plot}, the plot
+#'   itself. Note that any rows where the value of \code{pollutant} is \code{NA}
+#'   are ignored so that the returned data frame may have fewer rows than the
+#'   original.
 #'
 #'   If the clustering is carried out considering differences, i.e., an
 #'   \code{after} data frame is supplied, the output also includes the
@@ -123,7 +126,7 @@
 #'   group = "cluster", col = openColours("Paired", 6)[c(3, 4)]
 #' )
 #' }
-#'
+#' 
 polarCluster <-
   function(mydata,
            pollutant = "nox",
@@ -477,6 +480,34 @@ polarCluster <-
       out_data$cluster <- paste("C", out_data$cluster, sep = "")
       out_data$cluster[out_data$cluster == "CNA"] <- NA_character_
     }
+    
+    # print the stats
+    
+    var_mean <- paste0("mean_", pollutant)
+    var_percent <- paste0(pollutant, "_percent")
+    
+    clust_stats <- 
+      out_data %>% 
+      dplyr::group_by(cluster) %>%
+      dplyr::summarise(
+        {{ var_mean }} := mean(.data[[pollutant]], na.rm = TRUE),
+        n = dplyr::n()
+      ) %>% 
+      na.omit() %>% 
+      dplyr::mutate(
+        n_mean = n * .data[[var_mean ]],
+        n_percent = round(100 * n / sum(n), 1),
+        {{ var_percent }} := round(100 * n_mean / sum(n_mean), 1)
+      ) %>% 
+      dplyr::select(-n_mean)
+    
+    
+    if (plot) {
+      
+      print(clust_stats)
+      
+    }
+      
 
     # output
     if (is.data.frame(after)) {
@@ -485,14 +516,17 @@ polarCluster <-
           plot = plt,
           data = out_data,
           after = after,
+          clust_stats = clust_stats,
           call = match.call()
         )
     } else {
       output <- list(
         plot = plt,
         data = out_data,
+        clust_stats = clust_stats,
         call = match.call()
       )
     }
+
     invisible(output)
   }
