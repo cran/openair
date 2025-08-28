@@ -1,40 +1,46 @@
 Type: Package
 Package: openair
 Title: Tools for the Analysis of Air Pollution Data
-Version: 2.18-2
-Date: 2024-03-11
+Version: 2.19.0
 Authors@R: c(
-    person("David", "Carslaw", , "david.carslaw@york.ac.uk", role = c("aut", "cre")),
-    person("Jack", "Davison", , "jack.davison@ricardo.com", role = "aut"),
-    person("Karl", "Ropkins", , "K.Ropkins@its.leeds.ac.uk", role = "aut")
+    person("David", "Carslaw", , "david.carslaw@york.ac.uk", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0003-0991-950X")),
+    person("Jack", "Davison", , "jack.davison@ricardo.com", role = "aut",
+           comment = c(ORCID = "0000-0003-2653-6615")),
+    person("Karl", "Ropkins", , "K.Ropkins@its.leeds.ac.uk", role = "aut",
+           comment = c(ORCID = "0000-0002-0294-6997"))
   )
-Maintainer: David Carslaw <david.carslaw@york.ac.uk>
 Description: Tools to analyse, interpret and understand air pollution
     data. Data are typically regular time series and air quality
     measurement, meteorological data and dispersion model output can be
     analysed. The package is described in Carslaw and Ropkins (2012,
     <doi:10.1016/j.envsoft.2011.09.008>) and subsequent papers.
-License: GPL (>= 2)
-URL: https://davidcarslaw.github.io/openair/,
-        https://github.com/davidcarslaw/openair
-BugReports: https://github.com/davidcarslaw/openair/issues
+License: MIT + file LICENSE
+URL: https://openair-project.github.io/openair/,
+        https://github.com/openair-project/openair
+BugReports: https://github.com/openair-project/openair/issues
 Depends: R (>= 3.2.0)
-Imports: cli, cluster, dplyr (>= 1.0), graphics, grDevices, grid,
+Imports: cli, cluster, dplyr (>= 1.1), graphics, grDevices, grid,
         hexbin, lattice, latticeExtra, lubridate, mapproj, MASS,
         methods, mgcv, purrr (>= 1.0.0), Rcpp, readr, rlang, stats,
         tibble, tidyr, utils
-Suggests: KernSmooth, mapdata, maps, quantreg, spelling
+Suggests: KernSmooth, knitr, mapdata, maps, quantreg, rmarkdown,
+        spelling, testthat (>= 3.0.0)
 LinkingTo: Rcpp
 ByteCompile: true
+Config/Needs/website: openair-project/openairpkgdown
+Config/testthat/edition: 3
 Encoding: UTF-8
 Language: en-GB
 LazyData: yes
 LazyLoad: yes
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 NeedsCompilation: yes
-Packaged: 2024-03-11 15:22:29 UTC; davidcarslaw
-Author: David Carslaw [aut, cre],
-  Jack Davison [aut],
-  Karl Ropkins [aut]
+Packaged: 2025-08-28 08:35:48 UTC; JD38
+Author: David Carslaw [aut, cre] (ORCID:
+    <https://orcid.org/0000-0003-0991-950X>),
+  Jack Davison [aut] (ORCID: <https://orcid.org/0000-0003-2653-6615>),
+  Karl Ropkins [aut] (ORCID: <https://orcid.org/0000-0002-0294-6997>)
+Maintainer: David Carslaw <david.carslaw@york.ac.uk>
 Repository: CRAN
-Date/Publication: 2024-03-11 16:30:02 UTC
+Date/Publication: 2025-08-28 12:20:02 UTC

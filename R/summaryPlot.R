@@ -134,27 +134,29 @@
 #' summaryPlot(mydata, col.dens = "black")
 #' }
 #'
-summaryPlot <- function(mydata,
-                        na.len = 24,
-                        clip = TRUE,
-                        percentile = 0.99,
-                        type = "histogram",
-                        pollutant = "nox",
-                        period = "years",
-                        avg.time = "day",
-                        print.datacap = TRUE,
-                        breaks = NULL,
-                        plot.type = "l",
-                        col.trend = "darkgoldenrod2",
-                        col.data = "lightblue",
-                        col.mis = rgb(0.65, 0.04, 0.07),
-                        col.hist = "forestgreen",
-                        cols = NULL,
-                        date.breaks = 7,
-                        auto.text = TRUE,
-                        plot = TRUE,
-                        debug = FALSE,
-                        ...) {
+summaryPlot <- function(
+  mydata,
+  na.len = 24,
+  clip = TRUE,
+  percentile = 0.99,
+  type = "histogram",
+  pollutant = "nox",
+  period = "years",
+  avg.time = "day",
+  print.datacap = TRUE,
+  breaks = NULL,
+  plot.type = "l",
+  col.trend = "darkgoldenrod2",
+  col.data = "lightblue",
+  col.mis = "#A60A12",
+  col.hist = "forestgreen",
+  cols = NULL,
+  date.breaks = 7,
+  auto.text = TRUE,
+  plot = TRUE,
+  debug = FALSE,
+  ...
+) {
   ## get rid of R check annoyances
   value <- NULL
 
@@ -165,7 +167,7 @@ summaryPlot <- function(mydata,
     # other local colours
     col.trend <- "lightgrey"
     col.data <- "lightgrey"
-    col.mis <- grey(0.15)
+    col.mis <- grDevices::grey(0.15)
     col.hist <- "grey"
     col.stat <- "black"
   } else {
@@ -178,7 +180,8 @@ summaryPlot <- function(mydata,
 
   ## if site is in the data set, check none are missing
   ## seems to be a problem for some KCL data...
-  if ("site" %in% names(mydata)) { ## split by site
+  if ("site" %in% names(mydata)) {
+    ## split by site
 
     ## remove any NA sites
     if (anyNA(mydata$site)) {
@@ -186,7 +189,6 @@ summaryPlot <- function(mydata,
       mydata <- mydata[-id, ]
     }
   }
-
 
   ## extra.args setup
   extra.args <- list(...)
@@ -225,7 +227,9 @@ summaryPlot <- function(mydata,
   extra.args <- extra.args[!names(extra.args) %in% c("xlab", "ylab", "main")]
 
   ## set panel strip to white
-  suppressWarnings(trellis.par.set(list(strip.background = list(col = "white"))))
+  suppressWarnings(trellis.par.set(list(
+    strip.background = list(col = "white")
+  )))
 
   # the above might be a better retro fix for more complex functions?
 
@@ -236,15 +240,19 @@ summaryPlot <- function(mydata,
 
   ## check to see if there are any missing dates, stop if there are
   if (any(is.na(mydata$date))) {
-    stop(cat("There are some missing dates on line(s)", which(is.na(mydata$date))), "\n")
+    stop(
+      cat("There are some missing dates on line(s)", which(is.na(mydata$date))),
+      "\n"
+    )
   }
-
 
   ## for plot
   dateBreaks <- dateBreaks(mydata$date, date.breaks)$major
 
   ## print data types - helps with debugging
-  if (debug) print(unlist(sapply(mydata, class)))
+  if (debug) {
+    print(unlist(sapply(mydata, class)))
+  }
 
   ## check to see if there is a field site and >1 site
   ## if several sites and no pollutant supplied, use first numeric
@@ -260,7 +268,9 @@ summaryPlot <- function(mydata,
       mydata$site <- factor(mydata$site)
       ## id of first numeric column (pollutant)
       id <- which(sapply(mydata, class) %in% c("numeric", "integer"))[1]
-      if (missing(pollutant)) pollutant <- names(mydata)[id]
+      if (missing(pollutant)) {
+        pollutant <- names(mydata)[id]
+      }
 
       if (pollutant %in% names(mydata) == FALSE) {
         stop(cat("Can't find the variable", pollutant, "\n"))
@@ -269,10 +279,7 @@ summaryPlot <- function(mydata,
       mydata <- subset(mydata, select = c("date", "site", pollutant))
       names(mydata) <- c("date", "variable", "value")
 
-
-      mydata <- tidyr::spread(mydata,
-        key = variable, value = value
-      )
+      mydata <- tidyr::spread(mydata, key = variable, value = value)
 
       warning(paste("More than one site detected, using", pollutant))
     }
@@ -280,7 +287,10 @@ summaryPlot <- function(mydata,
 
   ## make sure only numeric data are selected
   dates <- mydata$date
-  mydata <- mydata[, sapply(mydata, class) %in% c("numeric", "integer"), drop = FALSE]
+  mydata <- mydata[,
+    sapply(mydata, class) %in% c("numeric", "integer"),
+    drop = FALSE
+  ]
   mydata <- data.frame(date = dates, mydata)
 
   ## remove variables where all are NA
@@ -307,15 +317,14 @@ summaryPlot <- function(mydata,
   mydata <- full_join(mydata, all.dates, by = "date") %>%
     arrange(date)
 
-
-
   ## means for trend line
 
   meanLine <- timeAverage(mydata, avg.time)
   meanLine <- gather(meanLine, key = variable, value = value, -date)
 
   # ensure order of pollutants is correct
-  meanLine <- mutate(meanLine,
+  meanLine <- mutate(
+    meanLine,
     variable = factor(variable, levels = unique(variable))
   )
 
@@ -324,7 +333,8 @@ summaryPlot <- function(mydata,
   mydata <- gather(mydata, key = variable, value = value, -date)
 
   # ensure order of pollutants is correct
-  mydata <- mutate(mydata,
+  mydata <- mutate(
+    mydata,
     variable = factor(variable, levels = unique(variable))
   )
 
@@ -337,7 +347,9 @@ summaryPlot <- function(mydata,
     ends <- cumsum.seq[myruns] # + 1 # to get whole hour
     newindex <- ifelse(myruns > 1, myruns - 1, 0)
     starts <- cumsum.seq[newindex] + 1
-    if (0 %in% newindex) starts <- c(1, starts)
+    if (0 %in% newindex) {
+      starts <- c(1, starts)
+    }
     data.frame(starts = mydata$date[starts], ends = mydata$date[ends])
   }
 
@@ -351,18 +363,36 @@ summaryPlot <- function(mydata,
     median.dat <- round(median(value, na.rm = TRUE), 1)
     percentile <- round(quantile(value, probs = 0.95, na.rm = TRUE), 1)
 
-    if (period == "years") format.t <- "%Y"
-    if (period == "months") format.t <- "%Y-%m"
-    if (period == "days") format.t <- "%Y-%m-%d"
+    if (period == "years") {
+      format.t <- "%Y"
+    }
+    if (period == "months") {
+      format.t <- "%Y-%m"
+    }
+    if (period == "days") {
+      format.t <- "%Y-%m-%d"
+    }
 
-    data.cap <- round(tapply(
-      value, list(year = format(mydata$date, format.t)),
-      function(x) 100 * length(na.omit(x)) / length(x)
-    ), 1)
-    res <- list(results = c(
-      mis.dat, mis.per, min.dat, max.dat, mean.dat, median.dat,
-      percentile
-    ), data.cap = data.cap)
+    data.cap <- round(
+      tapply(
+        value,
+        list(year = format(mydata$date, format.t)),
+        function(x) 100 * length(na.omit(x)) / length(x)
+      ),
+      1
+    )
+    res <- list(
+      results = c(
+        mis.dat,
+        mis.per,
+        min.dat,
+        max.dat,
+        mean.dat,
+        median.dat,
+        percentile
+      ),
+      data.cap = data.cap
+    )
     return(res)
   }
 
@@ -387,7 +417,6 @@ summaryPlot <- function(mydata,
   max.x <- as.numeric(max(mydata$date))
   seq.year <- seq(start.date, end.date, by = period)
 
-
   # xlab, ylab handling for plt1
   # (so user inputs go through quicktext)
   my.ylab <- if (is.null(ylab[1]) || is.na(ylab[1])) {
@@ -401,9 +430,10 @@ summaryPlot <- function(mydata,
     quickText(xlab[1], auto.text)
   }
 
-
   xyplot.args <- list(
-    x = value ~ date | variable, data = dummy.dat, type = "n",
+    x = value ~ date | variable,
+    data = dummy.dat,
+    type = "n",
     ylim = c(0, 5.5),
     ylab = my.ylab,
     xlab = my.xlab,
@@ -430,33 +460,54 @@ summaryPlot <- function(mydata,
       meanLine[[panelNo]]$value <- 1 + range01(meanLine[[panelNo]]$value) * 4
 
       panel.xyplot(
-        meanLine[[panelNo]]$date, meanLine[[panelNo]]$value,
+        meanLine[[panelNo]]$date,
+        meanLine[[panelNo]]$value,
         type = plot.type,
-        col = col.trend, ...
+        col = col.trend,
+        ...
       )
 
       ## plot all data region
-      with(mydata, lrect(
-        as.numeric(min(date)), 0,
-        as.numeric(max(date)), 1,
-        col = col.data, border = NA
-      ))
+      with(
+        mydata,
+        lrect(
+          as.numeric(min(date)),
+          0,
+          as.numeric(max(date)),
+          1,
+          col = col.data,
+          border = NA
+        )
+      )
 
       ## over-plot missing data - if there are any
       if (nrow(missing.dat[[panelNo]]) > 0) {
         lrect(
-          as.numeric(missing.dat[[panelNo]]$starts), 0,
-          as.numeric(missing.dat[[panelNo]]$ends), 1,
-          col = col.mis, border = NA
+          as.numeric(missing.dat[[panelNo]]$starts),
+          0,
+          as.numeric(missing.dat[[panelNo]]$ends),
+          1,
+          col = col.mis,
+          border = NA
         )
       }
       stats <- sum.stats[[panelNo]]$results
       data.cap <- sum.stats[[panelNo]]$data.cap
 
-      ltext(min.x, 4, paste(
-        "missing = ", stats[1], " (", stats[2], "%)",
-        sep = ""
-      ), cex = 0.6, pos = 4)
+      ltext(
+        min.x,
+        4,
+        paste(
+          "missing = ",
+          stats[1],
+          " (",
+          stats[2],
+          "%)",
+          sep = ""
+        ),
+        cex = 0.6,
+        pos = 4
+      )
 
       ltext(min.x, 3, paste("min =", stats[3]), cex = 0.6, pos = 4)
 
@@ -468,9 +519,15 @@ summaryPlot <- function(mydata,
 
       ltext(max.x, 2, paste("95th percentile =", stats[7]), cex = 0.6, pos = 2)
 
-
       if (print.datacap) {
-        ltext(seq.year, 5, paste(data.cap, "%"), cex = 0.6, col = col.stat, pos = 4)
+        ltext(
+          seq.year,
+          5,
+          paste(data.cap, "%"),
+          cex = 0.6,
+          col = col.stat,
+          pos = 4
+        )
       }
     }
   )
@@ -482,9 +539,17 @@ summaryPlot <- function(mydata,
   plt1 <- do.call(xyplot, xyplot.args)
 
   ## this adjusts the space for the title to 2 lines (approx) if \n in title
-  if (!is.null(main)) main <- quickText(main, auto.text)
-  if (length(grep("atop", main) == 1)) y.upp <- 0.95 else y.upp <- 0.975
-  if (is.null(main)) y.upp <- 1
+  if (!is.null(main)) {
+    main <- quickText(main, auto.text)
+  }
+  if (length(grep("atop", main) == 1)) {
+    y.upp <- 0.95
+  } else {
+    y.upp <- 0.975
+  }
+  if (is.null(main)) {
+    y.upp <- 1
+  }
 
   ## clip data to help show interesting part of distribution
   if (clip) {
@@ -505,7 +570,9 @@ summaryPlot <- function(mydata,
     ylab[2]
   }
   if (my.ylab == "") {
-    if (type == "histogram") my.ylab <- "Percent of Total"
+    if (type == "histogram") {
+      my.ylab <- "Percent of Total"
+    }
     if (type == "density") my.ylab <- "Density"
   } else {
     my.ylab <- quickText(my.ylab, auto.text)
@@ -517,11 +584,12 @@ summaryPlot <- function(mydata,
     quickText(xlab[2], auto.text)
   }
 
-
   if (type == "histogram") {
     histogram.args <- list(
-      x = ~ value | variable, data = mydata,
-      xlab = my.xlab, ylab = my.ylab,
+      x = ~ value | variable,
+      data = mydata,
+      xlab = my.xlab,
+      ylab = my.ylab,
       par.strip.text = list(cex = 0.7),
       breaks = breaks,
       layout = c(1, length(unique(mydata$variable))),
@@ -533,13 +601,14 @@ summaryPlot <- function(mydata,
       }
     )
 
-
     plt2 <- do.call(histogram, histogram.args)
   } else {
     densityplot.args <- list(
-      x = ~ value | variable, data = mydata,
+      x = ~ value | variable,
+      data = mydata,
       par.strip.text = list(cex = 0.7),
-      xlab = my.xlab, ylab = my.ylab,
+      xlab = my.xlab,
+      ylab = my.ylab,
       layout = c(1, length(unique(mydata$variable))),
       scales = list(relation = "free", y = list(rot = 0), cex = 0.7),
       strip = FALSE,
@@ -547,19 +616,19 @@ summaryPlot <- function(mydata,
         panel.grid(-1, -1)
         panel.densityplot(
           x,
-          lwd = 2, plot.points = FALSE,
-          col = col.hist, ...
+          lwd = 2,
+          plot.points = FALSE,
+          col = col.hist,
+          ...
         )
       }
     )
-
 
     # plot
     plt2 <- do.call(densityplot, densityplot.args)
 
     #   plt2 <- densityplot()
   }
-
 
   # reset if greyscale
   if (length(cols) == 1 && cols == "greyscale") {

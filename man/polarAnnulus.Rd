@@ -38,12 +38,10 @@ pollutant.}
 
 \item{pollutant}{Mandatory. A pollutant name corresponding to a variable in a
 data frame should be supplied e.g. \code{pollutant = "nox"}. There can also
-be more than one pollutant specified e.g. \code{pollutant = c("nox",
-  "no2")}. The main use of using two or more pollutants is for model
+be more than one pollutant specified e.g. \code{pollutant = c("nox", "no2")}. The main use of using two or more pollutants is for model
 evaluation where two species would be expected to have similar
 concentrations. This saves the user stacking the data and it is possible to
-work with columns of data directly. A typical use would be \code{pollutant
-  = c("obs", "mod")} to compare two columns \dQuote{obs} (the observations)
+work with columns of data directly. A typical use would be \code{pollutant = c("obs", "mod")} to compare two columns \dQuote{obs} (the observations)
 and \dQuote{mod} (modelled values).}
 
 \item{resolution}{Two plot resolutions can be set: \dQuote{normal} and
@@ -60,8 +58,7 @@ of \dQuote{smearing-out} the concentrations. Sometimes, a useful approach
 is to express time as local time. This correction tends to produce
 better-defined diurnal profiles of concentration (or other variables) and
 allows a better comparison to be made with emissions/activity data. If set
-to \code{FALSE} then GMT is used. Examples of usage include \code{local.tz
-  = "Europe/London"}, \code{local.tz = "America/New_York"}. See
+to \code{FALSE} then GMT is used. Examples of usage include \code{local.tz = "Europe/London"}, \code{local.tz = "America/New_York"}. See
 \code{cutData} and \code{import} for more details.}
 
 \item{period}{This determines the temporal period to consider. Options are
@@ -89,8 +86,7 @@ meant for situations where there are several sites. Note, when two types
 are provided the first forms the columns and the second the rows.
 
 Also note that for the \code{polarAnnulus} function some type/period
-combinations are forbidden or make little sense. For example, \code{type =
-  "season"} and \code{period = "trend"} (which would result in a plot with
+combinations are forbidden or make little sense. For example, \code{type = "season"} and \code{period = "trend"} (which would result in a plot with
 too many gaps in it for sensible smoothing), or \code{type = "weekday"} and
 \code{period = "weekday"}.}
 
@@ -100,16 +96,14 @@ speed/direction bin. Can be \dQuote{mean} (default), \dQuote{median},
 deviation), \dQuote{weighted.mean} or \dQuote{cpf} (Conditional Probability
 Function). Because of the smoothing involved, the colour scale for some of
 these statistics is only to provide an indication of overall pattern and
-should not be interpreted in concentration units e.g. for \code{statistic =
-  "weighted.mean"} where the bin mean is multiplied by the bin frequency and
+should not be interpreted in concentration units e.g. for \code{statistic = "weighted.mean"} where the bin mean is multiplied by the bin frequency and
 divided by the total frequency. In many cases using \code{polarFreq} will
 be better. Setting \code{statistic = "weighted.mean"} can be useful because
 it provides an indication of the concentration * frequency of occurrence
 and will highlight the wind speed/direction conditions that dominate the
 overall mean.}
 
-\item{percentile}{If \code{statistic = "percentile"} or \code{statistic =
-  "cpf"} then \code{percentile} is used, expressed from 0 to 100. Note that
+\item{percentile}{If \code{statistic = "percentile"} or \code{statistic = "cpf"} then \code{percentile} is used, expressed from 0 to 100. Note that
 the percentile value is calculated in the wind speed, wind direction
 \sQuote{bins}. For this reason it can also be useful to set \code{min.bin}
 to ensure there are a sufficient number of points available to estimate a
@@ -119,18 +113,17 @@ calculated.}
 \item{limits}{The function does its best to choose sensible limits
 automatically. However, there are circumstances when the user will wish to
 set different ones. An example would be a series of plots showing each year
-of data separately. The limits are set in the form \code{c(lower, upper)},
-so \code{limits = c(0, 100)} would force the plot limits to span 0-100.}
+of data separately. The limits are set in the form \code{c(lower, upper)}, so
+\code{limits = c(0, 100)} would force the plot limits to span 0-100.}
 
 \item{cols}{Colours to be used for plotting. Options include
 \dQuote{default}, \dQuote{increment}, \dQuote{heat}, \dQuote{jet} and
-\code{RColorBrewer} colours --- see the \code{openair} \code{openColours}
-function for more details. For user defined the user can supply a list of
-colour names recognised by R (type \code{colours()} to see the full list).
-An example would be \code{cols = c("yellow", "green", "blue")}. \code{cols}
-can also take the values \code{"viridis"}, \code{"magma"},
-\code{"inferno"}, or \code{"plasma"} which are the viridis colour maps
-ported from Python's Matplotlib library.}
+\code{RColorBrewer} colours --- see the \code{openair} \code{openColours} function for
+more details. For user defined the user can supply a list of colour names
+recognised by R (type \code{colours()} to see the full list). An example would
+be \code{cols = c("yellow", "green", "blue")}. \code{cols} can also take the values
+\code{"viridis"}, \code{"magma"}, \code{"inferno"}, or \code{"plasma"} which are the viridis
+colour maps ported from Python's Matplotlib library.}
 
 \item{width}{The width of the annulus; can be \dQuote{normal} (the default),
 \dQuote{thin} or \dQuote{fat}.}
@@ -140,33 +133,32 @@ direction bin.  The default is 1. A value of two requires at least 2 valid
 records in each bin an so on; bins with less than 2 valid records are set
 to NA. Care should be taken when using a value > 1 because of the risk of
 removing real data points. It is recommended to consider your data with
-care. Also, the \code{polarFreq} function can be of use in such
-circumstances.}
+care. Also, the \code{polarFreq} function can be of use in such circumstances.}
 
-\item{exclude.missing}{Setting this option to \code{TRUE} (the default)
-removes points from the plot that are too far from the original data. The
-smoothing routines will produce predictions at points where no data exist
-i.e. they predict. By removing the points too far from the original data
-produces a plot where it is clear where the original data lie. If set to
-\code{FALSE} missing data will be interpolated.}
+\item{exclude.missing}{Setting this option to \code{TRUE} (the default) removes
+points from the plot that are too far from the original data. The smoothing
+routines will produce predictions at points where no data exist i.e. they
+predict. By removing the points too far from the original data produces a
+plot where it is clear where the original data lie. If set to \code{FALSE}
+missing data will be interpolated.}
 
 \item{date.pad}{For \code{type = "trend"} (default), \code{date.pad = TRUE}
 will pad-out missing data to the beginning of the first year and the end of
 the last year. The purpose is to ensure that the trend plot begins and ends
 at the beginning or end of year.}
 
-\item{force.positive}{The default is \code{TRUE}. Sometimes if smoothing data
-with steep gradients it is possible for predicted values to be negative.
-\code{force.positive = TRUE} ensures that predictions remain positive. This
-is useful for several reasons. First, with lots of missing data more
+\item{force.positive}{The default is \code{TRUE}. Sometimes if smoothing data with
+steep gradients it is possible for predicted values to be negative.
+\code{force.positive = TRUE} ensures that predictions remain positive. This is
+useful for several reasons. First, with lots of missing data more
 interpolation is needed and this can result in artefacts because the
 predictions are too far from the original data. Second, if it is known
 beforehand that the data are all positive, then this option carries that
 assumption through to the prediction. The only likely time where setting
-\code{force.positive = FALSE} would be if background concentrations were
-first subtracted resulting in data that is legitimately negative. For the
-vast majority of situations it is expected that the user will not need to
-alter the default option.}
+\code{force.positive = FALSE} would be if background concentrations were first
+subtracted resulting in data that is legitimately negative. For the vast
+majority of situations it is expected that the user will not need to alter
+the default option.}
 
 \item{k}{The smoothing value supplied to \code{gam} for the temporal and wind
 direction components, respectively. In some cases e.g. a trend plot with
@@ -174,44 +166,42 @@ less than 1-year of data the smoothing with the default values may become
 too noisy and affected more by outliers. Choosing a lower value of \code{k}
 (say 10) may help produce a better plot.}
 
-\item{normalise}{If \code{TRUE} concentrations are normalised by dividing by
-their mean value. This is done \emph{after} fitting the smooth surface.
-This option is particularly useful if one is interested in the patterns of
-concentrations for several pollutants on different scales e.g. NOx and CO.
-Often useful if more than one \code{pollutant} is chosen.}
+\item{normalise}{If \code{TRUE} concentrations are normalised by dividing by their
+mean value. This is done \emph{after} fitting the smooth surface. This option is
+particularly useful if one is interested in the patterns of concentrations
+for several pollutants on different scales e.g. NOx and CO. Often useful if
+more than one \code{pollutant} is chosen.}
 
 \item{key.header}{Adds additional text/labels to the scale key. For example,
-passing the options \code{key.header = "header", key.footer = "footer1"}
-adds addition text above and below the scale key. These arguments are
-passed to \code{drawOpenKey} via \code{quickText}, applying the
-\code{auto.text} argument, to handle formatting.}
+passing the options \verb{key.header = "header", key.footer = "footer1"} adds
+addition text above and below the scale key. These arguments are passed to
+\code{drawOpenKey} via \code{quickText}, applying the \code{auto.text} argument, to handle
+formatting.}
 
 \item{key.footer}{see \code{key.footer}.}
 
 \item{key.position}{Location where the scale key is to plotted. Allowed
-arguments currently include \code{"top"}, \code{"right"}, \code{"bottom"}
-and \code{"left"}.}
+arguments currently include \code{"top"}, \code{"right"}, \code{"bottom"} and \code{"left"}.}
 
-\item{key}{Fine control of the scale key via \code{drawOpenKey}. See
-\code{drawOpenKey} for further details.}
+\item{key}{Fine control of the scale key via \code{drawOpenKey}. See \code{drawOpenKey}
+for further details.}
 
-\item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE}
-titles and axis labels will automatically try and format pollutant names
-and units properly e.g.  by subscripting the `2' in NO2.}
+\item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE} titles and
+axis labels will automatically try and format pollutant names and units
+properly e.g.  by subscripting the `2' in NO2.}
 
 \item{alpha}{The alpha transparency to use for the plotting surface (a value
 between 0 and 1 with zero being fully transparent and 1 fully opaque).
 Setting a value below 1 can be useful when plotting surfaces on a map using
 the package \code{openairmaps}.}
 
-\item{plot}{Should a plot be produced? \code{FALSE} can be useful when
-analysing data to extract plot components and plotting them in other ways.}
+\item{plot}{Should a plot be produced? \code{FALSE} can be useful when analysing
+data to extract plot components and plotting them in other ways.}
 
 \item{...}{Other graphical parameters passed onto \code{lattice:levelplot}
 and \code{cutData}. For example, \code{polarAnnulus} passes the option
 \code{hemisphere = "southern"} on to \code{cutData} to provide southern
-(rather than default northern) hemisphere handling of \code{type =
-  "season"}. Similarly, common axis and title labelling options (such as
+(rather than default northern) hemisphere handling of \code{type = "season"}. Similarly, common axis and title labelling options (such as
 \code{xlab}, \code{ylab}, \code{main}) are passed to \code{levelplot} via
 \code{quickText} to handle routine formatting.}
 }
@@ -251,17 +241,27 @@ smoothing parameter \code{k}.
 }
 \examples{
 # diurnal plot for PM10 at Marylebone Rd
-\dontrun{polarAnnulus(mydata, pollutant = "pm10",
-main = "diurnal variation in pm10 at Marylebone Road")}
+\dontrun{
+polarAnnulus(mydata,
+  pollutant = "pm10",
+  main = "diurnal variation in pm10 at Marylebone Road"
+)
+}
 
 # seasonal plot for PM10 at Marylebone Rd
-\dontrun{polarAnnulus(mydata, poll="pm10", period = "season")}
+\dontrun{
+polarAnnulus(mydata, poll = "pm10", period = "season")
+}
 
 # trend in coarse particles (PMc = PM10 - PM2.5), calculate PMc first
 
 mydata$pmc <- mydata$pm10 - mydata$pm25
-\dontrun{polarAnnulus(mydata, poll="pmc", period = "trend",
-main = "trend in pmc at Marylebone Road")}
+\dontrun{
+polarAnnulus(mydata,
+  poll = "pmc", period = "trend",
+  main = "trend in pmc at Marylebone Road"
+)
+}
 }
 \seealso{
 Other polar directional analysis functions: 
