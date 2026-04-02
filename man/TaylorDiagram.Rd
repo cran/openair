@@ -11,18 +11,20 @@ TaylorDiagram(
   group = NULL,
   type = "default",
   normalise = FALSE,
+  pos.cor = NULL,
   cols = "brewer1",
   rms.col = "darkgoldenrod",
   cor.col = "black",
   arrow.lwd = 3,
   annotate = "centred\\nRMS error",
   text.obs = "observed",
-  key = TRUE,
   key.title = group,
   key.columns = 1,
-  key.pos = "right",
-  strip = TRUE,
+  key.position = "right",
+  strip.position = "top",
   auto.text = TRUE,
+  plot = TRUE,
+  key = NULL,
   ...
 )
 }
@@ -30,68 +32,69 @@ TaylorDiagram(
 \item{mydata}{A data frame minimally containing a column of observations and
 a column of predictions.}
 
-\item{obs}{A column of observations with which the predictions (\code{mod})
-will be compared.}
+\item{obs}{A column of observations with which the predictions (\code{mod}) will
+be compared.}
 
-\item{mod}{A column of model predictions. Note, \code{mod} can be of length 2
-i.e. two lots of model predictions. If two sets of predictions are are
-present e.g. \code{mod = c("base", "revised")}, then arrows are shown on
-the Taylor Diagram which show the change in model performance in going from
-the first to the second. This is useful where, for example, there is
-interest in comparing how one model run compares with another using
-different assumptions e.g. input data or model set up. See examples below.}
+\item{mod}{A column of model predictions. Note, \code{mod} can be of length 2 i.e.
+two lots of model predictions. If two sets of predictions are are present
+e.g. \code{mod = c("base", "revised")}, then arrows are shown on the Taylor
+Diagram which show the change in model performance in going from the first
+to the second. This is useful where, for example, there is interest in
+comparing how one model run compares with another using different
+assumptions e.g. input data or model set up. See examples below.}
 
-\item{group}{The \code{group} column is used to differentiate between
-different models and can be a factor or character. The total number of
-models compared will be equal to the number of unique values of
-\code{group}.
+\item{group}{The \code{group} column is used to differentiate between different
+models and can be a factor or character. The total number of models
+compared will be equal to the number of unique values of \code{group}.
 
-\code{group} can also be of length two e.g. \code{group = c("model", "site")}. In this case all model-site combinations will be shown but they
-will only be differentiated by colour/symbol by the first grouping variable
-("model" in this case). In essence the plot removes the differentiation by
-the second grouping variable. Because there will be different values of
-\code{obs} for each group, \code{normalise = TRUE} should be used.}
+\code{group} can also be of length two e.g. \code{group = c("model", "site")}. In
+this case all model-site combinations will be shown but they will only be
+differentiated by colour/symbol by the first grouping variable ("model" in
+this case). In essence the plot removes the differentiation by the second
+grouping variable. Because there will be different values of \code{obs} for each
+group, \code{normalise = TRUE} should be used.}
 
-\item{type}{\code{type} determines how the data are split i.e. conditioned,
-and then plotted. The default is will produce a single plot using the
-entire data. Type can be one of the built-in types as detailed in
-\code{cutData} e.g. \dQuote{season}, \dQuote{year}, \dQuote{weekday} and so
-on. For example, \code{type = "season"} will produce four plots --- one for
-each season.
+\item{type}{Character string(s) defining how data should be split/conditioned
+before plotting. \code{"default"} produces a single panel using the entire
+dataset. Any other options will split the plot into different panels - a
+roughly square grid of panels if one \code{type} is given, or a 2D matrix of
+panels if two \code{types} are given. \code{type} is always passed to \code{\link[=cutData]{cutData()}},
+and can therefore be any of:
+\itemize{
+\item A built-in type defined in \code{\link[=cutData]{cutData()}} (e.g., \code{"season"}, \code{"year"},
+\code{"weekday"}, etc.). For example, \code{type = "season"} will split the plot into
+four panels, one for each season.
+\item The name of a numeric column in \code{mydata}, which will be split into
+\code{n.levels} quantiles (defaulting to 4).
+\item The name of a character or factor column in \code{mydata}, which will be used
+as-is. Commonly this could be a variable like \code{"site"} to ensure data from
+different monitoring sites are handled and presented separately. It could
+equally be any arbitrary column created by the user (e.g., whether a nearby
+possible pollutant source is active or not).
+}
 
-It is also possible to choose \code{type} as another variable in the data
-frame. If that variable is numeric, then the data will be split into four
-quantiles (if possible) and labelled accordingly. If type is an existing
-character or factor variable, then those categories/levels will be used
-directly. This offers great flexibility for understanding the variation of
-different variables and how they depend on one another.
-
-Type can be up length two e.g. \code{type = c("season", "weekday")} will
-produce a 2x2 plot split by season and day of the week. Note, when two
-types are provided the first forms the columns and the second the rows.
-
-Note that often it will make sense to use \code{type = "site"} when
-multiple sites are available. This will ensure that each panel contains
-data specific to an individual site.}
+Most \code{openair} plotting functions can take two \code{type} arguments. If two are
+given, the first is used for the columns and the second for the rows.}
 
 \item{normalise}{Should the data be normalised by dividing the standard
 deviation of the observations? The statistics can be normalised (and
 non-dimensionalised) by dividing both the RMS difference and the standard
-deviation of the \code{mod} values by the standard deviation of the
-observations (\code{obs}). In this case the \dQuote{observed} point is
-plotted on the x-axis at unit distance from the origin. This makes it
-possible to plot statistics for different species (maybe with different
-units) on the same plot. The normalisation is done by each
-\code{group}/\code{type} combination.}
+deviation of the \code{mod} values by the standard deviation of the observations
+(\code{obs}). In this case the \dQuote{observed} point is plotted on the x-axis
+at unit distance from the origin. This makes it possible to plot statistics
+for different species (maybe with different units) on the same plot. The
+normalisation is done by each \code{group}/\code{type} combination.}
 
-\item{cols}{Colours to be used for plotting. Useful options for categorical
-data are available from \code{RColorBrewer} colours --- see the
-\code{openair} \code{openColours} function for more details. Useful schemes
-include \dQuote{Accent}, \dQuote{Dark2}, \dQuote{Paired}, \dQuote{Pastel1},
-\dQuote{Pastel2}, \dQuote{Set1}, \dQuote{Set2}, \dQuote{Set3} --- but see
-?\code{brewer.pal} for the maximum useful colours in each. For user defined
-the user can supply a list of colour names recognised by R (type
-\code{colours()} to see the full list). An example would be \code{cols = c("yellow", "green", "blue")}.}
+\item{pos.cor}{Show only positive correlations (\code{TRUE}) or include negative
+correlations (\code{FALSE}). If negative correlations are shown, the Taylor
+Diagram will show two quadrants. The default, \code{NULL}, will use two
+quadrants if any negative correlations are present in the data and one
+quadrant if all correlations are positive.}
+
+\item{cols}{Colours to use for plotting. Can be a pre-set palette (e.g.,
+\code{"turbo"}, \code{"viridis"}, \code{"tol"}, \code{"Dark2"}, etc.) or a user-defined vector
+of R colours (e.g., \code{c("yellow", "green", "blue", "black")} - see
+\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). See \code{\link[=openColours]{openColours()}} for more details.}
 
 \item{rms.col}{Colour for centred-RMS lines and text.}
 
@@ -105,43 +108,54 @@ outputs.}
 \item{text.obs}{The plot annotation for observed values; default is
 "observed".}
 
-\item{key}{Should the key be shown?}
+\item{key.title}{Used to set the title of the legend. The legend title is
+passed to \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.}
 
-\item{key.title}{Title for the key.}
+\item{key.columns}{Number of columns to be used in a categorical legend. With
+many categories a single column can make to key too wide. The user can thus
+choose to use several columns by setting \code{key.columns} to be less than the
+number of categories.}
 
-\item{key.columns}{Number of columns to be used in the key. With many
-pollutants a single column can make to key too wide. The user can thus
-choose to use several columns by setting \code{columns} to be less than the
-number of pollutants.}
+\item{key.position}{Location where the legend is to be placed. Allowed
+arguments include \code{"top"}, \code{"right"}, \code{"bottom"}, \code{"left"} and \code{"none"},
+the last of which removes the legend entirely.}
 
-\item{key.pos}{Position of the key e.g. \dQuote{top}, \dQuote{bottom},
-\dQuote{left} and \dQuote{right}. See details in \code{lattice:xyplot} for
-more details about finer control.}
+\item{strip.position}{Location where the facet 'strips' are located when
+using \code{type}. When one \code{type} is provided, can be one of \code{"left"},
+\code{"right"}, \code{"bottom"} or \code{"top"}. When two \code{type}s are provided, this
+argument defines whether the strips are "switched" and can take either
+\code{"x"}, \code{"y"}, or \code{"both"}. For example, \code{"x"} will switch the 'top' strip
+locations to the bottom of the plot.}
 
-\item{strip}{Should a strip be shown?}
+\item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE} titles and
+axis labels will automatically try and format pollutant names and units
+properly, e.g., by subscripting the "2" in "NO2". Passed to \code{\link[=quickText]{quickText()}}.}
 
-\item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE}
-titles and axis labels will automatically try and format pollutant names
-and units properly e.g.  by subscripting the `2' in NO2.}
+\item{plot}{When \code{openair} plots are created they are automatically printed
+to the active graphics device. \code{plot = FALSE} deactivates this behaviour.
+This may be useful when the plot \emph{data} is of more interest, or the plot is
+required to appear later (e.g., later in a Quarto document, or to be saved
+to a file).}
 
-\item{...}{Other graphical parameters are passed onto \code{cutData} and
-\code{lattice:xyplot}. For example, \code{TaylorDiagram} passes the option
-\code{hemisphere = "southern"} on to \code{cutData} to provide southern
-(rather than default northern) hemisphere handling of \code{type = "season"}. Similarly, common graphical parameters, such as \code{layout}
-for panel arrangement and \code{pch} and \code{cex} for plot symbol type
-and size, are passed on to \code{xyplot}. Most are passed unmodified,
-although there are some special cases where \code{openair} may locally
-manage this process. For example, common axis and title labelling options
-(such as \code{xlab}, \code{ylab}, \code{main}) are passed via
-\code{quickText} to handle routine formatting.}
+\item{key}{Deprecated; please use \code{key.position}. If \code{FALSE}, sets
+\code{key.position} to \code{"none"}.}
+
+\item{...}{Addition options are passed on to \code{\link[=cutData]{cutData()}} for \code{type} handling.
+Some additional arguments are also available:
+\itemize{
+\item \code{xlab}, \code{ylab} and \code{main} override the x-axis label, y-axis label, and plot title.
+\item \code{layout} sets the layout of facets - e.g., \code{layout(2, 5)} will have 2 columns and 5 rows.
+\item \code{fontsize} overrides the overall font size of the plot.
+\item \code{cex}, \code{lwd}, and \code{pch} control various graphical parameters.
+}}
 }
 \value{
 an \link[=openair-package]{openair} object. If retained, e.g., using
-\code{output <- TaylorDiagram(thedata, obs = "nox", mod = "mod")}, this
-output can be used to recover the data, reproduce or rework the original
-plot or undertake further analysis. For example, \code{output$data} will be
-a data frame consisting of the group, type, correlation coefficient (R),
-the standard deviation of the observations and measurements.
+\code{output <- TaylorDiagram(thedata, obs = "nox", mod = "mod")}, this output
+can be used to recover the data, reproduce or rework the original plot or
+undertake further analysis. For example, \code{output$data} will be a data frame
+consisting of the group, type, correlation coefficient (R), the standard
+deviation of the observations and measurements.
 }
 \description{
 Function to draw Taylor Diagrams for model evaluation. The function allows
@@ -157,107 +171,119 @@ root-mean-square error. These three statistics can be plotted on one (2D)
 graph because of the way they are related to one another which can be
 represented through the Law of Cosines.
 
-The \code{openair} version of the Taylor Diagram has several enhancements
-that increase its flexibility. In particular, the straightforward way of
-producing conditioning plots should prove valuable under many circumstances
-(using the \code{type} option). Many examples of Taylor Diagrams focus on
-model-observation comparisons for several models using all the available
-data. However, more insight can be gained into model performance by
-partitioning the data in various ways e.g. by season, daylight/nighttime, day
-of the week, by levels of a numeric variable e.g. wind speed or by land-use
-type etc.
+The \code{openair} version of the Taylor Diagram has several enhancements that
+increase its flexibility. In particular, the straightforward way of producing
+conditioning plots should prove valuable under many circumstances (using the
+\code{type} option). Many examples of Taylor Diagrams focus on model-observation
+comparisons for several models using all the available data. However, more
+insight can be gained into model performance by partitioning the data in
+various ways e.g. by season, daylight/nighttime, day of the week, by levels
+of a numeric variable e.g. wind speed or by land-use type etc.
 
 To consider several pollutants on one plot, a column identifying the
-pollutant name can be used e.g. \code{pollutant}. Then the Taylor Diagram can
-be plotted as (assuming a data frame \code{thedata}):
+pollutant name can be used e.g. \code{pollutant}. Then the Taylor Diagram can be
+plotted as (assuming a data frame \code{thedata}):
 
 \code{TaylorDiagram(thedata, obs = "obs", mod = "mod", group = "model", type = "pollutant")}
 
 which will give the model performance by pollutant in each panel.
 
 Note that it is important that each panel represents data with the same mean
-observed data across different groups. Therefore \code{TaylorDiagram(mydata, group = "model", type = "season")} is OK, whereas \code{TaylorDiagram(mydata, group = "season", type = "model")} is not because each panel (representing a
-model) will have four different mean values --- one for each season.
-Generally, the option \code{group} is either missing (one model being
-evaluated) or represents a column giving the model name. However, the data
-can be normalised using the \code{normalise} option. Normalisation is carried
-out on a per \code{group}/\code{type} basis making it possible to compare
-data on different scales e.g. \code{TaylorDiagram(mydata, group = "season", type = "model", normalise = TRUE)}. In this way it is possible to compare
-different pollutants, sites etc. in the same panel.
+observed data across different groups. Therefore \code{TaylorDiagram(mydata, group = "model", type = "season")} is OK, whereas \code{TaylorDiagram(mydata, group = "season", type = "model")} is not because each panel (representing a model)
+will have four different mean values --- one for each season. Generally, the
+option \code{group} is either missing (one model being evaluated) or represents a
+column giving the model name. However, the data can be normalised using the
+\code{normalise} option. Normalisation is carried out on a per \code{group}/\code{type}
+basis making it possible to compare data on different scales e.g.
+\code{TaylorDiagram(mydata, group = "season", type = "model", normalise = TRUE)}.
+In this way it is possible to compare different pollutants, sites etc. in the
+same panel.
 
-Also note that if multiple sites are present it makes sense to use \code{type = "site"} to ensure that each panel represents an individual site with its
-own specific standard deviation etc. If this is not the case then select a
-single site from the data first e.g. \code{subset(mydata, site == "Harwell")}.
+Also note that if multiple sites are present it makes sense to use \code{type = "site"} to ensure that each panel represents an individual site with its own
+specific standard deviation etc. If this is not the case then select a single
+site from the data first e.g. \code{subset(mydata, site == "Harwell")}.
 }
 \examples{
-## in the examples below, most effort goes into making some artificial data
-## the function itself can be run very simply
+# in the examples below, most effort goes into making some artificial data
+# the function itself can be run very simply
+
 \dontrun{
-## dummy model data for 2003
-dat <- selectByDate(mydata, year = 2003)
-dat <- data.frame(date = mydata$date, obs = mydata$nox, mod = mydata$nox)
+library(dplyr)
 
-## now make mod worse by adding bias and noise according to the month
-## do this for 3 different models
-dat <- transform(dat, month = as.numeric(format(date, "\%m")))
-mod1 <- transform(dat,
-  mod = mod + 10 * month + 10 * month * rnorm(nrow(dat)),
-  model = "model 1"
-)
-## lag the results for mod1 to make the correlation coefficient worse
-## without affecting the sd
-mod1 <- transform(mod1, mod = c(mod[5:length(mod)], mod[(length(mod) - 3):
-length(mod)]))
+dummy model data for 2003
+dat <- selectByDate(mydata, year = 2003) |>
+  transmute(date, obs = nox, mod = nox, month = as.integer(format(date, "\%m")))
 
-## model 2
-mod2 <- transform(dat,
-  mod = mod + 7 * month + 7 * month * rnorm(nrow(dat)),
-  model = "model 2"
-)
-## model 3
-mod3 <- transform(dat,
-  mod = mod + 3 * month + 3 * month * rnorm(nrow(dat)),
-  model = "model 3"
-)
+# now make mod worse by adding bias and noise according to the month
+# do this for 3 different models
+mod1 <- dat |>
+  mutate(
+    mod = mod + 10 * month + 10 * month * rnorm(n()),
+    model = "model 1"
+  ) |>
+  # lag the results to make the correlation coefficient worse without affecting the sd
+  mutate(mod = c(mod[5:n()], mod[(n() - 3):n()]))
 
-mod.dat <- rbind(mod1, mod2, mod3)
+mod2 <- dat |>
+  mutate(
+    mod = mod + 7 * month + 7 * month * rnorm(n()),
+    model = "model 2"
+  )
 
-## basic Taylor plot
+mod3 <- dat |>
+  mutate(
+    mod = mod + 3 * month + 3 * month * rnorm(n()),
+    model = "model 3"
+  )
 
+mod.dat <- bind_rows(mod1, mod2, mod3)
+
+# basic Taylor plot
 TaylorDiagram(mod.dat, obs = "obs", mod = "mod", group = "model")
 
-## Taylor plot by season
-TaylorDiagram(mod.dat, obs = "obs", mod = "mod", group = "model", type = "season")
-
-## now show how to evaluate model improvement (or otherwise)
-mod1a <- transform(dat,
-  mod = mod + 2 * month + 2 * month * rnorm(nrow(dat)),
-  model = "model 1"
-)
-mod2a <- transform(mod2, mod = mod * 1.3)
-mod3a <- transform(dat,
-  mod = mod + 10 * month + 10 * month * rnorm(nrow(dat)),
-  model = "model 3"
-)
-mod.dat2 <- rbind(mod1a, mod2a, mod3a)
-mod.dat$mod2 <- mod.dat2$mod
-
-## now we have a data frame with 3 models, 1 set of observations
-## and TWO sets of model predictions (mod and mod2)
-
-## do for all models
-TaylorDiagram(mod.dat, obs = "obs", mod = c("mod", "mod2"), group = "model")
-}
-\dontrun{
-## all models, by season
-TaylorDiagram(mod.dat,
-  obs = "obs", mod = c("mod", "mod2"), group = "model",
+# Taylor plot by season
+TaylorDiagram(
+  mod.dat,
+  obs = "obs",
+  mod = "mod",
+  group = "model",
   type = "season"
 )
 
-## consider two groups (model/month). In this case all months are shown by model
-## but are only differentiated by model.
+# now show how to evaluate model improvement (or otherwise)
+mod1a <- dat |>
+  mutate(
+    mod = mod + 2 * month + 2 * month * rnorm(n()),
+    model = "model 1"
+  )
 
+mod2a <- mod2 |> mutate(mod = mod * 1.3)
+
+mod3a <- dat |>
+  mutate(
+    mod = mod + 10 * month + 10 * month * rnorm(n()),
+    model = "model 3"
+  )
+
+# now we have a data frame with 3 models, 1 set of observations
+# and two sets of model predictions (mod and mod2)
+mod.dat <- mod.dat |>
+  mutate(mod2 = bind_rows(mod1a, mod2a, mod3a) |> pull(mod))
+
+# do for all models
+TaylorDiagram(mod.dat, obs = "obs", mod = c("mod", "mod2"), group = "model")
+
+# all models, by season
+TaylorDiagram(
+  mod.dat,
+  obs = "obs",
+  mod = c("mod", "mod2"),
+  group = "model",
+  type = "season"
+)
+
+# consider two groups (model/month). In this case all months are shown by
+# model but are only differentiated by model.
 TaylorDiagram(mod.dat, obs = "obs", mod = "mod", group = c("model", "month"))
 }
 }
@@ -266,9 +292,6 @@ Taylor, K.E.: Summarizing multiple aspects of model performance in a single
 diagram. J.  Geophys. Res., 106, 7183-7192, 2001 (also see PCMDI Report 55).
 }
 \seealso{
-\code{taylor.diagram} from the \code{plotrix} package from which
-some of the annotation code was used.
-
 Other model evaluation functions: 
 \code{\link{conditionalEval}()},
 \code{\link{conditionalQuantile}()},
@@ -276,5 +299,7 @@ Other model evaluation functions:
 }
 \author{
 David Carslaw
+
+Jack Davison
 }
 \concept{model evaluation functions}

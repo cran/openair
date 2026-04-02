@@ -159,7 +159,7 @@ modStats <- function(
 
   matching <- statistic %in% theStats
 
-  if (any(!matching)) {
+  if (!all(matching)) {
     ## not all variables are present
     stop(cat("Can't find the statistic(s)", statistic[!matching], "\n"))
   }
@@ -169,90 +169,78 @@ modStats <- function(
     mydata,
     vars,
     type,
-    remove.calm = FALSE,
-    strip.white = FALSE
+    remove.calm = FALSE
   )
 
   mydata <- cutData(mydata, type, ...)
 
   ## calculate the various statistics
 
+  calculateStat <- function(f, ...) {
+    res.n <- map_type(
+      mydata,
+      type = type,
+      fun = \(x) f(x, mod, obs, ...),
+      .include_default = TRUE
+    )
+  }
+
   if ("n" %in% statistic) {
-    res.n <- mydata %>%
-      group_by(across(type)) %>%
-      do(n(., mod, obs))
+    res.n <- calculateStat(N)
   } else {
     res.n <- NULL
   }
 
   if ("FAC2" %in% statistic) {
-    res.FAC <- mydata %>%
-      group_by(across(type)) %>%
-      do(FAC2(., mod, obs))
+    res.FAC <- calculateStat(FAC2)
   } else {
     res.FAC <- NULL
   }
 
   if ("MB" %in% statistic) {
-    res.MB <- mydata %>%
-      group_by(across(type)) %>%
-      do(MB(., mod, obs))
+    res.MB <- calculateStat(MB)
   } else {
     res.MB <- NULL
   }
 
   if ("MGE" %in% statistic) {
-    res.MGE <- mydata %>%
-      group_by(across(type)) %>%
-      do(MGE(., mod, obs))
+    res.MGE <- calculateStat(MGE)
   } else {
     res.MGE <- NULL
   }
 
   if ("NMB" %in% statistic) {
-    res.NMB <- mydata %>%
-      group_by(across(type)) %>%
-      do(NMB(., mod, obs))
+    res.NMB <- calculateStat(NMB)
   } else {
     res.NMB <- NULL
   }
 
   if ("NMGE" %in% statistic) {
-    res.NMGE <- mydata %>%
-      group_by(across(type)) %>%
-      do(NMGE(., mod, obs))
+    res.NMGE <- calculateStat(NMGE)
   } else {
     res.NMGE <- NULL
   }
 
   if ("RMSE" %in% statistic) {
-    res.RMSE <- mydata %>%
-      group_by(across(type)) %>%
-      do(RMSE(., mod, obs))
+    res.RMSE <- calculateStat(RMSE)
   } else {
     res.RMSE <- NULL
   }
 
   if ("r" %in% statistic) {
-    res.r <- mydata %>%
-      group_by(across(type)) %>%
-      do(r(., mod, obs, ...))
+    res.r <- calculateStat(r, ...)
   } else {
     res.r <- NULL
   }
 
   if ("COE" %in% statistic) {
-    res.COE <- mydata %>%
-      group_by(across(type)) %>%
-      do(COE(., mod, obs))
+    res.COE <- calculateStat(COE)
   } else {
     res.COE <- NULL
   }
 
   if ("IOA" %in% statistic) {
-    res.IOA <- mydata %>%
-      group_by(across(type)) %>%
-      do(IOA(., mod, obs))
+    res.IOA <- calculateStat(IOA)
   } else {
     res.IOA <- NULL
   }
@@ -287,9 +275,12 @@ modStats <- function(
     if (length(types) == 0) {
       results <- rankModels(results, rank.name)
     } else {
-      results <- results %>%
-        group_by(across(types)) %>%
-        do(rankModels(., rank.name = rank.name))
+      results <- map_type(
+        results,
+        type = types,
+        fun = \(x) rankModels(x, rank.name = rank.name),
+        .include_default = TRUE
+      )
     }
   }
 
@@ -302,7 +293,7 @@ sortDataFrame <- function(x, key, ...) {
 
   if (missing(key)) {
     rn <- rownames(x)
-    if (all(rn %in% 1:nrow(x))) {
+    if (all(rn %in% seq_len(nrow(x)))) {
       rn <- as.numeric(rn)
     }
     x[order(rn, ...), , drop = FALSE]
@@ -315,20 +306,21 @@ sortDataFrame <- function(x, key, ...) {
 rankModels <- function(mydata, rank.name = "group") {
   ## sort by COE
   mydata <- sortDataFrame(mydata, "COE", decreasing = TRUE)
+  mydata
 }
 
 ## number of valid readings
-n <- function(x, mod = "mod", obs = "obs") {
-  x <- na.omit(x[, c(mod, obs)])
+N <- function(x, mod = "mod", obs = "obs") {
+  x <- stats::na.omit(x[, c(mod, obs)])
   res <- nrow(x)
   data.frame(n = res)
 }
 
 ## fraction within a factor of two
 FAC2 <- function(x, mod = "mod", obs = "obs") {
-  x <- na.omit(x[, c(mod, obs)])
+  x <- stats::na.omit(x[, c(mod, obs)])
   ratio <- x[[mod]] / x[[obs]]
-  ratio <- na.omit(ratio)
+  ratio <- stats::na.omit(ratio)
   len <- length(ratio)
   if (len > 0) {
     res <- length(which(ratio >= 0.5 & ratio <= 2)) / len
@@ -340,35 +332,35 @@ FAC2 <- function(x, mod = "mod", obs = "obs") {
 
 ## mean bias
 MB <- function(x, mod = "mod", obs = "obs") {
-  x <- na.omit(x[, c(mod, obs)])
+  x <- stats::na.omit(x[, c(mod, obs)])
   res <- mean(x[[mod]] - x[[obs]])
   data.frame(MB = res)
 }
 
 ## mean gross error
 MGE <- function(x, mod = "mod", obs = "obs") {
-  x <- na.omit(x[, c(mod, obs)])
+  x <- stats::na.omit(x[, c(mod, obs)])
   res <- mean(abs(x[[mod]] - x[[obs]]))
   data.frame(MGE = res)
 }
 
 ## normalised mean bias
 NMB <- function(x, mod = "mod", obs = "obs") {
-  x <- na.omit(x[, c(mod, obs)])
+  x <- stats::na.omit(x[, c(mod, obs)])
   res <- sum(x[[mod]] - x[[obs]]) / sum(x[[obs]])
   data.frame(NMB = res)
 }
 
 ## normalised mean gross error
 NMGE <- function(x, mod = "mod", obs = "obs") {
-  x <- na.omit(x[, c(mod, obs)])
+  x <- stats::na.omit(x[, c(mod, obs)])
   res <- sum(abs(x[[mod]] - x[[obs]])) / sum(x[[obs]])
   data.frame(NMGE = res)
 }
 
 ## root mean square error
 RMSE <- function(x, mod = "mod", obs = "obs") {
-  x <- na.omit(x[, c(mod, obs)])
+  x <- stats::na.omit(x[, c(mod, obs)])
   res <- mean((x[[mod]] - x[[obs]])^2)^0.5
   data.frame(RMSE = res)
 }
@@ -376,7 +368,7 @@ RMSE <- function(x, mod = "mod", obs = "obs") {
 ## correlation coefficient
 # when SD=0; will return(NA)
 r <- function(x, mod = "mod", obs = "obs", ...) {
-  x <- na.omit(x[, c(mod, obs)])
+  x <- stats::na.omit(x[, c(mod, obs)])
   res <- suppressWarnings(stats::cor.test(x[[mod]], x[[obs]], ...))
 
   data.frame(r = res$estimate, P = res$p.value)
@@ -384,7 +376,7 @@ r <- function(x, mod = "mod", obs = "obs", ...) {
 
 ##  Coefficient of Efficiency
 COE <- function(x, mod = "mod", obs = "obs") {
-  x <- na.omit(x[, c(mod, obs)])
+  x <- stats::na.omit(x[, c(mod, obs)])
 
   res <- 1 - sum(abs(x[[mod]] - x[[obs]])) / sum(abs(x[[obs]] - mean(x[[obs]])))
 
@@ -393,7 +385,7 @@ COE <- function(x, mod = "mod", obs = "obs") {
 
 ##  Index of Agreement
 IOA <- function(x, mod = "mod", obs = "obs") {
-  x <- na.omit(x[, c(mod, obs)])
+  x <- stats::na.omit(x[, c(mod, obs)])
 
   LHS <- sum(abs(x[[mod]] - x[[obs]]))
   RHS <- 2 * sum(abs(x[[obs]] - mean(x[[obs]])))

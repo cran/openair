@@ -45,8 +45,8 @@
 #' @param avg.time This defines the time period to average to. Can be `"sec"`,
 #'   `"min"`, `"hour"`, `"day"`, `"DSTday"`, `"week"`, `"month"`, `"quarter"` or
 #'   `"year"`. For much increased flexibility a number can precede these options
-#'   followed by a space. For example, a timeAverage of 2 months would be
-#'   `period = "2 month"`. In addition, `avg.time` can equal `"season"`, in
+#'   followed by a space. For example, an average of 2 months would be
+#'   `avg.time = "2 month"`. In addition, `avg.time` can equal `"season"`, in
 #'   which case 3-month seasonal values are calculated with spring defined as
 #'   March, April, May and so on.
 #'
@@ -144,7 +144,6 @@
 #'
 #' @param ... Additional arguments for other functions calling [timeAverage()].
 #'
-#' @import dplyr
 #' @export
 #' @return Returns a data frame with date in class `POSIXct`.
 #' @author David Carslaw
@@ -207,6 +206,12 @@ timeAverage <- function(
   data.thresh <- inputs$data.thresh
   percentile <- inputs$percentile
 
+  if (statistic == "percentile" && is.na(percentile)) {
+    cli::cli_abort(
+      "No {percentile} value supplied."
+    )
+  }
+
   # flag whether a time series has already been padded to fill time gaps
   padded <- FALSE
 
@@ -216,15 +221,14 @@ timeAverage <- function(
     mydata,
     vars,
     type = "default",
-    remove.calm = FALSE,
-    strip.white = FALSE
+    remove.calm = FALSE
   )
 
   # time zone of data (replace missing w/ GMT)
   TZ <- attr(mydata$date, "tzone") %||% "GMT"
 
   # get an appropriate function for the statistic
-  FUN <- get_statistic_function(statistic = statistic, percentile = percentile)
+  # FUN <- get_statistic_function(statistic = statistic, percentile = percentile)
 
   # function to calculate means
   #
@@ -240,26 +244,6 @@ timeAverage <- function(
       TZ = TZ
     )
 
-    # if interval specified, then use it to pad the data
-    if (!is.na(interval)) {
-      mydata <-
-        mydata %>%
-        split(mydata[type], drop = TRUE) %>%
-        purrr::map(function(x) {
-          pad_dates_timeavg(
-            mydata = x,
-            type = type,
-            interval = interval
-          )
-        }) %>%
-        purrr::list_rbind()
-
-      # make sure missing types are inserted
-      mydata[type] <- mydata[type] <- mydata[1, type]
-
-      padded <- TRUE
-    }
-
     # obtain time parameters; seconds in the avg.time interval and seconds in
     # the data interval
     time_params <- get_time_parameters(mydata = mydata, avg.time = avg.time)
@@ -268,96 +252,43 @@ timeAverage <- function(
 
     # check to see if we need to expand data rather than aggregate it
     # i.e., chosen time interval less than that of data
+
     if (seconds_avgtime_interval < seconds_data_interval) {
-      # Store original dates for later reference
-      theDates <- mydata$date
-
-      # Get time interval from data
-      interval <- find.time.interval(mydata$date)
-
-      # get time interval as days; used for refinement
-      days <- as.numeric(strsplit(interval, split = " ")[[1]][1]) / 24 / 3600
-
-      # refine interval for common situations
-      interval <- if (inherits(mydata$date, "Date")) {
-        paste(days, "day")
-      } else if (days %in% c(30, 31)) {
-        "month"
-      } else if (days %in% c(365, 366)) {
-        "year"
-      } else {
-        interval
-      }
-
-      # calculate full series of dates by the data interval
-      date_range <- range(mydata$date)
-      allDates <- seq(date_range[1], date_range[2], by = interval)
-      allDates <- c(allDates, max(allDates) + seconds_data_interval)
-
-      # recalculate full series of dates by the avg.time interval
-      allData <- data.frame(date = seq(min(allDates), max(allDates), avg.time))
-
-      # merge with original data, which leaves gaps to fill
-      mydata <-
-        mydata %>%
-        dplyr::full_join(allData, by = dplyr::join_by("date")) %>%
-        dplyr::arrange(date)
-
-      # make sure missing types are inserted
-      mydata <- tidyr::fill(
-        mydata,
-        dplyr::all_of(type),
-        .direction = c("downup")
-      )
-
-      # if `fill`, fill all other columns too
-      if (fill) {
-        # stop if irregular time series
-        if (seconds_data_interval %% seconds_avgtime_interval != 0) {
-          cli::cli_abort(
-            "Non-regular time expansion selected, or non-regular input time series."
-          )
-        }
-
-        # fill data
-        mydata <-
-          mydata %>%
-          # find dates in original data, and assign each data chunk an ID
-          dplyr::mutate(
-            `__flag__` = .data$date %in% theDates,
-            `__id__` = ceiling(dplyr::consecutive_id(.data$`__flag__`) / 2) * 2
-          ) %>%
-          # fill within each ID
-          dplyr::group_by(.data[["__id__"]]) %>%
-          tidyr::fill(dplyr::where(is.numeric), .direction = "down") %>%
-          dplyr::ungroup() %>%
-          # remove helper columns
-          dplyr::select(-"__id__", -"__flag__")
-      }
-
+      mydata <- datePad(mydata, type = type, interval = avg.time, fill = fill)
       return(mydata)
     }
 
+    # if interval specified, then use it to pad the data
+    if (!is.na(interval)) {
+      mydata <-
+        map_type(
+          mydata,
+          type = type,
+          fun = \(df) pad_dates_timeavg(df, type = type, interval = interval),
+          .include_default = TRUE
+        )
+
+      padded <- TRUE
+    }
+
     # calculate Uu & Vv if "wd" (& "ws") are in mydata
-    mydata <- calculate_wind_components(mydata = mydata)
+    mydata <- calculate_wind_components(mydata = mydata, vector.ws)
+
+    # if a data threshold has been set and data hasn't already been padded,
+    # pad the data to ensure that DC% calculation is accurate
+    if (data.thresh != 0 && !padded) {
+      mydata <- datePad(mydata, type = type)
+    }
 
     # handle 'season' as special case
     if (avg.time == "season") {
       mydata <- handle_season_avgtime(mydata, type = type, ...)
     }
 
-    ## Aggregate data
-
     ## variables to split by
     vars <- c(type, "date")
     if (avg.time == "season") {
       vars <- unique(c(vars, "season"))
-    }
-
-    # if a data threshold has been set and data hasn't already been padded,
-    # pad the data to ensure that DC% calculation is accurate
-    if (data.thresh != 0 && !padded) {
-      mydata <- date.pad(mydata, type = type)
     }
 
     # cut date column into bins unless season (dealt w/ earlier)
@@ -369,57 +300,47 @@ timeAverage <- function(
         )
     }
 
-    if (data.thresh != 0) {
-      avmet <- mydata %>%
-        dplyr::group_by(dplyr::across(dplyr::all_of(vars))) %>%
-        dplyr::summarise(dplyr::across(
-          dplyr::where(function(x) {
-            !is.factor(x) && !is.character(x)
-          }),
-          function(x) {
-            if (sum(is.na(x)) / length(x) <= 1 - data.thresh) {
-              FUN(x)
-            } else {
-              NA
-            }
-          }
-        ))
-    } else {
-      avmet <-
-        mydata %>%
-        dplyr::group_by(dplyr::across(dplyr::all_of(vars))) %>%
-        dplyr::summarise(dplyr::across(
-          dplyr::where(function(x) {
-            !is.factor(x) && !is.character(x)
-          }),
-          function(x) {
-            FUN(x)
-          }
-        ))
+    # cpp version
+    avmet <- dateAggregate(
+      mydata,
+      date_col = "date",
+      statistic = statistic,
+      threshold = data.thresh,
+      probs = percentile
+    ) |>
+      dplyr::mutate(date = lubridate::as_datetime(date, tz = TZ)) |>
+      dplyr::as_tibble()
+
+    # need to add season back in if used - FIX ME
+
+    if (avg.time == "season") {
+      avmet <- cutData(avmet, type = "season")
     }
 
-    if ("wd" %in% names(mydata) && statistic != "data.cap") {
-      if (is.numeric(mydata$wd)) {
-        ## mean wd
-        avmet <-
-          avmet %>%
-          dplyr::mutate(
-            wd = as.vector(atan2(.data$Uu, .data$Vv) * 360 / 2 / pi),
-            # correct negative wind directions
-            wd = dplyr::if_else(.data$wd < 0, .data$wd + 360, .data$wd)
-          )
+    if ("wd" %in% names(mydata)) {
+      # vector avergaing is only need for some statistics
+      if (!statistic %in% c("data.cap", "max", "min", "sum", "frequency")) {
+        if (is.numeric(mydata$wd)) {
+          ## mean wd
+          avmet <-
+            avmet |>
+            dplyr::mutate(
+              wd = as.vector(atan2(.data$Uu, .data$Vv) * 360 / 2 / pi),
+              # correct negative wind directions
+              wd = dplyr::if_else(.data$wd < 0, .data$wd + 360, .data$wd)
+            )
 
-        ## vector average ws
-        if ("ws" %in% names(mydata) && vector.ws) {
-          avmet <- dplyr::mutate(avmet, ws = (.data$Uu^2 + .data$Vv^2)^0.5)
+          ## vector average ws
+          if ("ws" %in% names(mydata) && vector.ws) {
+            avmet <- dplyr::mutate(avmet, ws = (.data$Uu^2 + .data$Vv^2)^0.5)
+          }
         }
-
-        avmet <- dplyr::select(avmet, -"Uu", -"Vv")
       }
+      avmet <- dplyr::select(avmet, -dplyr::any_of(c("Uu", "Vv")))
     }
 
     ## fill missing gaps - but only for non-dst data
-    if (avg.time != "season" && !any(dst(avmet$date))) {
+    if (avg.time != "season" && !any(lubridate::dst(avmet$date))) {
       avmet <- pad_dates_timeavg(avmet, type = type, interval = avg.time)
     }
 
@@ -427,10 +348,10 @@ timeAverage <- function(
   }
 
   # cut data into intervals
-  mydata <- cutData(mydata, type)
+  mydata <- cutData(mydata, type, ...)
 
   # check for duplicate dates
-  checkDuplicateRows(mydata, type, fn = cli::cli_warn)
+  check_duplicate_rows(mydata, type, fn = cli::cli_warn)
 
   # select date, type, and all non-factor/character columns
   mydata <-
@@ -449,16 +370,19 @@ timeAverage <- function(
 
   # calculate averages
   mydata <-
-    mydata %>%
-    split(mydata[type], drop = TRUE) %>%
-    purrr::map(
-      calc.mean,
-      start.date = start.date,
-      end.date = end.date,
+    map_type(
+      mydata,
+      type = type,
+      fun = \(df) {
+        calc.mean(
+          df,
+          start.date = start.date,
+          end.date = end.date
+        )
+      },
+      .include_default = TRUE,
       .progress = progress
-    ) %>%
-    purrr::list_rbind() %>%
-    dplyr::as_tibble()
+    )
 
   # drop default column if it exists
   if ("default" %in% names(mydata)) {
@@ -504,99 +428,24 @@ validate_timeaverage_inputs <- function(data.thresh, percentile, statistic) {
   return(list(data.thresh = data.thresh, percentile = percentile))
 }
 
-#' Get an appropriate function for the statistic
-#' @noRd
-get_statistic_function <- function(statistic, percentile) {
-  if (statistic == "mean") {
-    return(function(x) {
-      if (all(is.na(x))) {
-        NA
-      } else {
-        mean(x, na.rm = TRUE)
-      }
-    })
-  }
-  if (statistic == "median") {
-    return(function(x) {
-      median(x, na.rm = TRUE)
-    })
-  }
-  if (statistic == "frequency") {
-    return(function(x) {
-      length(na.omit(x))
-    })
-  }
-  if (statistic == "max") {
-    return(function(x) {
-      if (all(is.na(x))) {
-        NA
-      } else {
-        max(x, na.rm = TRUE)
-      }
-    })
-  }
-  if (statistic == "min") {
-    return(function(x) {
-      if (all(is.na(x))) {
-        NA
-      } else {
-        min(x, na.rm = TRUE)
-      }
-    })
-  }
-  if (statistic == "sum") {
-    return(function(x) {
-      if (all(is.na(x))) {
-        NA
-      } else {
-        sum(x, na.rm = TRUE)
-      }
-    })
-  }
-  if (statistic == "sd") {
-    return(function(x) {
-      sd(x, na.rm = TRUE)
-    })
-  }
-  if (statistic == "data.cap") {
-    return(function(x) {
-      if (all(is.na(x))) {
-        res <- 0
-      } else {
-        res <- 100 * (1 - sum(is.na(x)) / length(x))
-      }
-      res
-    })
-  }
-  if (statistic == "percentile") {
-    if (is.na(percentile)) {
-      cli::cli_abort(
-        "Please provide a {.field percentile} for use with {.code statistic = 'percentile'}."
-      )
-    }
-
-    return(function(x) {
-      quantile(x, probs = percentile, na.rm = TRUE)
-    })
-  }
-}
-
 #' Add start.date and end.date, if they exist
 #' @noRd
 bind_start_and_end_dates <- function(mydata, type, start.date, end.date, TZ) {
   if (!is.na(start.date)) {
     firstLine <- data.frame(date = as.POSIXct(start.date, tz = TZ))
     firstLine[type] <- mydata[1, type]
-    mydata <- bind_rows(firstLine, mydata)
+    mydata <- dplyr::bind_rows(firstLine, mydata)
   }
 
   if (!is.na(end.date)) {
     lastLine <- data.frame(date = as.POSIXct(end.date, tz = TZ))
     lastLine[type] <- mydata[1, type]
-    mydata <- bind_rows(mydata, lastLine)
+    mydata <- dplyr::bind_rows(mydata, lastLine)
   }
 
-  mydata$date <- as.POSIXct(format(mydata$date), tz = TZ)
+  # check this is necessary
+  # mydata$date <- as.POSIXct(format(mydata$date), tz = TZ)
+  mydata$date <- lubridate::as_datetime(mydata$date, tz = TZ)
 
   return(mydata)
 }
@@ -620,7 +469,7 @@ pad_dates_timeavg <- function(mydata, type = NULL, interval = "month") {
   }
 
   all.dates <- data.frame(date = seq(start.date, end.date, by = interval))
-  mydata <- mydata %>% full_join(all.dates, by = "date")
+  mydata <- dplyr::full_join(mydata, all.dates, by = "date")
 
   # add in missing types if gaps are made
   if (!is.null(type)) {
@@ -628,7 +477,7 @@ pad_dates_timeavg <- function(mydata, type = NULL, interval = "month") {
   }
 
   # make sure order is correct
-  mydata <- arrange(mydata, date)
+  mydata <- dplyr::arrange(mydata, date)
 
   return(mydata)
 }
@@ -637,10 +486,10 @@ pad_dates_timeavg <- function(mydata, type = NULL, interval = "month") {
 #' @noRd
 get_time_parameters <- function(mydata, avg.time) {
   # Time diff in seconds of original data
-  seconds_data_interval <- as.numeric(strsplit(
-    find.time.interval(mydata$date),
-    " "
-  )[[1]][1])
+  seconds_data_interval <- find_time_interval(
+    mydata$date,
+    return.seconds = TRUE
+  )
 
   # Parse time diff of new interval
   by2 <- strsplit(avg.time, " ", fixed = TRUE)[[1]]
@@ -699,10 +548,10 @@ get_time_parameters <- function(mydata, avg.time) {
 
 #' Calculate Uu and Vv if wd & ws are in the data
 #' @noRd
-calculate_wind_components <- function(mydata) {
+calculate_wind_components <- function(mydata, vector.ws) {
   if ("wd" %in% names(mydata)) {
     if (is.numeric(mydata$wd)) {
-      if ("ws" %in% names(mydata)) {
+      if ("ws" %in% names(mydata) && vector.ws) {
         mydata <- dplyr::mutate(
           mydata,
           Uu = .data$ws * sin(2 * pi * .data$wd / 360),
@@ -730,23 +579,23 @@ handle_season_avgtime <- function(mydata, type, ...) {
     mydata <- cutData(mydata, type = "season", ...)
   }
 
-  mydata %>%
+  mydata |>
     # drop missing seasons
-    dplyr::filter(!is.na(.data$season)) %>%
+    dplyr::filter(!is.na(.data$season)) |>
     # extract year/month
     dplyr::mutate(
       year = lubridate::year(.data$date),
       month = lubridate::month(.data$date)
-    ) %>%
+    ) |>
     # nudge December into next month
     dplyr::mutate(
       year = dplyr::if_else(.data$month == 12, .data$year + 1, .data$year)
-    ) %>%
+    ) |>
     # get average date per year-season
     dplyr::mutate(
       date = mean(date, na.rm = TRUE),
       .by = c("year", "season")
-    ) %>%
+    ) |>
     # drop year/month cols
     dplyr::select(-"year", -"month")
 }

@@ -57,9 +57,9 @@ data. Alternative data types include:
 \item \code{"24_hour"}: 24-hour rolling mean concentrations for particulates.
 \item \code{"daily_max_8"}: Maximum daily rolling 8-hour maximum for O3 and CO.
 \item \code{"daqi"}: Daily Air Quality Index (DAQI). See
-\href{https://uk-air.defra.gov.uk/air-pollution/daqi?view=more-info}{here} for
-more details of how the index is defined. Note that this \code{data_type} is not
-available for locally managed monitoring networks.
+\href{https://www.gov.uk/government/publications/health-effects-of-air-pollution}{here}
+for more details of how the index is defined. Note that this \code{data_type} is
+not available for locally managed monitoring networks.
 }}
 
 \item{pollutant}{Pollutants to import. If omitted will import all pollutants
@@ -103,7 +103,7 @@ be returned.}
 Defaults to \code{TRUE}.}
 }
 \value{
-a \link[tibble:tibble-package]{tibble}
+a \code{tibble}
 }
 \description{
 Functions for importing air pollution data from a range of UK networks

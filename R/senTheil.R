@@ -65,7 +65,7 @@ regci <- function(
     block.length <- round(length(y)^(1 / 3))
   }
   ## need to transpose ...
-  data <- t(samp.boot.block(length(y), nboot, block.length))
+  data <- t(samp_boot_block(length(y), nboot, block.length))
 
   bvec <- apply(data, 1, regboot, x, y, regfun, ...)
 
@@ -91,7 +91,7 @@ regci <- function(
     }
     regci[i, 1] <- bsort[ilow]
     regci[i, 2] <- bsort[ihi]
-    se[i] <- sqrt(var(bvec[i, ]))
+    se[i] <- sqrt(stats::var(bvec[i, ]))
   }
   estit <- regfun(x, y)$coef
   regci[, 3] <- estit
@@ -110,8 +110,8 @@ elimna <- function(m) {
   # remove any rows of data having missing values
   #
   m <- as.matrix(m)
-  ikeep <- c(1:nrow(m))
-  for (i in 1:nrow(m)) {
+  ikeep <- c(seq_len(nrow(m)))
+  for (i in seq_len(nrow(m))) {
     if (sum(is.na(m[i, ]) >= 1)) {
       ikeep[i] <- 0
     }
@@ -165,7 +165,7 @@ tsreg <- function(
   x <- as.matrix(x)
   xx <- cbind(x, y)
   xx <- elimna(xx)
-  x <- xx[, 1:ncol(x)]
+  x <- xx[, seq_len(ncol(x))]
   x <- as.matrix(x)
   y <- xx[, ncol(x) + 1]
   temp <- NA
@@ -183,19 +183,19 @@ tsreg <- function(
     res <- temp1$res
   }
   if (ncol(x) > 1) {
-    for (p in 1:ncol(x)) {
+    for (p in seq_len(ncol(x))) {
       temp[p] <- tsp1reg(x[, p], y)$coef[2]
     }
     res <- y - x %*% temp
-    alpha <- median(res)
+    alpha <- stats::median(res)
     r <- matrix(NA, ncol = ncol(x), nrow = nrow(x))
     tempold <- temp
     for (it in 1:iter) {
-      for (p in 1:ncol(x)) {
+      for (p in seq_len(ncol(x))) {
         r[, p] <- y - x %*% temp - alpha + temp[p] * x[, p]
         temp[p] <- tsp1reg(x[, p], r[, p], plotit = FALSE)$coef[2]
       }
-      alpha <- median(y - x %*% temp)
+      alpha <- stats::median(y - x %*% temp)
       tempold <- temp
     }
     coef <- c(alpha, temp)
@@ -232,8 +232,8 @@ tsp1reg <- function(x, y, plotit = FALSE) {
   vec2 <- outer(xs, xs, "-")
   v1 <- vec1[vec2 > 0]
   v2 <- vec2[vec2 > 0]
-  slope <- median(v1 / v2)
-  coef <- median(y) - slope * median(x)
+  slope <- stats::median(v1 / v2)
+  coef <- stats::median(y) - slope * stats::median(x)
   names(coef) <- "Intercept"
   coef <- c(coef, slope)
   if (plotit) {

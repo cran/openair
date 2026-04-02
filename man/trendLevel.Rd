@@ -2,25 +2,26 @@
 % Please edit documentation in R/trendLevel.R
 \name{trendLevel}
 \alias{trendLevel}
-\title{Plot heat map trends}
+\title{Plot heat maps of atmospheric composition data}
 \usage{
 trendLevel(
   mydata,
   pollutant = "nox",
   x = "month",
   y = "hour",
-  type = "year",
+  type = "default",
   rotate.axis = c(90, 0),
   n.levels = c(10, 10, 4),
-  limits = c(0, 100),
+  windflow = NULL,
+  limits = NULL,
+  min.bin = 1,
   cols = "default",
   auto.text = TRUE,
-  key.header = "use.stat.name",
-  key.footer = pollutant,
+  key.title = paste("use.stat.name", pollutant, sep = " "),
   key.position = "right",
-  key = TRUE,
-  labels = NA,
-  breaks = NA,
+  strip.position = "top",
+  labels = NULL,
+  breaks = NULL,
   statistic = c("mean", "max", "min", "median", "frequency", "sum", "sd", "percentile"),
   percentile = 95,
   stat.args = NULL,
@@ -28,6 +29,7 @@ trendLevel(
   drop.unused.types = TRUE,
   col.na = "white",
   plot = TRUE,
+  key = NULL,
   ...
 )
 }
@@ -56,31 +58,42 @@ for date conditioning and factors. If less than three values are supplied,
 three values are determined by recursion; if more than three values are
 supplied, only the first three are used.}
 
+\item{windflow}{If \code{TRUE}, the vector-averaged wind speed and direction will
+be plotted using arrows. Alternatively, can be a list of arguments to
+control the appearance of the arrows (colour, linewidth, alpha value,
+etc.). See \code{\link[=windflowOpts]{windflowOpts()}} for details.}
+
 \item{limits}{The colour scale range to use when generating the
 \code{\link[=trendLevel]{trendLevel()}} plot.}
 
-\item{cols}{The colour set to use to colour the \code{\link[=trendLevel]{trendLevel()}} surface.
-\code{cols} is passed to \code{\link[=openColours]{openColours()}} for evaluation.}
+\item{min.bin}{The minimum number of records required in a bin to show a
+value. Bins with fewer than \code{min.bin} records are set to \code{NA}. The default
+is 1, i.e., all bins with no records are set to \code{NA}. Setting \code{min.bin} to
+a value greater than 1 can be useful to exclude bins with very few records
+that might produce unreliable statistic values.}
 
-\item{auto.text}{Automatic routine text formatting. \code{auto.text = TRUE} passes
-common \code{lattice} labelling terms (e.g. \code{xlab} for the x-axis, \code{ylab} for
-the y-axis and \code{main} for the title) to the plot via \code{\link[=quickText]{quickText()}} to
-provide common text formatting.  The alternative \code{auto.text = FALSE} turns
-this option off and passes any supplied labels to the plot without
-modification.}
+\item{cols}{Colours to use for plotting. Can be a pre-set palette (e.g.,
+\code{"turbo"}, \code{"viridis"}, \code{"tol"}, \code{"Dark2"}, etc.) or a user-defined vector
+of R colours (e.g., \code{c("yellow", "green", "blue", "black")} - see
+\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). See \code{\link[=openColours]{openColours()}} for more details.}
 
-\item{key.header, key.footer}{Adds additional text labels above and/or below
-the scale key, respectively. For example, passing the options \verb{key.header = "", key.footer = c("mean","nox")} adds the addition text as a scale footer.
-If enabled (\code{auto.text = TRUE}), these arguments are passed to the scale
-key (\code{\link[=drawOpenKey]{drawOpenKey()}}) via \code{\link[=quickText]{quickText()}} to handle formatting. The term
-\code{"get.stat.name"}, used as the default \code{key.header} setting, is reserved
-and automatically adds statistic function names or defaults to \code{"level"}
-when unnamed functions are requested via \code{statistic}.}
+\item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE} titles and
+axis labels will automatically try and format pollutant names and units
+properly, e.g., by subscripting the "2" in "NO2". Passed to \code{\link[=quickText]{quickText()}}.}
 
-\item{key.position}{Location where the scale key should be plotted. Allowed
-arguments currently include \code{"top"}, \code{"right"}, \code{"bottom"}, and \code{"left"}.}
+\item{key.title}{Used to set the title of the legend. The legend title is
+passed to \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.}
 
-\item{key}{Fine control of the scale key via \code{\link[=drawOpenKey]{drawOpenKey()}}.}
+\item{key.position}{Location where the legend is to be placed. Allowed
+arguments include \code{"top"}, \code{"right"}, \code{"bottom"}, \code{"left"} and \code{"none"},
+the last of which removes the legend entirely.}
+
+\item{strip.position}{Location where the facet 'strips' are located when
+using \code{type}. When one \code{type} is provided, can be one of \code{"left"},
+\code{"right"}, \code{"bottom"} or \code{"top"}. When two \code{type}s are provided, this
+argument defines whether the strips are "switched" and can take either
+\code{"x"}, \code{"y"}, or \code{"both"}. For example, \code{"x"} will switch the 'top' strip
+locations to the bottom of the plot.}
 
 \item{breaks, labels}{If a categorical colour scale is required then \code{breaks}
 should be specified. These should be provided as a numeric vector, e.g.,
@@ -127,23 +140,36 @@ panels.}
 
 \item{col.na}{Colour to be used to show missing data.}
 
-\item{plot}{Should a plot be produced? \code{FALSE} can be useful when analysing
-data to extract plot components and plotting them in other ways.}
+\item{plot}{When \code{openair} plots are created they are automatically printed
+to the active graphics device. \code{plot = FALSE} deactivates this behaviour.
+This may be useful when the plot \emph{data} is of more interest, or the plot is
+required to appear later (e.g., later in a Quarto document, or to be saved
+to a file).}
 
-\item{...}{Addition options are passed on to \code{\link[=cutData]{cutData()}} for \code{type} handling
-and \code{\link[lattice:levelplot]{lattice::levelplot()}} for finer control of the plot itself.}
+\item{key}{Deprecated; please use \code{key.position}. If \code{FALSE}, sets
+\code{key.position} to \code{"none"}.}
+
+\item{...}{Addition options are passed on to \code{\link[=cutData]{cutData()}} for \code{type} handling.
+Some additional arguments are also available:
+\itemize{
+\item \code{xlab}, \code{ylab} and \code{main} override the x-axis label, y-axis label, and plot title.
+\item \code{layout} sets the layout of facets - e.g., \code{layout(2, 5)} will have 2 columns and 5 rows.
+\item \code{fontsize} overrides the overall font size of the plot.
+\item \code{border} sets the border colour of each tile.
+}}
 }
 \value{
 an \link[=openair-package]{openair} object.
 }
 \description{
-The trendLevel function provides a way of rapidly showing a large amount of
-data in a condensed form. In one plot, the variation in the concentration of
-one pollutant can to shown as a function of three other categorical
-properties. The default version of the plot uses y = hour of day, x = month
-of year and type = year to provide information on trends, seasonal effects
-and diurnal variations. However, x, y and type and summarising statistics can
-all be modified to provide a range of other similar plots.
+The \code{\link[=trendLevel]{trendLevel()}} function provides a way of rapidly showing a large amount
+of data in a condensed form. In one plot, the variation in the concentration
+of one pollutant can to shown as a function of between two and four
+categorical properties. The default arguments plot hour of day on the x-axis
+and month of year on the y-axis. However, \code{x}, \code{y} and \code{type} and summarising
+statistics can all be modified to provide a range of other similar plots, all
+being passed to \code{\link[=cutData]{cutData()}} for discretisation. The average wind speed and
+direction in each bin can also be plotted using the \code{windflow} argument.
 }
 \details{
 \code{\link[=trendLevel]{trendLevel()}} allows the use of third party summarising functions via the
@@ -187,16 +213,6 @@ trendLevel(mydata,
 )
 }
 }
-\seealso{
-Other time series and trend functions: 
-\code{\link{TheilSen}()},
-\code{\link{calendarPlot}()},
-\code{\link{runRegression}()},
-\code{\link{smoothTrend}()},
-\code{\link{timePlot}()},
-\code{\link{timeProp}()},
-\code{\link{timeVariation}()}
-}
 \author{
 Karl Ropkins
 
@@ -204,4 +220,3 @@ David Carslaw
 
 Jack Davison
 }
-\concept{time series and trend functions}

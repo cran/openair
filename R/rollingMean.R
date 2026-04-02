@@ -11,24 +11,35 @@
 #' @param mydata A data frame containing a `date` field. `mydata` must contain a
 #'   `date` field in `Date` or `POSIXct` format. The input time series must be
 #'   regular, e.g., hourly, daily.
+#'
 #' @param pollutant The name of a pollutant, e.g., `pollutant = "o3"`.
+#'
 #' @param width The averaging period (rolling window width) to use, e.g., `width
 #'   = 8` will generate 8-hour rolling mean values when hourly data are
 #'   analysed.
+#'
 #' @param type Used for splitting the data further. Passed to [cutData()].
+#'
 #' @param data.thresh The % data capture threshold. No values are calculated if
 #'   data capture over the period of interest is less than this value. For
 #'   example, with `width = 8` and `data.thresh = 75` at least 6 hours are
 #'   required to calculate the mean, else `NA` is returned.
+#'
 #' @param align Specifies how the moving window should be aligned. `"right"`
 #'   means that the previous hours (including the current) are averaged.
 #'   `"left"` means that the forward hours are averaged. `"centre"` (or
 #'   `"center"` - the default) centres the current hour in the window.
+#'
 #' @param new.name The name given to the new column. If not supplied it will
 #'   create a name based on the name of the pollutant and the averaging period
 #'   used.
-#' @param ... Additional parameters passed to [cutData()]. For use with `type`.
+#'
+#' @param date.pad Should missing dates be padded? Default is `FALSE`.
+#'
+#' @param ... Passed to [cutData()] for use with `type`.
+#'
 #' @export
+#' @return A tibble with two new columns for the rolling value and the number of valid values used.
 #' @author David Carslaw
 #' @examples
 #' # rolling 8-hour mean for ozone
@@ -44,10 +55,15 @@ rollingMean <- function(
   data.thresh = 75,
   align = c("centre", "center", "left", "right"),
   new.name = NULL,
+  date.pad = FALSE,
   ...
 ) {
   # check inputs
   align <- rlang::arg_match(align, multiple = FALSE)
+
+  if (align == "center") {
+    align <- "centre"
+  }
 
   # data.thresh must be between 0 & 100
   if (data.thresh < 0 || data.thresh > 100) {
@@ -77,7 +93,7 @@ rollingMean <- function(
   mydata <- cutData(mydata, type = type, ...)
 
   # error if duplicate dates
-  checkDuplicateRows(mydata, type, fn = cli::cli_abort)
+  check_duplicate_rows(mydata, type, fn = cli::cli_abort)
 
   # function to perform rolling average
   calc.rolling <- function(mydata) {
@@ -85,7 +101,9 @@ rollingMean <- function(
     dates <- mydata$date
 
     # pad missing hours
-    mydata <- date.pad(mydata)
+    if (date.pad) {
+      mydata <- datePad(mydata)
+    }
 
     # make sure function is not called with window width longer than data
     if (width > nrow(mydata)) {
@@ -93,14 +111,17 @@ rollingMean <- function(
     }
 
     # call C code
-    mydata[[new.name]] <- .Call(
-      "rollMean",
+
+    data.thresh <- data.thresh / 100
+    results <- rolling_average_cpp(
       mydata[[pollutant]],
       width,
-      data.thresh,
       align,
-      PACKAGE = "openair"
+      data.thresh
     )
+
+    mydata[[new.name]] <- results[[1]]
+    mydata[[paste0("n_", pollutant)]] <- results[[2]]
 
     # return what was put in; avoids adding missing data e.g. for factors
     if (length(dates) != nrow(mydata)) {
@@ -112,9 +133,12 @@ rollingMean <- function(
   }
 
   # split if several sites
-  mydata <-
-    purrr::map(split(mydata, mydata[[type]], drop = TRUE), calc.rolling) %>%
-    purrr::list_rbind()
+  mydata <- map_type(
+    mydata,
+    type = type,
+    fun = calc.rolling,
+    .include_default = TRUE
+  )
 
   # drop default column
   if (any(type == "default")) {

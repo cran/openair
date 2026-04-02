@@ -12,10 +12,12 @@ cutData(
   hemisphere = "northern",
   n.levels = 4,
   start.day = 1,
+  start.season = "spring",
   is.axis = FALSE,
   local.tz = NULL,
   latitude = 51,
   longitude = -0.5,
+  drop = c("default", "empty", "outside", "none"),
   ...
 )
 }
@@ -32,9 +34,10 @@ name is supplied \code{\link[=cutData]{cutData()}} will split the data into four
 Factors levels will be used to split the data without any adjustment.}
 
 \item{names}{By default, the columns created by \code{\link[=cutData]{cutData()}} are named after
-their \code{type} option. Specifying \code{names} defines other names for the columns,
-which map onto the \code{type} options in the same order they are given. The
-length of \code{names} should therefore be equal to the length of \code{type}.}
+their \code{type} option. Specifying \code{names} defines other names for the
+columns, which map onto the \code{type} options in the same order they are
+given. The length of \code{names} should therefore be equal to the length of
+\code{type}.}
 
 \item{suffix}{If \code{name} is not specified, \code{suffix} will be appended to any
 added columns that would otherwise overwrite existing columns. For example,
@@ -51,6 +54,10 @@ The user can change the start day by supplying an integer between 0 and 6.
 Sunday = 0, Monday = 1, ... For example to start the weekday plots on a
 Saturday, choose \code{start.day = 6}.}
 
+\item{start.season}{What order should the season be. By default, the order is
+spring, summer, autumn, winter. \code{start.season = "winter"} would plot winter
+first.}
+
 \item{is.axis}{A logical (\code{TRUE}/\code{FALSE}), used to request shortened cut
 labels for axes.}
 
@@ -63,6 +70,23 @@ original data are in GMT (UTC) or a fixed offset from GMT.}
 
 \item{latitude, longitude}{The decimal latitude and longitudes used when \code{type = "daylight"}. Note that locations west of Greenwich have negative
 longitudes.}
+
+\item{drop}{How to handle empty factor levels. One of:
+\itemize{
+\item \code{"default"}: Sensible defaults selected on a case-by-case basis for
+different \code{type} options.
+\item \code{"empty"}: Drop all empty factor levels.
+\item \code{"none"}: Retain all empty factor levels, where possible. For example,
+for \code{type = "hour"}, all factor levels from \code{0} and \code{23} will be
+represented.
+\item \code{"outside"}: Retain empty factor levels within the range of the data.
+For example, for \code{type = "hour"} when the data only contains data for 1 AM
+and 5 AM, the factor levels, \code{1}, \code{2}, \code{3}, \code{4} and \code{5} will be retained.
+}
+
+Some of these options only apply to certain \code{type} options. For example,
+for \code{type = "year"}, \code{"outside"} is equivalent to \code{"none"} as there is no
+fixed range of years to use in the \code{"none"} case.}
 
 \item{...}{All additional parameters are passed on to next function(s).}
 }
@@ -84,10 +108,10 @@ range in the format "day month year".
 \item \code{"year"} splits the data by each year.
 \item \code{"month"} splits the data by month of the year.
 \item \code{"hour"} splits the data by hour of the day.
-\item \code{"monthyear"} splits the data by year and month. It differs from month in
-that a level is defined for each month of the data set. This is useful
-sometimes to show an ordered sequence of months if the data set starts half
-way through a year; rather than starting in January.
+\item \code{"monthyear"} (or \code{"yearmonth"}) splits the data by year and month. It
+differs from month in that a level is defined for each month of the data set.
+This is useful sometimes to show an ordered sequence of months if the data
+set starts half way through a year; rather than starting in January.
 \item \code{"weekend"} splits the data by weekday and weekend.
 \item \code{"weekday"} splits the data by day of the week - ordered to start Monday.
 \item \code{"season"} splits data up by season. In the northern hemisphere winter =
@@ -97,6 +121,14 @@ definitions will change of \code{hemisphere = "southern"}.
 intervals, keeping the months of a season together. For example, December
 2010 is considered as part of winter 2011 (with January and February 2011).
 This makes it easier to consider contiguous seasons. In contrast, \code{type = "season"} will just split the data into four seasons regardless of the year.
+\item \code{"quarter"} splits data up by quarter, where Q1 represents January,
+February, and March, Q2 represents April, May and June, and so on. While
+'quarters' don't as elegantly reflect meteorology as seasons, they do fit
+more neatly into a single year and may better align with other relevant
+periods (e.g., data ratification calendars, or business/economic activity).
+\item \code{"quarteryear"} (or \code{"yearquarter"}) will split the data into year-quarter
+intervals. This is perhaps easier to predict and interpret than \code{yearseason}
+which will assign December to the Winter \emph{after} the year it is actually in.
 \item \code{"daylight"} splits the data relative to estimated sunrise and sunset to
 give either daylight or nighttime. The cut is made by \code{cutDaylight} but more
 conveniently accessed via \code{cutData}, e.g. \code{cutData(mydata, type = "daylight", latitude = my.latitude, longitude = my.longitude)}. The daylight estimation,
@@ -130,13 +162,15 @@ a column \code{date}. If a user already has a column with a name of one of the
 date-based types it will not be used.
 }
 \examples{
-## split data by day of the week
+# split data by day of the week
 mydata <- cutData(mydata, type = "weekday")
 names(mydata)
 head(mydata)
 }
 \author{
 David Carslaw
+
+Jack Davison
 
 Karl Ropkins (\code{"daylight"} option)
 }

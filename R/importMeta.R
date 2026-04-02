@@ -85,7 +85,6 @@
 #' @seealso the `networkMap()` function from the `openairmaps` package which can
 #'   visualise site metadata on an interactive map.
 #' @export
-#' @import readr
 #' @examples
 #' \dontrun{
 #' # basic info:
@@ -130,7 +129,7 @@ importMeta <-
     ## ensure lower case
     source <- tolower(source)
 
-    if (any(!source %in% meta.source)) {
+    if (!all(source %in% meta.source)) {
       cli::cli_abort(
         c(
           "!" = '"{source}" not a recognised {.field source}.',
@@ -188,8 +187,8 @@ importMeta <-
           meta <-
             dplyr::filter(
               meta,
-              start_year <= min(year) &
-                end_year >= max(year)
+              .data$start_year <= min(year) &
+                .data$end_year >= max(year)
             )
         }
       }
@@ -200,28 +199,28 @@ importMeta <-
           "http://aq-data.ricardo-aea.com/R_data/saqgetr/helper_tables/sites_table.csv.gz"
 
         # Define data types
-        col_types <- cols(
-          site = col_character(),
-          site_name = col_character(),
-          latitude = col_double(),
-          longitude = col_double(),
-          elevation = col_double(),
-          country = col_character(),
-          country_iso_code = col_character(),
-          site_type = col_character(),
-          site_area = col_character(),
-          date_start = col_character(),
-          date_end = col_character(),
-          network = col_character(),
-          eu_code = col_character(),
-          eoi_code = col_character(),
-          data_source = col_character()
+        col_types <- readr::cols(
+          site = readr::col_character(),
+          site_name = readr::col_character(),
+          latitude = readr::col_double(),
+          longitude = readr::col_double(),
+          elevation = readr::col_double(),
+          country = readr::col_character(),
+          country_iso_code = readr::col_character(),
+          site_type = readr::col_character(),
+          site_area = readr::col_character(),
+          date_start = readr::col_character(),
+          date_end = readr::col_character(),
+          network = readr::col_character(),
+          eu_code = readr::col_character(),
+          eoi_code = readr::col_character(),
+          data_source = readr::col_character()
         )
 
         # Read data and parse dates
         meta <-
-          read_csv(file, col_types = col_types, progress = FALSE) %>%
-          mutate(
+          readr::read_csv(file, col_types = col_types, progress = FALSE) |>
+          dplyr::mutate(
             date_start = lubridate::ymd_hms(.data$date_start, tz = "UTC"),
             date_end = lubridate::ymd_hms(.data$date_end, tz = "UTC")
           )
@@ -241,12 +240,12 @@ importMeta <-
           meta <-
             dplyr::filter(
               meta,
-              start_year <= min(year) &
-                end_year >= max(year)
+              .data$start_year <= min(year) &
+                .data$end_year >= max(year)
             )
         }
 
-        meta <- rename(meta, code = "site", site = "site_name")
+        meta <- dplyr::rename(meta, code = "site", site = "site_name")
       }
 
       # return data source
@@ -258,7 +257,7 @@ importMeta <-
 
     # import meta data
     meta <-
-      purrr::map(.x = source, .f = ~ get_meta(source = .x, all = all)) %>%
+      purrr::map(.x = source, .f = ~ get_meta(source = .x, all = all)) |>
       purrr::list_rbind()
 
     # drop extra columns if not "all"
@@ -310,7 +309,7 @@ importMeta <-
       }
     }
 
-    as_tibble(meta)
+    dplyr::as_tibble(meta)
   }
 
 #' Clean data from Ricardo (not KCL or Europe)
@@ -333,7 +332,7 @@ clean_ricardo_meta <- function(url, all, year) {
     site = "site_name",
     site_type = "location_type",
     variable = "parameter"
-  ) %>%
+  ) |>
     dplyr::mutate(
       start_date = lubridate::ymd(.data$start_date, tz = "GMT"),
       site_type = gsub(
@@ -359,8 +358,8 @@ clean_ricardo_meta <- function(url, all, year) {
     meta <-
       dplyr::filter(
         meta,
-        start_year <= min(year) &
-          end_year >= max(year)
+        .data$start_year <= min(year) &
+          .data$end_year >= max(year)
       )
   }
 

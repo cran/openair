@@ -76,9 +76,6 @@
 #' # load package
 #' library(openair)
 #'
-#' # summarise data in a compact way
-#' summaryPlot(mydata)
-#'
 #' # traditional wind rose
 #' windRose(mydata)
 #'
@@ -90,79 +87,13 @@
 #'
 #' # get data
 #' polar_nox$data
-#'
-#' # could, e.g., re-plot in {ggplot2}
-#' library(ggplot2)
-#' ggplot(polar_nox$data, aes(u, v, fill = z)) +
-#'   geom_tile() +
-#'   coord_equal() +
-#'   scale_fill_gradientn(colours = openair::openColours(), na.value = NA)
 #' }
-#'
 #' @keywords internal
 "_PACKAGE"
 ## usethis namespace: start
-#' @importFrom latticeExtra useOuterStrips
-#' @importFrom lubridate as_date
-#' @importFrom lubridate ceiling_date
-#' @importFrom lubridate day
-#' @importFrom lubridate dmy
-#' @importFrom lubridate dst
-#' @importFrom lubridate floor_date
-#' @importFrom lubridate force_tz
-#' @importFrom lubridate hour
-#' @importFrom lubridate month
-#' @importFrom lubridate parse_date_time
-#' @importFrom lubridate round_date
-#' @importFrom lubridate wday
-#' @importFrom lubridate year
-#' @importFrom methods is
 #' @importFrom Rcpp evalCpp
 #' @importFrom rlang %||%
 #' @importFrom rlang .data
-#' @importFrom stats aggregate
-#' @importFrom stats approx
-#' @importFrom stats arima
-#' @importFrom stats as.dendrogram
-#' @importFrom stats as.dist
-#' @importFrom stats as.ts
-#' @importFrom stats ave
-#' @importFrom stats coef
-#' @importFrom stats complete.cases
-#' @importFrom stats cor
-#' @importFrom stats dist
-#' @importFrom stats fitted
-#' @importFrom stats formula
-#' @importFrom stats frequency
-#' @importFrom stats hclust
-#' @importFrom stats KalmanRun
-#' @importFrom stats lm
-#' @importFrom stats median
-#' @importFrom stats na.omit
-#' @importFrom stats optimize
-#' @importFrom stats order.dendrogram
-#' @importFrom stats predict
-#' @importFrom stats qchisq
-#' @importFrom stats qnorm
-#' @importFrom stats qt
-#' @importFrom stats quantile
-#' @importFrom stats reshape
-#' @importFrom stats residuals
-#' @importFrom stats sd
-#' @importFrom stats smooth.spline
-#' @importFrom stats spline
-#' @importFrom stats stl
-#' @importFrom stats StructTS
-#' @importFrom stats ts
-#' @importFrom stats tsp
-#' @importFrom stats tsSmooth
-#' @importFrom stats update
-#' @importFrom stats var
-#' @importFrom tibble tibble
-#' @importFrom utils compareVersion
-#' @importFrom utils head
-#' @importFrom utils modifyList
-#' @importFrom utils read.csv
-#' @importFrom utils tail
+#' @importFrom rlang :=
 ## usethis namespace: end
 NULL

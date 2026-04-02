@@ -140,7 +140,7 @@ importTraj <-
         {
           if (is.na(local)) {
             fileName <- paste(
-              "http://met-data.ricardo-aea.com/trajectories/",
+              "https://aq-data.ricardo-aea.com/trajectories/",
               x,
               ".RData",
               sep = ""
@@ -170,7 +170,7 @@ importTraj <-
     if (progress) {
       progress <- "Importing Trajectories"
     }
-    thedata <- purrr::map(files, loadData, .progress = progress) %>%
+    thedata <- purrr::map(files, loadData, .progress = progress) |>
       purrr::list_rbind()
 
     ## change names

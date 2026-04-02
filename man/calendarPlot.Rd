@@ -7,65 +7,97 @@
 calendarPlot(
   mydata,
   pollutant = "nox",
-  year = 2003,
-  month = 1:12,
-  type = "default",
-  annotate = "date",
+  year = NULL,
+  month = NULL,
+  type = "month",
   statistic = "mean",
+  data.thresh = 0,
+  percentile = NA,
+  annotate = "date",
+  windflow = NULL,
   cols = "heat",
-  limits = c(0, 100),
+  limits = NULL,
   lim = NULL,
   col.lim = c("grey30", "black"),
-  col.arrow = "black",
+  col.na = "white",
   font.lim = c(1, 2),
-  cex.lim = c(0.6, 1),
+  cex.lim = c(0.6, 0.9),
   cex.date = 0.6,
   digits = 0,
-  data.thresh = 0,
-  labels = NA,
-  breaks = NA,
+  labels = NULL,
+  breaks = NULL,
   w.shift = 0,
   w.abbr.len = 1,
   remove.empty = TRUE,
-  main = NULL,
-  key.header = "",
-  key.footer = "",
+  show.year = TRUE,
+  key.title = paste(statistic, pollutant, sep = " "),
   key.position = "right",
-  key = TRUE,
+  strip.position = "top",
   auto.text = TRUE,
   plot = TRUE,
+  key = NULL,
   ...
 )
 }
 \arguments{
-\item{mydata}{A data frame minimally containing \code{date} and at least one other
-numeric variable. The date should be in either \code{Date} format or class
-\code{POSIXct}.}
+\item{mydata}{A data frame of time series. Must include a \code{date} field and at
+least one variable to plot.}
 
 \item{pollutant}{Mandatory. A pollutant name corresponding to a variable in a
-data frame should be supplied e.g. \verb{pollutant = "nox". }}
+data frame should be supplied e.g. \code{pollutant = "nox"}.}
 
-\item{year}{Year to plot e.g. \code{year = 2003}. If not supplied all data
-potentially spanning several years will be plotted.}
+\item{year}{Year to plot e.g. \code{year = 2003}. If not supplied and \code{mydata}
+contains more than one year, the first year of the data will be
+automatically selected. Manually setting \code{year} to \code{NULL} will use all
+available years.}
 
 \item{month}{If only certain month are required. By default the function will
 plot an entire year even if months are missing. To only plot certain months
 use the \code{month} option where month is a numeric 1:12 e.g. \code{month = c(1, 12)} to only plot January and December.}
 
-\item{type}{Not yet implemented.}
+\item{type}{\code{type} determines how the data are split, i.e., conditioned, and
+then plotted. Only one type can be used with this function, as one faceting
+'direction' is reserved by the month of the year. If a single \code{type} is
+given, it will form the "rows" of the resulting grid. Alternatively,
+\code{c(type, "month")} can be used can be specified for \code{type} to be used as
+the "columns" instead.
+
+\code{type = "year"} is a special case for \code{\link[=calendarPlot]{calendarPlot()}} and will
+automatically prevent a single year from being selected (unless specified
+using the \code{year} argument) and set \code{show.year} to \code{FALSE}.}
+
+\item{statistic}{Statistic passed to \code{\link[=timeAverage]{timeAverage()}}. Note that if \code{statistic \%in\% c("max", "min")} and \code{annotate} is "ws" or "wd", the hour
+corresponding to the maximum/minimum concentration of \code{polluant} is used to
+provide the associated \code{ws} or \code{wd} and not the maximum/minimum daily \code{ws}
+or \code{wd}.}
+
+\item{data.thresh}{The data capture threshold to use (\%). A value of zero
+means that all available data will be used in a particular period
+regardless if of the number of values available. Conversely, a value of 100
+will mean that all data will need to be present for the average to be
+calculated, else it is recorded as \code{NA}. See also \code{interval}, \code{start.date}
+and \code{end.date} to see whether it is advisable to set these other options.}
+
+\item{percentile}{The percentile level in percent used when \code{statistic = "percentile"} and when aggregating the data with \code{avg.time}. More than one
+percentile level is allowed for \code{type = "default"} e.g. \code{percentile = c(50, 95)}. Not used if \code{avg.time = "default"}.}
 
 \item{annotate}{This option controls what appears on each day of the
-calendar. Can be: "date" --- shows day of the month; "wd"
---- shows vector-averaged wind direction, or "ws" --- shows
-vector-averaged wind direction scaled by wind speed. Finally it can be
-\dQuote{value} which shows the daily mean value.}
+calendar. Can be:
+\itemize{
+\item \code{"date"} --- shows day of the month
+\item \code{"value"} --- shows the daily mean value
+\item \code{"none"} --- shows no label
+}}
 
-\item{statistic}{Statistic passed to \code{\link[=timeAverage]{timeAverage()}}. Note that if \code{statistic = "max"} and \code{annotate} is "ws" or "wd", the hour corresponding to the
-maximum concentration of \code{polluant} is used to provide the associated \code{ws}
-or \code{wd} and not the maximum daily \code{ws} or \code{wd}.}
+\item{windflow}{If \code{TRUE}, the vector-averaged wind speed and direction will
+be plotted using arrows. Alternatively, can be a list of arguments to
+control the appearance of the arrows (colour, linewidth, alpha value,
+etc.). See \code{\link[=windflowOpts]{windflowOpts()}} for details.}
 
-\item{cols}{Colours to be used for plotting. See \code{\link[=openColours]{openColours()}} for more
-details.}
+\item{cols}{Colours to use for plotting. Can be a pre-set palette (e.g.,
+\code{"turbo"}, \code{"viridis"}, \code{"tol"}, \code{"Dark2"}, etc.) or a user-defined vector
+of R colours (e.g., \code{c("yellow", "green", "blue", "black")} - see
+\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). See \code{\link[=openColours]{openColours()}} for more details.}
 
 \item{limits}{Use this option to manually set the colour scale limits. This
 is useful in the case when there is a need for two or more plots and a
@@ -82,8 +114,7 @@ control over the labels used.}
 first sets the colour of the text below \code{lim} and the second sets the
 colour of the text above \code{lim}.}
 
-\item{col.arrow}{The colour of the annotated wind direction / wind speed
-arrows.}
+\item{col.na}{Colour to be used to show missing data.}
 
 \item{font.lim}{For the annotation of concentration labels on each day. The
 first sets the font of the text below \code{lim} and the second sets the font of
@@ -99,18 +130,15 @@ the text above \code{lim}.}
 \item{digits}{The number of digits used to display concentration values when
 \code{annotate = "value"}.}
 
-\item{data.thresh}{Data capture threshold passed to \code{\link[=timeAverage]{timeAverage()}}. For
-example, \code{data.thresh = 75} means that at least 75\\% of the data must be
-available in a day for the value to be calculate, else the data is removed.}
-
-\item{labels}{If a categorical scale is defined using \code{breaks}, then \code{labels}
-can be used to override the default category labels, e.g., \code{labels = c("good", "bad", "very bad")}. Note there is one less label than break.}
-
-\item{breaks}{If a categorical scale is required then these breaks will be
-used. For example, \code{breaks = c(0, 50, 100, 1000)}. In this case
-\dQuote{good} corresponds to values between 0 and 50 and so on. Users
-should set the maximum value of \code{breaks} to exceed the maximum data value
-to ensure it is within the maximum final range e.g. 100--1000 in this case.}
+\item{breaks, labels}{If a categorical colour scale is required then \code{breaks}
+should be specified. These should be provided as a numeric vector, e.g.,
+\code{breaks = c(0, 50, 100, 1000)}. Users should set the maximum value of
+\code{breaks} to exceed the maximum data value to ensure it is within the
+maximum final range, e.g., 100--1000 in this case. Labels will
+automatically be generated, but can be customised by passing a character
+vector to \code{labels}, e.g., \code{labels = c("good", "bad", "very bad")}. In this
+example, \code{0 - 50} will be \code{"good"} and so on. Note there is one less label
+than break.}
 
 \item{w.shift}{Controls the order of the days of the week. By default the
 plot shows Saturday first (\code{w.shift = 0}). To change this so that it starts
@@ -124,32 +152,46 @@ abbreviate "Monday" to "Mon".}
 \item{remove.empty}{Should months with no data present be removed? Default is
 \code{TRUE}.}
 
-\item{main}{The plot title; default is pollutant and year.}
+\item{show.year}{If only a single year is being plotted, should the calendar
+labels include the year label? \code{TRUE} creates labels like "January-2000",
+\code{FALSE} labels just as "January". If multiple years of data are detected,
+this option is forced to be \code{TRUE}.}
 
-\item{key.header}{Adds additional text/labels to the scale key. For example,
-passing \code{calendarPlot(mydata, key.header = "header", key.footer = "footer")} adds addition text above and below the scale key. These
-arguments are passed to \code{\link[=drawOpenKey]{drawOpenKey()}} via \code{\link[=quickText]{quickText()}}, applying the
-\code{auto.text} argument, to handle formatting.}
+\item{key.title}{Used to set the title of the legend. The legend title is
+passed to \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.}
 
-\item{key.footer}{see \code{key.header}.}
+\item{key.position}{Location where the legend is to be placed. Allowed
+arguments include \code{"top"}, \code{"right"}, \code{"bottom"}, \code{"left"} and \code{"none"},
+the last of which removes the legend entirely.}
 
-\item{key.position}{Location where the scale key is to plotted. Allowed
-arguments currently include \code{"top"}, \code{"right"}, \code{"bottom"} and \code{"left"}.}
-
-\item{key}{Fine control of the scale key via \code{\link[=drawOpenKey]{drawOpenKey()}}. See
-\code{\link[=drawOpenKey]{drawOpenKey()}} for further details.}
+\item{strip.position}{Location where the facet 'strips' are located when
+using \code{type}. When one \code{type} is provided, can be one of \code{"left"},
+\code{"right"}, \code{"bottom"} or \code{"top"}. When two \code{type}s are provided, this
+argument defines whether the strips are "switched" and can take either
+\code{"x"}, \code{"y"}, or \code{"both"}. For example, \code{"x"} will switch the 'top' strip
+locations to the bottom of the plot.}
 
 \item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE} titles and
 axis labels will automatically try and format pollutant names and units
-properly e.g.  by subscripting the `2' in NO2.}
+properly, e.g., by subscripting the "2" in "NO2". Passed to \code{\link[=quickText]{quickText()}}.}
 
-\item{plot}{Should a plot be produced? \code{FALSE} can be useful when analysing
-data to extract calendar plot components and plotting them in other ways.}
+\item{plot}{When \code{openair} plots are created they are automatically printed
+to the active graphics device. \code{plot = FALSE} deactivates this behaviour.
+This may be useful when the plot \emph{data} is of more interest, or the plot is
+required to appear later (e.g., later in a Quarto document, or to be saved
+to a file).}
 
-\item{...}{Other graphical parameters are passed onto the \code{lattice} function
-\code{\link[lattice:levelplot]{lattice::levelplot()}}, with common axis and title labelling options (such
-as \code{xlab}, \code{ylab}, \code{main}) being passed to via \code{\link[=quickText]{quickText()}} to handle
-routine formatting.}
+\item{key}{Deprecated; please use \code{key.position}. If \code{FALSE}, sets
+\code{key.position} to \code{"none"}.}
+
+\item{...}{Addition options are passed on to \code{\link[=cutData]{cutData()}} for \code{type} handling.
+Some additional arguments are also available:
+\itemize{
+\item \code{xlab}, \code{ylab} and \code{main} override the x-axis label, y-axis label, and plot title.
+\item \code{layout} sets the layout of facets - e.g., \code{layout(2, 5)} will have 2 columns and 5 rows.
+\item \code{fontsize} overrides the overall font size of the plot.
+\item \code{border} sets the border colour of each tile.
+}}
 }
 \value{
 an \link[=openair-package]{openair} object
@@ -214,21 +256,25 @@ calendarPlot(mydata,
 
 # UK daily air quality index
 pm10.breaks <- c(0, 17, 34, 50, 59, 67, 75, 84, 92, 100, 1000)
-calendarPlot(mydata, "pm10",
-  year = 1999, breaks = pm10.breaks,
-  labels = c(1:10), cols = "daqi", statistic = "mean", key.header = "DAQI"
+calendarPlot(
+  mydata,
+  "pm10",
+  year = 1999,
+  breaks = pm10.breaks,
+  labels = c(1:10),
+  cols = "daqi",
+  statistic = "mean",
+  key.title = "PM10 DAQI"
 )
 }
 }
 \seealso{
 Other time series and trend functions: 
 \code{\link{TheilSen}()},
-\code{\link{runRegression}()},
 \code{\link{smoothTrend}()},
 \code{\link{timePlot}()},
 \code{\link{timeProp}()},
-\code{\link{timeVariation}()},
-\code{\link{trendLevel}()}
+\code{\link{timeVariation}()}
 }
 \author{
 David Carslaw

@@ -12,6 +12,7 @@ rollingMean(
   data.thresh = 75,
   align = c("centre", "center", "left", "right"),
   new.name = NULL,
+  date.pad = FALSE,
   ...
 )
 }
@@ -41,7 +42,12 @@ means that the previous hours (including the current) are averaged.
 create a name based on the name of the pollutant and the averaging period
 used.}
 
-\item{...}{Additional parameters passed to \code{\link[=cutData]{cutData()}}. For use with \code{type}.}
+\item{date.pad}{Should missing dates be padded? Default is \code{FALSE}.}
+
+\item{...}{Passed to \code{\link[=cutData]{cutData()}} for use with \code{type}.}
+}
+\value{
+A tibble with two new columns for the rolling value and the number of valid values used.
 }
 \description{
 This is a utility function mostly designed to calculate rolling mean

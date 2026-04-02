@@ -303,7 +303,7 @@ importADMSBgd <- function(
     data.start <- data.start[length(data.start)]
   }
 
-  ans <- read.csv(
+  ans <- utils::read.csv(
     file,
     header = FALSE,
     skip = data.start,
@@ -424,7 +424,7 @@ importADMSMet <- function(
     data.start <- data.start[length(data.start)]
   }
 
-  met <- read.csv(
+  met <- utils::read.csv(
     file,
     skip = data.start,
     header = FALSE,
@@ -445,13 +445,13 @@ importADMSMet <- function(
       call. = FALSE
     )
     variables <- variables[1:min(c(length(variables), ncol(met)), na.rm = TRUE)]
-    met <- met[, 1:length(variables)]
+    met <- met[, seq_along(variables)]
   }
   names(met) <- make.names(variables, unique = TRUE)
 
   # multiple year day hour name options
   fun.temp <- function(x, y, z) {
-    if (all(!y %in% names(x))) {
+    if (!any(y %in% names(x))) {
       stop(
         paste(
           z,
@@ -567,7 +567,7 @@ importADMSMop <- function(
   # code
 
   # read top line/data headers
-  check.names <- read.csv(file, header = FALSE, nrow = 1, ...)
+  check.names <- utils::read.csv(file, header = FALSE, nrow = 1, ...)
   check.names <- make.names(as.vector(apply(check.names, 1, as.character)))
   ## tidy () handling; renaming x(y) as x.y. is messy
   check.names <- ifelse(
@@ -592,7 +592,7 @@ importADMSMop <- function(
   }
 
   # read in data
-  ans <- read.csv(
+  ans <- utils::read.csv(
     file,
     header = FALSE,
     skip = 1,
@@ -712,29 +712,32 @@ importADMSMop <- function(
 
   # add stability
 
-  ans <- ans %>%
-    mutate(
-      H_LMO = process.recip.lmo * process.h,
-      stability = case_when(
+  ans <- ans |>
+    dplyr::mutate(
+      H_LMO = .data$process.recip.lmo * .data$process.h,
+      stability = dplyr::case_when(
         H_LMO > 2 ~ "Stable",
         H_LMO < -0.6 ~ "Unstable",
         is.na(H_LMO) ~ NA,
         .default = "Neutral"
       ),
-      stability = factor(stability, levels = c("Stable", "Neutral", "Unstable"))
-    ) %>%
-    rename(
-      air_temp = temp,
-      recip_lmo = process.recip.lmo,
-      H = process.h
+      stability = factor(
+        .data$stability,
+        levels = c("Stable", "Neutral", "Unstable")
+      )
+    ) |>
+    dplyr::rename(
+      air_temp = "temp",
+      recip_lmo = "process.recip.lmo",
+      H = "process.h"
     )
 
   if (all) {
     return(ans)
   } else {
     # select variables only
-    ans <- ans %>%
-      select(any_of(c(
+    ans <- ans |>
+      dplyr::select(dplyr::any_of(c(
         "date",
         "ws",
         "wd",
@@ -748,7 +751,7 @@ importADMSMop <- function(
       )))
   }
 
-  return(tibble(ans))
+  return(dplyr::tibble(ans))
 }
 
 
@@ -791,7 +794,7 @@ importADMSPst <- function(
   # code
 
   # read top line/data headers
-  check.names <- read.csv(file, header = FALSE, nrow = 1, ...)
+  check.names <- utils::read.csv(file, header = FALSE, nrow = 1, ...)
   check.names <- as.vector(apply(check.names, 1, as.character))
   check.names <- sub("[[:space:]]+$", "", check.names) # strip out tail spaces
   check.names <- sub("^[[:space:]]{1,}", "", check.names) # strip leading space (safer?)
@@ -810,7 +813,7 @@ importADMSPst <- function(
   }
 
   # read in data
-  ans <- read.csv(
+  ans <- utils::read.csv(
     file,
     header = FALSE,
     skip = 1,
@@ -851,7 +854,7 @@ importADMSPst <- function(
   units[grep("[.]ug.m.", names(ans))] <- "ug/m3" # both 3 and superscript 3
   units[grep("[.]ppb", names(ans))] <- "ppb"
   units[grep("[.]ppm", names(ans))] <- "ppm"
-  if (length(na.omit(units)) == 0) {
+  if (length(stats::na.omit(units)) == 0) {
     units <- "units: unknown"
   } else {
     units <- paste("units: ", paste(units, sep = "", collapse = ", "), sep = "")

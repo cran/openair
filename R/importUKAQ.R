@@ -117,9 +117,9 @@
 #'   - `"24_hour"`: 24-hour rolling mean concentrations for particulates.
 #'   - `"daily_max_8"`: Maximum daily rolling 8-hour maximum for O3 and CO.
 #'   - `"daqi"`: Daily Air Quality Index (DAQI). See
-#'   [here](https://uk-air.defra.gov.uk/air-pollution/daqi?view=more-info) for
-#'   more details of how the index is defined. Note that this `data_type` is not
-#'   available for locally managed monitoring networks.
+#'   [here](https://www.gov.uk/government/publications/health-effects-of-air-pollution)
+#'   for more details of how the index is defined. Note that this `data_type` is
+#'   not available for locally managed monitoring networks.
 #' @param pollutant Pollutants to import. If omitted will import all pollutants
 #'   from a site. To import only NOx and NO2 for example use `pollutant =
 #'   c("nox", "no2")`. Pollutant names can be upper or lower case.
@@ -154,7 +154,7 @@
 #'   Defaults to `TRUE`.
 #'
 #' @export
-#' @return a [tibble][tibble::tibble-package]
+#' @return a `tibble`
 #' @author David Carslaw, Trevor Davies, and Jack Davison
 #' @family import functions
 #' @examples
@@ -249,7 +249,7 @@ importUKAQ <-
     }
 
     # obtain correct URL info for the source
-    url_domain <- dplyr::case_match(
+    url_domain <- dplyr::recode_values(
       source,
       "aurn" ~ "https://uk-air.defra.gov.uk/openair/R_data/",
       "aqe" ~ "https://airqualityengland.co.uk/assets/openair/R_data/",
@@ -260,7 +260,7 @@ importUKAQ <-
       "local" ~ "https://uk-air.defra.gov.uk/openair/LMAM/R_data/"
     )
 
-    url_abbr <- dplyr::case_match(
+    url_abbr <- dplyr::recode_values(
       source,
       "aurn" ~ "_AURN_",
       "aqe" ~ "_AQE_",
@@ -319,8 +319,15 @@ importUKAQ <-
         to_narrow = to_narrow,
         hc = hc,
         .progress = ifelse(progress, "Importing Statistics", FALSE)
-      ) %>%
+      ) |>
         purrr::list_rbind()
+
+      if (nrow(aq_data) == 0) {
+        cli::cli_abort(
+          "No data returned. Check {.arg site}, {.arg year} and {.arg source}.",
+          call = NULL
+        )
+      }
     }
 
     # Import pre-calculated DAQI?
@@ -345,9 +352,19 @@ importUKAQ <-
           tidyr::crossing(tidyr::nesting(files, source), year),
           readDAQI,
           .progress = ifelse(progress, "Importing DAQI", FALSE)
-        ) %>%
-        purrr::list_rbind() %>%
-        dplyr::tibble() %>%
+        ) |>
+        purrr::list_rbind()
+
+      if (nrow(aq_data) == 0) {
+        cli::cli_abort(
+          "No data returned. Check {.arg site}, {.arg year} and {.arg source}.",
+          call = NULL
+        )
+      }
+
+      aq_data <-
+        aq_data |>
+        dplyr::tibble() |>
         dplyr::mutate(
           band = dplyr::case_when(
             .data$poll_index %in% 1:3 ~ "Low",
@@ -375,9 +392,9 @@ importUKAQ <-
       if ("local" %in% source) {
         # get pcodes for file paths
         pcodes <-
-          importMeta("local", all = TRUE) %>%
-          dplyr::distinct(.data$site, .keep_all = TRUE) %>%
-          select("code", "pcode")
+          importMeta("local", all = TRUE) |>
+          dplyr::distinct(.data$site, .keep_all = TRUE) |>
+          dplyr::select("code", "pcode")
 
         # get sites and pcodes
         site_info <-
@@ -385,8 +402,8 @@ importUKAQ <-
             code = site,
             source = source,
             url_data = url_domain
-          ) %>%
-          dplyr::left_join(pcodes, by = "code") %>%
+          ) |>
+          dplyr::left_join(pcodes, by = "code") |>
           tidyr::crossing(year = year)
       } else {
         site_info <-
@@ -394,8 +411,8 @@ importUKAQ <-
             code = site,
             source = source,
             url_data = url_domain
-          ) %>%
-          dplyr::mutate(pcode = rep(NA, times = length(site))) %>%
+          ) |>
+          dplyr::mutate(pcode = rep(NA, times = length(site))) |>
           tidyr::crossing(year = year)
       }
 
@@ -418,7 +435,7 @@ importUKAQ <-
             quiet = !verbose
           ),
           .progress = ifelse(progress, "Importing AQ Data", FALSE)
-        ) %>%
+        ) |>
         purrr::list_rbind()
 
       if (nrow(aq_data) == 0) {
@@ -452,8 +469,8 @@ importUKAQ <-
 
     # check to see if met data needed
     if (!meteo) {
-      aq_data <- aq_data %>%
-        select(-any_of(c("ws", "wd", "air_temp")))
+      aq_data <- aq_data |>
+        dplyr::select(-dplyr::any_of(c("ws", "wd", "air_temp")))
     }
 
     # add meta data?
@@ -466,7 +483,7 @@ importUKAQ <-
     aq_data <- dplyr::arrange(aq_data, "source", "site")
 
     # return data
-    return(as_tibble(aq_data))
+    return(dplyr::as_tibble(aq_data))
   }
 
 #' Import data from individual UK Air Pollution Networks

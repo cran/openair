@@ -12,6 +12,7 @@ polarFreq(
   wd.nint = 36,
   grid.line = 5,
   breaks = NULL,
+  labels = NULL,
   cols = "default",
   trans = TRUE,
   type = "default",
@@ -19,83 +20,86 @@ polarFreq(
   ws.upper = NA,
   offset = 10,
   border.col = "transparent",
-  key.header = statistic,
-  key.footer = pollutant,
+  key.title = paste(statistic, pollutant, sep = " "),
   key.position = "right",
-  key = TRUE,
+  strip.position = "top",
   auto.text = TRUE,
-  alpha = 1,
   plot = TRUE,
+  key = NULL,
   ...
 )
 }
 \arguments{
-\item{mydata}{A data frame minimally containing \code{ws}, \code{wd} and
-\code{date}.}
+\item{mydata}{A data frame minimally containing \code{ws}, \code{wd} and \code{date}.}
 
-\item{pollutant}{Mandatory. A pollutant name corresponding to a variable in
-a data frame should be supplied e.g. \code{pollutant = "nox"}}
+\item{pollutant}{Mandatory. A pollutant name corresponding to a variable in a
+data frame should be supplied e.g. \code{pollutant = "nox"}}
 
 \item{statistic}{The statistic that should be applied to each wind
-speed/direction bin. Can be \dQuote{frequency}, \dQuote{mean},
-\dQuote{median}, \dQuote{max} (maximum), \dQuote{stdev} (standard
-deviation) or \dQuote{weighted.mean}. The option \dQuote{frequency} (the
-default) is the simplest and plots the frequency of wind speed/direction
-in different bins. The scale therefore shows the counts in each bin. The
-option \dQuote{mean} will plot the mean concentration of a pollutant (see
-next point) in wind speed/direction bins, and so on.  Finally,
-\dQuote{weighted.mean} will plot the concentration of a pollutant weighted
-by wind speed/direction. Each segment therefore provides the percentage
-overall contribution to the total concentration. More information is given
-in the examples. Note that for options other than \dQuote{frequency}, it
-is necessary to also provide the name of a pollutant. See function
-\code{cutData} for further details.}
+speed/direction bin. Can be one of:
+\itemize{
+\item \code{"frequency"}: the simplest and plots the frequency of wind speed/direction in
+different bins. The scale therefore shows the counts in each bin.
+\item \code{"mean"}, \code{"median"}, \code{"max"} (maximum), \code{"stdev"} (standard deviation):
+Plots the relevant summary statistic of a pollutant in wind speed/direction
+bins.
+\item \code{"weighted.mean"} will plot the concentration of a pollutant
+weighted by wind speed/direction. Each segment therefore provides the
+percentage overall contribution to the total concentration.
+}
 
-\item{ws.int}{Wind speed interval assumed. In some cases e.g. a low met
-mast, an interval of 0.5 may be more appropriate.}
+Note that for options other than \code{"frequency"}, it is necessary to also
+provide the name of a \code{pollutant}.}
+
+\item{ws.int}{Wind speed interval assumed. In some cases e.g. a low met mast,
+an interval of 0.5 may be more appropriate.}
 
 \item{wd.nint}{Number of intervals of wind direction.}
 
 \item{grid.line}{Radial spacing of grid lines.}
 
-\item{breaks}{The user can provide their own scale. \code{breaks} expects a
-sequence of numbers that define the range of the scale. The sequence could
-represent one with equal spacing e.g. \code{breaks = seq(0, 100, 10)} - a
-scale from 0-10 in intervals of 10, or a more flexible sequence e.g.
-\code{breaks = c(0, 1, 5, 7, 10)}, which may be useful for some
-situations.}
+\item{breaks, labels}{If a categorical colour scale is required then \code{breaks}
+should be specified. These should be provided as a numeric vector, e.g.,
+\code{breaks = c(0, 50, 100, 1000)}. Users should set the maximum value of
+\code{breaks} to exceed the maximum data value to ensure it is within the
+maximum final range, e.g., 100--1000 in this case. Labels will
+automatically be generated, but can be customised by passing a character
+vector to \code{labels}, e.g., \code{labels = c("good", "bad", "very bad")}. In this
+example, \code{0 - 50} will be \code{"good"} and so on. Note there is one less label
+than break.}
 
-\item{cols}{Colours to be used for plotting. Options include
-\dQuote{default}, \dQuote{increment}, \dQuote{heat}, \dQuote{jet} and
-\code{RColorBrewer} colours --- see the \code{openair} \code{openColours} function for
-more details. For user defined the user can supply a list of colour names
-recognised by R (type \code{colours()} to see the full list). An example would
-be \code{cols = c("yellow", "green", "blue")}. \code{cols} can also take the values
-\code{"viridis"}, \code{"magma"}, \code{"inferno"}, or \code{"plasma"} which are the viridis
-colour maps ported from Python's Matplotlib library.}
+\item{cols}{Colours to use for plotting. Can be a pre-set palette (e.g.,
+\code{"turbo"}, \code{"viridis"}, \code{"tol"}, \code{"Dark2"}, etc.) or a user-defined vector
+of R colours (e.g., \code{c("yellow", "green", "blue", "black")} - see
+\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). See \code{\link[=openColours]{openColours()}} for more details.}
 
 \item{trans}{Should a transformation be applied? Sometimes when producing
 plots of this kind they can be dominated by a few high points. The default
-therefore is \code{TRUE} and a square-root transform is applied. This
-results in a non-linear scale and (usually) a better representation of the
+therefore is \code{TRUE} and a square-root transform is applied. This results in
+a non-linear scale and (usually) a better representation of the
 distribution. If set to \code{FALSE} a linear scale is used.}
 
-\item{type}{\code{type} determines how the data are split i.e. conditioned, and
-then plotted. The default is will produce a single plot using the entire
-data. Type can be one of the built-in types as detailed in \code{cutData} e.g.
-\dQuote{season}, \dQuote{year}, \dQuote{weekday} and so on. For example,
-\code{type = "season"} will produce four plots --- one for each season.
+\item{type}{Character string(s) defining how data should be split/conditioned
+before plotting. \code{"default"} produces a single panel using the entire
+dataset. Any other options will split the plot into different panels - a
+roughly square grid of panels if one \code{type} is given, or a 2D matrix of
+panels if two \code{types} are given. \code{type} is always passed to \code{\link[=cutData]{cutData()}},
+and can therefore be any of:
+\itemize{
+\item A built-in type defined in \code{\link[=cutData]{cutData()}} (e.g., \code{"season"}, \code{"year"},
+\code{"weekday"}, etc.). For example, \code{type = "season"} will split the plot into
+four panels, one for each season.
+\item The name of a numeric column in \code{mydata}, which will be split into
+\code{n.levels} quantiles (defaulting to 4).
+\item The name of a character or factor column in \code{mydata}, which will be used
+as-is. Commonly this could be a variable like \code{"site"} to ensure data from
+different monitoring sites are handled and presented separately. It could
+equally be any arbitrary column created by the user (e.g., whether a nearby
+possible pollutant source is active or not).
+}
 
-It is also possible to choose \code{type} as another variable in the data frame.
-If that variable is numeric, then the data will be split into four
-quantiles (if possible) and labelled accordingly. If type is an existing
-character or factor variable, then those categories/levels will be used
-directly. This offers great flexibility for understanding the variation of
-different variables and how they depend on one another.
-
-Type can be up length two e.g. \code{type = c("season", "weekday")} will produce
-a 2x2 plot split by season and day of the week. Note, when two types are
-provided the first forms the columns and the second the rows.}
+Most \code{openair} plotting functions can take two \code{type} arguments. If two are
+given, the first is used for the columns and the second for the rows.}
 
 \item{min.bin}{The minimum number of points allowed in a wind speed/wind
 direction bin.  The default is 1. A value of two requires at least 2 valid
@@ -105,51 +109,53 @@ removing real data points. It is recommended to consider your data with
 care. Also, the \code{polarFreq} function can be of use in such circumstances.}
 
 \item{ws.upper}{A user-defined upper wind speed to use. This is useful for
-ensuring a consistent scale between different plots. For example, to
-always ensure that wind speeds are displayed between 1-10, set
-\code{ws.int = 10}.}
+ensuring a consistent scale between different plots. For example, to always
+ensure that wind speeds are displayed between 1-10, set \code{ws.int = 10}.}
 
-\item{offset}{\code{offset} controls the size of the \sQuote{hole} in the
-middle and is expressed as a percentage of the maximum wind speed. Setting
-a higher \code{offset} e.g. 50 is useful for \code{statistic = "weighted.mean"} when \code{ws.int} is greater than the maximum wind
-speed. See example below.}
+\item{offset}{\code{offset} controls the size of the 'hole' in the middle and is
+expressed on a scale of \code{0} to \code{100}, where \code{0} is no hole and \code{100} is a
+hole that takes up the entire plotting area.}
 
 \item{border.col}{The colour of the boundary of each wind speed/direction
 bin. The default is transparent. Another useful choice sometimes is
 "white".}
 
-\item{key.header}{Adds additional text/labels to the scale key. For example,
-passing the options \verb{key.header = "header", key.footer = "footer1"} adds
-addition text above and below the scale key. These arguments are passed to
-\code{drawOpenKey} via \code{quickText}, applying the \code{auto.text} argument, to handle
-formatting.}
+\item{key.title}{Used to set the title of the legend. The legend title is
+passed to \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.}
 
-\item{key.footer}{see \code{key.footer}.}
+\item{key.position}{Location where the legend is to be placed. Allowed
+arguments include \code{"top"}, \code{"right"}, \code{"bottom"}, \code{"left"} and \code{"none"},
+the last of which removes the legend entirely.}
 
-\item{key.position}{Location where the scale key is to plotted. Allowed
-arguments currently include \code{"top"}, \code{"right"}, \code{"bottom"} and \code{"left"}.}
-
-\item{key}{Fine control of the scale key via \code{drawOpenKey}. See \code{drawOpenKey}
-for further details.}
+\item{strip.position}{Location where the facet 'strips' are located when
+using \code{type}. When one \code{type} is provided, can be one of \code{"left"},
+\code{"right"}, \code{"bottom"} or \code{"top"}. When two \code{type}s are provided, this
+argument defines whether the strips are "switched" and can take either
+\code{"x"}, \code{"y"}, or \code{"both"}. For example, \code{"x"} will switch the 'top' strip
+locations to the bottom of the plot.}
 
 \item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE} titles and
 axis labels will automatically try and format pollutant names and units
-properly e.g.  by subscripting the `2' in NO2.}
+properly, e.g., by subscripting the "2" in "NO2". Passed to \code{\link[=quickText]{quickText()}}.}
 
-\item{alpha}{The alpha transparency to use for the plotting surface (a value
-between 0 and 1 with zero being fully transparent and 1 fully opaque).
-Setting a value below 1 can be useful when plotting surfaces on a map using
-the package \code{openairmaps}.}
+\item{plot}{When \code{openair} plots are created they are automatically printed
+to the active graphics device. \code{plot = FALSE} deactivates this behaviour.
+This may be useful when the plot \emph{data} is of more interest, or the plot is
+required to appear later (e.g., later in a Quarto document, or to be saved
+to a file).}
 
-\item{plot}{Should a plot be produced? \code{FALSE} can be useful when analysing
-data to extract plot components and plotting them in other ways.}
+\item{key}{Deprecated; please use \code{key.position}. If \code{FALSE}, sets
+\code{key.position} to \code{"none"}.}
 
-\item{\dots}{Other graphical parameters passed onto \code{lattice:xyplot}
-and \code{cutData}. For example, \code{polarFreq} passes the option
-\code{hemisphere = "southern"} on to \code{cutData} to provide southern
-(rather than default northern) hemisphere handling of \code{type = "season"}. Similarly, common axis and title labelling options (such as
-\code{xlab}, \code{ylab}, \code{main}) are passed to \code{xyplot} via
-\code{quickText} to handle routine formatting.}
+\item{...}{Addition options are passed on to \code{\link[=cutData]{cutData()}} for \code{type} handling.
+Some additional arguments are also available:
+\itemize{
+\item \code{xlab}, \code{ylab} and \code{main} override the x-axis label, y-axis label, and plot title.
+\item \code{layout} sets the layout of facets - e.g., \code{layout(2, 5)} will have 2 columns and 5 rows.
+\item \code{fontsize} overrides the overall font size of the plot.
+\item \code{annotate = FALSE} will not plot the N/E/S/W labels.
+\item \code{limits} sets the colour bar limits, if \code{breaks} is not used.
+}}
 }
 \value{
 an \link[=openair-package]{openair} object
@@ -161,29 +167,26 @@ measurements. Bins can also be used to show the concentration of pollutants
 using a range of commonly used statistics.
 }
 \details{
-\code{polarFreq} is its default use provides details of wind speed and
-direction frequencies. In this respect it is similar to
-\code{\link[=windRose]{windRose()}}, but considers wind direction intervals of 10 degrees
-and a user-specified wind speed interval. The frequency of wind
-speeds/directions formed by these \sQuote{bins} is represented on a colour
-scale.
+\code{polarFreq} is its default use provides details of wind speed and direction
+frequencies. In this respect it is similar to \code{\link[=windRose]{windRose()}}, but considers
+wind direction intervals of 10 degrees and a user-specified wind speed
+interval. The frequency of wind speeds/directions formed by these
+\sQuote{bins} is represented on a colour scale.
 
-The \code{polarFreq} function is more flexible than either
-\code{\link[=windRose]{windRose()}} or \code{\link[=polarPlot]{polarPlot()}}. It can, for example, also
-consider pollutant concentrations (see examples below). Instead of the
-number of data points in each bin, the concentration can be shown. Further,
-a range of statistics can be used to describe each bin - see
-\code{statistic} above. Plotting mean concentrations is useful for source
-identification and is the same as \code{\link[=polarPlot]{polarPlot()}} but without
-smoothing, which may be preferable for some data. Plotting with
-\code{statistic = "weighted.mean"} is particularly useful for understanding
-the relative importance of different source contributions. For example, high
-mean concentrations may be observed for high wind speed conditions, but the
+The \code{polarFreq} function is more flexible than either \code{\link[=windRose]{windRose()}} or
+\code{\link[=polarPlot]{polarPlot()}}. It can, for example, also consider pollutant concentrations
+(see examples below). Instead of the number of data points in each bin, the
+concentration can be shown. Further, a range of statistics can be used to
+describe each bin - see \code{statistic} above. Plotting mean concentrations is
+useful for source identification and is the same as \code{\link[=polarPlot]{polarPlot()}} but without
+smoothing, which may be preferable for some data. Plotting with \code{statistic = "weighted.mean"} is particularly useful for understanding the relative
+importance of different source contributions. For example, high mean
+concentrations may be observed for high wind speed conditions, but the
 weighted mean concentration may well show that the contribution to overall
 concentrations is very low.
 
-\code{polarFreq} also offers great flexibility with the scale used and the
-user has fine control over both the range, interval and colour.
+\code{polarFreq} also offers great flexibility with the scale used and the user
+has fine control over both the range, interval and colour.
 }
 \examples{
 # basic wind frequency plot

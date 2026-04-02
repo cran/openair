@@ -13,92 +13,93 @@ trajLevel(
   smooth = FALSE,
   statistic = "frequency",
   percentile = 90,
-  map = TRUE,
   lon.inc = 1,
-  lat.inc = 1,
+  lat.inc = lon.inc,
   min.bin = 1,
-  .combine = NA,
+  .combine = NULL,
   sigma = 1.5,
+  cols = "default",
+  crs = 4326,
+  map = TRUE,
   map.fill = TRUE,
-  map.res = "default",
   map.cols = "grey40",
   map.border = "black",
   map.alpha = 0.3,
   map.lwd = 1,
   map.lty = 1,
-  projection = "lambert",
-  parameters = c(51, 51),
-  orientation = c(90, 0, 0),
   grid.col = "deepskyblue",
+  grid.nx = 9,
+  grid.ny = grid.nx,
   origin = TRUE,
+  key.title = NULL,
+  key.position = "right",
+  key.columns = NULL,
+  strip.position = "top",
+  auto.text = TRUE,
   plot = TRUE,
+  key = NULL,
   ...
 )
 }
 \arguments{
 \item{mydata}{Data frame, the result of importing a trajectory file using
-\code{importTraj}.}
+\code{\link[=importTraj]{importTraj()}}.}
 
-\item{lon}{Column containing the longitude, as a decimal.}
+\item{lon, lat}{Columns containing the decimal longitude and latitude.}
 
-\item{lat}{Column containing the latitude, as a decimal.}
+\item{pollutant}{Pollutant (or any numeric column) to be plotted, if any.
+Alternatively, use \code{group}.}
 
-\item{pollutant}{Pollutant to be plotted. By default the trajectory height is
-used.}
+\item{type}{Character string(s) defining how data should be split/conditioned
+before plotting. \code{"default"} produces a single panel using the entire
+dataset. Any other options will split the plot into different panels - a
+roughly square grid of panels if one \code{type} is given, or a 2D matrix of
+panels if two \code{types} are given. \code{type} is always passed to \code{\link[=cutData]{cutData()}},
+and can therefore be any of:
+\itemize{
+\item A built-in type defined in \code{\link[=cutData]{cutData()}} (e.g., \code{"season"}, \code{"year"},
+\code{"weekday"}, etc.). For example, \code{type = "season"} will split the plot into
+four panels, one for each season.
+\item The name of a numeric column in \code{mydata}, which will be split into
+\code{n.levels} quantiles (defaulting to 4).
+\item The name of a character or factor column in \code{mydata}, which will be used
+as-is. Commonly this could be a variable like \code{"site"} to ensure data from
+different monitoring sites are handled and presented separately. It could
+equally be any arbitrary column created by the user (e.g., whether a nearby
+possible pollutant source is active or not).
+}
 
-\item{type}{\code{type} determines how the data are split, i.e., conditioned, and
-then plotted. The default is will produce a single plot using the entire
-data. Type can be one of the built-in types as detailed in \code{cutData} e.g.
-"season", "year", "weekday" and so on. For example, \code{type = "season"} will
-produce four plots --- one for each season.
-
-It is also possible to choose \code{type} as another variable in the data frame.
-If that variable is numeric, then the data will be split into four
-quantiles (if possible) and labelled accordingly. If type is an existing
-character or factor variable, then those categories/levels will be used
-directly. This offers great flexibility for understanding the variation of
-different variables and how they depend on one another.
-
-\code{type} can be up length two e.g. \code{type = c("season", "weekday")} will
-produce a 2x2 plot split by season and day of the week. Note, when two
-types are provided the first forms the columns and the second the rows.}
+Most \code{openair} plotting functions can take two \code{type} arguments. If two are
+given, the first is used for the columns and the second for the rows.}
 
 \item{smooth}{Should the trajectory surface be smoothed?}
 
-\item{statistic}{Statistic to use for \code{\link[=trajLevel]{trajLevel()}}. By default, the function
-will plot the trajectory frequencies (\code{statistic = "frequency"}). As an
-alternative way of viewing trajectory frequencies, the argument \code{method = "hexbin"} can be used. In this case hexagonal binning of the trajectory
-\emph{points} (i.e., a point every three hours along each back trajectory).
-The plot then shows the trajectory frequencies uses hexagonal binning.
-
-There are also various ways of plotting concentrations.
-
-It is possible to set \code{statistic = "difference"}. In this case trajectories
-where the associated concentration is greater than \code{percentile} are
-compared with the the full set of trajectories to understand the
-differences in frequencies of the origin of air masses. The comparison is
-made by comparing the percentage change in gridded frequencies. For
-example, such a plot could show that the top 10\\% of concentrations of PM10
-tend to originate from air-mass origins to the east.
-
-If \code{statistic = "pscf"} then a Potential Source Contribution Function map
-is produced. This statistic method interacts with \code{percentile}.
-
-If \code{statistic = "cwt"} then concentration weighted trajectories are
-plotted.
-
-If \code{statistic = "sqtba"} then Simplified Quantitative Transport Bias
-Analysis is undertaken. This statistic method interacts with \code{.combine} and
-\code{sigma}.}
+\item{statistic}{One of:
+\itemize{
+\item \code{"frequency"} (the default) shows trajectory frequencies.
+\item \code{"hexbin"}, which is similar to \code{"frequency"} but shows a hexagonal
+grid of counts.
+\item \code{"difference"} - in this case trajectories where the associated
+concentration is greater than \code{percentile} are compared with the the full
+set of trajectories to understand the differences in frequencies of the
+origin of air masses. The comparison is made by comparing the percentage
+change in gridded frequencies. For example, such a plot could show that the
+top 10\\% of concentrations of PM10 tend to originate from air-mass origins
+to the east.
+\item \code{"pscf"} for a Potential Source Contribution Function map. This statistic
+method interacts with \code{percentile}.
+\item \code{"cwt"} for concentration weighted trajectories.
+\item \code{"sqtba"} to undertake Simplified Quantitative Transport Bias
+Analysis. This statistic method interacts with \code{.combine} and \code{sigma}.
+}}
 
 \item{percentile}{The percentile concentration of \code{pollutant} against which
 the all trajectories are compared.}
 
-\item{map}{Should a base map be drawn? If \code{TRUE} the world base map from the
-\code{maps} package is used.}
-
 \item{lon.inc, lat.inc}{The longitude and latitude intervals to be used for
-binning data.}
+binning data. If \code{statistic = "hexbin"}, the minimum value out of of
+\code{lon.inc} and \code{lat.inc} is passed to the \code{binwidth} argument of
+\code{\link[ggplot2:geom_hex]{ggplot2::geom_hex()}}.}
 
 \item{min.bin}{The minimum number of unique points in a grid cell. Counts
 below \code{min.bin} are set as missing.}
@@ -115,14 +116,22 @@ literature suggest 5.4 km after one hour. However, testing suggests lower
 values reveal source regions more effectively while not introducing too
 much noise.}
 
+\item{cols}{Colours to use for plotting. Can be a pre-set palette (e.g.,
+\code{"turbo"}, \code{"viridis"}, \code{"tol"}, \code{"Dark2"}, etc.) or a user-defined vector
+of R colours (e.g., \code{c("yellow", "green", "blue", "black")} - see
+\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). See \code{\link[=openColours]{openColours()}} for more details.}
+
+\item{crs}{The coordinate reference system to use for plotting. Defaults to
+\code{4326}, which is the WGS84 geographic coordinate system, the standard,
+unprojected latitude/longitude system used in GPS, Google Earth, and GIS
+mapping. Other \code{crs} values are available - for example, \code{27700} will use
+the the OSGB36/British National Grid.}
+
+\item{map}{Should a base map be drawn? If \code{TRUE} the world base map provided
+by \code{\link[ggplot2:map_data]{ggplot2::map_data()}} will be used.}
+
 \item{map.fill}{Should the base map be a filled polygon? Default is to fill
 countries.}
-
-\item{map.res}{The resolution of the base map. By default the function uses
-the \sQuote{world} map from the \code{maps} package. If \code{map.res = "hires"} then
-the (much) more detailed base map \sQuote{worldHires} from the \code{mapdata}
-package is used. Use \code{library(mapdata)}. Also available is a map showing
-the US states. In this case \code{map.res = "state"} should be used.}
 
 \item{map.cols}{If \code{map.fill = TRUE} \code{map.cols} controls the fill colour.
 Examples include \code{map.fill = "grey40"} and \code{map.fill = openColours("default", 10)}. The latter colours the countries and can help
@@ -143,40 +152,58 @@ integer (\code{0} = blank, \code{1} = solid (default), \code{2} = dashed, \code{
 strings "blank", "solid", "dashed", "dotted", "dotdash", "longdash", or
 "twodash", where "blank" uses 'invisible lines' (i.e., does not draw them).}
 
-\item{projection}{The map projection to be used. Different map projections
-are possible through the \code{mapproj} package. See \code{?mapproject} for extensive
-details and information on setting other parameters and orientation (see
-below).}
-
-\item{parameters}{From the \code{mapproj} package. Optional numeric vector of
-parameters for use with the projection argument. This argument is optional
-only in the sense that certain projections do not require additional
-parameters. If a projection does not require additional parameters then set
-to null i.e. \code{parameters = NULL}.}
-
-\item{orientation}{From the \code{mapproj} package. An optional vector c(latitude,
-longitude, rotation) which describes where the "North Pole" should be when
-computing the projection. Normally this is c(90, 0), which is appropriate
-for cylindrical and conic projections. For a planar projection, you should
-set it to the desired point of tangency. The third value is a clockwise
-rotation (in degrees), which defaults to the midrange of the longitude
-coordinates in the map.}
-
 \item{grid.col}{The colour of the map grid to be used. To remove the grid set
 \code{grid.col = "transparent"}.}
+
+\item{grid.nx, grid.ny}{The approximate number of ticks to draw on the map
+grid. \code{grid.nx} defaults to \code{9}, and \code{grid.ny} defaults to whatever value
+is passed to \code{grid.nx}. Setting both values to \code{0} will remove the grid
+entirely. The number of ticks is approximate as this value is passed to
+\code{\link[scales:breaks_pretty]{scales::breaks_pretty()}} to determine nice-looking, round breakpoints.}
 
 \item{origin}{If true a filled circle dot is shown to mark the receptor
 point.}
 
-\item{plot}{Should a plot be produced? \code{FALSE} can be useful when analysing
-data to extract plot components and plotting them in other ways.}
+\item{key.title}{Used to set the title of the legend. The legend title is
+passed to \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.}
 
-\item{...}{other arguments are passed to \code{\link[=cutData]{cutData()}} and \code{\link[=scatterPlot]{scatterPlot()}}.
-This provides access to arguments used in both these functions and
-functions that they in turn pass arguments on to. For example,
-\code{\link[=trajLevel]{trajLevel()}} passes the argument \code{cex} on to \code{\link[=scatterPlot]{scatterPlot()}} which in
-turn passes it on to \code{\link[lattice:xyplot]{lattice::xyplot()}} where it is applied to set the
-plot symbol size.}
+\item{key.position}{Location where the legend is to be placed. Allowed
+arguments include \code{"top"}, \code{"right"}, \code{"bottom"}, \code{"left"} and \code{"none"},
+the last of which removes the legend entirely.}
+
+\item{key.columns}{Number of columns to be used in a categorical legend. With
+many categories a single column can make to key too wide. The user can thus
+choose to use several columns by setting \code{key.columns} to be less than the
+number of categories.}
+
+\item{strip.position}{Location where the facet 'strips' are located when
+using \code{type}. When one \code{type} is provided, can be one of \code{"left"},
+\code{"right"}, \code{"bottom"} or \code{"top"}. When two \code{type}s are provided, this
+argument defines whether the strips are "switched" and can take either
+\code{"x"}, \code{"y"}, or \code{"both"}. For example, \code{"x"} will switch the 'top' strip
+locations to the bottom of the plot.}
+
+\item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE} titles and
+axis labels will automatically try and format pollutant names and units
+properly, e.g., by subscripting the "2" in "NO2". Passed to \code{\link[=quickText]{quickText()}}.}
+
+\item{plot}{When \code{openair} plots are created they are automatically printed
+to the active graphics device. \code{plot = FALSE} deactivates this behaviour.
+This may be useful when the plot \emph{data} is of more interest, or the plot is
+required to appear later (e.g., later in a Quarto document, or to be saved
+to a file).}
+
+\item{key}{Deprecated; please use \code{key.position}. If \code{FALSE}, sets
+\code{key.position} to \code{"none"}.}
+
+\item{...}{Addition options are passed on to \code{\link[=cutData]{cutData()}} for \code{type} handling.
+Some additional arguments are also available:
+\itemize{
+\item \code{xlab}, \code{ylab} and \code{main} override the x-axis label, y-axis label, and plot title.
+\item \code{layout} sets the layout of facets - e.g., \code{layout(2, 5)} will have 2 columns and 5 rows.
+\item \code{fontsize} overrides the overall font size of the plot.
+\item \code{border} sets the border colour of each tile.
+}}
 }
 \value{
 an \link[=openair-package]{openair} object
@@ -193,9 +220,8 @@ statistics that can be plotted as gridded surfaces. First, \code{statistic} can 
 set to "frequency" to show the number of back trajectory points in a grid
 square. Grid squares are by default at 1 degree intervals, controlled by
 \code{lat.inc} and \code{lon.inc}. Such plots are useful for showing the frequency of
-air mass locations. Note that it is also possible to set \code{method = "hexbin"}
-for plotting frequencies (not concentrations), which will produce a plot by
-hexagonal binning.
+air mass locations. Note that it is also possible to set \code{statistic = "hexbin"} for plotting frequencies (not concentrations), which will produce a
+plot by hexagonal binning.
 
 If \code{statistic = "difference"} the trajectories associated with a
 concentration greater than \code{percentile} are compared with the the full set of
@@ -231,9 +257,6 @@ openair manual has more details and examples of these approaches.
 
 A further useful refinement is to smooth the resulting surface, which is
 possible by setting \code{smooth = TRUE}.
-}
-\note{
-This function is under active development and is likely to change
 }
 \examples{
 
@@ -293,5 +316,7 @@ Other trajectory analysis functions:
 }
 \author{
 David Carslaw
+
+Jack Davison
 }
 \concept{trajectory analysis functions}

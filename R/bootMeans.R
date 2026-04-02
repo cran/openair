@@ -25,8 +25,7 @@
 #' @param conf.int The confidence interval, defaulting to `0.95` (i.e., the 95%
 #'   Confidence Interval).
 #' @param B The number of bootstrap simulations.
-#' @param ... Other parameters that are passed on to [cutData()], for use with
-#'   `type`.
+#' @param ... Passed to [cutData()] for use with `type`.
 #'
 #' @return Returns a summarised data frame with new columns for the mean and
 #'   upper / lower confidence intervals in the mean.
@@ -140,42 +139,59 @@ bootMeanDF <- function(x, conf.int = 0.95, B = 1000) {
     mean = res[1],
     min = res[2],
     max = res[3],
-    n = length(na.omit(x))
+    n = length(stats::na.omit(x))
   )
   return(res)
 }
 
-#' bootsrap confidence intervals in the mean from Hmisc
+#' bootstrap confidence intervals in the mean of a vector
+#' uses a fast CLT-based method for large samples and a bootstrap method for small samples
 #' @noRd
-bootMean <- function(x, conf.int = 0.95, B = 1000, ...) {
-  x <- x[!is.na(x)] # remove missings
+bootMean <- function(
+  x,
+  conf.int = 0.95,
+  B = 500, # number of bootstrap samples
+  switch_point = 1000, # threshold for switching between CLT and bootstrap methods
+  ...
+) {
+  # Remove NAs
+  x <- x[!is.na(x)]
   n <- length(x)
-  xbar <- mean(x)
-  if (n < 2) {
-    return(c(
-      Mean = xbar,
-      Lower = NA,
-      Upper = NA
-    ))
-  }
-  z <- unlist(lapply(
-    1:B,
-    function(i, x, N) {
-      sum(x[(sample.int(N, N, TRUE, NULL))])
-    },
-    x = x,
-    N = n
-  )) /
-    n
-  quant <- quantile(z, c((1 - conf.int) / 2, (1 + conf.int) / 2))
-  names(quant) <- NULL
-  res <- c(
-    Mean = xbar,
-    Lower = quant[1],
-    Upper = quant[2]
-  )
 
-  res
+  # Failsafe for empty or extremely small vectors
+  if (n < 2) {
+    return(c(mean = mean(x), lower_ci = NA, upper_ci = NA))
+  }
+
+  # Routing logic based on sample size
+  if (n >= switch_point) {
+    # Fast CLT path for large samples
+    sample_mean <- mean(x)
+    sem <- stats::sd(x) / sqrt(n)
+    t_score <- stats::qt(1 - ((1 - conf.int) / 2), df = n - 1)
+    margin <- t_score * sem
+
+    return(c(
+      Mean = sample_mean,
+      Lower = sample_mean - margin,
+      Upper = sample_mean + margin
+    ))
+  } else {
+    # Bootstrap path for small samples
+    boot_matrix <- matrix(
+      sample(x, size = n * B, replace = TRUE),
+      nrow = n,
+      ncol = B
+    )
+    boot_means <- colMeans(boot_matrix)
+    ci <- stats::quantile(
+      boot_means,
+      probs = c((1 - conf.int) / 2, 1 - ((1 - conf.int) / 2)),
+      names = FALSE
+    )
+
+    return(c(Mean = mean(x), Lower = ci[1], Upper = ci[2]))
+  }
 }
 
 #' difference between bootmeans
@@ -192,8 +208,8 @@ bootMeanDiff <- function(
   ## assumes y - x
   x.name <- x
   y.name <- y
-  x <- na.omit(mydata[[x]])
-  y <- na.omit(mydata[[y]])
+  x <- stats::na.omit(mydata[[x]])
+  y <- stats::na.omit(mydata[[y]])
   Mean <- mean(y) - mean(x)
 
   if (nrow(mydata) < 2 | is.na(Mean)) {
@@ -221,24 +237,24 @@ bootMeanDiff <- function(
       stringsAsFactors = FALSE
     )
 
-    res <- bind_rows(res1, res2, res)
+    res <- dplyr::bind_rows(res1, res2, res)
     res$variable <- factor(res$variable)
     return(res)
   }
 
   x <- bootMean(x, B = B)
   y <- bootMean(y, B = B)
-  quant1 <- quantile(
+  quant1 <- stats::quantile(
     x,
     c((1 - conf.int) / 2, (1 + conf.int) / 2),
     na.rm = na.rm
   )
-  quant2 <- quantile(
+  quant2 <- stats::quantile(
     y,
     c((1 - conf.int) / 2, (1 + conf.int) / 2),
     na.rm = na.rm
   )
-  quant <- quantile(
+  quant <- stats::quantile(
     y - x,
     c((1 - conf.int) / 2, (1 + conf.int) / 2),
     na.rm = na.rm
@@ -271,7 +287,7 @@ bootMeanDiff <- function(
     stringsAsFactors = FALSE
   )
 
-  res <- bind_rows(res1, res2, res)
+  res <- dplyr::bind_rows(res1, res2, res)
   res$variable <- factor(res$variable)
   res
 }

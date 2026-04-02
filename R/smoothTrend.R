@@ -22,108 +22,51 @@
 #' Trends can be considered in a very wide range of ways, controlled by setting
 #' `type` - see examples below.
 #'
-#' @param mydata A data frame containing the field `date` and at least one other
-#'   parameter for which a trend test is required; typically (but not
-#'   necessarily) a pollutant.
-#' @param pollutant The parameter for which a trend test is required. Mandatory.
+#' @inheritParams timePlot
+#' @inheritParams timeAverage
+#'
 #' @param deseason Should the data be de-deasonalized first? If `TRUE` the
 #'   function `stl` is used (seasonal trend decomposition using loess). Note
 #'   that if `TRUE` missing data are first imputed using a Kalman filter and
 #'   Kalman smooth.
-#' @param type `type` determines how the data are split i.e. conditioned, and
-#'   then plotted. The default is will produce a single plot using the entire
-#'   data. Type can be one of the built-in types as detailed in `cutData` e.g.
-#'   \dQuote{season}, \dQuote{year}, \dQuote{weekday} and so on. For example,
-#'   `type = "season"` will produce four plots --- one for each season.
 #'
-#'   It is also possible to choose `type` as another variable in the data frame.
-#'   If that variable is numeric, then the data will be split into four
-#'   quantiles (if possible) and labelled accordingly. If type is an existing
-#'   character or factor variable, then those categories/levels will be used
-#'   directly. This offers great flexibility for understanding the variation of
-#'   different variables and how they depend on one another.
-#'
-#'   Type can be up length two e.g. `type = c("season", "weekday")` will produce
-#'   a 2x2 plot split by season and day of the week. Note, when two types are
-#'   provided the first forms the columns and the second the rows.
 #' @param statistic Statistic used for calculating monthly values. Default is
-#'   \dQuote{mean}, but can also be \dQuote{percentile}. See `timeAverage` for
-#'   more details.
-#' @param avg.time Can be \dQuote{month} (the default), \dQuote{season} or
-#'   \dQuote{year}. Determines the time over which data should be averaged. Note
-#'   that for \dQuote{year}, six or more years are required. For \dQuote{season}
-#'   the data are plit up into spring: March, April, May etc. Note that December
-#'   is considered as belonging to winter of the following year.
+#'   `"mean"`, but can also be `"percentile"`. See [timeAverage()] for more
+#'   details.
+#'
 #' @param percentile Percentile value(s) to use if `statistic = "percentile"` is
 #'   chosen. Can be a vector of numbers e.g. `percentile = c(5, 50, 95)` will
 #'   plot the 5th, 50th and 95th percentile values together on the same plot.
-#' @param data.thresh The data capture threshold to use (%) when aggregating the
-#'   data using `avg.time`. A value of zero means that all available data will
-#'   be used in a particular period regardless if of the number of values
-#'   available. Conversely, a value of 100 will mean that all data will need to
-#'   be present for the average to be calculated, else it is recorded as `NA`.
-#'   Not used if `avg.time = "default"`.
+#'
 #' @param simulate Should simulations be carried out to determine the
 #'   Mann-Kendall tau and p-value. The default is `FALSE`. If `TRUE`, bootstrap
 #'   simulations are undertaken, which also account for autocorrelation.
+#'
 #' @param n Number of bootstrap simulations if `simulate = TRUE`.
+#'
 #' @param autocor Should autocorrelation be considered in the trend uncertainty
 #'   estimates? The default is `FALSE`. Generally, accounting for
 #'   autocorrelation increases the uncertainty of the trend estimate sometimes
 #'   by a large amount.
-#' @param cols Colours to use. Can be a vector of colours e.g. `cols =
-#'   c("black", "green")` or pre-defined openair colours --- see `openColours`
-#'   for more details.
-#' @param shade The colour used for marking alternate years. Use \dQuote{white}
-#'   or \dQuote{transparent} to remove shading.
-#' @param xlab x-axis label, by default \dQuote{year}.
-#' @param y.relation This determines how the y-axis scale is plotted. "same"
-#'   ensures all panels use the same scale and "free" will use panel-specific
-#'   scales. The latter is a useful setting when plotting data with very
-#'   different values.  ref.x See `ref.y` for details. In this case the correct
-#'   date format should be used for a vertical line e.g.  `ref.x = list(v =
-#'   as.POSIXct("2000-06-15"), lty = 5)`.
-#' @param ref.x See `ref.y`.
-#' @param ref.y A list with details of the horizontal lines to be added
-#'   representing reference line(s). For example, `ref.y = list(h = 50, lty =
-#'   5)` will add a dashed horizontal line at 50. Several lines can be plotted
-#'   e.g. `ref.y = list(h = c(50, 100), lty = c(1, 5), col = c("green",
-#'   "blue"))`. See `panel.abline` in the `lattice` package for more details on
-#'   adding/controlling lines.
-#' @param key.columns Number of columns used if a key is drawn when using the
-#'   option `statistic = "percentile"`.
-#' @param name.pol Names to be given to the pollutant(s). This is useful if you
-#'   want to give a fuller description of the variables, maybe also including
-#'   subscripts etc.
-#' @param ci Should confidence intervals be plotted? The default is `FALSE`.
+#'
+#' @param ci Should confidence intervals be plotted? The default is `TRUE`.
+#'
 #' @param alpha The alpha transparency of shaded confidence intervals - if
 #'   plotted. A value of 0 is fully transparent and 1 is fully opaque.
-#' @param date.breaks Number of major x-axis intervals to use. The function will
-#'   try and choose a sensible number of dates/times as well as formatting the
-#'   date/time appropriately to the range being considered. This does not always
-#'   work as desired automatically. The user can therefore increase or decrease
-#'   the number of intervals by adjusting the value of `date.breaks` up or down.
-#' @param auto.text Either `TRUE` (default) or `FALSE`. If `TRUE` titles and
-#'   axis labels will automatically try and format pollutant names and units
-#'   properly e.g.  by subscripting the \sQuote{2} in NO2.
+#'
 #' @param k This is the smoothing parameter used by the [mgcv::gam()] function
 #'   in package `mgcv`. By default it is not used and the amount of smoothing is
 #'   optimised automatically. However, sometimes it is useful to set the
 #'   smoothing amount manually using `k`.
-#' @param plot Should a plot be produced? `FALSE` can be useful when analysing
-#'   data to extract plot components and plotting them in other ways.
-#' @param ... Other graphical parameters are passed onto [cutData()] and
-#'   [lattice::xyplot()]. For example, [smoothTrend()] passes the option
-#'   `hemisphere = "southern"` on to [cutData()] to provide southern (rather
-#'   than default northern) hemisphere handling of `type = "season"`. Similarly,
-#'   common graphical arguments, such as `xlim` and `ylim` for plotting ranges
-#'   and `pch` and `cex` for plot symbol type and size, are passed on
-#'   [lattice::xyplot()], although some local modifications may be applied by
-#'   openair. For example, axis and title labelling options (such as `xlab`,
-#'   `ylab` and `main`) are passed to [lattice::xyplot()] via [quickText()] to
-#'   handle routine formatting. One special case here is that many graphical
-#'   parameters can be vectors when used with `statistic = "percentile"` and a
-#'   vector of `percentile` values, see examples below.
+#'
+#' @param ... Addition options are passed on to [cutData()] for `type` handling.
+#'   Some additional arguments are also available:
+#'   - `xlab`, `ylab` and `main` override the x-axis label, y-axis label, and plot title.
+#'   - `ylim` and `xlim` control axis limits.
+#'   - `layout` sets the layout of facets - e.g., `layout(2, 5)` will have 2 columns and 5 rows.
+#'   - `fontsize` overrides the overall font size of the plot.
+#'   - `cex`, `lwd`, `lty`, `alpha`, and `pch` control various graphical parameters.
+#'
 #' @export
 #' @return an [openair][openair-package] object
 #' @author David Carslaw
@@ -135,23 +78,17 @@
 #' # trend plot by each of 8 wind sectors
 #' \dontrun{
 #' smoothTrend(mydata, pollutant = "o3", type = "wd", ylab = "o3 (ppb)")
-#' }
 #'
 #' # several pollutants, no plotting symbol
-#' \dontrun{
 #' smoothTrend(mydata, pollutant = c("no2", "o3", "pm10", "pm25"), pch = NA)
-#' }
 #'
 #' # percentiles
-#' \dontrun{
 #' smoothTrend(mydata,
 #'   pollutant = "o3", statistic = "percentile",
 #'   percentile = 95
 #' )
-#' }
 #'
 #' # several percentiles with control over lines used
-#' \dontrun{
 #' smoothTrend(mydata,
 #'   pollutant = "o3", statistic = "percentile",
 #'   percentile = c(5, 50, 95), lwd = c(1, 2, 1), lty = c(5, 1, 5)
@@ -160,177 +97,325 @@
 smoothTrend <- function(
   mydata,
   pollutant = "nox",
-  deseason = FALSE,
-  type = "default",
-  statistic = "mean",
   avg.time = "month",
-  percentile = NA,
   data.thresh = 0,
+  statistic = "mean",
+  percentile = NA,
+  k = NULL,
+  deseason = FALSE,
   simulate = FALSE,
   n = 200,
   autocor = FALSE,
+  type = "default",
   cols = "brewer1",
-  shade = "grey95",
-  xlab = "year",
+  x.relation = "same",
   y.relation = "same",
   ref.x = NULL,
   ref.y = NULL,
-  key.columns = length(percentile),
-  name.pol = pollutant,
+  key.columns = 1,
+  key.position = "bottom",
+  strip.position = "top",
+  name.pol = NULL,
+  date.breaks = 7,
+  date.format = NULL,
+  auto.text = TRUE,
   ci = TRUE,
   alpha = 0.2,
-  date.breaks = 7,
-  auto.text = TRUE,
-  k = NULL,
+  progress = TRUE,
   plot = TRUE,
+  key = NULL,
   ...
 ) {
-  ## get rid of R check annoyances
-  variable <- NULL
+  # check key.position
+  key.position <- check_key_position(key.position, key)
 
-  ## greyscale handling
-  if (length(cols) == 1 && cols == "greyscale") {
-    trellis.par.set(list(strip.background = list(col = "white")))
-  }
+  # extra.args setup
+  extra.args <- list(...)
 
-  ## set graphics
-  current.strip <- trellis.par.get("strip.background")
-  current.font <- trellis.par.get("fontsize")
-
-  ## reset graphic parameters
-  on.exit(trellis.par.set(
-    #
-    fontsize = current.font
-  ))
-
-  ## Args setup
-  Args <- list(...)
-
-  # label controls
-  ## xlab in args because local unique
-  ## ylab in code before plot because of local unique
-  Args$main <- if ("main" %in% names(Args)) {
-    quickText(Args$main, auto.text)
-  } else {
-    quickText("", auto.text)
-  }
-
-  if ("fontsize" %in% names(Args)) {
-    trellis.par.set(fontsize = list(text = Args$fontsize))
-  }
-
-  xlim <- if ("xlim" %in% names(Args)) {
-    Args$xlim
-  } else {
-    NULL
-  }
-
-  # lty, lwd, pch, cex handling
-  if (!"lty" %in% names(Args)) {
-    Args$lty <- 1
-  }
-  if (!"lwd" %in% names(Args)) {
-    Args$lwd <- 1
-  }
-  if (!"pch" %in% names(Args)) {
-    Args$pch <- 1
-  }
-  if (!"cex" %in% names(Args)) {
-    Args$cex <- 1
-  }
-
-  # layout default
-  if (!"layout" %in% names(Args)) {
-    Args$layout <- NULL
-  }
-
-  vars <- c("date", pollutant)
-
-  mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
-
-  if (!missing(percentile)) {
-    statistic <- "percentile"
-  }
-
-  if (length(pollutant) > 1 & length(percentile) > 1) {
-    warning(paste(
-      "You cannot choose multiple percentiles and pollutants, using percentile =",
-      percentile[1]
-    ))
+  # validation checks
+  if (length(pollutant) > 1 && length(percentile) > 1) {
+    cli::cli_warn(
+      "You cannot choose multiple {.field percentiles} and {.field pollutants}; using {.field percentile} = {percentile[1]}."
+    )
     percentile <- percentile[1]
   }
 
-  if (!avg.time %in% c("year", "season", "month")) {
-    stop("Averaging period must be 'month' or 'year'.")
+  # check avg.time
+  rlang::arg_match(x.relation, c("same", "free"))
+  rlang::arg_match(y.relation, c("same", "free"))
+
+  # set stat to percentile if user provides some
+  if (!missing(percentile) && statistic != "percentile") {
+    cli::cli_inform(
+      "{.field percentiles} provided ({percentile}); setting {.field statistic} to 'percentile'."
+    )
+    statistic <- "percentile"
   }
 
-  ## find time interval
+  # Style controls w/ defaults
+  extra.args$lty <- extra.args$lty %||% 1L
+  extra.args$lwd <- extra.args$lwd %||% 1L
+  extra.args$pch <- extra.args$pch %||% 1L
+  extra.args$cex <- extra.args$cex %||% 1L
+  extra.args$layout <- extra.args$layout %||% NULL
+
+  # label controls
+  extra.args$main <- quickText(extra.args$main %||% "", auto.text)
+  extra.args$ylab <- quickText(
+    extra.args$ylab %||% paste(pollutant, collapse = ", "),
+    auto.text
+  )
+  extra.args$xlab <- quickText(extra.args$xlab %||% NULL, auto.text)
+
+  # find time interval
   # need this because if user has a data capture threshold, need to know
-  # original time interval
-  # Working this out for unique dates for all data is what is done here.
-  # More reliable than trying to work it out after conditioning where there
-  # may be too few data for the calculation to be reliable
-  interval <- find.time.interval(mydata$date)
+  # original time interval. better to do this before conditioning
+  interval <- find_time_interval(mydata$date)
 
-  ## equivalent number of days, used to refine interval for month/year
-  days <- as.numeric(strsplit(interval, split = " ")[[1]][1]) /
-    24 /
-    3600
+  # equivalent number of days, used to refine interval for month/year
+  days <- as.numeric(strsplit(interval, split = " ")[[1]][1]) / 24 / 3600
 
-  ## better interval, most common interval in a year
-  if (days == 31) {
-    interval <- "month"
+  # better interval, most common interval in a year
+  interval <-
+    dplyr::recode_values(
+      days,
+      31 ~ "month",
+      c(365, 366) ~ "year",
+      default = interval
+    )
+
+  # prepare data
+  mydata <-
+    prepare_smoothtrend_data(
+      mydata,
+      pollutant = pollutant,
+      type = type,
+      avg.time = avg.time,
+      statistic = statistic,
+      percentile = percentile,
+      data.thresh = data.thresh,
+      interval = interval,
+      progress = progress,
+      ...
+    )
+
+  # set new variables
+  vars <- c(type, "variable")
+
+  # prep data for modelling
+  newdata <-
+    map_type(
+      mydata,
+      type = vars,
+      fun = \(df) deseason_smoothtrend_data(df, deseason = deseason),
+      .include_default = TRUE
+    )
+
+  # fit a smooth model
+  fit <-
+    map_type(
+      newdata,
+      type = vars,
+      fun = \(df) {
+        fit_smoothtrend_gam(
+          df,
+          x = "date",
+          y = "conc",
+          k = k,
+          ...,
+          simulate = simulate,
+          n.sim = n,
+          autocor = autocor
+        )
+      },
+      .include_default = TRUE
+    )
+
+  # set fit date to be POSIXct for plotting
+  class(fit$date) <- c("POSIXct", "POSIXt")
+
+  # create a guide for both fill and colour using openair styling
+  color_guide <-
+    ggplot2::guide_legend(
+      theme = ggplot2::theme(
+        legend.title.position = ifelse(
+          key.position %in% c("left", "right"),
+          "top",
+          key.position
+        ),
+        legend.text.position = ifelse(
+          key.position %in% c("top", "bottom"),
+          "right",
+          key.position
+        )
+      ),
+      ncol = if (key.position %in% c("left", "right")) {
+        key.columns
+      } else {
+        if (missing(key.columns)) {
+          dplyr::n_distinct(newdata$variable)
+        } else {
+          key.columns
+        }
+      }
+    )
+
+  # create plot
+  thePlot <-
+    ggplot2::ggplot(mapping = ggplot2::aes(x = .data$date)) +
+    ggplot2::geom_line(
+      data = newdata,
+      ggplot2::aes(color = .data$variable, y = .data$conc),
+      linewidth = extra.args$lwd / 2,
+      linetype = extra.args$lty,
+      show.legend = FALSE
+    ) +
+    ggplot2::geom_point(
+      data = newdata,
+      ggplot2::aes(color = .data$variable, y = .data$conc),
+      size = extra.args$cex * 3,
+      shape = extra.args$pch,
+      show.legend = dplyr::n_distinct(levels(newdata$variable)) > 1
+    ) +
+    ggplot2::geom_ribbon(
+      data = fit,
+      ggplot2::aes(
+        fill = .data$variable,
+        ymax = .data$upper,
+        ymin = .data$lower
+      ),
+      linewidth = extra.args$lwd,
+      alpha = ifelse(ci, alpha, 0),
+      show.legend = FALSE
+    ) +
+    ggplot2::geom_line(
+      data = fit,
+      ggplot2::aes(color = .data$variable, y = .data$pred),
+      linewidth = extra.args$lwd,
+      show.legend = FALSE
+    ) +
+    gg_ref_x(ref.x = ref.x) +
+    gg_ref_y(ref.y = ref.y) +
+    theme_openair(key.position) +
+    set_extra_fontsize(extra.args) +
+    ggplot2::scale_fill_manual(
+      values = openColours(cols, dplyr::n_distinct(levels(newdata$variable))),
+      breaks = levels(newdata$variable),
+      labels = lapply(name.pol %||% levels(newdata$variable), \(x) {
+        label_openair(x, auto_text = auto.text)
+      }),
+      drop = FALSE,
+      aesthetics = c("colour", "fill")
+    ) +
+    ggplot2::scale_x_datetime(
+      breaks = scales::breaks_pretty(date.breaks),
+      date_labels = date.format %||% ggplot2::waiver(),
+      limits = extra.args$xlim,
+      expand = ggplot2::expansion(c(0.02, 0.02))
+    ) +
+    ggplot2::scale_y_continuous(
+      limits = extra.args$ylim
+    ) +
+    get_facet(
+      type = type,
+      extra.args = extra.args,
+      scales = relation_to_facet_scales(x.relation, y.relation),
+      auto.text = auto.text,
+      strip.position = strip.position,
+      drop = TRUE
+    ) +
+    ggplot2::labs(
+      y = extra.args$ylab,
+      x = extra.args$xlab,
+      title = extra.args$main,
+      color = NULL,
+      fill = NULL
+    ) +
+    ggplot2::guides(
+      fill = color_guide,
+      color = color_guide
+    )
+
+  # plot
+  if (plot) {
+    plot(thePlot)
   }
-  if (days %in% c(365, 366)) {
-    interval <- "year"
-  }
 
-  ## for overall data and graph plotting
-  start.year <- startYear(mydata$date)
-  end.year <- endYear(mydata$date)
-  start.month <- startMonth(mydata$date)
-  end.month <- endMonth(mydata$date)
+  # return
+  output <- list(
+    plot = thePlot,
+    data = list(data = newdata, fit = fit),
+    call = match.call()
+  )
+  class(output) <- "openair"
+  invisible(output)
+}
 
-  ## date formatting for plot
-  date.at <- dateBreaks(mydata$date, date.breaks)$major
-  date.format <- dateBreaks(mydata$date)$format
+#' Prepares smoothtrend data - check, cut, timeavg, reshape
+#' @noRd
+prepare_smoothtrend_data <- function(
+  mydata,
+  pollutant,
+  type,
+  avg.time,
+  statistic,
+  percentile,
+  data.thresh,
+  interval,
+  progress,
+  ...
+) {
+  # default checks
+  vars <- c("date", pollutant)
+  mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
 
-  ## cutData depending on type
+  # cutData depending on type
   mydata <- cutData(mydata, type, ...)
 
-  ## reshape data, make sure there is not a variable called 'variable'
+  # reshape data, make sure there is not a variable called 'variable'
   if ("variable" %in% names(mydata)) {
-    mydata <- rename(mydata, c(variable = "theVar"))
+    mydata <- dplyr::rename(mydata, c(variable = "theVar"))
     type <- "theVar"
   }
 
-  # in the case of mutiple percentiles, these are assinged and treated
+  # in the case of multiple percentiles, these are assinged and treated
   # like multiple pollutants
-
-  mydata <- gather(
+  mydata <- tidyr::pivot_longer(
     mydata,
-    key = variable,
-    value = value,
-    pollutant,
-    factor_key = TRUE
+    cols = dplyr::all_of(pollutant),
+    names_to = "variable",
+    values_to = "value",
+    names_transform = list(
+      variable = factor
+    )
   )
 
   if (length(percentile) > 1) {
     vars <- c(type, "variable")
 
-    mydata <- mydata %>%
-      group_by(across(vars)) %>%
-      do(calcPercentile(
-        .,
-        pollutant = "value",
-        avg.time = avg.time,
-        percentile = percentile,
-        data.thresh = data.thresh
-      ))
+    prefix <- paste0(pollutant, " percentile ")
 
-    vars <- paste0("percentile.", percentile)
+    mydata <- calcPercentile(
+      mydata,
+      type = vars,
+      pollutant = "value",
+      avg.time = avg.time,
+      percentile = percentile,
+      data.thresh = data.thresh,
+      prefix = prefix
+    )
 
-    mydata <- gather(mydata, key = variable, value = value, vars)
+    vars <- paste0(prefix, percentile)
+
+    mydata <-
+      tidyr::pivot_longer(
+        dplyr::select(mydata, -"variable"),
+        cols = dplyr::all_of(vars),
+        names_to = "variable",
+        values_to = "value"
+      ) |>
+      dplyr::arrange(.data$variable) |>
+      dplyr::mutate(variable = factor(.data$variable, levels = vars))
   } else {
     mydata <- suppressWarnings(timeAverage(
       mydata,
@@ -339,7 +424,8 @@ smoothTrend <- function(
       percentile = percentile,
       statistic = statistic,
       data.thresh = data.thresh,
-      interval = interval
+      interval = interval,
+      progress = progress
     ))
   }
 
@@ -348,290 +434,208 @@ smoothTrend <- function(
     mydata$default <- "default"
   }
 
-  process.cond <- function(mydata) {
-    ## return if nothing to analyse
-    if (all(is.na(mydata$value))) {
-      return(data.frame(date = NA, conc = NA))
-    }
+  # return data
+  mydata
+}
 
-    ## sometimes data have long trailing NAs, so start and end at
-    ## first and last data
-    min.idx <- min(which(!is.na(mydata[, "value"])))
-    max.idx <- max(which(!is.na(mydata[, "value"])))
-    mydata <- mydata[min.idx:max.idx, ]
-
-    ## these subsets may have different dates to overall
-    start.year <- startYear(mydata$date)
-    end.year <- endYear(mydata$date)
-    start.month <- startMonth(mydata$date)
-    end.month <- endMonth(mydata$date)
-
-    ## can't deseason less than 2 years of data
-    if (nrow(mydata) <= 24) {
-      deseason <- FALSE
-    }
-
-    if (deseason) {
-      myts <- ts(
-        mydata[["value"]],
-        start = c(start.year, start.month),
-        end = c(end.year, end.month),
-        frequency = 12
-      )
-
-      # fill any missing data using a Kalman filter
-
-      if (any(is.na(myts))) {
-        # use forecast package to get best arima
-        fit <- ts(rowSums(tsSmooth(StructTS(myts))[, -2]))
-        id <- which(is.na(myts))
-
-        myts[id] <- fit[id]
-      }
-
-      ssd <- stl(myts, s.window = 11, robust = TRUE, s.degree = 1)
-
-      deseas <- ssd$time.series[, "trend"] + ssd$time.series[, "remainder"]
-      deseas <- as.vector(deseas)
-
-      results <- data.frame(
-        date = mydata$date,
-        conc = as.vector(deseas),
-        stringsAsFactors = FALSE
-      )
-    } else {
-      results <- data.frame(
-        date = mydata$date,
-        conc = mydata[["value"]],
-        stringsAsFactors = FALSE
-      )
-    }
-
-    results
+#' Apply deaseason, if requested
+#' @noRd
+deseason_smoothtrend_data <- function(mydata, deseason) {
+  # return if nothing to analyse
+  if (all(is.na(mydata$value))) {
+    return(data.frame(date = NA, conc = NA))
   }
 
-  vars <- c(type, "variable")
+  # sometimes data have long trailing NAs, so start and end at
+  # first and last data
+  min.idx <- min(which(!is.na(mydata[, "value"])))
+  max.idx <- max(which(!is.na(mydata[, "value"])))
+  mydata <- mydata[min.idx:max.idx, ]
 
-  res <- mydata %>%
-    group_by(across(vars)) %>%
-    do(process.cond(.))
+  # these subsets may have different dates to overall
+  start.year <- get_first_year(mydata$date)
+  end.year <- get_last_year(mydata$date)
+  start.month <- get_first_month(mydata$date)
+  end.month <- get_last_month(mydata$date)
 
-  ## smooth fits so that they can be returned to the user
-  vars <- c(type, "variable")
+  # can't deseason less than 2 years of data
+  if (nrow(mydata) <= 24) {
+    deseason <- FALSE
+  }
 
-  fit <- res %>%
-    group_by(across(vars)) %>%
-    group_modify(~ fitGam(x = "date", y = "conc", k = k, ...))
+  if (deseason) {
+    myts <- stats::ts(
+      mydata[["value"]],
+      start = c(start.year, start.month),
+      end = c(end.year, end.month),
+      frequency = 12
+    )
 
-  class(fit$date) <- c("POSIXct", "POSIXt")
+    # fill any missing data using a Kalman filter
 
-  ## special wd layout
-  # (type field in results.grid called type not wd)
-  if (length(type) == 1 & type[1] == "wd" & is.null(Args$layout)) {
-    ## re-order to make sensible layout
-    wds <- c("NW", "N", "NE", "W", "E", "SW", "S", "SE")
-    res$wd <- ordered(res$wd, levels = wds)
-    ## see if wd is actually there or not
-    wd.ok <-
-      sapply(wds, function(x) {
-        if (x %in% unique(res$wd)) {
-          FALSE
+    if (anyNA(myts)) {
+      # use forecast package to get best arima
+      fit <- stats::ts(rowSums(stats::tsSmooth(stats::StructTS(myts))[, -2]))
+      id <- which(is.na(myts))
+
+      myts[id] <- fit[id]
+    }
+
+    ssd <- stats::stl(myts, s.window = 11, robust = TRUE, s.degree = 1)
+
+    deseas <- ssd$time.series[, "trend"] + ssd$time.series[, "remainder"]
+    deseas <- as.vector(deseas)
+
+    results <- data.frame(
+      date = mydata$date,
+      conc = as.vector(deseas),
+      stringsAsFactors = FALSE
+    )
+  } else {
+    results <- data.frame(
+      date = mydata$date,
+      conc = mydata[["value"]],
+      stringsAsFactors = FALSE
+    )
+  }
+
+  results
+}
+
+#' Fit a GAM for smoothTrend
+#' @noRd
+fit_smoothtrend_gam <- function(
+  thedata,
+  x = "date",
+  y = "conc",
+  k = k,
+  ...,
+  simulate = FALSE,
+  n.sim = 200,
+  autocor = FALSE,
+  se = TRUE,
+  level = 0.95,
+  n = 100
+) {
+  ## panel function to add a smooth line to a plot
+  ## Uses a GAM (mgcv) to fit smooth
+  ## Optionally can plot 95% confidence intervals and run bootstrap simulations
+  ## to estimate uncertainties. Simple block bootstrap is also available for correlated data
+
+  data.orig <- thedata ## return this if all else fails
+
+  id <- which(names(thedata) == x)
+  names(thedata)[id] <- "x"
+  id <- which(names(thedata) == y)
+  names(thedata)[id] <- "y"
+
+  # can only fit numeric, so convert back after fitting
+  class_x <- class(thedata$x)
+
+  thedata$x <- as.numeric(thedata$x)
+
+  tryCatch(
+    {
+      if (!simulate) {
+        if (is.null(k)) {
+          mod <- suppressWarnings(mgcv::gam(
+            y ~ s(x),
+            select = TRUE,
+            data = thedata,
+            ...
+          ))
         } else {
-          TRUE
+          mod <- suppressWarnings(mgcv::gam(
+            y ~ s(x, k = k),
+            select = TRUE,
+            data = thedata,
+            ...
+          ))
         }
-      })
-    skip <- c(wd.ok[1:4], TRUE, wd.ok[5:8])
-    res$wd <- factor(res$wd) ## remove empty factor levels
-    Args$layout <- if (type == "wd") {
-      c(3, 3)
-    } else {
-      NULL
-    }
-    if (!"skip" %in% names(Args)) {
-      Args$skip <- skip
-    }
-  }
-  if (!"skip" %in% names(Args)) {
-    Args$skip <- FALSE
-  }
 
-  ## proper names of labelling ###################################################
-  strip.dat <- strip.fun(res, type, auto.text)
-  strip <- strip.dat[[1]]
-  strip.left <- strip.dat[[2]]
-  pol.name <- strip.dat[[3]]
-
-  ## colours according to number of percentiles
-  npol <- max(length(percentile), length(pollutant)) ## number of pollutants
-
-  ## set up colours
-  myColors <- if (length(cols) == 1 && cols == "greyscale") {
-    openColours(cols, npol + 1)[-1]
-  } else {
-    openColours(cols, npol)
-  }
-
-  ## information for key
-  npol <- na.omit(unique(res$variable))
-
-  ## use pollutant names or user-supplied names
-  if (!missing(name.pol)) {
-    key.lab <- sapply(seq_along(name.pol), function(x) {
-      quickText(name.pol[x], auto.text)
-    })
-  } else {
-    key.lab <- sapply(
-      seq_along(npol),
-      function(x) quickText(npol[x], auto.text)
-    )
-  }
-
-  if (length(npol) > 1) {
-    if (missing(key.columns)) {
-      key.columns <- length(npol)
-    }
-
-    key <- list(
-      lines = list(
-        col = myColors[1:length(npol)],
-        lty = Args$lty,
-        lwd = Args$lwd,
-        pch = Args$pch,
-        type = "b",
-        cex = Args$cex
-      ),
-      text = list(lab = key.lab),
-      space = "bottom",
-      columns = key.columns
-    )
-
-    ## use pollutant names or user-supplied names
-    if (!"ylab" %in% names(Args)) {
-      if (!missing(name.pol)) {
-        Args$ylab <- quickText(paste(name.pol, collapse = ", "), auto.text)
-      } else {
-        Args$ylab <- quickText(paste(pollutant, collapse = ", "), auto.text)
-      }
-    }
-  } else {
-    key <- NULL ## either there is a key or there is not
-  }
-
-  temp <- paste(type, collapse = "+")
-  myform <- formula(paste("conc ~ date| ", temp, sep = ""))
-
-  # ylab
-  Args$ylab <- if ("ylab" %in% names(Args)) {
-    quickText(Args$ylab, auto.text)
-  } else {
-    quickText(pollutant, auto.text)
-  }
-
-  gap <- difftime(max(mydata$date), min(mydata$date), units = "secs") / 80
-  if (is.null(xlim)) {
-    xlim <- range(mydata$date) + c(-1 * gap, gap)
-  }
-
-  xyplot.args <- list(
-    x = myform,
-    data = res,
-    groups = res$variable,
-    as.table = TRUE,
-    strip = strip,
-    strip.left = strip.left,
-    key = key,
-    xlim = xlim,
-    par.strip.text = list(cex = 0.8),
-    xlab = quickText(xlab, auto.text),
-    scales = list(
-      x = list(at = date.at, format = date.format),
-      y = list(relation = y.relation, rot = 0)
-    ),
-    panel = panel.superpose,
-    panel.groups = function(
-      x,
-      y,
-      group.number,
-      lwd,
-      lty,
-      pch,
-      col,
-      col.line,
-      col.symbol,
-      subscripts,
-      type = "b",
-      ...
-    ) {
-      if (group.number == 1) {
-        ## otherwise this is called every time
-
-        panel.shade(
-          res,
-          start.year,
-          end.year,
-          ylim = current.panel.limits()$ylim,
-          shade
+        xseq <- seq(
+          min(thedata$x, na.rm = TRUE),
+          max(thedata$x, na.rm = TRUE),
+          length = n
         )
-        panel.grid(-1, 0)
+
+        ## for uncertainties
+        std <- stats::qnorm(level / 2 + 0.5)
+
+        pred <- stats::predict(mod, data.frame(x = xseq), se = se)
+
+        results <- data.frame(
+          date = xseq,
+          pred = pred$fit,
+          lower = pred$fit - std * pred$se,
+          upper = pred$fit + std * pred$se
+        )
+      } else {
+        ## simulations required
+
+        sam.size <- nrow(thedata)
+
+        xseq <- seq(
+          min(thedata$x, na.rm = TRUE),
+          max(thedata$x, na.rm = TRUE),
+          length = n
+        )
+
+        boot.pred <- matrix(nrow = n, ncol = n.sim) # fix: n rows, not sam.size
+
+        ## set up bootstrap
+        block.length <- 1
+
+        if (autocor) {
+          block.length <- round(sam.size^(1 / 3))
+        }
+        index <- samp_boot_block(sam.size, n.sim, block.length)
+
+        ## predict first
+        if (is.null(k)) {
+          mod <- mgcv::gam(y ~ s(x), data = thedata, ...)
+        } else {
+          mod <- mgcv::gam(y ~ s(x, k = k), data = thedata, ...)
+        }
+
+        residuals <- stats::residuals(mod) ## residuals of the model
+
+        pred.input <- stats::predict(mod, thedata)
+
+        for (i in 1:n.sim) {
+          new.data <- data.frame(
+            x = thedata$x,
+            y = pred.input + residuals[index[, i]]
+          )
+
+          mod <- mgcv::gam(y ~ s(x), data = new.data, ...)
+
+          pred <- stats::predict(mod, data.frame(x = xseq))
+
+          boot.pred[, i] <- as.vector(pred)
+        }
+
+        ## calculate percentiles
+        percentiles <- apply(
+          boot.pred,
+          1,
+          function(x) stats::quantile(x, probs = c(0.025, 0.975))
+        )
+
+        results <- as.data.frame(cbind(
+          date = xseq,
+          pred = rowMeans(boot.pred),
+          lower = percentiles[1, ],
+          upper = percentiles[2, ]
+        ))
       }
 
-      panel.xyplot(
-        x,
-        y,
-        type = "b",
-        lwd = lwd,
-        lty = lty,
-        pch = pch,
-        col.line = myColors[group.number],
-        col.symbol = myColors[group.number],
-        ...
-      )
-
-      panel.gam(
-        x,
-        y,
-        col = myColors[group.number],
-        k = k,
-        myColors[group.number],
-        simulate = simulate,
-        n.sim = n,
-        autocor = autocor,
-        lty = 1,
-        lwd = 1,
-        se = ci,
-        ...
-      )
-
-      ## add reference lines
-      if (!is.null(ref.x)) {
-        do.call(panel.abline, ref.x)
-      }
-      if (!is.null(ref.y)) do.call(panel.abline, ref.y)
+      # convert class back to original
+      class(results[[x]]) <- class_x
+      return(results)
+    },
+    error = function(x) {
+      data.orig
     }
   )
-
-  ## reset for Args
-  xyplot.args <- listUpdate(xyplot.args, Args)
-
-  ## plot
-  plt <- do.call(xyplot, xyplot.args)
-
-  newdata <- res
-  output <- list(
-    plot = plt,
-    data = list(data = newdata, fit = fit),
-    call = match.call()
-  )
-  class(output) <- "openair"
-
-  ## output ########################################################################
-  if (plot) {
-    if (length(type) == 1) {
-      plot(plt)
-    } else {
-      plot(useOuterStrips(plt, strip = strip, strip.left = strip.left))
-    }
-  }
-
-  invisible(output)
 }

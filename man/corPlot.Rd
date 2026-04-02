@@ -11,13 +11,19 @@ corPlot(
   cluster = TRUE,
   method = "pearson",
   use = "pairwise.complete.obs",
+  annotate = c("cor", "signif", "stars", "none"),
   dendrogram = FALSE,
-  lower = FALSE,
+  triangle = c("both", "upper", "lower"),
+  diagonal = TRUE,
   cols = "default",
   r.thresh = 0.8,
   text.col = c("black", "black"),
+  key.title = NULL,
+  key.position = "none",
+  strip.position = "top",
   auto.text = TRUE,
   plot = TRUE,
+  key = NULL,
   ...
 )
 }
@@ -25,83 +31,127 @@ corPlot(
 \item{mydata}{A data frame which should consist of some numeric columns.}
 
 \item{pollutants}{the names of data-series in \code{mydata} to be plotted by
-\code{corPlot}. The default option \code{NULL} and the alternative
-\dQuote{all} use all available valid (numeric) data.}
+\code{corPlot}. The default option \code{NULL} and the alternative \code{"all"} use all
+available valid (numeric) data.}
 
-\item{type}{\code{type} determines how the data are split i.e. conditioned,
-and then plotted. The default is will produce a single plot using the
-entire data. Type can be one of the built-in types as detailed in
-\code{cutData} e.g. \dQuote{season}, \dQuote{year}, \dQuote{weekday} and so
-on. For example, \code{type = "season"} will produce four plots --- one for
-each season.
+\item{type}{Character string(s) defining how data should be split/conditioned
+before plotting. \code{"default"} produces a single panel using the entire
+dataset. Any other options will split the plot into different panels - a
+roughly square grid of panels if one \code{type} is given, or a 2D matrix of
+panels if two \code{types} are given. \code{type} is always passed to \code{\link[=cutData]{cutData()}},
+and can therefore be any of:
+\itemize{
+\item A built-in type defined in \code{\link[=cutData]{cutData()}} (e.g., \code{"season"}, \code{"year"},
+\code{"weekday"}, etc.). For example, \code{type = "season"} will split the plot into
+four panels, one for each season.
+\item The name of a numeric column in \code{mydata}, which will be split into
+\code{n.levels} quantiles (defaulting to 4).
+\item The name of a character or factor column in \code{mydata}, which will be used
+as-is. Commonly this could be a variable like \code{"site"} to ensure data from
+different monitoring sites are handled and presented separately. It could
+equally be any arbitrary column created by the user (e.g., whether a nearby
+possible pollutant source is active or not).
+}
 
-It is also possible to choose \code{type} as another variable in the data
-frame. If that variable is numeric, then the data will be split into four
-quantiles (if possible) and labelled accordingly. If type is an existing
-character or factor variable, then those categories/levels will be used
-directly. This offers great flexibility for understanding the variation of
-different variables and how they depend on one another.}
+Most \code{openair} plotting functions can take two \code{type} arguments. If two are
+given, the first is used for the columns and the second for the rows.}
 
 \item{cluster}{Should the data be ordered according to cluster analysis. If
-\code{TRUE} hierarchical clustering is applied to the correlation matrices
-using \code{hclust} to group similar variables together. With many
-variables clustering can greatly assist interpretation.}
+\code{TRUE} hierarchical clustering is applied to the correlation matrices using
+\code{\link[=hclust]{hclust()}} to group similar variables together. With many variables
+clustering can greatly assist interpretation.}
 
-\item{method}{The correlation method to use. Can be \dQuote{pearson},
-\dQuote{spearman} or \dQuote{kendall}.}
+\item{method}{The correlation method to use. Can be \code{"pearson"}, \code{"spearman"}
+or \code{"kendall"}.}
 
 \item{use}{How to handle missing values in the \code{cor} function. The default is
-"pairwise.complete.obs". Care should be taken with the choice of how to
+\code{"pairwise.complete.obs"}. Care should be taken with the choice of how to
 handle missing data when considering pair-wise correlations.}
 
-\item{dendrogram}{Should a dendrogram be plotted? When \code{TRUE} a
-dendrogram is shown on the right of the plot. Note that this will only work
-for \code{type = "default"}.}
+\item{annotate}{What to annotate each correlation tile with. One of:
+\itemize{
+\item \code{"cor"}, the correlation coefficient to 2 decimal places.
+\item \code{"signif"}, an X marker if the correlation is significant.
+\item \code{"stars"}, standard significance stars.
+\item \code{"none"}, no annotation.
+}}
 
-\item{lower}{Should only the lower triangle be plotted?}
+\item{dendrogram}{Should a dendrogram be plotted? When \code{TRUE} a dendrogram is
+shown on the plot. Note that this will only work for \code{type = "default"}.
+Defaults to \code{FALSE}.}
 
-\item{cols}{Colours to be used for plotting. Options include
-\dQuote{default}, \dQuote{increment}, \dQuote{heat}, \dQuote{spectral},
-\dQuote{hue}, \dQuote{greyscale} and user defined (see \code{openColours}
-for more details).}
+\item{triangle}{Which 'triangles' of the correlation plot should be shown?
+Can be \code{"both"}, \code{"lower"} or \code{"upper"}. Defaults to \code{"both"}.}
 
-\item{r.thresh}{Values of greater than \code{r.thresh} will be shown in bold
-type. This helps to highlight high correlations.}
+\item{diagonal}{Should the 'diagonal' of the correlation plot be shown? The
+diagonal of a correlation matrix is axiomatically always \code{1} as it
+represents correlating a variable with itself. Defaults to \code{TRUE}.}
+
+\item{cols}{Colours to use for plotting. Can be a pre-set palette (e.g.,
+\code{"turbo"}, \code{"viridis"}, \code{"tol"}, \code{"Dark2"}, etc.) or a user-defined vector
+of R colours (e.g., \code{c("yellow", "green", "blue", "black")} - see
+\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). See \code{\link[=openColours]{openColours()}} for more details.}
+
+\item{r.thresh}{Values of greater than \code{r.thresh} will be shown in bold type.
+This helps to highlight high correlations.}
 
 \item{text.col}{The colour of the text used to show the correlation values.
 The first value controls the colour of negative correlations and the second
 positive.}
 
-\item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE}
-titles and axis labels will automatically try and format pollutant names
-and units properly e.g.  by subscripting the `2' in NO2.}
+\item{key.title}{Used to set the title of the legend. The legend title is
+passed to \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.}
 
-\item{plot}{Should a plot be produced? \code{FALSE} can be useful when
-analysing data to extract corPlot components and plotting them in other
-ways.}
+\item{key.position}{Location where the legend is to be placed. Allowed
+arguments include \code{"top"}, \code{"right"}, \code{"bottom"}, \code{"left"} and \code{"none"},
+the last of which removes the legend entirely.}
 
-\item{...}{Other graphical parameters passed onto \code{lattice:levelplot},
-with common axis and title labelling options (such as \code{xlab},
-\code{ylab}, \code{main}) being passed via \code{quickText} to handle
-routine formatting.}
+\item{strip.position}{Location where the facet 'strips' are located when
+using \code{type}. When one \code{type} is provided, can be one of \code{"left"},
+\code{"right"}, \code{"bottom"} or \code{"top"}. When two \code{type}s are provided, this
+argument defines whether the strips are "switched" and can take either
+\code{"x"}, \code{"y"}, or \code{"both"}. For example, \code{"x"} will switch the 'top' strip
+locations to the bottom of the plot.}
+
+\item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE} titles and
+axis labels will automatically try and format pollutant names and units
+properly, e.g., by subscripting the "2" in "NO2". Passed to \code{\link[=quickText]{quickText()}}.}
+
+\item{plot}{When \code{openair} plots are created they are automatically printed
+to the active graphics device. \code{plot = FALSE} deactivates this behaviour.
+This may be useful when the plot \emph{data} is of more interest, or the plot is
+required to appear later (e.g., later in a Quarto document, or to be saved
+to a file).}
+
+\item{key}{Deprecated; please use \code{key.position}. If \code{FALSE}, sets
+\code{key.position} to \code{"none"}.}
+
+\item{...}{Addition options are passed on to \code{\link[=cutData]{cutData()}} for \code{type} handling.
+Some additional arguments are also available:
+\itemize{
+\item \code{xlab}, \code{ylab} and \code{main} override the x-axis label, y-axis label, and plot title.
+\item \code{layout} sets the layout of facets - e.g., \code{layout(2, 5)} will have 2 columns and 5 rows.
+\item \code{fontsize} overrides the overall font size of the plot.
+\item \code{border} sets the border colour of each ellipse.
+}}
 }
 \value{
 an \link[=openair-package]{openair} object
 }
 \description{
-Function to to draw and visualise correlation matrices using lattice. The
-primary purpose is as a tool for exploratory data analysis. Hierarchical
-clustering is used to group similar variables.
+Function to to draw and visualise correlation matrices. The primary purpose
+is as a tool for exploratory data analysis. Hierarchical clustering is used
+to group similar variables.
 }
 \details{
-The \code{corPlot} function plots correlation matrices. The implementation
+The \code{\link[=corPlot]{corPlot()}} function plots correlation matrices. The implementation
 relies heavily on that shown in Sarkar (2007), with a few extensions.
 
 Correlation matrices are a very effective way of understating relationships
-between many variables. The \code{corPlot} shows the correlation coded in
-three ways: by shape (ellipses), colour and the numeric value. The ellipses
-can be thought of as visual representations of scatter plot. With a perfect
-positive correlation a line at 45 degrees positive slope is drawn. For zero
+between many variables. The \code{\link[=corPlot]{corPlot()}} shows the correlation coded in three
+ways: by shape (ellipses), colour and the numeric value. The ellipses can be
+thought of as visual representations of scatter plot. With a perfect positive
+correlation a line at 45 degrees positive slope is drawn. For zero
 correlation the shape becomes a circle. See examples below.
 
 With many different variables it can be difficult to see relationships
@@ -112,42 +162,39 @@ correlation matrices to group variables that are most similar to one another
 
 If clustering is chosen it is also possible to add a dendrogram using the
 option \code{dendrogram = TRUE}. Note that dendrogramscan only be plotted for
-\code{type = "default"} i.e. when there is only a single panel. The
-dendrogram can also be recovered from the plot object itself and plotted more
-clearly; see examples below.
+\code{type = "default"} i.e. when there is only a single panel. The dendrogram can
+also be recovered from the plot object itself and plotted more clearly; see
+examples below.
 
-It is also possible to use the \code{openair} type option to condition the
-data in many flexible ways, although this may become difficult to visualise
-with too many panels.
+It is also possible to use the \code{openair} type option to condition the data in
+many flexible ways, although this may become difficult to visualise with too
+many panels.
 }
 \examples{
-## basic corrgram plot
+# basic plot
 corPlot(mydata)
-## plot by season ... and so on
-corPlot(mydata, type = "season")
-## recover dendrogram when cluster = TRUE and plot it
-res <- corPlot(mydata)
-plot(res$clust)
+
 \dontrun{
-## a more interesting are hydrocarbon measurements
+# plot by season
+corPlot(mydata, type = "season")
+
+# recover dendrogram when cluster = TRUE and plot it
+res <- corPlot(mydata, plot = FALSE)
+plot(res$clust)
+
+# a more interesting are hydrocarbon measurements
 hc <- importAURN(site = "my1", year = 2005, hc = TRUE)
-## now it is possible to see the hydrocarbons that behave most
-## similarly to one another
+
+# now it is possible to see the hydrocarbons that behave most
+# similarly to one another
 corPlot(hc)
 }
 
 }
-\references{
-Sarkar, D. (2007). Lattice Multivariate Data Visualization with
-R. New York: Springer.
-
-Friendly, M. (2002). Corrgrams : Exploratory displays for correlation
-matrices. American Statistician, 2002(4), 1-16. doi:10.1198/000313002533
-}
-\seealso{
-\code{taylor.diagram} from the \code{plotrix} package from which
-some of the annotation code was used.
-}
 \author{
-David Carslaw --- but mostly based on code contained in Sarkar (2007)
+David Carslaw
+
+Jack Davison
+
+Adapted from the approach taken by Sarkar (2007)
 }

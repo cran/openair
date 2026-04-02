@@ -11,40 +11,45 @@ conditionalQuantile(
   type = "default",
   bins = 31,
   min.bin = c(10, 20),
-  xlab = "predicted value",
-  ylab = "observed value",
-  col = brewer.pal(5, "YlOrRd"),
+  cols = "YlOrRd",
   key.columns = 2,
   key.position = "bottom",
+  strip.position = "top",
   auto.text = TRUE,
+  plot = TRUE,
+  key = NULL,
   ...
 )
 }
 \arguments{
-\item{mydata}{A data frame containing the field \code{obs} and \code{mod}
-representing observed and modelled values.}
+\item{mydata}{A data frame containing the field \code{obs} and \code{mod} representing
+observed and modelled values.}
 
 \item{obs}{The name of the observations in \code{mydata}.}
 
 \item{mod}{The name of the predictions (modelled values) in \code{mydata}.}
 
-\item{type}{\code{type} determines how the data are split i.e. conditioned,
-and then plotted. The default is will produce a single plot using the
-entire data. Type can be one of the built-in types as detailed in
-\code{cutData} e.g. \dQuote{season}, \dQuote{year}, \dQuote{weekday} and so
-on. For example, \code{type = "season"} will produce four plots --- one for
-each season.
+\item{type}{Character string(s) defining how data should be split/conditioned
+before plotting. \code{"default"} produces a single panel using the entire
+dataset. Any other options will split the plot into different panels - a
+roughly square grid of panels if one \code{type} is given, or a 2D matrix of
+panels if two \code{types} are given. \code{type} is always passed to \code{\link[=cutData]{cutData()}},
+and can therefore be any of:
+\itemize{
+\item A built-in type defined in \code{\link[=cutData]{cutData()}} (e.g., \code{"season"}, \code{"year"},
+\code{"weekday"}, etc.). For example, \code{type = "season"} will split the plot into
+four panels, one for each season.
+\item The name of a numeric column in \code{mydata}, which will be split into
+\code{n.levels} quantiles (defaulting to 4).
+\item The name of a character or factor column in \code{mydata}, which will be used
+as-is. Commonly this could be a variable like \code{"site"} to ensure data from
+different monitoring sites are handled and presented separately. It could
+equally be any arbitrary column created by the user (e.g., whether a nearby
+possible pollutant source is active or not).
+}
 
-It is also possible to choose \code{type} as another variable in the data
-frame. If that variable is numeric, then the data will be split into four
-quantiles (if possible) and labelled accordingly. If type is an existing
-character or factor variable, then those categories/levels will be used
-directly. This offers great flexibility for understanding the variation of
-different variables and how they depend on one another.
-
-Type can be up length two e.g. \code{type = c("season", "weekday")} will
-produce a 2x2 plot split by season and day of the week. Note, when two
-types are provided the first forms the columns and the second the rows.}
+Most \code{openair} plotting functions can take two \code{type} arguments. If two are
+given, the first is used for the columns and the second for the rows.}
 
 \item{bins}{Number of bins to be used in calculating the different quantile
 levels.}
@@ -52,29 +57,47 @@ levels.}
 \item{min.bin}{The minimum number of points required for the estimates of the
 25/75th and 10/90th percentiles.}
 
-\item{xlab}{label for the x-axis, by default \dQuote{predicted value}.}
+\item{cols}{Colours to use for plotting. Can be a pre-set palette (e.g.,
+\code{"turbo"}, \code{"viridis"}, \code{"tol"}, \code{"Dark2"}, etc.) or a user-defined vector
+of R colours (e.g., \code{c("yellow", "green", "blue", "black")} - see
+\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). See \code{\link[=openColours]{openColours()}} for more details.}
 
-\item{ylab}{label for the y-axis, by default \dQuote{observed value}.}
+\item{key.columns}{Number of columns to be used in a categorical legend. With
+many categories a single column can make to key too wide. The user can thus
+choose to use several columns by setting \code{key.columns} to be less than the
+number of categories.}
 
-\item{col}{Colours to be used for plotting the uncertainty bands and median
-line. Must be of length 5 or more.}
+\item{key.position}{Location where the legend is to be placed. Allowed
+arguments include \code{"top"}, \code{"right"}, \code{"bottom"}, \code{"left"} and \code{"none"},
+the last of which removes the legend entirely.}
 
-\item{key.columns}{Number of columns to be used in the key.}
+\item{strip.position}{Location where the facet 'strips' are located when
+using \code{type}. When one \code{type} is provided, can be one of \code{"left"},
+\code{"right"}, \code{"bottom"} or \code{"top"}. When two \code{type}s are provided, this
+argument defines whether the strips are "switched" and can take either
+\code{"x"}, \code{"y"}, or \code{"both"}. For example, \code{"x"} will switch the 'top' strip
+locations to the bottom of the plot.}
 
-\item{key.position}{Location of the key e.g. \dQuote{top}, \dQuote{bottom},
-\dQuote{right}, \dQuote{left}. See \code{lattice} \code{xyplot} for more
-details.}
+\item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE} titles and
+axis labels will automatically try and format pollutant names and units
+properly, e.g., by subscripting the "2" in "NO2". Passed to \code{\link[=quickText]{quickText()}}.}
 
-\item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE}
-titles and axis labels etc. will automatically try and format pollutant
-names and units properly e.g.  by subscripting the `2' in NO2.}
+\item{plot}{When \code{openair} plots are created they are automatically printed
+to the active graphics device. \code{plot = FALSE} deactivates this behaviour.
+This may be useful when the plot \emph{data} is of more interest, or the plot is
+required to appear later (e.g., later in a Quarto document, or to be saved
+to a file).}
 
-\item{\dots}{Other graphical parameters passed onto \code{cutData} and
-\code{lattice:xyplot}. For example, \code{conditionalQuantile} passes the
-option \code{hemisphere = "southern"} on to \code{cutData} to provide
-southern (rather than default northern) hemisphere handling of \code{type = "season"}. Similarly, common axis and title labelling options (such as
-\code{xlab}, \code{ylab}, \code{main}) are passed to \code{xyplot} via
-\code{quickText} to handle routine formatting.}
+\item{key}{Deprecated; please use \code{key.position}. If \code{FALSE}, sets
+\code{key.position} to \code{"none"}.}
+
+\item{...}{Addition options are passed on to \code{\link[=cutData]{cutData()}} for \code{type} handling.
+Some additional arguments are also available:
+\itemize{
+\item \code{xlab}, \code{ylab} and \code{main} override the x-axis label, y-axis label, and plot title.
+\item \code{layout} sets the layout of facets - e.g., \code{layout(2, 5)} will have 2 columns and 5 rows.
+\item \code{fontsize} overrides the overall font size of the plot.
+}}
 }
 \description{
 Function to calculate conditional quantiles with flexible conditioning. The
@@ -85,8 +108,8 @@ understand forecast predictions and how well they agree with observations.
 Conditional quantiles are a very useful way of considering model performance
 against observations for continuous measurements (Wilks, 2005). The
 conditional quantile plot splits the data into evenly spaced bins. For each
-predicted value bin e.g. from 0 to 10~ppb the \emph{corresponding} values of
-the observations are identified and the median, 25/75th and 10/90 percentile
+predicted value bin e.g. from 0 to 10~ppb the \emph{corresponding} values of the
+observations are identified and the median, 25/75th and 10/90 percentile
 (quantile) calculated for that bin. The data are plotted to show how these
 values vary across all bins. For a time series of observations and
 predictions that agree precisely the median value of the predictions will
@@ -109,44 +132,43 @@ Plotting the data in this way shows how well predictions agree with
 observations and can help reveal many useful characteristics of how well
 model predictions agree with observations --- across the full distribution of
 values. A single plot can therefore convey a considerable amount of
-information concerning model performance. The \code{conditionalQuantile}
-function in openair allows conditional quantiles to be considered in a
-flexible way e.g. by considering how they vary by season.
+information concerning model performance. The \code{conditionalQuantile} function
+in openair allows conditional quantiles to be considered in a flexible way
+e.g. by considering how they vary by season.
 
 The function requires a data frame consisting of a column of observations and
-a column of predictions. The observations are split up into \code{bins}
-according to values of the predictions. The median prediction line together
-with the 25/75th and 10/90th quantile values are plotted together with a line
-showing a \dQuote{perfect} model. Also shown is a histogram of predicted
-values (shaded grey) and a histogram of observed values (shown as a blue
-line).
+a column of predictions. The observations are split up into \code{bins} according
+to values of the predictions. The median prediction line together with the
+25/75th and 10/90th quantile values are plotted together with a line showing
+a \dQuote{perfect} model. Also shown is a histogram of predicted values
+(shaded grey) and a histogram of observed values (shown as a blue outline).
 
 Far more insight can be gained into model performance through conditioning
-using \code{type}. For example, \code{type = "season"} will plot conditional
-quantiles by each season. \code{type} can also be a factor or character field
-e.g. representing different models used.
+using \code{type}. For example, \code{type = "season"} will plot conditional quantiles
+by each season. \code{type} can also be a factor or character field e.g.
+representing different models used.
 
 See Wilks (2005) for more details and the examples below.
 }
 \examples{
-## make some dummy prediction data based on 'nox'
+# make some dummy prediction data based on 'nox'
 mydata$mod <- mydata$nox * 1.1 + mydata$nox * runif(1:nrow(mydata))
 
 # basic conditional quantile plot
-## A "perfect" model is shown by the blue line
-## predictions tend to be increasingly positively biased at high nox,
-## shown by departure of median line from the blue one.
-## The widening uncertainty bands with increasing NOx shows that
-## hourly predictions are worse for higher NOx concentrations.
-## Also, the red (median) line extends beyond the data (blue line),
-## which shows in this case some predictions are much higher than
-## the corresponding measurements. Note that the uncertainty bands
-## do not extend as far as the median line because there is insufficient
+# A "perfect" model is shown by the blue line
+# predictions tend to be increasingly positively biased at high nox,
+# shown by departure of median line from the blue one.
+# The widening uncertainty bands with increasing NOx shows that
+# hourly predictions are worse for higher NOx concentrations.
+# Also, the red (median) line extends beyond the data (blue line),
+# which shows in this case some predictions are much higher than
+# the corresponding measurements. Note that the uncertainty bands
+# do not extend as far as the median line because there is insufficient
 # to calculate them
 conditionalQuantile(mydata, obs = "nox", mod = "mod")
 
-## can split by season to show seasonal performance (not very
-## enlightening in this case - try some real data and it will be!)
+# can split by season to show seasonal performance (not very
+# enlightening in this case - try some real data and it will be!)
 
 \dontrun{
 conditionalQuantile(mydata, obs = "nox", mod = "mod", type = "season")
@@ -161,8 +183,8 @@ Wilks, D. S., 2005. Statistical Methods in the Atmospheric Sciences, Volume
 91, Second Edition (International Geophysics), 2nd Edition. Academic Press.
 }
 \seealso{
-The \code{verification} package for comprehensive functions for
-forecast verification.
+The \code{verification} package for comprehensive functions for forecast
+verification.
 
 Other model evaluation functions: 
 \code{\link{TaylorDiagram}()},
@@ -171,5 +193,7 @@ Other model evaluation functions:
 }
 \author{
 David Carslaw
+
+Jack Davison
 }
 \concept{model evaluation functions}

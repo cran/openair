@@ -14,24 +14,33 @@
 #'
 #' @param mydata A data frame with a `date` field and at least one numeric
 #'   `pollutant` field to analyse.
+#'
 #' @param pollutant Name of variable to process.
+#'
 #' @param criterion Condition to select run lengths e.g. `">"` with select data
 #'   more than `threshold`.
+#'
 #' @param run.len Run length for extracting contiguous values of `pollutant`
 #'   meeting the `criterion` in relation to the `threshold`.
+#'
 #' @param threshold The threshold value for `pollutant` above which data should
 #'   be extracted.
+#'
 #' @param type Used for splitting the data further. Passed to [cutData()].
+#'
 #' @param name The name of the column to be appended to the data frame when
 #'   `mode = "flag"`.
+#'
 #' @param result A vector of length 2, defining how to label the run lengths
 #'   when `mode = "flag"`. The first object should be the label for the `TRUE`
 #'   label, and the second the `FALSE` label - e.g., `c("yes", "no")`.
+#'
 #' @param mode Changes how the function behaves. When `mode = "flag"`, the
 #'   default, the function appends a column flagging where the criteria was met.
 #'   Alternatively, `"filter"` will filter `mydata` to only return rows where
 #'   the criteria was met.
-#' @param ... Additional parameters passed to [cutData()]. For use with `type`.
+#'
+#' @param ... Passed to [cutData()] for use with `type`.
 #' @export
 #' @return A data frame
 #' @author David Carslaw
@@ -73,13 +82,15 @@ selectRunning <- function(
   mydata <- cutData(mydata, type = type, ...)
 
   # check for multiple sites (for example)
-  checkDuplicateRows(mydata, type, fn = cli::cli_abort)
+  check_duplicate_rows(mydata, type, fn = cli::cli_abort)
 
   # pad out missing data
-  thedata <- purrr::map(split(mydata, mydata[type], drop = TRUE), function(x) {
-    date.pad(x, type = type)
-  }) %>%
-    dplyr::bind_rows()
+  thedata <- map_type(
+    mydata,
+    type = type,
+    fun = \(x) datePad(x, type = type),
+    .include_default = TRUE
+  )
 
   # save input for later
   mydata <- thedata
@@ -95,18 +106,18 @@ selectRunning <- function(
 
   # calculate run lengths
   thedata <-
-    thedata %>%
+    thedata |>
     # create flags of the criterion, and work out run length
     dplyr::mutate(
       `__flag__` = rlang::eval_tidy(rlang::parse_expr(expr)),
       `__run__` = dplyr::consecutive_id(.data[["__flag__"]]),
       .by = dplyr::all_of(type)
-    ) %>%
+    ) |>
     # count length of runs
     dplyr::mutate(
       `__len__` = dplyr::n(),
       .by = dplyr::all_of(c("__run__", type))
-    ) %>%
+    ) |>
     # check if run length is greater than run.len for positive flags
     dplyr::mutate(
       `__flag__` = dplyr::if_else(

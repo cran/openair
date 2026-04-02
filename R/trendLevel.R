@@ -1,12 +1,13 @@
-#' Plot heat map trends
+#' Plot heat maps of atmospheric composition data
 #'
-#' The trendLevel function provides a way of rapidly showing a large amount of
-#' data in a condensed form. In one plot, the variation in the concentration of
-#' one pollutant can to shown as a function of three other categorical
-#' properties. The default version of the plot uses y = hour of day, x = month
-#' of year and type = year to provide information on trends, seasonal effects
-#' and diurnal variations. However, x, y and type and summarising statistics can
-#' all be modified to provide a range of other similar plots.
+#' The [trendLevel()] function provides a way of rapidly showing a large amount
+#' of data in a condensed form. In one plot, the variation in the concentration
+#' of one pollutant can to shown as a function of between two and four
+#' categorical properties. The default arguments plot hour of day on the x-axis
+#' and month of year on the y-axis. However, `x`, `y` and `type` and summarising
+#' statistics can all be modified to provide a range of other similar plots, all
+#' being passed to [cutData()] for discretisation. The average wind speed and
+#' direction in each bin can also be plotted using the `windflow` argument.
 #'
 #' [trendLevel()] allows the use of third party summarising functions via the
 #' `statistic` option. Any additional function arguments not included within a
@@ -26,55 +27,41 @@
 #' [trendLevel()] may fail. Note: The `stat.safe.mode = TRUE` option returns an
 #' NA without warning for empty data series.
 #'
+#' @inheritParams shared_openair_params
+#'
 #' @param mydata The openair data frame to use to generate the [trendLevel()]
 #'   plot.
+#'
 #' @param pollutant The name of the data series in `mydata` to sample to produce
 #'   the [trendLevel()] plot.
+#'
 #' @param x,y,type The name of the data series to use as the [trendLevel()]
 #'   x-axis, y-axis or conditioning variable, passed to [cutData()]. These are
 #'   used before applying `statistic`. [trendLevel()] does not allow duplication
 #'   in `x`, `y` and `type` options.
+#'
 #' @param rotate.axis The rotation to be applied to `trendLevel` `x` and `y`
 #'   axes. The default, `c(90, 0)`, rotates the x axis by 90 degrees but does
 #'   not rotate the y axis. If only one value is supplied, this is applied to
 #'   both axes; if more than two values are supplied, only the first two are
 #'   used.
+#'
 #' @param n.levels The number of levels to split `x`, `y` and `type` data into
 #'   if numeric. The default, `c(10, 10, 4)`, cuts numeric `x` and `y` data into
 #'   ten levels and numeric `type` data into four levels. This option is ignored
 #'   for date conditioning and factors. If less than three values are supplied,
 #'   three values are determined by recursion; if more than three values are
 #'   supplied, only the first three are used.
+#'
 #' @param limits The colour scale range to use when generating the
 #'   [trendLevel()] plot.
-#' @param cols The colour set to use to colour the [trendLevel()] surface.
-#'   `cols` is passed to [openColours()] for evaluation.
-#' @param auto.text Automatic routine text formatting. `auto.text = TRUE` passes
-#'   common `lattice` labelling terms (e.g. `xlab` for the x-axis, `ylab` for
-#'   the y-axis and `main` for the title) to the plot via [quickText()] to
-#'   provide common text formatting.  The alternative `auto.text = FALSE` turns
-#'   this option off and passes any supplied labels to the plot without
-#'   modification.
-#' @param key.header,key.footer Adds additional text labels above and/or below
-#'   the scale key, respectively. For example, passing the options `key.header =
-#'   "", key.footer = c("mean","nox")` adds the addition text as a scale footer.
-#'   If enabled (`auto.text = TRUE`), these arguments are passed to the scale
-#'   key ([drawOpenKey()]) via [quickText()] to handle formatting. The term
-#'   `"get.stat.name"`, used as the default `key.header` setting, is reserved
-#'   and automatically adds statistic function names or defaults to `"level"`
-#'   when unnamed functions are requested via `statistic`.
-#' @param key.position Location where the scale key should be plotted. Allowed
-#'   arguments currently include `"top"`, `"right"`, `"bottom"`, and `"left"`.
-#' @param key Fine control of the scale key via [drawOpenKey()].
-#' @param breaks,labels If a categorical colour scale is required then `breaks`
-#'   should be specified. These should be provided as a numeric vector, e.g.,
-#'   `breaks = c(0, 50, 100, 1000)`. Users should set the maximum value of
-#'   `breaks` to exceed the maximum data value to ensure it is within the
-#'   maximum final range, e.g., 100--1000 in this case. Labels will
-#'   automatically be generated, but can be customised by passing a character
-#'   vector to `labels`, e.g., `labels = c("good", "bad", "very bad")`. In this
-#'   example, `0 - 50` will be `"good"` and so on. Note there is one less label
-#'   than break.
+#'
+#' @param min.bin The minimum number of records required in a bin to show a
+#'   value. Bins with fewer than `min.bin` records are set to `NA`. The default
+#'   is 1, i.e., all bins with no records are set to `NA`. Setting `min.bin` to
+#'   a value greater than 1 can be useful to exclude bins with very few records
+#'   that might produce unreliable statistic values.
+#'
 #' @param statistic The statistic to apply when aggregating the data; default is
 #'   the mean. Can be one of `"mean"`, `"max"`, `"min"`, `"median"`,
 #'   `"frequency"`, `"sum"`, `"sd"`, `"percentile"`. Note that `"sd"` is the
@@ -83,11 +70,14 @@
 #'   `"percentile"` is the percentile level (%) between 0-100, which can be set
 #'   using the `"percentile"` option. Functions can also be sent directly via
 #'   `statistic`; see 'Details' for more information.
+#'
 #' @param percentile The percentile level used when `statistic = "percentile"`.
 #'   The default is 95%.
+#'
 #' @param stat.args Additional options to be used with `statistic` if this is a
 #'   function. The extra options should be supplied as a list of named
 #'   parameters; see 'Details' for more information.
+#'
 #' @param stat.safe.mode An addition protection applied when using functions
 #'   directly with `statistic` that most users can ignore. This option returns
 #'   `NA` instead of running `statistic` on binned sub samples that are empty.
@@ -96,6 +86,7 @@
 #'   functions. For a very few cases, e.g., for a function that counted missing
 #'   entries, it might need to be set to `FALSE`; see 'Details' for more
 #'   information.
+#'
 #' @param drop.unused.types Hide unused/empty `type` conditioning cases. Some
 #'   conditioning options may generate empty cases for some data sets, e.g. a
 #'   hour of the day when no measurements were taken. Empty `x` and `y` cases
@@ -103,17 +94,21 @@
 #'   produce blank panels if plotted. Therefore, the default, `TRUE`, excludes
 #'   these empty panels from the plot. The alternative `FALSE` plots all `type`
 #'   panels.
+#'
 #' @param col.na Colour to be used to show missing data.
-#' @param plot Should a plot be produced? `FALSE` can be useful when analysing
-#'   data to extract plot components and plotting them in other ways.
-#' @param ... Addition options are passed on to [cutData()] for `type` handling
-#'   and [lattice::levelplot()] for finer control of the plot itself.
+#'
+#' @param ... Addition options are passed on to [cutData()] for `type` handling.
+#'   Some additional arguments are also available:
+#'   - `xlab`, `ylab` and `main` override the x-axis label, y-axis label, and plot title.
+#'   - `layout` sets the layout of facets - e.g., `layout(2, 5)` will have 2 columns and 5 rows.
+#'   - `fontsize` overrides the overall font size of the plot.
+#'   - `border` sets the border colour of each tile.
+#'
 #' @export
 #' @return an [openair][openair-package] object.
 #' @author Karl Ropkins
 #' @author David Carslaw
 #' @author Jack Davison
-#' @family time series and trend functions
 #' @examples
 #' # basic use
 #' # default statistic = "mean"
@@ -142,18 +137,19 @@ trendLevel <- function(
   pollutant = "nox",
   x = "month",
   y = "hour",
-  type = "year",
+  type = "default",
   rotate.axis = c(90, 0),
   n.levels = c(10, 10, 4),
-  limits = c(0, 100),
+  windflow = NULL,
+  limits = NULL,
+  min.bin = 1,
   cols = "default",
   auto.text = TRUE,
-  key.header = "use.stat.name",
-  key.footer = pollutant,
+  key.title = paste("use.stat.name", pollutant, sep = " "),
   key.position = "right",
-  key = TRUE,
-  labels = NA,
-  breaks = NA,
+  strip.position = "top",
+  labels = NULL,
+  breaks = NULL,
   statistic = c(
     "mean",
     "max",
@@ -170,29 +166,20 @@ trendLevel <- function(
   drop.unused.types = TRUE,
   col.na = "white",
   plot = TRUE,
+  key = NULL,
   ...
 ) {
-  # greyscale handling
-  if (length(cols) == 1 && cols == "greyscale") {
-    trellis.par.set(list(strip.background = list(col = "white")))
-  }
+  # check key.position
+  key.position <- check_key_position(key.position, key)
 
-  # set graphics
-  current.strip <- trellis.par.get("strip.background")
-  current.font <- trellis.par.get("fontsize")
-
-  # reset graphic parameters
-  on.exit(trellis.par.set(
-    fontsize = current.font
-  ))
+  extra.args <- rlang::list2(...)
 
   # check length of x
   if (length(x) > 1) {
     x <- x[1]
-    xlab <- xlab[1]
     cli::cli_warn(
       c(
-        "!" = "{.fun trendLevel} does not allow multiple {.field x} values.",
+        "!" = "{.fun openair::trendLevel} does not allow multiple {.field x} values.",
         "i" = "Setting {.field x} to '{x}'."
       )
     )
@@ -201,21 +188,20 @@ trendLevel <- function(
   # check length of y
   if (length(y) > 1) {
     y <- y[1]
-    ylab <- ylab[1]
     cli::cli_warn(
       c(
-        "!" = "{.fun trendLevel} does not allow multiple {.field y} values.",
+        "!" = "{.fun openair::trendLevel} does not allow multiple {.field y} values.",
         "i" = "Setting {.field y} to '{y}'."
       )
     )
   }
 
   # check length of type
-  if (length(type) > 1) {
-    type <- type[1]
+  if (length(type) > 2) {
+    type <- type[1:2]
     cli::cli_warn(
       c(
-        "!" = "{.fun trendLevel} does not allow multiple {.field type} values.",
+        "!" = "{.fun openair::trendLevel} does not allow more than two {.field type} values.",
         "i" = "Setting {.field type} to '{type}'."
       )
     )
@@ -226,48 +212,34 @@ trendLevel <- function(
   if (length(vars) != length(unique(vars))) {
     cli::cli_abort(
       c(
-        "x" = "{.fun trendLevel} could not rationalise plot structure.",
+        "x" = "{.fun openair::trendLevel} could not rationalise plot structure.",
         "i" = "Duplicate term(s) in {.field pollutant} ('{pollutant}'), {.field x} ('{x}'), {.field y} ('{y}'), and {.field type} ('{type}')."
       )
     )
   }
 
-  # assume pollutant scale is not a categorical value
-  category <- FALSE
-  if (!anyNA(breaks)) {
-    # assign labels if no labels are given
-    if (anyNA(labels)) {
-      labels <- c()
-      for (i in seq_along(breaks)) {
-        lhs <- breaks[i]
-        rhs <- breaks[i + 1]
-        str <- paste(lhs, rhs, sep = " - ")
-        labels <- append(labels, str)
-      }
-      labels <- labels[-i]
-    }
-    category <- TRUE
+  # make sure windflow is a list
+  # lower the default range - good for heatmap plots
+  windflow <- resolve_windflow_opts(windflow, range = c(0.01, 0.5))
+
+  if (
+    windflow$windflow &&
+      (x %in%
+        c("ws", "wd") ||
+        y %in% c("ws", "wd") ||
+        any(type %in% c("ws", "wd")))
+  ) {
+    cli::cli_abort(
+      "In {.fun openair::trendLevel}, cannot use {.arg windflow} and have {.arg x}, {.arg y} and/or {.arg type} be 'ws' or 'wd'."
+    )
   }
-
-  # extra.args
-  extra.args <- list(...)
-
-  # font size
-  if ("fontsize" %in% names(extra.args)) {
-    trellis.par.set(fontsize = list(text = extra.args$fontsize))
-  }
-
-  # label controls
-  extra.args$xlab <- quickText(extra.args$xlab %||% x, auto.text = auto.text)
-  extra.args$ylab <- quickText(extra.args$ylab %||% y, auto.text = auto.text)
-  extra.args$main <- quickText(extra.args$main %||% "", auto.text = auto.text)
 
   # number vector handling
   ls.check.fun <- function(vector, vector.name, len) {
     if (!is.numeric(vector)) {
       cli::cli_warn(
         c(
-          "!" = "{.fun trendLevel} ignored unrecognised {.field vector.name} option.",
+          "!" = "{.fun openair::trendLevel} ignored unrecognised {.field vector.name} option.",
           "i" = "See {.fun openair::trendLevel} for more information."
         ),
         call. = FALSE
@@ -345,14 +317,14 @@ trendLevel <- function(
           if (all(is.na(x))) {
             NA
           } else {
-            length(na.omit(x))
+            length(stats::na.omit(x))
           }
         }
         stat.args <- NULL
       }
 
       if (statistic == "percentile") {
-        if (percentile < 0 | percentile > 100) {
+        if (percentile < 0 || percentile > 100) {
           cli::cli_abort("{.field percentile} outside {0}-{100}.")
         }
         probs <- percentile / 100
@@ -362,12 +334,12 @@ trendLevel <- function(
         stat.args <- list(na.rm = TRUE)
 
         lastnum <- substr(percentile, nchar(percentile), nchar(percentile))
-        numend <- dplyr::case_match(
+        numend <- dplyr::recode_values(
           lastnum,
           "1" ~ "st",
           "2" ~ "nd",
           "3" ~ "rd",
-          .default = "th"
+          default = "th"
         )
 
         stat.name <- paste0(percentile, numend, " Perc.")
@@ -393,7 +365,7 @@ trendLevel <- function(
     # early end for bad stats
     cli::cli_abort(
       c(
-        "x" = "{.fun trendLevel} could not apply given {.field statistic} option.",
+        "x" = "{.fun openair::trendLevel} could not apply given {.field statistic} option.",
         "i" = "Please provide a valid function or character vector.",
         "i" = "Valid character vectors: {.emph {eval(formals(trendLevel)$statistic)}}"
       )
@@ -402,290 +374,249 @@ trendLevel <- function(
 
   # checkPrep
   temp <- c(pollutant)
-  if ("date" %in% names(mydata)) {
-    temp <- c("date", pollutant)
+  if (x %in% dateTypes || y %in% dateTypes || any(type %in% dateTypes)) {
+    temp <- c(temp, "date")
+  }
+  if (windflow$windflow) {
+    temp <- c(temp, "ws", "wd")
   }
 
   # all of x, y, temp need to be handled as type here
   mydata <- checkPrep(mydata, temp, type = c(x, y, type), remove.calm = FALSE)
 
+  # if using windflow, need the u & v components of wind
+  if (windflow$windflow) {
+    mydata <- mydata |>
+      dplyr::mutate(
+        wind_u = -1 * .data$ws * sin(.data$wd * pi / 180),
+        wind_v = -1 * .data$ws * cos(.data$wd * pi / 180)
+      ) |>
+      dplyr::select(
+        -c("ws", "wd")
+      )
+  }
+
   # cutData
   # different n.levels for axis and type, axes get `is.axis = TRUE`
   newdata <-
-    mydata %>%
-    cutData(x, n.levels = n.levels[1], is.axis = TRUE, ...) %>%
-    cutData(y, n.levels = n.levels[2], is.axis = TRUE, ...) %>%
-    cutData(type, n.levels = n.levels[3], ...)
+    mydata |>
+    cutData(x, n.levels = n.levels[1], is.axis = TRUE, ...) |>
+    cutData(y, n.levels = n.levels[2], is.axis = TRUE, ...) |>
+    cutData(type, n.levels = n.levels[3], drop = "outside", ...) |>
+    tidyr::complete(!!!rlang::syms(c(x, y, type)))
 
   # select only pollutant and axis/facet columns
-  newdata <- newdata[c(pollutant, x, y, type)]
+  newdata <- dplyr::select(
+    newdata,
+    dplyr::any_of(c(pollutant, x, y, type, "wind_u", "wind_v"))
+  )
 
+  # apply statistic
   calc_stat <- function(x) {
     args <- append(stat.args, list(x = x))
     rlang::exec(stat.fun, !!!args)
   }
-  newdata <-
-    newdata %>%
+
+  # NB: don't overwrite `pollutant` initially so that `n` is still valid
+  newdata_poll <-
+    newdata |>
     dplyr::summarise(
-      {{ pollutant }} := calc_stat(.data[[pollutant]]),
+      poll_avg = calc_stat(.data[[pollutant]]),
+      n = length(stats::na.omit(.data[[pollutant]])),
       .by = dplyr::all_of(c(x, y, type))
-    ) %>%
-    dplyr::mutate(dplyr::across(
-      dplyr::all_of(c(x, y, type)),
-      function(x) factor(x, ordered = FALSE)
-    )) %>%
-    as.data.frame()
-
-  # plot setup
-  temp <- paste(type, collapse = "+")
-  myform <- formula(paste0(pollutant, " ~ ", x, " * ", y, " | ", temp))
-
-  if (type == "default") {
-    myform <- formula(paste0(pollutant, " ~ ", x, " * ", y))
-  }
-
-  # key.header, footer stat.name recovery
-  if (!is.null(key.header)) {
-    if (is.character(key.header)) {
-      key.header <- gsub("use.stat.name", stat.name, key.header)
-    }
-  }
-  if (!is.null(key.footer)) {
-    if (is.character(key.footer)) {
-      key.footer <- gsub("use.stat.name", stat.name, key.footer)
-    }
-  }
-
-  # special case handling
-  # layout for wd
-  if (
-    length(type) == 1 && type[1] == "wd" && !"layout" %in% names(extra.args)
-  ) {
-    # re-order to make sensible layout
-
-    wds <- c("NW", "N", "NE", "W", "E", "SW", "S", "SE")
-    newdata$wd <- ordered(newdata$wd, levels = wds)
-    wd.ok <- sapply(
-      wds,
-      function(x) if (x %in% unique(newdata$wd)) FALSE else TRUE
     )
-    skip <- c(wd.ok[1:4], TRUE, wd.ok[5:8])
-    newdata$wd <- factor(newdata$wd)
-    extra.args$layout <- c(3, 3)
-    if (!"skip" %in% names(extra.args)) {
-      extra.args$skip <- skip
-    }
+  names(newdata_poll)[names(newdata_poll) == "poll_avg"] <- pollutant
+
+  # if using windflow, calculate mean wind_u and wind_v for each bin
+  if (windflow$windflow) {
+    newdata_met <- newdata |>
+      dplyr::summarise(
+        wind_u = mean(.data[["wind_u"]], na.rm = TRUE),
+        wind_v = mean(.data[["wind_v"]], na.rm = TRUE),
+        .by = dplyr::all_of(c(x, y, type))
+      )
+
+    newdata <-
+      dplyr::left_join(
+        newdata_poll,
+        newdata_met,
+        by = c(x, y, type)
+      )
+  } else {
+    newdata <- newdata_poll
   }
 
-  temp <- if (is.factor(newdata[, type[1]])) {
-    levels(newdata[, type[1]])
-  } else {
-    unique(newdata[, type[1]])
+  # if using windflow, convert wind_u and wind_v back into ws & wd
+  if (windflow$windflow) {
+    newdata <- newdata |>
+      dplyr::mutate(
+        ws = sqrt(.data$wind_u^2 + .data$wind_v^2),
+        wd = (atan2(-.data$wind_u, -.data$wind_v) * 180 / pi) %% 360
+      ) |>
+      dplyr::select(-c("wind_u", "wind_v"))
   }
-  temp <- sapply(temp, function(x) quickText(x, auto.text))
-  if (is.factor(temp)) {
-    temp <- as.character(temp)
+
+  # remove bins with fewer than min.bin records
+  vars <- c(pollutant)
+  if (windflow$windflow) {
+    vars <- c(vars, "ws", "wd")
   }
-  strip <- strip.custom(
-    factor.levels = temp,
-    strip.levels = c(TRUE, FALSE),
-    strip.names = FALSE
+  newdata <- dplyr::mutate(
+    newdata,
+    dplyr::across(
+      dplyr::any_of(vars),
+      \(x) ifelse(.data$n < min.bin, NA, x)
+    )
   )
 
-  strip.left <- if (length(type) == 1) {
-    FALSE
-  } else {
-    temp <- sapply(
-      unique(newdata[, type[2]]),
-      function(x) quickText(x, auto.text)
-    )
-    if (is.factor(temp)) {
-      temp <- as.character(temp)
-    }
-    strip.custom(factor.levels = temp)
-  }
+  # sub out 'use.stat.name' with stat.name
+  key.title <- gsub("use.stat.name", stat.name, key.title)
 
-  suppressWarnings(trellis.par.set(list(
-    strip.background = list(col = "white")
-  )))
-
-  scales <- list(
-    x = list(rot = rotate.axis[1]),
-    y = list(rot = rotate.axis[2])
-  )
+  # check if key.header / key.footer are being used
+  key.title <- check_key_header(key.title, extra.args)
 
   # categorical colour scale or not?
-
-  if (category) {
-    # check the breaks and labels are consistent
-    if (length(labels) + 1 != length(breaks)) {
-      stop("Need one more break than labels")
-    }
+  categorical <- FALSE
+  if (!is.null(breaks)) {
+    # get breaks
+    labels <- get_labels_from_breaks(breaks, labels)
 
     # cut data into categories
     newdata$cuts <- cut(
-      newdata[, pollutant],
+      newdata[[pollutant]],
       breaks = breaks,
       labels = labels,
       include.lowest = TRUE
     )
-    n <- length(levels(newdata$cuts))
 
-    col.regions <- openColours(cols, n)
-    col.scale <- breaks
-    legend <- list(
-      col = col.regions,
-      space = key.position,
-      auto.text = auto.text,
-      labels = levels(newdata$cuts),
-      footer = key.footer,
-      header = key.header,
-      height = 0.8,
-      width = 1.5,
-      fit = "scale",
-      plot.style = "other"
-    )
+    categorical <- TRUE
+  }
 
-    col.scale <- breaks
-    legend <- makeOpenKeyLegend(key, legend, "windRose")
-  } else {
-    # continuous colour scale
-
-    # auto-scaling
-    nlev <- 200 # preferred number of intervals
-
-    # handle missing breaks arguments
-
-    if (missing(limits)) {
-      breaks <- seq(
-        min(newdata[, pollutant], na.rm = TRUE),
-        max(newdata[, pollutant], na.rm = TRUE),
-        length.out = nlev
+  # construct plot
+  thePlot <-
+    ggplot2::ggplot(
+      newdata,
+      ggplot2::aes(
+        x = num_convert(.data[[x]]),
+        y = num_convert(.data[[y]]),
+        fill = .data[[ifelse(categorical, "cuts", pollutant)]]
       )
-
-      labs <- pretty(breaks, 7)
-      labs <- labs[labs >= min(breaks) & labs <= max(breaks)]
-      at <- labs
-    } else {
-      # handle user limits and clipping
-      breaks <- seq(min(limits), max(limits), length.out = nlev)
-      labs <- pretty(breaks, 7)
-      labs <- labs[labs >= min(breaks) & labs <= max(breaks)]
-      at <- labs
-
-      # case where user max is < data max
-      if (max(limits) < max(newdata[, pollutant], na.rm = TRUE)) {
-        id <- which(newdata[, pollutant] > max(limits))
-        newdata[id, pollutant] <- max(limits)
-        labs[length(labs)] <- paste(">", labs[length(labs)])
-      }
-
-      # case where user min is > data min
-      if (min(limits) > min(newdata[, pollutant], na.rm = TRUE)) {
-        id <- which(newdata[, pollutant] < min(limits))
-        newdata[id, pollutant] <- min(limits)
-        labs[1] <- paste("<", labs[1])
-      }
-    }
-
-    nlev2 <- length(breaks)
-
-    col.regions <- openColours(cols, (nlev2 - 1))
-
-    col.scale <- breaks
-
-    legend <- list(
-      col = col.regions,
-      at = col.scale,
-      labels = list(labels = labs, at = at),
-      space = key.position,
+    ) +
+    ggplot2::geom_tile(
+      colour = extra.args$border %||% "transparent",
+      show.legend = TRUE
+    ) +
+    ggplot2::coord_cartesian(clip = "off", expand = FALSE) +
+    theme_openair(key.position) +
+    set_extra_fontsize(extra.args) +
+    ggplot2::labs(
+      x = quickText(extra.args$xlab %||% x, auto.text = auto.text),
+      y = quickText(extra.args$ylab %||% y, auto.text = auto.text),
+      title = quickText(extra.args$main %||% "", auto.text = auto.text),
+      fill = quickText(key.title, auto.text = auto.text)
+    ) +
+    ggplot2::guides(
+      x = ggplot2::guide_axis(check.overlap = TRUE, angle = rotate.axis[1]),
+      y = ggplot2::guide_axis(check.overlap = TRUE, angle = rotate.axis[2])
+    ) +
+    get_facet(
+      type,
+      extra.args = extra.args,
+      scales = "fixed",
       auto.text = auto.text,
-      footer = key.footer,
-      header = key.header,
-      height = 1,
-      width = 1.5,
-      fit = "all"
+      drop = drop.unused.types,
+      strip.position = strip.position
     )
-    legend <- makeOpenKeyLegend(key, legend, "polarPlot")
+
+  # make key full width/height
+  if (key.position %in% c("left", "right")) {
+    thePlot <- thePlot +
+      ggplot2::theme(
+        legend.key.height = ggplot2::unit(1, "null"),
+        legend.key.spacing.y = ggplot2::unit(0, "cm")
+      )
+  }
+  if (key.position %in% c("top", "bottom")) {
+    thePlot <- thePlot +
+      ggplot2::theme(
+        legend.key.width = ggplot2::unit(1, "null"),
+        legend.key.spacing.x = ggplot2::unit(0, "cm")
+      )
   }
 
-  # turn off colorkey
-  colorkey <- FALSE
-
-  # stop overlapping labels
-  yscale.lp <- function(...) {
-    ans <- yscale.components.default(...)
-    ans$left$labels$check.overlap <- TRUE
-    ans$left$labels$labels <- levels(newdata[, y])
-    ans$left$labels$at <- seq_along(levels(newdata[, y]))
-
-    ans
-  }
-  xscale.lp <- function(...) {
-    ans <- xscale.components.default(...)
-    ans$bottom$labels$check.overlap <- TRUE
-    ans$bottom$labels$labels <- levels(newdata[, x])
-    ans$bottom$labels$at <- seq_along(levels(newdata[, x]))
-    ans
-  }
-
-  # plot
-
-  # The following listUpdate steps are used to stop this falling
-  # over with a lattice error if the user passes any of
-  # the locally defined options below as part of call.
-  # If they do reset it is obviously Caveat emptor...
-
-  # the axes are discrete factors - therefore can define exactly
-  xlim <- range(as.numeric(newdata[, x])) + c(-0.5, 0.5)
-  ylim <- range(as.numeric(newdata[, y])) + c(-0.5, 0.5)
-
-  # lattice does not display all labels - even if requested when there are many
-  # make a bit more space when there are >25
-  if (length(levels(newdata[[y]])) > 25) {
-    ylim <- ylim + c(-0.3, 0.3)
-  }
-  if (length(levels(newdata[[x]])) > 25) {
-    xlim <- xlim + c(-0.3, 0.3)
-  }
-
-  # openair defaults for plot
-  levelplot.args <- list(
-    x = myform,
-    data = newdata,
-    as.table = TRUE,
-    legend = legend,
-    colorkey = colorkey,
-    at = breaks,
-    col.regions = col.regions,
-    scales = scales,
-    yscale.components = yscale.lp,
-    xscale.components = xscale.lp,
-    par.strip.text = list(cex = 0.8),
-    strip = strip,
-    strip.left = strip.left,
-    xlim = xlim,
-    ylim = ylim,
-    panel = function(x, y, ...) {
-      panel.fill(col = col.na)
-      panel.levelplot(x, y, ...)
-    }
-  )
-  # reset for extra.args
-  levelplot.args <- listUpdate(levelplot.args, extra.args)
-  plt <- do.call(levelplot, levelplot.args)
-
-  # update for two levels
-  if (length(type) > 1) {
-    plt <- useOuterStrips(plt, strip = strip, strip.left = strip.left)
+  # colours
+  if (categorical) {
+    thePlot <-
+      thePlot +
+      ggplot2::scale_fill_manual(
+        values = openColours(
+          scheme = cols,
+          n = dplyr::n_distinct(levels(newdata$cuts))
+        ),
+        na.value = col.na,
+        breaks = levels(newdata$cuts),
+        drop = FALSE
+      ) +
+      ggplot2::guides(
+        fill = ggplot2::guide_legend(
+          reverse = key.position %in% c("left", "right"),
+          theme = ggplot2::theme(
+            legend.title.position = ifelse(
+              key.position %in% c("left", "right"),
+              "top",
+              key.position
+            ),
+            legend.text.position = key.position
+          ),
+          nrow = if (key.position %in% c("left", "right")) NULL else 1
+        )
+      )
+  } else {
+    thePlot <-
+      thePlot +
+      ggplot2::scale_fill_gradientn(
+        colours = openColours(cols),
+        na.value = col.na,
+        oob = scales::oob_squish,
+        limit = limits
+      ) +
+      ggplot2::guides(
+        fill = ggplot2::guide_colorbar(
+          theme = ggplot2::theme(
+            legend.title.position = ifelse(
+              key.position %in% c("left", "right"),
+              "top",
+              key.position
+            ),
+            legend.text.position = key.position
+          )
+        )
+      )
   }
 
-  # openair output
+  if (windflow$windflow) {
+    thePlot <- thePlot +
+      layer_windflow_opts(newdata, windflow)
+  }
+
   if (plot) {
-    plot(plt)
+    plot(thePlot)
   }
 
-  output <- list(plot = plt, data = dplyr::tibble(newdata), call = match.call())
+  output <- list(
+    plot = thePlot,
+    data = dplyr::tibble(newdata),
+    call = match.call()
+  )
   class(output) <- "openair"
   invisible(output)
+}
+
+num_convert <- function(x) {
+  y <- utils::type.convert(x, as.is = TRUE)
+  if (is.numeric(y) || is.integer(y)) {
+    return(y)
+  } else {
+    return(x)
+  }
 }

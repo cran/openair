@@ -1,3 +1,147 @@
+# openair 3.0.0
+
+## Dependency Changes
+
+- `openair` now depends on R v4.1 and, internally, uses the base R pipe (`|>`).
+
+- `openair` now imports `ggplot2` and `scales` and suggests `sf`, `geomtextpath`, `legendry` and `rnaturalearthdata`.
+
+- `openair` no longer imports `lattice`, `latticeExtra`, `hexbin` or `mapproj` nor suggests `mapdata` or `maps`.
+
+## Breaking Changes
+
+- All plotting functions are now written in `ggplot2`. `lattice` specific options and annotations will no longer work, but many can now be achieved using `ggplot2::theme()` and `ggplot2::annotate()`.
+
+- `trajPlot()`, `trajLevel()` and `trajCluster()` have had their three projection related arguments removed and replaced with a single `crs` argument, which defaults to lat/lng (`4326`).
+
+- As the above three functions no longer call `scatterPlot()`, `scatterPlot()` no longer has the `map` argument.
+
+- `drawOpenKey()` has been removed due to being `lattice`-specific.
+
+- `linearRelation()` and `calcFno2()` have been removed from `openair` due to using outdated methodology and assumptions.
+
+- `summaryPlot()` has been removed from `openair`. This function was very old and inconsistent with the rest of `openair`. It is planned to be replaced in the future with new summary functions.
+
+- `key.header` and `key.footer` have been replaced with a single `key.title`. This is due to `ggplot2` not supporting a separate "header" and "footer" for guides.
+
+- The `key` argument has been deprecated, as it now only exists to overwrite `key.position` when it is `FALSE`. Please use `key.position = "none"` going forward.
+
+- Argument names have been standardised throughout `openair`. For example, instances of `col` have been replaced with `cols`. This may cause some existing code to break, but will ensure each function behaves more similarly going into the future.
+
+## New Features
+
+- `timeVariation()` has been almost completely rewritten. It is now a thin wrapper around the new `variationPlot()`, which can take any arbitrary `x` value - passed to [cutData()] - to use for its x-axis. Furthermore, it has gained the following changes:
+
+    - Gained the `panels` argument. This allows for panels other than "hour.weekday", "hour", "month", and "weekday" to be represented in the plot assembly.
+
+    - When `key` is `FALSE`, no key is shown for any of the four `timeVariation()` plots. Previously, any value passed to `key` would cause all four plots to display a key.
+
+    - (!) BREAKING: The order of `xlab` and `ylim` now matches the order of `panels`. `month.last` has also been deprecated; if used and `TRUE`, this will override `panels` with a warning. The output names `output$data` will now vary based on `panels`, and the `type` column will be named `{type}_type` (e.g., "hour_type").
+
+    - (!) BREAKING: The names of the `plot` and `data` objects returned by `timeVariation()` are now named after `panels` and have a more consistent structure.
+
+- `timePlot()` refinements:
+    
+    - `group` can now take a character string, passed to [cutData()] via [timeAverage()]. This works similarly to `group` in `timeVariation()` in that it colours traces within the panel, rather than splitting them into multiple panels.
+    
+    - Gained the `x.relation` argument, allowing for different x ranges on different panels.
+
+- `smoothTrend()` refinements:
+
+    - Gained the `x.relation`, `date.format`, and `key.position` arguments, in line with `timePlot()`. 
+
+    - Gained the `progress` argument, passed to `timeAverage()`. 
+
+    - `avg.time` is also no longer restricted to just three options (any `timeAverage()` option is permitted), although too fine a time resolution may obscure the smooth trend for long running data.
+
+- `calendarPlot()` refinements:
+
+    - Gained the `type` argument. This can take one `type` and creates a 2D matrix using month & whatever the user has selected. `type = "year"` has special handling.
+
+    - Gained the `windflow` argument, which deprecates passing `"ws"` or `"wd"` to `annotate`.
+
+    - Gained the `percentile` argument, passed on to `timeAverage()`.
+    
+    - Gained the `show.year` argument, defaulting to `TRUE`. When `FALSE` and only one year of data is given, the strip titles will only read, e.g., "January" instead of "January-2000". This can create cleaner plots, as well as being useful for certain edge cases (e.g., if the calendarPlot is showing day-of-year averages over multiple years).
+    
+    - When `statistic == "min"` and `annotation %in% c("ws", "wd")`, the ws/wd returned will correspond to the minimum daily pollutant, rather than the minimum daily ws/wd.
+
+- `timeProp()` refinements:
+
+    - `proportion` is now treated more like `type` internally. For a user, this means it can now be passed `"default"` to avoid any conditioning and create a regular period average barchart.
+
+    - `sub` can now be defined via `...`; set `sub = NA` to remove the text annotation which appears by default at the bottom of a `timeProp()` plot.
+
+    - Gained the `key` argument to remove a legend.
+    
+    - `"season"` is now a permitted `avg.time` option in `timeProp()`, better aligning it with the options in `timeAverage()`.
+    
+    - `...` is now correctly passed to `cutData()` when using `type`/`proportion`.
+
+- `corPlot()` refinements:
+
+    - Added the `annotate` argument which can change the correlation annotation to a p-value marker or stars, or remove it entirely.
+
+    - Added two new arguments `triangle` and `diagonal` for controlling the plot appearance.
+    
+    - Added arguments `key` and `key.title` for adding and refining a plot legend.
+
+- `trendLevel()` refinements:
+
+    - (!) BREAKING: `type` now defaults to `"default"`, in line with other `openair` functions.
+    
+    - Added `windflow` and `min.bin` arguments, in line with similar functions.
+    
+    - Two `type` values are now supported.
+
+- `TaylorDiagram()` refinements:
+
+    - Added the `pos.cor` argument which controls whether the negative correlation quadrant is shown.
+
+- New function `WhittakerSmooth()` to do Whittaker-Eilers Smoothing. This is a fast and general smoothing technique, well-suited to a wide range of problems. The function can be used to flexibly smooth and interpolate missing data. Additionally, the function can flexibly define a baseline (and hence increment) for a time series.
+
+- New function `windflowOpts()` which can be passed to the `windflow` argument of various `openair` functions to thoroughly customise the "windflow" arrows.
+
+- All `openair` plotting functions have gained `strip.position` to control the placement of the facet strip.
+
+- `trajPlot()` and `trajLevel()` have gained the `grid.nx` and `grid.ny` arguments which can be used to control the number of ticks on the coordinate grid, or remove it altogether.
+
+- `cutData()` now contains the `drop` argument. This allows for greater control over factor levels for appended columns. For example, consider a situation in which `data` only contains dates in March and May and `type = "month"` is used:
+
+    - `drop = "empty"` will ensure the resulting vector only has factor levels `"March"` and `"May"`. 
+    
+    - `drop = "none"` will ensure the vector has all twelve months (January, February, March, etc.).
+    
+    - `drop = "outside"` will retain 'inclusive' factor levels within the range of the data - in this case `"March"`, `"April"`, and `"May"`.
+    
+    - `drop = "default"` is the existing `cutData()` behaviour - in the case of `type = "month"`, it is equivalent to `drop = "empty"`.
+
+- `cutData()` also gains the `"quarter"` and `"quarteryear"`/`"yearquarter"` `type` options. These split a year cleanly into quarters, as an alternative to `"season"` and `"seasonyear"`/`"yearseason"`. While seasons better align with meteorology, quarters more cleanly fit into a single calendar year and may better align with other relevant periods (e.g., reporting schedules, ratification calendars, economic activity, etc.).
+
+- `is.axis` now has an effect on `weekday`, `season`, `seasonyear` and `monthyear`.
+
+- `quickText()` now converts `air_temp` (a common `worldmet` variable) into `"temperature"`.
+
+- `timeAverage()` is much faster with the bulk of the calculations made using C++.
+
+- `runRegression()` is now much faster with a new algorithm.
+
+## Bug Fixes
+
+- `timePlot()` now allows duplicate dates when `time.avg` is used. The user will still receive a warning from `timeAverage()`, which is used internally, but the plot will still be created.
+
+- The `windflow` argument of `timePlot()` now works when `"ws"` and/or `"wd"` are in `pollutant`.
+
+- `importUKAQ()` now closes its `url()` connections and generally fails more gracefully when `data_type %in% c("annual", "monthly", "daqi")`. This was already the case for other data types.
+
+- `timeAverage()` will no longer leave `Uu` and `Vv` columns behind when `statistic = "data.cap"`.
+
+- `timeAverage()` now correctly passes `...` to `cutData()`.
+
+- `timeAverage()` now properly calculates wind speed and direction when `vector.ws = TRUE`.
+
+- `selectByDate()` now correctly handles the `end` date if supplied when in a date format (i.e., dd/mm/yyyy) and selects all hours in that day if present.
+
 # openair 2.19.0
 
 ## Deprecations
@@ -82,7 +226,7 @@
     
     - `openColours()` will now check whether the provided `scheme` is either a known scheme name *or* a vector of valid R colours, and provide an informative error if this is not the case.
 
-- `polarDiff()` has gained the `type` argument, and correctly responds to `main`, `key.footer` and `key.header` via the `...` options.
+- `polarDiff()` has gained the `type` argument, and correctly responds to `main` and `key.title` via the `...` options.
 
 - `trendLevel()` has gained new `statistic` types to match `timeAverage()`, including `"mean"`, `"median"`, `"min"`, `"max"`, `"sd"`, `"sum"`, `"frequency"` and `"percentile"`.
 

@@ -78,9 +78,6 @@ show some examples of using an \code{openair} object.
 # load package
 library(openair)
 
-# summarise data in a compact way
-summaryPlot(mydata)
-
 # traditional wind rose
 windRose(mydata)
 
@@ -92,15 +89,7 @@ polar_nox$call
 
 # get data
 polar_nox$data
-
-# could, e.g., re-plot in {ggplot2}
-library(ggplot2)
-ggplot(polar_nox$data, aes(u, v, fill = z)) +
-  geom_tile() +
-  coord_equal() +
-  scale_fill_gradientn(colours = openair::openColours(), na.value = NA)
 }
-
 }
 \references{
 Most reference details are given under the specific functions.

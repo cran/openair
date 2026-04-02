@@ -27,45 +27,46 @@ speed) and a pollutant. Should also contain \code{date} if plots by time period
 are required.}
 
 \item{pollutant}{Mandatory. A pollutant name corresponding to a variable in a
-data frame should be supplied e.g. \code{pollutant = "nox"}. Only one
-pollutant can be chosen.}
+data frame should be supplied e.g. \code{pollutant = "nox"}. Only one pollutant
+can be chosen.}
 
 \item{x}{Name of variable to plot against wind direction in polar
 coordinates, the default is wind speed, \dQuote{ws}.}
 
 \item{wd}{Name of wind direction field.}
 
-\item{n.clusters}{Number of clusters to use. If \code{n.clusters} is more
-than length 1, then a \code{lattice} panel plot will be output showing the
-clusters identified for each one of \code{n.clusters}.}
+\item{n.clusters}{Number of clusters to use. If \code{n.clusters} is more than
+length 1, then a faceted plot will be output showing the clusters
+identified for each one of \code{n.clusters}.}
 
 \item{after}{The function can be applied to differences between polar plot
-surfaces (see \link{polarDiff} for details). If an \code{after} data frame
-is supplied, the clustering will be carried out on the differences between
+surfaces (see \link{polarDiff} for details). If an \code{after} data frame is
+supplied, the clustering will be carried out on the differences between
 \code{after} and \code{mydata} in the same way as \link{polarDiff}.}
 
-\item{cols}{Colours to be used for plotting. Options include
-\dQuote{default}, \dQuote{increment}, \dQuote{heat}, \dQuote{jet} and
-\code{RColorBrewer} colours --- see the \code{openair} \code{openColours} function for
-more details. For user defined the user can supply a list of colour names
-recognised by R (type \code{colours()} to see the full list). An example would
-be \code{cols = c("yellow", "green", "blue")}. \code{cols} can also take the values
-\code{"viridis"}, \code{"magma"}, \code{"inferno"}, or \code{"plasma"} which are the viridis
-colour maps ported from Python's Matplotlib library.}
+\item{cols}{Colours to use for plotting. Can be a pre-set palette (e.g.,
+\code{"turbo"}, \code{"viridis"}, \code{"tol"}, \code{"Dark2"}, etc.) or a user-defined vector
+of R colours (e.g., \code{c("yellow", "green", "blue", "black")} - see
+\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). See \code{\link[=openColours]{openColours()}} for more details.}
 
-\item{angle.scale}{Sometimes the placement of the scale may interfere with an
-interesting feature. The user can therefore set \code{angle.scale} to any value
-between 0 and 360 degrees to mitigate such problems. For example
-\code{angle.scale = 45} will draw the scale heading in a NE direction.}
+\item{angle.scale}{In radial plots (e.g., \code{\link[=polarPlot]{polarPlot()}}), the radial scale is
+drawn directly on the plot itself. While suitable defaults have been
+chosen, sometimes the placement of the scale may interfere with an
+interesting feature. \code{angle.scale} can take any value between \code{0} and \code{360}
+to place the scale at a different angle, or \code{FALSE} to move it to the side
+of the plots.}
 
 \item{units}{The units shown on the polar axis scale.}
 
 \item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE} titles and
 axis labels will automatically try and format pollutant names and units
-properly e.g.  by subscripting the `2' in NO2.}
+properly, e.g., by subscripting the "2" in "NO2". Passed to \code{\link[=quickText]{quickText()}}.}
 
-\item{plot}{Should a plot be produced? \code{FALSE} can be useful when analysing
-data to extract plot components and plotting them in other ways.}
+\item{plot}{When \code{openair} plots are created they are automatically printed
+to the active graphics device. \code{plot = FALSE} deactivates this behaviour.
+This may be useful when the plot \emph{data} is of more interest, or the plot is
+required to appear later (e.g., later in a Quarto document, or to be saved
+to a file).}
 
 \item{plot.data}{By default, the \code{data} component of \code{polarCluster()}
 contains the original data frame appended with a new "cluster" column. When
@@ -77,22 +78,6 @@ plot in other ways.}
 \item{...}{
   Arguments passed on to \code{\link[=polarPlot]{polarPlot}}
   \describe{
-    \item{\code{type}}{\code{type} determines how the data are split i.e. conditioned, and
-then plotted. The default is will produce a single plot using the entire
-data. Type can be one of the built-in types as detailed in \code{cutData} e.g.
-\dQuote{season}, \dQuote{year}, \dQuote{weekday} and so on. For example,
-\code{type = "season"} will produce four plots --- one for each season.
-
-It is also possible to choose \code{type} as another variable in the data frame.
-If that variable is numeric, then the data will be split into four
-quantiles (if possible) and labelled accordingly. If type is an existing
-character or factor variable, then those categories/levels will be used
-directly. This offers great flexibility for understanding the variation of
-different variables and how they depend on one another.
-
-Type can be up length two e.g. \code{type = c("season", "weekday")} will produce
-a 2x2 plot split by season and day of the week. Note, when two types are
-provided the first forms the columns and the second the rows.}
     \item{\code{statistic}}{The statistic that should be applied to each wind
 speed/direction bin. Because of the smoothing involved, the colour scale
 for some of these statistics is only to provide an indication of overall
@@ -210,10 +195,6 @@ care. Also, the \code{polarFreq} function can be of use in such circumstances.}
     \item{\code{mis.col}}{When \code{min.bin} is > 1 it can be useful to show where data are
 removed on the plots. This is done by shading the missing data in
 \code{mis.col}. To not highlight missing data when \code{min.bin} > 1 choose \code{mis.col = "transparent"}.}
-    \item{\code{alpha}}{The alpha transparency to use for the plotting surface (a value
-between 0 and 1 with zero being fully transparent and 1 fully opaque).
-Setting a value below 1 can be useful when plotting surfaces on a map using
-the package \code{openairmaps}.}
     \item{\code{upper}}{This sets the upper limit wind speed to be used. Often there are
 only a relatively few data points at very high wind speeds and plotting all
 of them can reduce the useful information in the plot.}
@@ -244,16 +225,6 @@ mean value. This is done \emph{after} fitting the smooth surface. This option is
 particularly useful if one is interested in the patterns of concentrations
 for several pollutants on different scales e.g. NOx and CO. Often useful if
 more than one \code{pollutant} is chosen.}
-    \item{\code{key.header}}{Adds additional text/labels to the scale key. For example,
-passing the options \verb{key.header = "header", key.footer = "footer1"} adds
-addition text above and below the scale key. These arguments are passed to
-\code{drawOpenKey} via \code{quickText}, applying the \code{auto.text} argument, to handle
-formatting.}
-    \item{\code{key.footer}}{see \code{key.footer}.}
-    \item{\code{key.position}}{Location where the scale key is to plotted. Allowed
-arguments currently include \code{"top"}, \code{"right"}, \code{"bottom"} and \code{"left"}.}
-    \item{\code{key}}{Fine control of the scale key via \code{drawOpenKey}. See \code{drawOpenKey}
-for further details.}
     \item{\code{ws_spread}}{The value of sigma used for Gaussian kernel weighting of
 wind speed when \code{statistic = "nwr"} or when correlation and regression
 statistics are used such as \emph{r}. Default is \code{0.5}.}
@@ -272,31 +243,64 @@ printed when \code{statistic = "cpf"}.}
     \item{\code{tau}}{The quantile to be estimated when \code{statistic} is set to
 \code{"quantile.slope"}. Default is \code{0.5} which is equal to the median and will
 be ignored if \code{"quantile.slope"} is not used.}
+    \item{\code{type}}{Character string(s) defining how data should be split/conditioned
+before plotting. \code{"default"} produces a single panel using the entire
+dataset. Any other options will split the plot into different panels - a
+roughly square grid of panels if one \code{type} is given, or a 2D matrix of
+panels if two \code{types} are given. \code{type} is always passed to \code{\link[=cutData]{cutData()}},
+and can therefore be any of:
+\itemize{
+\item A built-in type defined in \code{\link[=cutData]{cutData()}} (e.g., \code{"season"}, \code{"year"},
+\code{"weekday"}, etc.). For example, \code{type = "season"} will split the plot into
+four panels, one for each season.
+\item The name of a numeric column in \code{mydata}, which will be split into
+\code{n.levels} quantiles (defaulting to 4).
+\item The name of a character or factor column in \code{mydata}, which will be used
+as-is. Commonly this could be a variable like \code{"site"} to ensure data from
+different monitoring sites are handled and presented separately. It could
+equally be any arbitrary column created by the user (e.g., whether a nearby
+possible pollutant source is active or not).
+}
+
+Most \code{openair} plotting functions can take two \code{type} arguments. If two are
+given, the first is used for the columns and the second for the rows.}
+    \item{\code{key.position}}{Location where the legend is to be placed. Allowed
+arguments include \code{"top"}, \code{"right"}, \code{"bottom"}, \code{"left"} and \code{"none"},
+the last of which removes the legend entirely.}
+    \item{\code{key.title}}{Used to set the title of the legend. The legend title is
+passed to \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.}
+    \item{\code{strip.position}}{Location where the facet 'strips' are located when
+using \code{type}. When one \code{type} is provided, can be one of \code{"left"},
+\code{"right"}, \code{"bottom"} or \code{"top"}. When two \code{type}s are provided, this
+argument defines whether the strips are "switched" and can take either
+\code{"x"}, \code{"y"}, or \code{"both"}. For example, \code{"x"} will switch the 'top' strip
+locations to the bottom of the plot.}
+    \item{\code{key}}{Deprecated; please use \code{key.position}. If \code{FALSE}, sets
+\code{key.position} to \code{"none"}.}
   }}
 }
 \value{
 an \link[=openair-package]{openair} object. The object includes four main
-components: \code{call}, the command used to generate the plot;
-\code{data}, by default the original data frame with a new field
-\code{cluster} identifying the cluster, \code{clust_stats} giving the
-contributions made by each cluster to number of measurements, their
-percentage and the percentage by pollutant; and \code{plot}, the plot
-itself. Note that any rows where the value of \code{pollutant} is \code{NA}
-are ignored so that the returned data frame may have fewer rows than the
-original.
+components: \code{call}, the command used to generate the plot; \code{data}, by
+default the original data frame with a new field \code{cluster} identifying the
+cluster, \code{clust_stats} giving the contributions made by each cluster to
+number of measurements, their percentage and the percentage by pollutant;
+and \code{plot}, the plot itself. Note that any rows where the value of
+\code{pollutant} is \code{NA} are ignored so that the returned data frame may have
+fewer rows than the original.
 
-If the clustering is carried out considering differences, i.e., an
-\code{after} data frame is supplied, the output also includes the
-\code{after} data frame with cluster identified.
+If the clustering is carried out considering differences, i.e., an \code{after}
+data frame is supplied, the output also includes the \code{after} data frame
+with cluster identified.
 }
 \description{
 Function for identifying clusters in bivariate polar plots (\code{\link[=polarPlot]{polarPlot()}});
 identifying clusters in the original data for subsequent processing.
 }
 \details{
-Bivariate polar plots generated using the \code{polarPlot} function provide a
-very useful graphical technique for identifying and characterising different
-air pollution sources. While bivariate polar plots provide a useful graphical
+Bivariate polar plots generated using the \code{polarPlot} function provide a very
+useful graphical technique for identifying and characterising different air
+pollution sources. While bivariate polar plots provide a useful graphical
 indication of potential sources, their location and wind-speed or other
 variable dependence, they do have several limitations. Often, a `feature'
 will be detected in a plot but the subsequent analysis of data meeting
@@ -305,19 +309,19 @@ of the investigator concerning the wind speed-direction intervals of
 interest. Furthermore, the identification of a feature can depend on the
 choice of the colour scale used, making the process somewhat arbitrary.
 
-\code{polarCluster} applies Partition Around Medoids (PAM) clustering
-techniques to \code{\link[=polarPlot]{polarPlot()}} surfaces to help identify potentially interesting
-features for further analysis. Details of PAM can be found in the
-\code{cluster} package (a core R package that will be pre-installed on all R
-systems). PAM clustering is similar to k-means but has several advantages
-e.g. is more robust to outliers. The clustering is based on the equal
-contribution assumed from the u and v wind components and the associated
-concentration. The data are standardized before clustering takes place.
+\code{polarCluster} applies Partition Around Medoids (PAM) clustering techniques
+to \code{\link[=polarPlot]{polarPlot()}} surfaces to help identify potentially interesting features
+for further analysis. Details of PAM can be found in the \code{cluster} package (a
+core R package that will be pre-installed on all R systems). PAM clustering
+is similar to k-means but has several advantages e.g. is more robust to
+outliers. The clustering is based on the equal contribution assumed from the
+u and v wind components and the associated concentration. The data are
+standardized before clustering takes place.
 
 The function works best by first trying different numbers of clusters and
-plotting them. This is achieved by setting \code{n.clusters} to be of length
-more than 1. For example, if \code{n.clusters = 2:10} then a plot will be
-output showing the 9 cluster levels 2 to 10.
+plotting them. This is achieved by setting \code{n.clusters} to be of length more
+than 1. For example, if \code{n.clusters = 2:10} then a plot will be output
+showing the 9 cluster levels 2 to 10.
 
 The clustering can also be applied to differences in polar plot surfaces (see
 \code{\link[=polarDiff]{polarDiff()}}). On this case a second data frame (\code{after}) should be
@@ -329,11 +333,10 @@ For this reason it can be a good idea to run a few clusters first to get a
 feel for it e.g. \code{n.clusters = 2:5}.
 
 Once the number of clusters has been decided, the user can then run
-\code{polarCluster} to return the original data frame together with a new
-column \code{cluster}, which gives the cluster number as a character (see
-example). Note that any rows where the value of \code{pollutant} is \code{NA}
-are ignored so that the returned data frame may have fewer rows than the
-original.
+\code{polarCluster} to return the original data frame together with a new column
+\code{cluster}, which gives the cluster number as a character (see example). Note
+that any rows where the value of \code{pollutant} is \code{NA} are ignored so that the
+returned data frame may have fewer rows than the original.
 
 Note that there are no automatic ways in ensuring the most appropriate number
 of clusters as this is application dependent. However, there is often
@@ -342,26 +345,26 @@ correspond to. Nevertheless, the appropriateness of different clusters is
 best determined by post-processing the data. The Carslaw and Beevers (2012)
 paper discusses these issues in more detail.
 
-Note that unlike most other \code{openair} functions only a single
-\code{type} \dQuote{default} is allowed.
+Note that unlike most other \code{openair} functions only a single \code{type}
+\dQuote{default} is allowed.
 }
 \examples{
 \dontrun{
-## plot 2-8 clusters. Warning! This can take several minutes...
+# plot 2-8 clusters. Warning! This can take several minutes...
 polarCluster(mydata, pollutant = "nox", n.clusters = 2:8)
 
 # basic plot with 6 clusters
 results <- polarCluster(mydata, pollutant = "nox", n.clusters = 6)
 
-## get results, could read into a new data frame to make it easier to refer to
-## e.g. results <- results$data...
+# get results, could read into a new data frame to make it easier to refer to
+# e.g. results <- results$data...
 head(results$data)
 
-## how many points are there in each cluster?
+# how many points are there in each cluster?
 table(results$data$cluster)
 
-## plot clusters 3 and 4 as a timeVariation plot using SAME colours as in
-## cluster plot
+# plot clusters 3 and 4 as a timeVariation plot using SAME colours as in
+# cluster plot
 timeVariation(subset(results$data, cluster \%in\% c("3", "4")),
   pollutant = "nox",
   group = "cluster", col = openColours("Paired", 6)[c(3, 4)]
