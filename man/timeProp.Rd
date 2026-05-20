@@ -12,12 +12,11 @@ timeProp(
   type = "default",
   cols = "Set1",
   normalise = FALSE,
-  x.relation = "same",
-  y.relation = "same",
+  ref.x = NULL,
+  ref.y = NULL,
   key.columns = 1,
   key.position = "right",
   key.title = proportion,
-  strip.position = "top",
   date.breaks = 7,
   date.format = NULL,
   auto.text = TRUE,
@@ -46,7 +45,7 @@ followed by a space. For example, an average of 2 months would be \code{avg.time
 3-month seasonal values are calculated with spring defined as March, April,
 May and so on.
 
-Note that \code{avg.time} when used in \code{timeProp} should be greater than the
+Note that \code{avg.time} when used in \code{\link[=timeProp]{timeProp()}} should be greater than the
 time gap in the original data. For example, \code{avg.time = "day"} for hourly
 data is OK, but \code{avg.time = "hour"} for daily data is not.}
 
@@ -75,16 +74,23 @@ given, the first is used for the columns and the second for the rows.}
 \item{cols}{Colours to use for plotting. Can be a pre-set palette (e.g.,
 \code{"turbo"}, \code{"viridis"}, \code{"tol"}, \code{"Dark2"}, etc.) or a user-defined vector
 of R colours (e.g., \code{c("yellow", "green", "blue", "black")} - see
-\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). See \code{\link[=openColours]{openColours()}} for more details.}
+\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). Alternatively, can be a list of arguments to control the
+colour palette more closely (e.g., \code{palette}, \code{direction}, \code{alpha}, etc.).
+See \code{\link[=openColours]{openColours()}} and \code{\link[=colourOpts]{colourOpts()}} for more details.}
 
 \item{normalise}{If \code{normalise = TRUE} then each time interval is scaled to
 100. This is helpful to show the relative (percentage) contribution of the
 proportions.}
 
-\item{x.relation, y.relation}{This determines how the x- and y-axis scales are
-plotted. \code{"same"} ensures all panels use the same scale and \code{"free"} will
-use panel-specific scales. The latter is a useful setting when plotting
-data with very different values.}
+\item{ref.x}{Either a single value or values representing the x axis
+intercepts to draw lines, or a list such as that provided by \code{\link[=refOpts]{refOpts()}} to
+customise the colour/width/type/etc. of each line. See \code{\link[=refOpts]{refOpts()}} for more
+details.}
+
+\item{ref.y}{Either a single value or values representing the y axis
+intercepts to draw lines, or a list such as that provided by \code{\link[=refOpts]{refOpts()}} to
+customise the colour/width/type/etc. of each line. See \code{\link[=refOpts]{refOpts()}} for more
+details.}
 
 \item{key.columns}{Number of columns to be used in a categorical legend. With
 many categories a single column can make to key too wide. The user can thus
@@ -97,13 +103,6 @@ the last of which removes the legend entirely.}
 
 \item{key.title}{Used to set the title of the legend. The legend title is
 passed to \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.}
-
-\item{strip.position}{Location where the facet 'strips' are located when
-using \code{type}. When one \code{type} is provided, can be one of \code{"left"},
-\code{"right"}, \code{"bottom"} or \code{"top"}. When two \code{type}s are provided, this
-argument defines whether the strips are "switched" and can take either
-\code{"x"}, \code{"y"}, or \code{"both"}. For example, \code{"x"} will switch the 'top' strip
-locations to the bottom of the plot.}
 
 \item{date.breaks}{Number of major x-axis intervals to use. The function will
 try and choose a sensible number of dates/times as well as formatting the
@@ -129,12 +128,36 @@ to a file).}
 \code{key.position} to \code{"none"}.}
 
 \item{...}{Addition options are passed on to \code{\link[=cutData]{cutData()}} for \code{type} handling.
-Some additional arguments are also available:
+Some additional arguments are also available, varying somewhat in different
+plotting functions:
 \itemize{
-\item \code{xlab}, \code{ylab} and \code{main} override the x-axis label, y-axis label, and plot title.
-\item \code{layout} sets the layout of facets - e.g., \code{layout(2, 5)} will have 2 columns and 5 rows.
-\item \code{fontsize} overrides the overall font size of the plot.
-\item \code{border} sets the border colour of each bar.
+\item \code{title}, \code{subtitle}, \code{caption}, \code{tag}, \code{xlab} and \code{ylab} control the plot
+title, subtitle, caption, tag, x-axis label and y-axis label, passed to
+\code{\link[ggplot2:labs]{ggplot2::labs()}} via \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.
+\item \code{xlim}, \code{ylim} and \code{limits} control the limits of the x-axis, y-axis and
+colorbar scales.
+\item \code{ncol} and \code{nrow} set the number of columns and rows in a faceted plot.
+\item \code{scales} can be \code{"fixed"}, \code{"free_x"}, \code{"free_y"} or \code{"free"} to control
+whether axes are shared across facets when using \code{type}. Also supported are
+the legacy \code{x.relation} and \code{y.relation}, which can be either \code{"same"} or
+\code{"free"} and get remapped to \code{scales} automatically.
+\item Similarly, \code{space}, \code{axes}, \code{axis.labels}, \code{switch} and \code{strip.position}
+can be used to customise the appearance of faceted plots. See
+\code{\link[ggplot2:facet_wrap]{ggplot2::facet_wrap()}} and \code{\link[ggplot2:facet_grid]{ggplot2::facet_grid()}} for the arguments these
+take.
+\item \code{fontsize} overrides the overall font size of the plot by setting the
+\code{text} argument of \code{\link[ggplot2:theme]{ggplot2::theme()}}. It may also be applied
+proportionately to any \code{openair} annotations (e.g., N/E/S/W labels on polar
+coordinate plots).
+\item Various graphical parameters are also supported: \code{linewidth},
+\code{linetype},\code{ shape}, \code{size}, \code{border}, and \code{alpha}. Not all parameters
+apply to all plots. These can take a single value, or a vector of multiple
+values - e.g., \code{shape = c(1, 2)} - which will be recycled to the length of
+values needed.
+\item \code{lineend}, \code{linejoin} and \code{linemitre} tweak the appearance of line
+plots; see \code{\link[ggplot2:geom_line]{ggplot2::geom_line()}} for more information.
+\item In polar coordinate plots, \code{annotate = FALSE} will remove the N/E/S/W
+labels and any other annotations.
 }}
 }
 \value{
@@ -163,16 +186,16 @@ made up for any time interval.
 timeProp(mydata, pollutant = "so2", avg.time = "month", proportion = "wd")
 }
 \seealso{
-Other time series and trend functions: 
-\code{\link{TheilSen}()},
-\code{\link{calendarPlot}()},
-\code{\link{smoothTrend}()},
-\code{\link{timePlot}()},
-\code{\link{timeVariation}()}
+Other time series and trend functions:
+\code{\link[=TheilSen]{TheilSen()}},
+\code{\link[=calendarPlot]{calendarPlot()}},
+\code{\link[=smoothTrend]{smoothTrend()}},
+\code{\link[=timePlot]{timePlot()}},
+\code{\link[=timeVariation]{timeVariation()}}
 
-Other cluster analysis functions: 
-\code{\link{polarCluster}()},
-\code{\link{trajCluster}()}
+Other cluster analysis functions:
+\code{\link[=polarCluster]{polarCluster()}},
+\code{\link[=trajCluster]{trajCluster()}}
 }
 \author{
 David Carslaw

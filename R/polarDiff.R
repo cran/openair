@@ -42,21 +42,22 @@ polarDiff <- function(
   before,
   after,
   pollutant = "nox",
-  type = "default",
   x = "ws",
+  wd = "wd",
+  type = "default",
   limits = NULL,
   auto.text = TRUE,
   plot = TRUE,
   ...
 ) {
   # extra args setup
-  Args <- list(...)
+  extra.args <- capture_dots(...)
 
   # variables needed, check for York regression where x and y error needed
-  vars <- if (all(c("x_error", "y_error") %in% names(Args))) {
-    c(x, "wd", pollutant, Args$x_error, Args$y_error)
+  vars <- if (all(c("x_error", "y_error") %in% names(extra.args))) {
+    c(x, wd, pollutant, extra.args$x_error, extra.args$y_error)
   } else {
-    c(x, "wd", pollutant)
+    c(x, wd, pollutant)
   }
 
   # collapse multi-pollutant name once, used throughout
@@ -89,6 +90,7 @@ polarDiff <- function(
           theData,
           pollutant = pollutant,
           x = x,
+          wd = wd,
           type = "period",
           plot = FALSE,
           ...
@@ -130,32 +132,22 @@ polarDiff <- function(
   # build final polarPlot args, merging defaults with user-supplied Args
   plot_args <- utils::modifyList(
     list(
-      cols = c(
-        "#002F70",
-        "#3167BB",
-        "#879FDB",
-        "#C8D2F1",
-        "#F6F6F6",
-        "#F4C8C8",
-        "#DA8A8B",
-        "#AE4647",
-        "#5F1415"
-      ),
-      key.position = "none",
+      cols = openColours("vik", n = 9),
+      key.position = "right",
       par.settings = list(axis.line = list(col = "black")),
       alpha = 1,
       key.title = paste("Difference", pollutant_name, sep = " "),
-      main = ""
+      title = ""
     ),
-    Args[intersect(
-      names(Args),
+    extra.args[intersect(
+      names(extra.args),
       c(
         "cols",
         "key.position",
         "par.settings",
         "alpha",
         "key.title",
-        "main"
+        "title"
       )
     )]
   )
@@ -173,6 +165,7 @@ polarDiff <- function(
         mydata = polar_data,
         pollutant = pollutant,
         x = x,
+        wd = "wd",
         limits = resolved_limits,
         force.positive = FALSE,
         plot = FALSE,

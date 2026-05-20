@@ -43,6 +43,9 @@
 #'   alternative to `pollutant`, and used preferentially to `pollutant` if both
 #'   are set.
 #'
+#' @param map.res The scale of the map to use. One of `110`, `50`, `10` or
+#'   `small`, `medium`, `large`. Passed to [rnaturalearth::ne_countries()].
+#'
 #' @param map.fill Should the base map be a filled polygon? Default is to fill
 #'   countries.
 #'
@@ -84,13 +87,6 @@
 #' @param origin If true a filled circle dot is shown to mark the receptor
 #'   point.
 #'
-#' @param ... Addition options are passed on to [cutData()] for `type` handling.
-#'   Some additional arguments are also available:
-#'    - `xlab`, `ylab` and `main` override the x-axis label, y-axis label, and plot title.
-#'    - `layout` sets the layout of facets - e.g., `layout(2, 5)` will have 2 columns and 5 rows.
-#'    - `fontsize` overrides the overall font size of the plot.
-#'    - `border` sets the border colour of each bar.
-#'
 #' @export
 #' @family trajectory analysis functions
 #' @author David Carslaw
@@ -123,8 +119,8 @@
 #'   cols = "turbo",
 #'   key.position = "right",
 #'   key.columns = 1,
-#'   lwd = 2,
-#'   cex = 4
+#'   linewidth = 2,
+#'   size = 4
 #' )
 #' }
 trajPlot <- function(
@@ -133,10 +129,11 @@ trajPlot <- function(
   lat = "lat",
   pollutant = NULL,
   type = "default",
-  map = TRUE,
   group = NULL,
   cols = "default",
   crs = 4326,
+  map = TRUE,
+  map.res = "medium",
   map.fill = TRUE,
   map.cols = "grey40",
   map.border = "black",
@@ -151,13 +148,17 @@ trajPlot <- function(
   key.title = group,
   key.position = "right",
   key.columns = 1,
-  strip.position = "top",
   auto.text = TRUE,
   plot = TRUE,
   key = NULL,
   ...
 ) {
-  rlang::check_installed(c("sf", "rnaturalearthdata"))
+  rlang::check_installed(c("sf", "rnaturalearth"))
+  if (!map.res %in% c(10, 50, 110, "small", "medium", "large")) {
+    cli::cli_abort(
+      "{.arg map.res} must be one of {10}/'large', {50}/'medium' or {110}/'small'."
+    )
+  }
 
   # check key.position
   key.position <- check_key_position(key.position, key)
@@ -229,16 +230,18 @@ trajPlot <- function(
   }
 
   # extra.args
-  extra.args <- list(...)
+  extra.args <- capture_dots(...)
 
-  # aspect, cex
+  # aspect, size
   extra.args$plot.type <- extra.args$plot.type %||% "l"
-  extra.args$cex <- extra.args$cex %||% 1
-  extra.args$lty <- extra.args$lty %||% 1
-  extra.args$lwd <- extra.args$lwd %||% 1
+  extra.args$size <- extra.args$size %||% 1
+  extra.args$linetype <- extra.args$linetype %||% 1
+  extra.args$linewidth <- extra.args$linewidth %||% 1
   extra.args$ylab <- extra.args$ylab %||% ""
   extra.args$xlab <- extra.args$xlab %||% ""
-  extra.args$main <- extra.args$main %||% NULL
+  extra.args$title <- extra.args$title %||% NULL
+  extra.args$subtitle <- extra.args$subtitle %||% NULL
+  extra.args$caption <- extra.args$caption %||% NULL
   extra.args$alpha <- extra.args$alpha %||% 1
 
   # convert traj data to simple features
@@ -286,19 +289,24 @@ trajPlot <- function(
 
   # base plot & themes
   thePlot <- ggplot2::ggplot() +
-    theme_openair_sf(key.position, grid.col = grid.col) +
-    set_extra_fontsize(extra.args) +
+    theme_openair_sf(
+      key.position,
+      extra.args = extra.args,
+      grid.col = grid.col
+    ) +
     get_facet(
       type,
       extra.args,
-      scales = "fixed",
       auto.text = auto.text,
-      strip.position = strip.position
+      wd.res = extra.args$wd.res %||% 8
     ) +
     ggplot2::labs(
       x = quickText(extra.args$xlab, auto.text),
       y = quickText(extra.args$ylab, auto.text),
-      title = quickText(extra.args$main, auto.text),
+      title = quickText(extra.args$title, auto.text),
+      subtitle = quickText(extra.args$subtitle, auto.text),
+      caption = quickText(extra.args$caption, auto.text),
+      tag = quickText(extra.args$tag, auto.text),
       colour = quickText(key.title, auto.text)
     )
 
@@ -308,6 +316,7 @@ trajPlot <- function(
       layer_worldmap(
         crs,
         n_maps = n_types,
+        map.res = map.res,
         map.fill = map.fill,
         map.cols = map.cols,
         map.border = map.border,
@@ -323,14 +332,14 @@ trajPlot <- function(
       ggplot2::geom_sf(
         data = sf_lines[sf_lines$date == i, ],
         ggplot2::aes(color = .data[[group]]),
-        linetype = extra.args$lty,
-        linewidth = extra.args$lwd / 1.5,
+        linetype = extra.args$linetype,
+        linewidth = extra.args$linewidth / 1.5,
         alpha = extra.args$alpha
       ) +
       ggplot2::geom_sf(
         data = sf_points[sf_points$date == i, ],
         ggplot2::aes(color = .data[[group]]),
-        size = extra.args$cex,
+        size = extra.args$size,
         alpha = extra.args$alpha
       )
   }
@@ -359,7 +368,7 @@ trajPlot <- function(
     thePlot <-
       thePlot +
       ggplot2::scale_color_manual(
-        values = openair::openColours(
+        values = resolve_colour_opts(
           ifelse(n_cols == 1, "grey20", cols),
           n = n_cols
         ),
@@ -396,7 +405,7 @@ trajPlot <- function(
     thePlot <-
       thePlot +
       ggplot2::scale_color_gradientn(
-        colours = openair::openColours(cols),
+        colours = resolve_colour_opts(cols, 100),
         oob = scales::oob_squish,
         label = if (lubridate::is.POSIXct(mydata[[group]])) {
           \(x) scales::label_date()(as.POSIXct(x))
@@ -454,6 +463,7 @@ trajPlot <- function(
 layer_worldmap <- function(
   crs,
   n_maps,
+  map.res,
   map.fill,
   map.cols,
   map.border,
@@ -461,11 +471,7 @@ layer_worldmap <- function(
   map.lwd,
   map.lty
 ) {
-  map_sf <- rnaturalearthdata::countries50 |>
-    sf::st_wrap_dateline(
-      options = c("WRAPDATELINE=YES", "DATELINEOFFSET=180"),
-      quiet = TRUE
-    ) |>
+  map_sf <- rnaturalearth::ne_countries(scale = map.res) |>
     sf::st_transform(crs = crs)
 
   if (!map.fill) {

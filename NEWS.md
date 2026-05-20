@@ -1,3 +1,133 @@
+# openair 3.1.0
+
+## Dependency Changes
+
+- `{openair}` now suggests `{rnaturalearth}` over `{rnaturalearthdata}`. `{rnaturalearthdata}` is still required for a medium map resolution and `{rnaturalearthhires}` for a high map resolution, but these are now managed by `{rnaturalearth}` directly.
+
+## Breaking Changes
+
+- `strip.position`, `x.relation`, and `y.relation` are now no longer function-level arguments and are handled via `...`. 
+
+- The `labels` argument (as paired with `breaks`) is deprecated. If passed through `...` it will be automatically mapped to its new place in the `breakOpts()` function.
+
+## New Features
+
+- Refinements to how parameters are passed via `...` to plotting functions:
+
+    - Graphical parameters are now defined using `ggplot2` conventions (e.g., `shape` over `pch`).
+    
+    - `base`/`lattice` paramters are automatically remapped to their `ggplot2` equivalent with a warning.
+    
+    - `nrow` and `ncol` can now be provided to control facet layout. As above, `layout` is automatically unpacked into `ncol` and `nrow` with a warning.
+    
+    - `scales` can now be provided to control facet scale restrictions. As above, `x.relation` and `y.relation` are automatically combined into `scales` with a warning.
+    
+    - `space`, `axes`, `axis.labels`, `strip.position` and `switch` are now passed to `ggplot2::facet_wrap()` or `ggplot2::facet_grid()`.
+
+    - `title`, `subtitle`, `tag`, and `caption` can be used throughout `openair` (`title` replacing `main` and `caption` replacing `sub`). All are passed through `quickText()` if `auto.text = TRUE`.
+    
+    - `lineend`, `linejoin` and `linemitre` tweak the appearance of line plots; see `ggplot2::geom_line()` for more information.
+
+- Additional interactions between `...` parameters and various plots:
+
+    - `timePlot()` now takes `shape` to add markers to the line chart. This can be a vector to vary with pollutant/group.
+    
+    - `timeProp()` now takes `linewidth` and `linetype` to control `border` style.
+    
+    - `TheilSen()` now takes `linewidth`, `linetype`, `shape` and `alpha`.
+    
+    - `smoothTrend()` now takes `linetype`, `linewidth`, `shape` and `size`. These can be vectors to vary based on pollutant. The linewidth of the data will always be half of that of the model.
+
+- Refinements to how `ref.x` and `ref.y` behave throughout `{openair}`:
+
+    - `ref.x` and `ref.y` can now take a vector rather than a list, which will just use those values as the x/y intercept with default graphical parameters.
+    
+    - `ref.x` and `ref.y` have been added to `timeProp()` and `TheilSen()`.
+    
+    - `ref.x` and `ref.y` can now take `{ggplot2}`-style parameters (`intercept`, `alpha`, `colour`, `linetype`, `linewidth`). The old parameter names (`h`/`v`, `cols`, `lty` and `lwd`) are automatically remapped so still work.
+    
+    - The non-intercept arguments passed to `ref.x` and `ref.y` (e.g., `alpha`) are now automatically recycled to the length of `intercept`, similar to how `...` parameters are recycled.
+
+    - Added `refOpts()` to help construct values for `ref.x` and `ref.y`, similar to `windflowOpts()`.
+
+- Refinements to how `breaks` are implemented in functions like `trendLevel()`:
+
+    - If `breaks` doesn't cover the full range of the data being binned, the maximum and minimum `breaks` will be overwritten so that it does.
+    
+    - If `breaks` is of length `1`, the colour range will be split into `breaks` categories, defaulting to using the same logic as running `cutData()` on a numeric column.
+    
+    - `breaks` can now take a named list, defined using the new `breakOpts()` function. Most significantly, this allows for the method of binning to change for single-value `breaks` (quantiles, equal range bins, user-defined bin widths, approximate 'pretty' breaks and wind direction binning at time of writing).
+    
+    - `polarPlot()`, `polarAnnulus()`, `corPlot()` and `trajLevel()` have gained `breaks`.
+    
+    - `labels` is no longer a top-level argument and can be defined by passing a list to `breaks`. `labels` given to `...` will be converted with a warning.
+
+- All functions which take `breaks` also now contain the `trans` argument to perform scale transforms on continuous colour scales. This can take `FALSE` (no scale transform), `TRUE` (an appropriate default transform - usually `"log10"`), or a `{scales}` transform object (or string shorthand).
+
+- Refinements to colours in `{openair}`:
+
+    - `openColours()` gains `direction`, `alpha`, `begin`, `end`, `lightness` and `saturation` for better control over colour palettes.
+    
+    - Added `colourOpts()`. Any `cols` argument in `{openair}` can now take the `colourOpts()` function, which tells each plotting function how to use the new `openColours()` arguments.
+    
+    - Added `openSchemes()` which returns a table of available colour palettes.
+
+    - New palettes:
+
+        - Completed the set of "viridis" palettes with `"rocket"` and `"mako"`.
+
+        - Added additional palettes by Paul Tol; `"tol.highcontrast"`, `"tol.vibrant"`, `"tol.mediumcontrast"`, `"tol.pale"` and `"tol.dark"`.
+    
+        - Added various palettes based on the work of Fabio Crameri - see `openColours()` for more details.
+
+    - Added `openColors()` and `colorOpts()` which are synonymous with their British English equivalents `openColours()` and `colourOpts()`.
+
+- New Kolmogorov-Zurbenko (KZ) Filter functions `kzFilter()` and `kzaFilter()`. These functions significantly enhance the capability of `{openair}` by allowing different time components to be separated and analysed separately. The `kzFilter()` function is considered a good default for a wide range of problems whereas the `kzaFilter()` function is the adaptive version that is well-suited to capturing abrupt changes, e.g., through an intervention. The range of uses of the filters will be covered in the `{openair}` book.
+
+- `TheilSen()` and `smoothTrend()` now use a more straightforward way to input missing data when `deseason = TRUE` and missing monthly data are present based on monthly linear regression by month. The user is alerted to the imputation and the monthly plot shows the imputed data as a filled grey circle.
+
+- `smoothTrend()` will now use `loess` when it has insufficient data to fit a GAM.
+
+- `cutData()` gains the `wd.res` argument, which can take one of `4`, `8`, or `16`, defaulting to `8`. `4` cuts the data into North, East, South and West. `16` cuts the data into N, NNE, NE, ENE, etc. All plotting function's `type` argument now responds to this, showing only four panels when `wd.res = 4` and a 5x5 grid of sixteen panels when `wd.res = 16`.
+
+- `trajPlot()` and `trajLevel()` regain the `map.res` argument. This is passed to `rnaturalearth::ne_countries()` so can take three different resolutions.
+
+- `polarPlot()` will now annotate the identity of the radial axis as a caption, if `annotate = TRUE`.
+
+- `ws` and/or `wd` have been added to `percentileRose()`, `polarAnnulus()`, `polarDiff()` and `polarFreq()` in line with `polarPlot()`.
+
+- `angle.scale` has been added to `polarFreq()` in line with all other polar coordinate plots.
+
+- The default `key.position` of `corPlot()` is now `"right"`.
+
+- `timePlot()` has gained the `key.title` argument.
+
+## Bug Fixes
+
+- `timeAverage()` now has a more robust approach to multi-period averaging time such as "3 day". Bin boundaries are at fixed periods of time, which should ensure consistency across data sets that start at different times. This also means there is less need to use the argument `start.date` unless there is a need to extend the start date of the data for some reason e.g. to the beginning of a year. THis change may result in slight differences in returned output but should not affect periods such as "day", "hour" and "month".
+
+- `calendarPlot()` will no longer duplicate `windflow` arrows when `type != "default"`.
+
+- `calendarPlot()` now supports `type = "wd"`.
+
+- Fix intercept calculation in `TheilSen()`. Updated the intercept formula from `median(y) - slope * median(x)` to `median(y - slope * x)`. This resolves a visual bug where trend lines (especially annual aggregations with negative slopes) appeared horizontally displaced due to inaccurate intercept estimates on sparse data. This fix affects the visual display of the trend lines but not the calculated slopes or uncertainties.
+
+- `quickText()` is once again tolerant of apostrophes.
+
+- `windflowOpts()` will no longer overwrite the default `range` of functions like `calendarPlot()` and `trendLevel()` if `range` is not supplied by the user.
+
+- `polarPlot()` will no longer produce a square-shaped surface when `exclude.missing = FALSE`.
+
+- `fontsize` is now correctly passed to `scatterPlot()`, `polarAnnulus()`, `variationPlot()`, and `timePlot()`.
+
+- Strings with line breaks (e.g., the result of `cutData(type="seasonyear"))`) will no longer error when used for facet labels.
+
+- `name.pol` will now correctly map onto the names of `pollutant`s in `timeVariation()`.
+
+- `windRose()` now respects `cols` when `ws2` and `wd2` are provided.
+
+- `xlim` is now correctly passed to the coordinates of `trajLevel()`.
+
 # openair 3.0.0
 
 ## Dependency Changes
@@ -30,7 +160,7 @@
 
 ## New Features
 
-- `timeVariation()` has been almost completely rewritten. It is now a thin wrapper around the new `variationPlot()`, which can take any arbitrary `x` value - passed to [cutData()] - to use for its x-axis. Furthermore, it has gained the following changes:
+- `timeVariation()` has been almost completely rewritten. It is now a thin wrapper around the new `variationPlot()`, which can take any arbitrary `x` value - passed to `cutData()` - to use for its x-axis. Furthermore, it has gained the following changes:
 
     - Gained the `panels` argument. This allows for panels other than "hour.weekday", "hour", "month", and "weekday" to be represented in the plot assembly.
 
@@ -42,7 +172,7 @@
 
 - `timePlot()` refinements:
     
-    - `group` can now take a character string, passed to [cutData()] via [timeAverage()]. This works similarly to `group` in `timeVariation()` in that it colours traces within the panel, rather than splitting them into multiple panels.
+    - `group` can now take a character string, passed to `cutData()` via `timeAverage()`. This works similarly to `group` in `timeVariation()` in that it colours traces within the panel, rather than splitting them into multiple panels.
     
     - Gained the `x.relation` argument, allowing for different x ranges on different panels.
 

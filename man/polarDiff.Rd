@@ -8,8 +8,9 @@ polarDiff(
   before,
   after,
   pollutant = "nox",
-  type = "default",
   x = "ws",
+  wd = "wd",
+  type = "default",
   limits = NULL,
   auto.text = TRUE,
   plot = TRUE,
@@ -33,6 +34,13 @@ regression techniques are to be plotted, \code{pollutant} takes two elements
 too. For example, \code{pollutant = c("bc", "pm25")} where \code{"bc"} is a function
 of \code{"pm25"}.}
 
+\item{x}{Name of variable to plot against wind direction in polar
+coordinates, the default is wind speed, \dQuote{ws}.}
+
+\item{wd}{The name of the column in \code{mydata} representing the decimal wind
+direction, 0 to 360 where 0/360 are North and 180 is South. Defaults to
+\code{"wd"}.}
+
 \item{type}{Character string(s) defining how data should be split/conditioned
 before plotting. \code{"default"} produces a single panel using the entire
 dataset. Any other options will split the plot into different panels - a
@@ -55,14 +63,12 @@ possible pollutant source is active or not).
 Most \code{openair} plotting functions can take two \code{type} arguments. If two are
 given, the first is used for the columns and the second for the rows.}
 
-\item{x}{Name of variable to plot against wind direction in polar
-coordinates, the default is wind speed, \dQuote{ws}.}
-
-\item{limits}{The function does its best to choose sensible limits
-automatically. However, there are circumstances when the user will wish to
-set different ones. An example would be a series of plots showing each year
-of data separately. The limits are set in the form \code{c(lower, upper)}, so
-\code{limits = c(0, 100)} would force the plot limits to span 0-100.}
+\item{limits}{The limits of the colour scale, in the form \code{c(lower, upper)}.
+For example, \code{limits = c(0, 100)} will set the colour scale to be between
+\code{0} and \code{100}. Values greater than \code{100} will be coloured as if they were
+\code{100}, and those lower than \code{0} will be coloured as if they were \code{0}.
+\code{limits} can be wider than the range of the data, which can be useful for
+ensuring multiple plots share the same colour scale.}
 
 \item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE} titles and
 axis labels will automatically try and format pollutant names and units
@@ -75,9 +81,8 @@ required to appear later (e.g., later in a Quarto document, or to be saved
 to a file).}
 
 \item{...}{
-  Arguments passed on to \code{\link[=polarPlot]{polarPlot}}
+  Arguments passed on to \code{\link{polarPlot}}
   \describe{
-    \item{\code{wd}}{Name of wind direction field.}
     \item{\code{statistic}}{The statistic that should be applied to each wind
 speed/direction bin. Because of the smoothing involved, the colour scale
 for some of these statistics is only to provide an indication of overall
@@ -187,9 +192,9 @@ records in each bin an so on; bins with less than 2 valid records are set
 to NA. Care should be taken when using a value > 1 because of the risk of
 removing real data points. It is recommended to consider your data with
 care. Also, the \code{polarFreq} function can be of use in such circumstances.}
-    \item{\code{mis.col}}{When \code{min.bin} is > 1 it can be useful to show where data are
-removed on the plots. This is done by shading the missing data in
-\code{mis.col}. To not highlight missing data when \code{min.bin} > 1 choose \code{mis.col = "transparent"}.}
+    \item{\code{col.na}}{When \code{min.bin} is > 1 it can be useful to show where data are
+removed on the plots. This is done by shading the missing data in \code{col.na}.
+To not highlight missing data when \code{min.bin} > 1 choose \code{col.na = "transparent"}.}
     \item{\code{upper}}{This sets the upper limit wind speed to be used. Often there are
 only a relatively few data points at very high wind speeds and plotting all
 of them can reduce the useful information in the plot.}
@@ -242,24 +247,38 @@ be ignored if \code{"quantile.slope"} is not used.}
     \item{\code{cols}}{Colours to use for plotting. Can be a pre-set palette (e.g.,
 \code{"turbo"}, \code{"viridis"}, \code{"tol"}, \code{"Dark2"}, etc.) or a user-defined vector
 of R colours (e.g., \code{c("yellow", "green", "blue", "black")} - see
-\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). See \code{\link[=openColours]{openColours()}} for more details.}
+\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). Alternatively, can be a list of arguments to control the
+colour palette more closely (e.g., \code{palette}, \code{direction}, \code{alpha}, etc.).
+See \code{\link[=openColours]{openColours()}} and \code{\link[=colourOpts]{colourOpts()}} for more details.}
+    \item{\code{breaks}}{\code{breaks} bins a continuous axis into discrete bins. It can
+either take a single number (e.g., \code{breaks = 5}) to split the scale into
+quantiles, a vector of numbers (e.g., \verb{breaks = c(0, 50, 100, 200, 500}) to
+define specific break-points, or a named list. See \code{\link[=breakOpts]{breakOpts()}} for more
+details.}
     \item{\code{angle.scale}}{In radial plots (e.g., \code{\link[=polarPlot]{polarPlot()}}), the radial scale is
 drawn directly on the plot itself. While suitable defaults have been
 chosen, sometimes the placement of the scale may interfere with an
 interesting feature. \code{angle.scale} can take any value between \code{0} and \code{360}
 to place the scale at a different angle, or \code{FALSE} to move it to the side
 of the plots.}
+    \item{\code{trans}}{Should a transformation be applied to the colour scale? If the
+distribution of data is skewed, the default scale may be dominated by a few
+high values, so a log or square-root transform may mean the whole colour
+scale is better presented on the plot. Can be:
+\itemize{
+\item \code{FALSE}, which performs no transform.
+\item \code{TRUE}, which uses an appropriate transform for the plot type (usually
+\code{"log10"}).
+\item A \code{scales} 'transform' object (e.g., \code{\link[scales:transform_log10]{scales::transform_log10()}}).
+\item A character string corresponding to a \code{scales} transform function. Useful
+options include \code{"sqrt"}, \code{"log10"}, \code{"log2"}, \code{"log1p"}, \code{"pseudo_log"}
+and \code{"reverse"}.
+}}
     \item{\code{key.position}}{Location where the legend is to be placed. Allowed
 arguments include \code{"top"}, \code{"right"}, \code{"bottom"}, \code{"left"} and \code{"none"},
 the last of which removes the legend entirely.}
     \item{\code{key.title}}{Used to set the title of the legend. The legend title is
 passed to \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.}
-    \item{\code{strip.position}}{Location where the facet 'strips' are located when
-using \code{type}. When one \code{type} is provided, can be one of \code{"left"},
-\code{"right"}, \code{"bottom"} or \code{"top"}. When two \code{type}s are provided, this
-argument defines whether the strips are "switched" and can take either
-\code{"x"}, \code{"y"}, or \code{"both"}. For example, \code{"x"} will switch the 'top' strip
-locations to the bottom of the plot.}
     \item{\code{key}}{Deprecated; please use \code{key.position}. If \code{FALSE}, sets
 \code{key.position} to \code{"none"}.}
   }}
@@ -301,13 +320,13 @@ polarDiff(
 }
 }
 \seealso{
-Other polar directional analysis functions: 
-\code{\link{percentileRose}()},
-\code{\link{polarAnnulus}()},
-\code{\link{polarCluster}()},
-\code{\link{polarFreq}()},
-\code{\link{polarPlot}()},
-\code{\link{pollutionRose}()},
-\code{\link{windRose}()}
+Other polar directional analysis functions:
+\code{\link[=percentileRose]{percentileRose()}},
+\code{\link[=polarAnnulus]{polarAnnulus()}},
+\code{\link[=polarCluster]{polarCluster()}},
+\code{\link[=polarFreq]{polarFreq()}},
+\code{\link[=polarPlot]{polarPlot()}},
+\code{\link[=pollutionRose]{pollutionRose()}},
+\code{\link[=windRose]{windRose()}}
 }
 \concept{polar directional analysis functions}

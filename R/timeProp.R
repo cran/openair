@@ -39,20 +39,13 @@
 #'   3-month seasonal values are calculated with spring defined as March, April,
 #'   May and so on.
 #'
-#'   Note that `avg.time` when used in `timeProp` should be greater than the
+#'   Note that `avg.time` when used in [timeProp()] should be greater than the
 #'   time gap in the original data. For example, `avg.time = "day"` for hourly
 #'   data is OK, but `avg.time = "hour"` for daily data is not.
 #'
 #' @param normalise If `normalise = TRUE` then each time interval is scaled to
 #'   100. This is helpful to show the relative (percentage) contribution of the
 #'   proportions.
-#'
-#' @param ... Addition options are passed on to [cutData()] for `type` handling.
-#'   Some additional arguments are also available:
-#'   - `xlab`, `ylab` and `main` override the x-axis label, y-axis label, and plot title.
-#'   - `layout` sets the layout of facets - e.g., `layout(2, 5)` will have 2 columns and 5 rows.
-#'   - `fontsize` overrides the overall font size of the plot.
-#'   - `border` sets the border colour of each bar.
 #'
 #' @export
 #' @return an [openair][openair-package] object
@@ -71,12 +64,11 @@ timeProp <- function(
   type = "default",
   cols = "Set1",
   normalise = FALSE,
-  x.relation = "same",
-  y.relation = "same",
+  ref.x = NULL,
+  ref.y = NULL,
   key.columns = 1,
   key.position = "right",
   key.title = proportion,
-  strip.position = "top",
   date.breaks = 7,
   date.format = NULL,
   auto.text = TRUE,
@@ -85,17 +77,22 @@ timeProp <- function(
   ...
 ) {
   # extra.args setup
-  extra.args <- list(...)
+  extra.args <- capture_dots(...)
 
   # label controls
-  main <- quickText(extra.args$main %||% "", auto.text)
-  xlab <- quickText(extra.args$xlab %||% "date", auto.text)
-  ylab <- quickText(
+  extra.args$title <- quickText(extra.args$title %||% "", auto.text)
+  extra.args$subtitle <- quickText(
+    extra.args$subtitle %||% "contribution weighted by mean",
+    auto.text
+  )
+  extra.args$caption <- quickText(extra.args$caption %||% "", auto.text)
+  extra.args$tag <- quickText(extra.args$tag, auto.text)
+  extra.args$xlab <- quickText(extra.args$xlab %||% "date", auto.text)
+  extra.args$ylab <- quickText(
     extra.args$ylab %||%
       ifelse(normalise, paste("% contribution to", pollutant), pollutant),
     auto.text
   )
-  sub <- extra.args$sub %||% "contribution weighted by mean"
 
   # variables needed
   vars <- c("date", pollutant)
@@ -195,8 +192,10 @@ timeProp <- function(
 
   # x-axis scale function
   if (lubridate::is.Date(results$xleft)) {
+    x_type <- "date"
     x_scale_fun <- ggplot2::scale_x_date
   } else {
+    x_type <- "datetime"
     x_scale_fun <- ggplot2::scale_x_datetime
   }
 
@@ -214,10 +213,26 @@ timeProp <- function(
     ) +
     ggplot2::geom_rect(
       show.legend = TRUE,
-      colour = extra.args$border %||% "transparent"
+      colour = extra.args$border[1] %||% "transparent",
+      linewidth = extra.args$linewidth[1] %||% 0.25,
+      linetype = extra.args$linetype[1] %||% 1
+    ) +
+    layer_ref(
+      ref = ref.x,
+      which = "x",
+      type = x_type,
+      tz = lubridate::tz(results$xleft)
+    ) +
+    layer_ref(
+      ref = ref.y,
+      which = "y",
+      type = "numeric"
     ) +
     ggplot2::scale_fill_manual(
-      values = openColours(cols, dplyr::n_distinct(results[[proportion]])),
+      values = resolve_colour_opts(
+        cols,
+        dplyr::n_distinct(results[[proportion]])
+      ),
       breaks = levels(results[[proportion]]),
       labels = \(x) label_openair(x, auto_text = auto.text),
       drop = FALSE
@@ -255,21 +270,21 @@ timeProp <- function(
       expand = ggplot2::expansion(if (normalise) c(0, 0) else c(0, 0.1))
     ) +
     ggplot2::labs(
-      x = xlab,
-      y = ylab,
-      title = main,
-      caption = sub,
+      x = extra.args$xlab,
+      y = extra.args$ylab,
+      title = extra.args$title,
+      subtitle = extra.args$subtitle,
+      caption = extra.args$caption,
+      tag = extra.args$tag,
       fill = quickText(key.title, auto.text = auto.text)
     ) +
-    theme_openair(key.position) +
-    set_extra_fontsize(extra.args) +
+    theme_openair(key.position, extra.args = extra.args) +
     get_facet(
       type,
       extra.args,
-      scales = relation_to_facet_scales(x.relation, y.relation),
       auto.text,
       drop = TRUE,
-      strip.position = strip.position
+      wd.res = extra.args$wd.res %||% 8
     )
 
   # make key full width/height

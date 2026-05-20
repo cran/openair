@@ -23,13 +23,11 @@ timePlot(
   smooth = FALSE,
   smooth_k = NULL,
   ci = TRUE,
-  x.relation = "same",
-  y.relation = "same",
   ref.x = NULL,
   ref.y = NULL,
   key.columns = NULL,
   key.position = "bottom",
-  strip.position = "top",
+  key.title = NULL,
   name.pol = pollutant,
   date.breaks = 7,
   date.format = NULL,
@@ -84,6 +82,25 @@ followed by a space. For example, an average of 2 months would be
 \code{avg.time = "2 month"}. In addition, \code{avg.time} can equal \code{"season"}, in
 which case 3-month seasonal values are calculated with spring defined as
 March, April, May and so on.
+
+\strong{Period boundary behaviour:} how bin boundaries are determined depends on
+the type of period:
+\itemize{
+\item \emph{Single-unit periods} (\code{"hour"}, \code{"day"}, \code{"week"}, etc.) are floored to
+the start of the enclosing unit in the data's timezone (e.g. \code{"day"}
+floors to midnight).
+\item \emph{Multi-unit fixed-length periods} (\code{"3 day"}, \code{"6 hour"}, \code{"2 week"},
+etc.) use epoch-aligned arithmetic: bin boundaries are fixed multiples of
+the period length counted from 1970-01-01, so the same calendar dates
+always fall in the same bin regardless of where the data starts, and bins
+run continuously across month boundaries without resetting at the start of
+each month. For example, with \code{avg.time = "3 day"} a bin that begins on
+29 January will end on 31 January, and the next bin begins on 1 February
+— the month boundary does not start a new bin.
+\item \emph{Calendar periods} (\code{"month"}, \code{"quarter"}, \code{"year"}) are floored to the
+start of the enclosing calendar unit, so they correctly respect variable
+month and year lengths.
+}
 
 Note that \code{avg.time} can be \emph{less} than the time interval of the original
 series, in which case the series is expanded to the new time interval. This
@@ -146,7 +163,9 @@ given, the first is used for the columns and the second for the rows.}
 \item{cols}{Colours to use for plotting. Can be a pre-set palette (e.g.,
 \code{"turbo"}, \code{"viridis"}, \code{"tol"}, \code{"Dark2"}, etc.) or a user-defined vector
 of R colours (e.g., \code{c("yellow", "green", "blue", "black")} - see
-\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). See \code{\link[=openColours]{openColours()}} for more details.}
+\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). Alternatively, can be a list of arguments to control the
+colour palette more closely (e.g., \code{palette}, \code{direction}, \code{alpha}, etc.).
+See \code{\link[=openColours]{openColours()}} and \code{\link[=colourOpts]{colourOpts()}} for more details.}
 
 \item{log}{Should the y-axis appear on a log scale? The default is \code{FALSE}.
 If \code{TRUE} a well-formatted log10 scale is used. This can be useful for
@@ -172,17 +191,15 @@ avoid over-fitting.}
 \item{ci}{If a smooth fit line is applied, then \code{ci} determines whether the
 95 percent confidence intervals are shown.}
 
-\item{x.relation, y.relation}{This determines how the x- and y-axis scales are
-plotted. \code{"same"} ensures all panels use the same scale and \code{"free"} will
-use panel-specific scales. The latter is a useful setting when plotting
-data with very different values.}
+\item{ref.x}{Either a single value or values representing the x axis
+intercepts to draw lines, or a list such as that provided by \code{\link[=refOpts]{refOpts()}} to
+customise the colour/width/type/etc. of each line. See \code{\link[=refOpts]{refOpts()}} for more
+details.}
 
-\item{ref.x}{See \code{ref.y} for details. In this case the correct date format
-should be used for a vertical line e.g. \code{ref.x = list(v = as.POSIXct("2000-06-15"), lty = 5)}.}
-
-\item{ref.y}{A list with details of the horizontal lines to be added
-representing reference line(s). For example, \code{ref.y = list(h = 50, lty = 5)} will add a dashed horizontal line at 50. Several lines can be plotted
-e.g. \code{ref.y = list(h = c(50, 100), lty = c(1, 5), col = c("green", "blue"))}.}
+\item{ref.y}{Either a single value or values representing the y axis
+intercepts to draw lines, or a list such as that provided by \code{\link[=refOpts]{refOpts()}} to
+customise the colour/width/type/etc. of each line. See \code{\link[=refOpts]{refOpts()}} for more
+details.}
 
 \item{key.columns}{Number of columns to be used in a categorical legend. With
 many categories a single column can make to key too wide. The user can thus
@@ -193,12 +210,8 @@ number of categories.}
 arguments include \code{"top"}, \code{"right"}, \code{"bottom"}, \code{"left"} and \code{"none"},
 the last of which removes the legend entirely.}
 
-\item{strip.position}{Location where the facet 'strips' are located when
-using \code{type}. When one \code{type} is provided, can be one of \code{"left"},
-\code{"right"}, \code{"bottom"} or \code{"top"}. When two \code{type}s are provided, this
-argument defines whether the strips are "switched" and can take either
-\code{"x"}, \code{"y"}, or \code{"both"}. For example, \code{"x"} will switch the 'top' strip
-locations to the bottom of the plot.}
+\item{key.title}{Used to set the title of the legend. The legend title is
+passed to \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.}
 
 \item{name.pol}{This option can be used to give alternative names for the
 variables plotted. Instead of taking the column headings as names, the user
@@ -230,14 +243,36 @@ to a file).}
 \code{key.position} to \code{"none"}.}
 
 \item{...}{Addition options are passed on to \code{\link[=cutData]{cutData()}} for \code{type} handling.
-Some additional arguments are also available:
+Some additional arguments are also available, varying somewhat in different
+plotting functions:
 \itemize{
-\item \code{xlab}, \code{ylab} and \code{main} override the x-axis label, y-axis label, and plot title.
-\item \code{layout} sets the layout of facets - e.g., \code{layout(2, 5)} will have 2 columns and 5 rows.
-\item \code{lwd}, \code{lty}, and \code{pch} control various graphical parameters.
-\item \code{fontsize} overrides the overall font size of the plot.
-\item \code{border} sets the border colour of each tile.
-\item \code{ylim} and \code{xlim} control axis limits.
+\item \code{title}, \code{subtitle}, \code{caption}, \code{tag}, \code{xlab} and \code{ylab} control the plot
+title, subtitle, caption, tag, x-axis label and y-axis label, passed to
+\code{\link[ggplot2:labs]{ggplot2::labs()}} via \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.
+\item \code{xlim}, \code{ylim} and \code{limits} control the limits of the x-axis, y-axis and
+colorbar scales.
+\item \code{ncol} and \code{nrow} set the number of columns and rows in a faceted plot.
+\item \code{scales} can be \code{"fixed"}, \code{"free_x"}, \code{"free_y"} or \code{"free"} to control
+whether axes are shared across facets when using \code{type}. Also supported are
+the legacy \code{x.relation} and \code{y.relation}, which can be either \code{"same"} or
+\code{"free"} and get remapped to \code{scales} automatically.
+\item Similarly, \code{space}, \code{axes}, \code{axis.labels}, \code{switch} and \code{strip.position}
+can be used to customise the appearance of faceted plots. See
+\code{\link[ggplot2:facet_wrap]{ggplot2::facet_wrap()}} and \code{\link[ggplot2:facet_grid]{ggplot2::facet_grid()}} for the arguments these
+take.
+\item \code{fontsize} overrides the overall font size of the plot by setting the
+\code{text} argument of \code{\link[ggplot2:theme]{ggplot2::theme()}}. It may also be applied
+proportionately to any \code{openair} annotations (e.g., N/E/S/W labels on polar
+coordinate plots).
+\item Various graphical parameters are also supported: \code{linewidth},
+\code{linetype},\code{ shape}, \code{size}, \code{border}, and \code{alpha}. Not all parameters
+apply to all plots. These can take a single value, or a vector of multiple
+values - e.g., \code{shape = c(1, 2)} - which will be recycled to the length of
+values needed.
+\item \code{lineend}, \code{linejoin} and \code{linemitre} tweak the appearance of line
+plots; see \code{\link[ggplot2:geom_line]{ggplot2::geom_line()}} for more information.
+\item In polar coordinate plots, \code{annotate = FALSE} will remove the N/E/S/W
+labels and any other annotations.
 }}
 }
 \value{
@@ -292,8 +327,8 @@ timePlot(
   group = TRUE,
   avg.time = "year",
   normalise = "1/1/1998",
-  lwd = 3,
-  lty = 1
+  linewidth = 3,
+  linetype = 1
 )
 
 # examples of selecting by date
@@ -308,13 +343,13 @@ timePlot(
 )
 
 # choose different line styles etc
-timePlot(mydata, pollutant = c("nox", "no2"), lty = 1)
+timePlot(mydata, pollutant = c("nox", "no2"), linetype = 1)
 
 # choose different line styles etc
 timePlot(
   selectByDate(mydata, year = 2004, month = 6),
   pollutant = c("nox", "no2"),
-  lwd = c(1, 2),
+  linewidth = c(1, 2),
   col = "black"
 )
 
@@ -332,12 +367,12 @@ timePlot(mydata, pollutant = "o3", avg.time = "2 week")
 
 }
 \seealso{
-Other time series and trend functions: 
-\code{\link{TheilSen}()},
-\code{\link{calendarPlot}()},
-\code{\link{smoothTrend}()},
-\code{\link{timeProp}()},
-\code{\link{timeVariation}()}
+Other time series and trend functions:
+\code{\link[=TheilSen]{TheilSen()}},
+\code{\link[=calendarPlot]{calendarPlot()}},
+\code{\link[=smoothTrend]{smoothTrend()}},
+\code{\link[=timeProp]{timeProp()}},
+\code{\link[=timeVariation]{timeVariation()}}
 }
 \author{
 David Carslaw

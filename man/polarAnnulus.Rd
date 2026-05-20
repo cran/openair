@@ -7,6 +7,7 @@
 polarAnnulus(
   mydata,
   pollutant = "nox",
+  wd = "wd",
   resolution = "fine",
   local.tz = NULL,
   period = "hour",
@@ -14,8 +15,10 @@ polarAnnulus(
   statistic = "mean",
   percentile = NA,
   limits = NULL,
+  breaks = NULL,
+  trans = FALSE,
   cols = "default",
-  col.na = "white",
+  col.na = "grey",
   offset = 50,
   angle.scale = 0,
   min.bin = 1,
@@ -24,7 +27,6 @@ polarAnnulus(
   force.positive = TRUE,
   k = c(20, 10),
   normalise = FALSE,
-  strip.position = "top",
   key.title = paste(statistic, pollutant, sep = " "),
   key.position = "right",
   auto.text = TRUE,
@@ -34,8 +36,8 @@ polarAnnulus(
 )
 }
 \arguments{
-\item{mydata}{A data frame minimally containing \code{date}, \code{wd} and a
-pollutant.}
+\item{mydata}{A data frame minimally containing \code{date}, a wind direction and
+a pollutant.}
 
 \item{pollutant}{Mandatory. A pollutant name corresponding to a variable in a
 data frame should be supplied e.g. \code{pollutant = "nox"}. There can also be
@@ -46,6 +48,10 @@ user stacking the data and it is possible to work with columns of data
 directly. A typical use would be \code{pollutant = c("obs", "mod")} to compare
 two columns \dQuote{obs} (the observations) and \dQuote{mod} (modelled
 values).}
+
+\item{wd}{The name of the column in \code{mydata} representing the decimal wind
+direction, 0 to 360 where 0/360 are North and 180 is South. Defaults to
+\code{"wd"}.}
 
 \item{resolution}{Two plot resolutions can be set: \dQuote{normal} and
 \dQuote{fine} (the default).}
@@ -111,16 +117,39 @@ this reason it can also be useful to set \code{min.bin} to ensure there are a
 sufficient number of points available to estimate a percentile. See
 \code{quantile} for more details of how percentiles are calculated.}
 
-\item{limits}{The function does its best to choose sensible limits
-automatically. However, there are circumstances when the user will wish to
-set different ones. An example would be a series of plots showing each year
-of data separately. The limits are set in the form \code{c(lower, upper)}, so
-\code{limits = c(0, 100)} would force the plot limits to span 0-100.}
+\item{limits}{The limits of the colour scale, in the form \code{c(lower, upper)}.
+For example, \code{limits = c(0, 100)} will set the colour scale to be between
+\code{0} and \code{100}. Values greater than \code{100} will be coloured as if they were
+\code{100}, and those lower than \code{0} will be coloured as if they were \code{0}.
+\code{limits} can be wider than the range of the data, which can be useful for
+ensuring multiple plots share the same colour scale.}
+
+\item{breaks}{\code{breaks} bins a continuous axis into discrete bins. It can
+either take a single number (e.g., \code{breaks = 5}) to split the scale into
+quantiles, a vector of numbers (e.g., \verb{breaks = c(0, 50, 100, 200, 500}) to
+define specific break-points, or a named list. See \code{\link[=breakOpts]{breakOpts()}} for more
+details.}
+
+\item{trans}{Should a transformation be applied to the colour scale? If the
+distribution of data is skewed, the default scale may be dominated by a few
+high values, so a log or square-root transform may mean the whole colour
+scale is better presented on the plot. Can be:
+\itemize{
+\item \code{FALSE}, which performs no transform.
+\item \code{TRUE}, which uses an appropriate transform for the plot type (usually
+\code{"log10"}).
+\item A \code{scales} 'transform' object (e.g., \code{\link[scales:transform_log10]{scales::transform_log10()}}).
+\item A character string corresponding to a \code{scales} transform function. Useful
+options include \code{"sqrt"}, \code{"log10"}, \code{"log2"}, \code{"log1p"}, \code{"pseudo_log"}
+and \code{"reverse"}.
+}}
 
 \item{cols}{Colours to use for plotting. Can be a pre-set palette (e.g.,
 \code{"turbo"}, \code{"viridis"}, \code{"tol"}, \code{"Dark2"}, etc.) or a user-defined vector
 of R colours (e.g., \code{c("yellow", "green", "blue", "black")} - see
-\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). See \code{\link[=openColours]{openColours()}} for more details.}
+\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). Alternatively, can be a list of arguments to control the
+colour palette more closely (e.g., \code{palette}, \code{direction}, \code{alpha}, etc.).
+See \code{\link[=openColours]{openColours()}} and \code{\link[=colourOpts]{colourOpts()}} for more details.}
 
 \item{col.na}{Colour to be used to show missing data.}
 
@@ -179,13 +208,6 @@ particularly useful if one is interested in the patterns of concentrations
 for several pollutants on different scales e.g. NOx and CO. Often useful if
 more than one \code{pollutant} is chosen.}
 
-\item{strip.position}{Location where the facet 'strips' are located when
-using \code{type}. When one \code{type} is provided, can be one of \code{"left"},
-\code{"right"}, \code{"bottom"} or \code{"top"}. When two \code{type}s are provided, this
-argument defines whether the strips are "switched" and can take either
-\code{"x"}, \code{"y"}, or \code{"both"}. For example, \code{"x"} will switch the 'top' strip
-locations to the bottom of the plot.}
-
 \item{key.title}{Used to set the title of the legend. The legend title is
 passed to \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.}
 
@@ -207,12 +229,36 @@ to a file).}
 \code{key.position} to \code{"none"}.}
 
 \item{...}{Addition options are passed on to \code{\link[=cutData]{cutData()}} for \code{type} handling.
-Some additional arguments are also available:
+Some additional arguments are also available, varying somewhat in different
+plotting functions:
 \itemize{
-\item \code{xlab}, \code{ylab} and \code{main} override the x-axis label, y-axis label, and plot title.
-\item \code{layout} sets the layout of facets - e.g., \code{layout(2, 5)} will have 2 columns and 5 rows.
-\item \code{fontsize} overrides the overall font size of the plot.
-\item \code{annotate = FALSE} will not plot the N/E/S/W labels.
+\item \code{title}, \code{subtitle}, \code{caption}, \code{tag}, \code{xlab} and \code{ylab} control the plot
+title, subtitle, caption, tag, x-axis label and y-axis label, passed to
+\code{\link[ggplot2:labs]{ggplot2::labs()}} via \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.
+\item \code{xlim}, \code{ylim} and \code{limits} control the limits of the x-axis, y-axis and
+colorbar scales.
+\item \code{ncol} and \code{nrow} set the number of columns and rows in a faceted plot.
+\item \code{scales} can be \code{"fixed"}, \code{"free_x"}, \code{"free_y"} or \code{"free"} to control
+whether axes are shared across facets when using \code{type}. Also supported are
+the legacy \code{x.relation} and \code{y.relation}, which can be either \code{"same"} or
+\code{"free"} and get remapped to \code{scales} automatically.
+\item Similarly, \code{space}, \code{axes}, \code{axis.labels}, \code{switch} and \code{strip.position}
+can be used to customise the appearance of faceted plots. See
+\code{\link[ggplot2:facet_wrap]{ggplot2::facet_wrap()}} and \code{\link[ggplot2:facet_grid]{ggplot2::facet_grid()}} for the arguments these
+take.
+\item \code{fontsize} overrides the overall font size of the plot by setting the
+\code{text} argument of \code{\link[ggplot2:theme]{ggplot2::theme()}}. It may also be applied
+proportionately to any \code{openair} annotations (e.g., N/E/S/W labels on polar
+coordinate plots).
+\item Various graphical parameters are also supported: \code{linewidth},
+\code{linetype},\code{ shape}, \code{size}, \code{border}, and \code{alpha}. Not all parameters
+apply to all plots. These can take a single value, or a vector of multiple
+values - e.g., \code{shape = c(1, 2)} - which will be recycled to the length of
+values needed.
+\item \code{lineend}, \code{linejoin} and \code{linemitre} tweak the appearance of line
+plots; see \code{\link[ggplot2:geom_line]{ggplot2::geom_line()}} for more information.
+\item In polar coordinate plots, \code{annotate = FALSE} will remove the N/E/S/W
+labels and any other annotations.
 }}
 }
 \value{
@@ -225,13 +271,13 @@ concentrations of pollutants vary by wind direction and a time period e.g. by
 month, day of week.
 }
 \details{
-The \code{polarAnnulus} function shares many of the properties of the
-\code{polarPlot}. However, \code{polarAnnulus} is focussed on displaying
-information on how concentrations of a pollutant (values of another variable)
-vary with wind direction and time. Plotting as an annulus helps to reduce
-compression of information towards the centre of the plot. The circular plot
-is easy to interpret because wind direction is most easily understood in
-polar rather than Cartesian coordinates.
+The \code{polarAnnulus} function shares many of the properties of the \code{polarPlot}.
+However, \code{polarAnnulus} is focussed on displaying information on how
+concentrations of a pollutant (values of another variable) vary with wind
+direction and time. Plotting as an annulus helps to reduce compression of
+information towards the centre of the plot. The circular plot is easy to
+interpret because wind direction is most easily understood in polar rather
+than Cartesian coordinates.
 
 The inner part of the annulus represents the earliest time and the outer part
 of the annulus the latest time. The time dimension can be shown in many ways
@@ -241,8 +287,8 @@ how concentrations vary by hour of the day and wind direction. Such plots can
 be very useful for understanding how different source influences affect a
 location.
 
-For \code{type = "trend"} the amount of smoothing does not vary linearly with
-the length of the time series i.e. a certain amount of smoothing per unit
+For \code{type = "trend"} the amount of smoothing does not vary linearly with the
+length of the time series i.e. a certain amount of smoothing per unit
 interval in time. This is a deliberate choice because should one be
 interested in a subset (in time) of data, more detail will be provided for
 the subset compared with the full data set. This allows users to investigate
@@ -254,7 +300,7 @@ smoothing parameter \code{k}.
 \dontrun{
 polarAnnulus(mydata,
   pollutant = "pm10",
-  main = "diurnal variation in pm10 at Marylebone Road"
+  title = "diurnal variation in pm10 at Marylebone Road"
 )
 }
 
@@ -269,19 +315,19 @@ mydata$pmc <- mydata$pm10 - mydata$pm25
 \dontrun{
 polarAnnulus(mydata,
   poll = "pmc", period = "trend",
-  main = "trend in pmc at Marylebone Road"
+  title = "trend in pmc at Marylebone Road"
 )
 }
 }
 \seealso{
-Other polar directional analysis functions: 
-\code{\link{percentileRose}()},
-\code{\link{polarCluster}()},
-\code{\link{polarDiff}()},
-\code{\link{polarFreq}()},
-\code{\link{polarPlot}()},
-\code{\link{pollutionRose}()},
-\code{\link{windRose}()}
+Other polar directional analysis functions:
+\code{\link[=percentileRose]{percentileRose()}},
+\code{\link[=polarCluster]{polarCluster()}},
+\code{\link[=polarDiff]{polarDiff()}},
+\code{\link[=polarFreq]{polarFreq()}},
+\code{\link[=polarPlot]{polarPlot()}},
+\code{\link[=pollutionRose]{pollutionRose()}},
+\code{\link[=windRose]{windRose()}}
 }
 \author{
 David Carslaw

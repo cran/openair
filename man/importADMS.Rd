@@ -26,7 +26,7 @@ importADMS(
 }
 \arguments{
 \item{file}{The ADMS file to be imported. Default, \code{\link[=file.choose]{file.choose()}} opens
-browser. Use of \code{\link[utils:read.table]{utils::read.csv()}} also allows this to be a readable
+browser. Use of \code{\link[utils:read.csv]{utils::read.csv()}} also allows this to be a readable
 text-mode connection or url (although these options are currently not fully
 tested).}
 
@@ -96,30 +96,7 @@ setting, \code{NULL}.}
 \item{all}{For .MOP files, return all variables or not. If \code{all = TRUE}
 a large number of processed variables are returned.}
 
-\item{...}{
-  Arguments passed on to \code{\link[utils:read.table]{utils::read.csv}}
-  \describe{
-    \item{\code{header}}{a logical value indicating whether the file contains the
-    names of the variables as its first line.  If missing, the value is
-    determined from the file format: \code{header} is set to \code{TRUE}
-    if and only if the first row contains one fewer field than the
-    number of columns.}
-    \item{\code{sep}}{the field separator character.  Values on each line of the
-    file are separated by this character.  If \code{sep = ""} (the
-    default for \code{read.table}) the separator is \sQuote{white space},
-    that is one or more spaces, tabs, newlines or carriage returns.}
-    \item{\code{quote}}{the set of quoting characters. To disable quoting
-    altogether, use \code{quote = ""}.  See \code{\link{scan}} for the
-    behaviour on quotes embedded in quotes.  Quoting is only considered
-    for columns read as character, which is all of them unless
-    \code{colClasses} is specified.}
-    \item{\code{dec}}{the character used in the file for decimal points.}
-    \item{\code{fill}}{logical. If \code{TRUE} then in case the rows have unequal
-    length, blank fields are implicitly added.  See \sQuote{Details}.}
-    \item{\code{comment.char}}{character: a character vector of length one
-    containing a single character or an empty string.  Use \code{""} to
-    turn off the interpretation of comments altogether.}
-  }}
+\item{...}{Other arguments passed to \code{\link[utils:read.csv]{utils::read.csv()}}.}
 }
 \value{
 In standard use \code{\link[=importADMS]{importADMS()}} returns a data frame for use in
@@ -148,7 +125,7 @@ modified on the basis of \code{drop.delim} and \code{add.prefixes} settings
 }
 \description{
 Function(s) to import various ADMS file types into openair. Currently handles
-".met", ".bgd", ".mop" and ".pst" file structures. Uses \code{\link[utils:read.table]{utils::read.csv()}}
+".met", ".bgd", ".mop" and ".pst" file structures. Uses \code{\link[utils:read.csv]{utils::read.csv()}}
 to read in data, format for R and openair and apply some file structure
 testing.
 }
@@ -179,13 +156,13 @@ new.name <- importADMS(simplify.names, names = "PHI")
 new.name
 }
 \seealso{
-Other import functions: 
-\code{\link{importAURN}()},
-\code{\link{importEurope}()},
-\code{\link{importImperial}()},
-\code{\link{importMeta}()},
-\code{\link{importTraj}()},
-\code{\link{importUKAQ}()}
+Other import functions:
+\code{\link[=importAURN]{importAURN()}},
+\code{\link[=importEurope]{importEurope()}},
+\code{\link[=importImperial]{importImperial()}},
+\code{\link[=importMeta]{importMeta()}},
+\code{\link[=importTraj]{importTraj()}},
+\code{\link[=importUKAQ]{importUKAQ()}}
 }
 \author{
 Karl Ropkins, David Carslaw and Matthew Williams (CERC).

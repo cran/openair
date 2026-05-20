@@ -10,10 +10,11 @@ trajPlot(
   lat = "lat",
   pollutant = NULL,
   type = "default",
-  map = TRUE,
   group = NULL,
   cols = "default",
   crs = 4326,
+  map = TRUE,
+  map.res = "medium",
   map.fill = TRUE,
   map.cols = "grey40",
   map.border = "black",
@@ -28,7 +29,6 @@ trajPlot(
   key.title = group,
   key.position = "right",
   key.columns = 1,
-  strip.position = "top",
   auto.text = TRUE,
   plot = TRUE,
   key = NULL,
@@ -66,9 +66,6 @@ possible pollutant source is active or not).
 Most \code{openair} plotting functions can take two \code{type} arguments. If two are
 given, the first is used for the columns and the second for the rows.}
 
-\item{map}{Should a base map be drawn? If \code{TRUE} the world base map provided
-by \code{\link[ggplot2:map_data]{ggplot2::map_data()}} will be used.}
-
 \item{group}{A condition to colour the plot by, passed to \code{\link[=cutData]{cutData()}}. An
 alternative to \code{pollutant}, and used preferentially to \code{pollutant} if both
 are set.}
@@ -76,13 +73,21 @@ are set.}
 \item{cols}{Colours to use for plotting. Can be a pre-set palette (e.g.,
 \code{"turbo"}, \code{"viridis"}, \code{"tol"}, \code{"Dark2"}, etc.) or a user-defined vector
 of R colours (e.g., \code{c("yellow", "green", "blue", "black")} - see
-\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). See \code{\link[=openColours]{openColours()}} for more details.}
+\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). Alternatively, can be a list of arguments to control the
+colour palette more closely (e.g., \code{palette}, \code{direction}, \code{alpha}, etc.).
+See \code{\link[=openColours]{openColours()}} and \code{\link[=colourOpts]{colourOpts()}} for more details.}
 
 \item{crs}{The coordinate reference system to use for plotting. Defaults to
 \code{4326}, which is the WGS84 geographic coordinate system, the standard,
 unprojected latitude/longitude system used in GPS, Google Earth, and GIS
 mapping. Other \code{crs} values are available - for example, \code{27700} will use
 the the OSGB36/British National Grid.}
+
+\item{map}{Should a base map be drawn? If \code{TRUE} the world base map provided
+by \code{\link[ggplot2:map_data]{ggplot2::map_data()}} will be used.}
+
+\item{map.res}{The scale of the map to use. One of \code{110}, \code{50}, \code{10} or
+\code{small}, \code{medium}, \code{large}. Passed to \code{\link[rnaturalearth:ne_countries]{rnaturalearth::ne_countries()}}.}
 
 \item{map.fill}{Should the base map be a filled polygon? Default is to fill
 countries.}
@@ -136,13 +141,6 @@ many categories a single column can make to key too wide. The user can thus
 choose to use several columns by setting \code{key.columns} to be less than the
 number of categories.}
 
-\item{strip.position}{Location where the facet 'strips' are located when
-using \code{type}. When one \code{type} is provided, can be one of \code{"left"},
-\code{"right"}, \code{"bottom"} or \code{"top"}. When two \code{type}s are provided, this
-argument defines whether the strips are "switched" and can take either
-\code{"x"}, \code{"y"}, or \code{"both"}. For example, \code{"x"} will switch the 'top' strip
-locations to the bottom of the plot.}
-
 \item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE} titles and
 axis labels will automatically try and format pollutant names and units
 properly, e.g., by subscripting the "2" in "NO2". Passed to \code{\link[=quickText]{quickText()}}.}
@@ -157,12 +155,36 @@ to a file).}
 \code{key.position} to \code{"none"}.}
 
 \item{...}{Addition options are passed on to \code{\link[=cutData]{cutData()}} for \code{type} handling.
-Some additional arguments are also available:
+Some additional arguments are also available, varying somewhat in different
+plotting functions:
 \itemize{
-\item \code{xlab}, \code{ylab} and \code{main} override the x-axis label, y-axis label, and plot title.
-\item \code{layout} sets the layout of facets - e.g., \code{layout(2, 5)} will have 2 columns and 5 rows.
-\item \code{fontsize} overrides the overall font size of the plot.
-\item \code{border} sets the border colour of each bar.
+\item \code{title}, \code{subtitle}, \code{caption}, \code{tag}, \code{xlab} and \code{ylab} control the plot
+title, subtitle, caption, tag, x-axis label and y-axis label, passed to
+\code{\link[ggplot2:labs]{ggplot2::labs()}} via \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.
+\item \code{xlim}, \code{ylim} and \code{limits} control the limits of the x-axis, y-axis and
+colorbar scales.
+\item \code{ncol} and \code{nrow} set the number of columns and rows in a faceted plot.
+\item \code{scales} can be \code{"fixed"}, \code{"free_x"}, \code{"free_y"} or \code{"free"} to control
+whether axes are shared across facets when using \code{type}. Also supported are
+the legacy \code{x.relation} and \code{y.relation}, which can be either \code{"same"} or
+\code{"free"} and get remapped to \code{scales} automatically.
+\item Similarly, \code{space}, \code{axes}, \code{axis.labels}, \code{switch} and \code{strip.position}
+can be used to customise the appearance of faceted plots. See
+\code{\link[ggplot2:facet_wrap]{ggplot2::facet_wrap()}} and \code{\link[ggplot2:facet_grid]{ggplot2::facet_grid()}} for the arguments these
+take.
+\item \code{fontsize} overrides the overall font size of the plot by setting the
+\code{text} argument of \code{\link[ggplot2:theme]{ggplot2::theme()}}. It may also be applied
+proportionately to any \code{openair} annotations (e.g., N/E/S/W labels on polar
+coordinate plots).
+\item Various graphical parameters are also supported: \code{linewidth},
+\code{linetype},\code{ shape}, \code{size}, \code{border}, and \code{alpha}. Not all parameters
+apply to all plots. These can take a single value, or a vector of multiple
+values - e.g., \code{shape = c(1, 2)} - which will be recycled to the length of
+values needed.
+\item \code{lineend}, \code{linejoin} and \code{linemitre} tweak the appearance of line
+plots; see \code{\link[ggplot2:geom_line]{ggplot2::geom_line()}} for more information.
+\item In polar coordinate plots, \code{annotate = FALSE} will remove the N/E/S/W
+labels and any other annotations.
 }}
 }
 \description{
@@ -214,16 +236,16 @@ trajPlot(
   cols = "turbo",
   key.position = "right",
   key.columns = 1,
-  lwd = 2,
-  cex = 4
+  linewidth = 2,
+  size = 4
 )
 }
 }
 \seealso{
-Other trajectory analysis functions: 
-\code{\link{importTraj}()},
-\code{\link{trajCluster}()},
-\code{\link{trajLevel}()}
+Other trajectory analysis functions:
+\code{\link[=importTraj]{importTraj()}},
+\code{\link[=trajCluster]{trajCluster()}},
+\code{\link[=trajLevel]{trajLevel()}}
 }
 \author{
 David Carslaw

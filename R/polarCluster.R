@@ -72,8 +72,7 @@
 #'   the clustered polar plot itself (similar to `data` returned by
 #'   [polarPlot()]). This may be useful for re-plotting the `polarCluster()`
 #'   plot in other ways.
-#' @inheritDotParams polarPlot -mydata -pollutant -x -wd -cols -angle.scale
-#'   -units -auto.text -plot
+#' @param ... Other arguments passed on to [polarPlot()].
 #' @export
 #' @return an [openair][openair-package] object. The object includes four main
 #'   components: `call`, the command used to generate the plot; `data`, by
@@ -169,29 +168,15 @@ polarCluster <-
 
     min.scale <- floor(min(mydata[[x]], na.rm = TRUE))
 
-    extra.args <- list(...)
+    extra.args <- capture_dots(...)
 
     # label controls
-    extra.args$xlab <- if ("xlab" %in% names(extra.args)) {
-      quickText(extra.args$xlab, auto.text)
-    } else {
-      quickText("", auto.text)
-    }
-    extra.args$ylab <- if ("ylab" %in% names(extra.args)) {
-      quickText(extra.args$ylab, auto.text)
-    } else {
-      quickText("", auto.text)
-    }
-    extra.args$main <- if ("main" %in% names(extra.args)) {
-      quickText(extra.args$main, auto.text)
-    } else {
-      quickText("", auto.text)
-    }
-
-    # layout default
-    if (!"layout" %in% names(extra.args)) {
-      extra.args$layout <- NULL
-    }
+    extra.args$xlab <- quickText(extra.args$xlab, auto.text)
+    extra.args$ylab <- quickText(extra.args$ylab, auto.text)
+    extra.args$title <- quickText(extra.args$title, auto.text)
+    extra.args$subtitle <- quickText(extra.args$subtitle, auto.text)
+    extra.args$caption <- quickText(extra.args$caption, auto.text)
+    extra.args$tag <- quickText(extra.args$tag, auto.text)
 
     # if considering differences
     if (is.data.frame(after)) {
@@ -253,7 +238,7 @@ polarCluster <-
     nlev <- max(n.clusters) + 1
     breaks <- c(0, 1:max(n.clusters))
     nlev2 <- length(breaks)
-    col <- openColours(cols, (nlev2 - 1))
+    col <- resolve_colour_opts(cols, (nlev2 - 1))
     col.scale <- breaks
 
     myform <- stats::formula("cluster ~ u * v | nclust")
@@ -328,11 +313,17 @@ polarCluster <-
         expand = ggplot2::expansion()
       ) +
       ggplot2::scale_color_manual(
-        values = openColours(cols, n = dplyr::n_distinct(results.grid$cluster)),
+        values = resolve_colour_opts(
+          cols,
+          n = dplyr::n_distinct(results.grid$cluster)
+        ),
         drop = FALSE
       ) +
-      theme_openair_radial(key.position %||% "right", panel.ontop = TRUE) +
-      set_extra_fontsize(extra.args) +
+      theme_openair_radial(
+        key.position %||% "right",
+        extra.args = extra.args,
+        panel.ontop = TRUE
+      ) +
       annotate_compass_points(
         size = ifelse(
           extra.args$annotate %||% TRUE,
@@ -344,14 +335,16 @@ polarCluster <-
         color = "Cluster",
         x = extra.args$xlab,
         y = extra.args$ylab,
-        title = extra.args$main
+        title = extra.args$title,
+        subtitle = extra.args$subtitle,
+        caption = extra.args$caption,
+        tag = extra.args$tag
       ) +
       get_facet(
         ifelse(dplyr::n_distinct(results.grid$nclust) > 1, "nclust", "default"),
         extra.args = extra.args,
-        scales = "fixed",
         auto.text = auto.text,
-        strip.position = extra.args$strip.position %||% "top"
+        wd.res = extra.args$wd.res %||% 8
       ) +
       ggplot2::guides(
         colour = ggplot2::guide_legend(

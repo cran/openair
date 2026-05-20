@@ -30,7 +30,8 @@
 #' @inheritParams shared_openair_params
 #' @inheritParams polarPlot
 #'
-#' @param mydata A data frame minimally containing `ws`, `wd` and `date`.
+#' @param mydata A data frame minimally containing a wind speed, a decimal wind
+#'   direction, and `date`.
 #'
 #' @param pollutant Mandatory. A pollutant name corresponding to a variable in a
 #'   data frame should be supplied e.g. `pollutant = "nox"`
@@ -59,12 +60,6 @@
 #'
 #' @param grid.line Radial spacing of grid lines.
 #'
-#' @param trans Should a transformation be applied? Sometimes when producing
-#'   plots of this kind they can be dominated by a few high points. The default
-#'   therefore is `TRUE` and a square-root transform is applied. This results in
-#'   a non-linear scale and (usually) a better representation of the
-#'   distribution. If set to `FALSE` a linear scale is used.
-#'
 #' @param ws.upper A user-defined upper wind speed to use. This is useful for
 #'   ensuring a consistent scale between different plots. For example, to always
 #'   ensure that wind speeds are displayed between 1-10, set `ws.int = 10`.
@@ -72,14 +67,6 @@
 #' @param border.col The colour of the boundary of each wind speed/direction
 #'   bin. The default is transparent. Another useful choice sometimes is
 #'   "white".
-#'
-#' @param ... Addition options are passed on to [cutData()] for `type` handling.
-#'   Some additional arguments are also available:
-#'   - `xlab`, `ylab` and `main` override the x-axis label, y-axis label, and plot title.
-#'   - `layout` sets the layout of facets - e.g., `layout(2, 5)` will have 2 columns and 5 rows.
-#'   - `fontsize` overrides the overall font size of the plot.
-#'   - `annotate = FALSE` will not plot the N/E/S/W labels.
-#'   - `limits` sets the colour bar limits, if `breaks` is not used.
 #'
 #' @export
 #' @return an [openair][openair-package] object
@@ -128,30 +115,36 @@
 #'
 #' # source contribution plot and use of offset option
 #' \dontrun{
-#' polarFreq(mydata,
+#' polarFreq(
+#'   mydata,
 #'   pollutant = "pm25",
-#'   statistic = "weighted.mean", offset = 50, ws.int = 25, trans = FALSE
+#'   statistic = "weighted.mean",
+#'   offset = 50,
+#'   ws.int = 25,
+#'   trans = FALSE
 #' )
 #' }
 polarFreq <- function(
   mydata,
   pollutant = NULL,
+  ws = "ws",
+  wd = "wd",
   statistic = "frequency",
   ws.int = 1,
   wd.nint = 36,
   grid.line = 5,
+  limits = NULL,
   breaks = NULL,
-  labels = NULL,
+  trans = "sqrt",
   cols = "default",
-  trans = TRUE,
   type = "default",
   min.bin = 1,
   ws.upper = NA,
+  angle.scale = 45,
   offset = 10,
   border.col = "transparent",
   key.title = paste(statistic, pollutant, sep = " "),
   key.position = "right",
-  strip.position = "top",
   auto.text = TRUE,
   plot = TRUE,
   key = NULL,
@@ -161,7 +154,7 @@ polarFreq <- function(
   key.position <- check_key_position(key.position, key)
 
   # extract necessary data
-  vars <- c("wd", "ws")
+  vars <- c(wd, ws)
   if (any(type %in% dateTypes)) {
     vars <- c(vars, "date")
   }
@@ -170,12 +163,18 @@ polarFreq <- function(
   wd.int <- 360 / round(wd.nint)
 
   # extra.args setup
-  extra.args <- list(...)
+  extra.args <- capture_dots(...)
 
   # label controls
   extra.args$xlab <- quickText(extra.args$xlab, auto.text)
   extra.args$ylab <- quickText(extra.args$ylab, auto.text)
-  extra.args$main <- quickText(extra.args$main, auto.text)
+  extra.args$title <- quickText(extra.args$title, auto.text)
+  extra.args$subtitle <- quickText(extra.args$subtitle, auto.text)
+  extra.args$caption <- quickText(extra.args$caption, auto.text)
+  extra.args$tag <- quickText(extra.args$tag, auto.text)
+
+  # deal with breaks
+  break_opts <- resolve_break_opts(breaks, extra.args)
 
   if (!is.null(pollutant)) {
     vars <- c(vars, pollutant)
@@ -185,8 +184,8 @@ polarFreq <- function(
   mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
 
   # to make first interval easier to work with, set ws = 0 + e
-  ids <- which(mydata$ws == 0)
-  mydata$ws[ids] <- mydata$ws[ids] + 0.0001
+  ids <- which(mydata[[ws]] == 0)
+  mydata[[ws]][ids] <- mydata[[ws]][ids] + 0.0001
 
   # remove all NAs
   mydata <- stats::na.omit(mydata)
@@ -210,26 +209,21 @@ polarFreq <- function(
     ))
   }
 
-  # over-ride transform if breaks supplied
-  if (!(any(is.null(breaks)) || anyNA(breaks))) {
-    trans <- FALSE
-  }
-
   # replace weighted.mean with a nicer label
   key.title <- check_key_header(key.title, extra.args)
   key.title <- gsub("weighted.mean", "contribution (%)", key.title)
 
   # make sure wd data are rounded to nearest 10
-  mydata$wd <- wd.int * ceiling(mydata$wd / wd.int - 0.5)
+  mydata$wd <- wd.int * ceiling(mydata[[wd]] / wd.int - 0.5)
 
   prepare.grid <- function(mydata) {
-    mydata$wd[mydata$wd == 360] <- 0
-    wd <- factor(mydata$wd)
-    ws <- factor(ws.int * ceiling(mydata$ws / ws.int))
+    mydata[[wd]][mydata$wd == 360] <- 0
+    wd_vec <- factor(mydata[[wd]])
+    ws_vec <- factor(ws.int * ceiling(mydata[[ws]] / ws.int))
 
     if (statistic == "frequency") {
       # case with only ws and wd
-      weights <- tapply(mydata$ws, list(wd, ws), function(x) {
+      weights <- tapply(mydata[[ws]], list(wd_vec, ws_vec), function(x) {
         length(stats::na.omit(x))
       })
     }
@@ -237,7 +231,7 @@ polarFreq <- function(
     if (statistic == "mean") {
       weights <- tapply(
         mydata[[pollutant]],
-        list(wd, ws),
+        list(wd_vec, ws_vec),
         function(x) mean(x, na.rm = TRUE)
       )
     }
@@ -245,7 +239,7 @@ polarFreq <- function(
     if (statistic == "median") {
       weights <- tapply(
         mydata[[pollutant]],
-        list(wd, ws),
+        list(wd_vec, ws_vec),
         function(x) stats::median(x, na.rm = TRUE)
       )
     }
@@ -253,7 +247,7 @@ polarFreq <- function(
     if (statistic == "max") {
       weights <- tapply(
         mydata[[pollutant]],
-        list(wd, ws),
+        list(wd_vec, ws_vec),
         function(x) max(x, na.rm = TRUE)
       )
     }
@@ -261,7 +255,7 @@ polarFreq <- function(
     if (statistic == "stdev") {
       weights <- tapply(
         mydata[[pollutant]],
-        list(wd, ws),
+        list(wd_vec, ws_vec),
         function(x) stats::sd(x, na.rm = TRUE)
       )
     }
@@ -269,7 +263,7 @@ polarFreq <- function(
     if (statistic == "weighted.mean") {
       weights <- tapply(
         mydata[[pollutant]],
-        list(wd, ws),
+        list(wd_vec, ws_vec),
         function(x) (mean(x) * length(x) / nrow(mydata))
       )
 
@@ -280,7 +274,7 @@ polarFreq <- function(
     weights <- as.vector(t(weights))
 
     # frequency - remove points with freq < min.bin
-    bin.len <- tapply(mydata$ws, list(wd, ws), function(x) {
+    bin.len <- tapply(mydata[[ws]], list(wd_vec, ws_vec), function(x) {
       length(stats::na.omit(x))
     })
     binned.len <- as.vector(t(bin.len))
@@ -288,8 +282,8 @@ polarFreq <- function(
     weights[ids] <- NA
 
     ws.wd <- expand.grid(
-      ws = as.numeric(levels(ws)),
-      wd = as.numeric(levels(wd))
+      ws = as.numeric(levels(ws_vec)),
+      wd = as.numeric(levels(wd_vec))
     )
 
     weights <- cbind(ws.wd, weights)
@@ -311,16 +305,11 @@ polarFreq <- function(
   results.grid$weights[which(is.na(results.grid$weights))] <- 0
 
   # handle breaks
-  categorical <- FALSE
-  if (!is.null(breaks)) {
-    # assign labels if no labels are given
-    labels <- get_labels_from_breaks(breaks, labels)
-    categorical <- TRUE
-    results.grid <- dplyr::mutate(
-      results.grid,
-      cuts = cut(.data$weights, breaks = breaks, labels = labels)
-    )
-  }
+  categorical <- !is.null(break_opts$breaks)
+  results.grid$weights <- cut_plot_breaks(
+    results.grid$weights,
+    break_opts
+  )
 
   # set the upper wind speed
   if (is.na(ws.upper)) {
@@ -335,7 +324,7 @@ polarFreq <- function(
       ggplot2::aes(x = .data$wd, y = .data$ws)
     ) +
     ggplot2::geom_tile(
-      ggplot2::aes(fill = .data[[ifelse(categorical, "cuts", "weights")]]),
+      ggplot2::aes(fill = .data[["weights"]]),
       colour = border.col,
       show.legend = TRUE
     ) +
@@ -343,7 +332,7 @@ polarFreq <- function(
       NULL,
       ggplot2::coord_radial(
         clip = "on",
-        r.axis.inside = 45,
+        r.axis.inside = angle.scale,
         rlim = c(NA, max.ws),
         inner.radius = offset / 100
       ),
@@ -355,31 +344,36 @@ polarFreq <- function(
       breaks = seq(0, max.ws, by = grid.line),
       expand = ggplot2::expansion(c(0, 0.1))
     ) +
-    theme_openair_radial(key.position = key.position, panel.ontop = TRUE) +
-    set_extra_fontsize(extra.args) +
+    theme_openair_radial(
+      key.position = key.position,
+      extra.args = extra.args,
+      panel.ontop = TRUE
+    ) +
     ggplot2::labs(
       y = extra.args$ylab,
       x = extra.args$xlab,
-      title = extra.args$main,
+      title = extra.args$title,
+      subtitle = extra.args$subtitle,
+      caption = extra.args$caption,
+      tag = extra.args$tag,
       fill = quickText(key.title, auto.text = auto.text)
     ) +
     get_facet(
       type,
       extra.args,
-      scales = "fixed",
       auto.text = auto.text,
-      strip.position = strip.position
+      wd.res = extra.args$wd.res %||% 8
     )
 
   if (categorical) {
     thePlot <-
       thePlot +
       ggplot2::scale_fill_manual(
-        values = openColours(
-          scheme = cols,
-          n = dplyr::n_distinct(levels(results.grid$cuts))
+        values = resolve_colour_opts(
+          cols,
+          n = dplyr::n_distinct(levels(results.grid$weights))
         ),
-        breaks = levels(results.grid$cuts),
+        breaks = levels(results.grid$weights),
         drop = FALSE
       ) +
       ggplot2::guides(
@@ -400,11 +394,14 @@ polarFreq <- function(
     thePlot <-
       thePlot +
       ggplot2::scale_fill_gradientn(
-        colours = openColours(cols),
-        transform = ifelse(trans, "sqrt", "identity"),
+        colours = resolve_colour_opts(cols, 100),
+        transform = get_scale_transform(
+          trans,
+          default = scales::transform_sqrt()
+        ),
         oob = scales::oob_squish,
         breaks = scales::pretty_breaks(6),
-        limits = extra.args$limits
+        limits = limits
       ) +
       ggplot2::guides(
         fill = ggplot2::guide_colorbar(

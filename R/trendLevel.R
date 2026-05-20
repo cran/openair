@@ -53,9 +53,6 @@
 #'   three values are determined by recursion; if more than three values are
 #'   supplied, only the first three are used.
 #'
-#' @param limits The colour scale range to use when generating the
-#'   [trendLevel()] plot.
-#'
 #' @param min.bin The minimum number of records required in a bin to show a
 #'   value. Bins with fewer than `min.bin` records are set to `NA`. The default
 #'   is 1, i.e., all bins with no records are set to `NA`. Setting `min.bin` to
@@ -97,13 +94,6 @@
 #'
 #' @param col.na Colour to be used to show missing data.
 #'
-#' @param ... Addition options are passed on to [cutData()] for `type` handling.
-#'   Some additional arguments are also available:
-#'   - `xlab`, `ylab` and `main` override the x-axis label, y-axis label, and plot title.
-#'   - `layout` sets the layout of facets - e.g., `layout(2, 5)` will have 2 columns and 5 rows.
-#'   - `fontsize` overrides the overall font size of the plot.
-#'   - `border` sets the border colour of each tile.
-#'
 #' @export
 #' @return an [openair][openair-package] object.
 #' @author Karl Ropkins
@@ -142,14 +132,13 @@ trendLevel <- function(
   n.levels = c(10, 10, 4),
   windflow = NULL,
   limits = NULL,
+  breaks = NULL,
+  trans = FALSE,
   min.bin = 1,
   cols = "default",
   auto.text = TRUE,
   key.title = paste("use.stat.name", pollutant, sep = " "),
   key.position = "right",
-  strip.position = "top",
-  labels = NULL,
-  breaks = NULL,
   statistic = c(
     "mean",
     "max",
@@ -172,7 +161,10 @@ trendLevel <- function(
   # check key.position
   key.position <- check_key_position(key.position, key)
 
-  extra.args <- rlang::list2(...)
+  extra.args <- capture_dots(...)
+
+  # deal with breaks
+  break_opts <- resolve_break_opts(breaks, extra.args)
 
   # check length of x
   if (length(x) > 1) {
@@ -402,8 +394,24 @@ trendLevel <- function(
     mydata |>
     cutData(x, n.levels = n.levels[1], is.axis = TRUE, ...) |>
     cutData(y, n.levels = n.levels[2], is.axis = TRUE, ...) |>
-    cutData(type, n.levels = n.levels[3], drop = "outside", ...) |>
-    tidyr::complete(!!!rlang::syms(c(x, y, type)))
+    cutData(type, n.levels = n.levels[3], drop = "outside", ...)
+
+  # ensure valid combinations present within panels
+  newdata <-
+    map_type(
+      newdata,
+      type,
+      \(df) {
+        dplyr::mutate(
+          df,
+          x_var = droplevels(.data[[x]]),
+          y_var = droplevels(.data[[y]]),
+        ) |>
+          tidyr::complete(.data$x_var, .data$y_var) |>
+          tidyr::drop_na(dplyr::all_of(c("x_var", "y_var", type))) |>
+          dplyr::select(-"x_var", -"y_var")
+      }
+    )
 
   # select only pollutant and axis/facet columns
   newdata <- dplyr::select(
@@ -475,22 +483,12 @@ trendLevel <- function(
   # check if key.header / key.footer are being used
   key.title <- check_key_header(key.title, extra.args)
 
-  # categorical colour scale or not?
-  categorical <- FALSE
-  if (!is.null(breaks)) {
-    # get breaks
-    labels <- get_labels_from_breaks(breaks, labels)
-
-    # cut data into categories
-    newdata$cuts <- cut(
-      newdata[[pollutant]],
-      breaks = breaks,
-      labels = labels,
-      include.lowest = TRUE
-    )
-
-    categorical <- TRUE
-  }
+  # handle breaks
+  categorical <- !is.null(break_opts$breaks)
+  newdata[[pollutant]] <- cut_plot_breaks(
+    newdata[[pollutant]],
+    break_opts
+  )
 
   # construct plot
   thePlot <-
@@ -499,7 +497,7 @@ trendLevel <- function(
       ggplot2::aes(
         x = num_convert(.data[[x]]),
         y = num_convert(.data[[y]]),
-        fill = .data[[ifelse(categorical, "cuts", pollutant)]]
+        fill = .data[[pollutant]]
       )
     ) +
     ggplot2::geom_tile(
@@ -507,12 +505,14 @@ trendLevel <- function(
       show.legend = TRUE
     ) +
     ggplot2::coord_cartesian(clip = "off", expand = FALSE) +
-    theme_openair(key.position) +
-    set_extra_fontsize(extra.args) +
+    theme_openair(key.position, extra.args = extra.args) +
     ggplot2::labs(
       x = quickText(extra.args$xlab %||% x, auto.text = auto.text),
       y = quickText(extra.args$ylab %||% y, auto.text = auto.text),
-      title = quickText(extra.args$main %||% "", auto.text = auto.text),
+      title = quickText(extra.args$title %||% "", auto.text = auto.text),
+      subtitle = quickText(extra.args$subtitle %||% "", auto.text = auto.text),
+      caption = quickText(extra.args$caption %||% "", auto.text = auto.text),
+      tag = quickText(extra.args$tag, auto.text = auto.text),
       fill = quickText(key.title, auto.text = auto.text)
     ) +
     ggplot2::guides(
@@ -522,10 +522,9 @@ trendLevel <- function(
     get_facet(
       type,
       extra.args = extra.args,
-      scales = "fixed",
       auto.text = auto.text,
       drop = drop.unused.types,
-      strip.position = strip.position
+      wd.res = extra.args$wd.res %||% 8
     )
 
   # make key full width/height
@@ -549,12 +548,12 @@ trendLevel <- function(
     thePlot <-
       thePlot +
       ggplot2::scale_fill_manual(
-        values = openColours(
-          scheme = cols,
-          n = dplyr::n_distinct(levels(newdata$cuts))
+        values = resolve_colour_opts(
+          cols,
+          n = dplyr::n_distinct(levels(newdata[[pollutant]]))
         ),
         na.value = col.na,
-        breaks = levels(newdata$cuts),
+        breaks = levels(newdata[[pollutant]]),
         drop = FALSE
       ) +
       ggplot2::guides(
@@ -575,10 +574,11 @@ trendLevel <- function(
     thePlot <-
       thePlot +
       ggplot2::scale_fill_gradientn(
-        colours = openColours(cols),
+        colours = resolve_colour_opts(cols, 100),
         na.value = col.na,
         oob = scales::oob_squish,
-        limit = limits
+        limit = limits,
+        transform = get_scale_transform(trans)
       ) +
       ggplot2::guides(
         fill = ggplot2::guide_colorbar(
@@ -614,7 +614,7 @@ trendLevel <- function(
 
 num_convert <- function(x) {
   y <- utils::type.convert(x, as.is = TRUE)
-  if (is.numeric(y) || is.integer(y)) {
+  if (is.numeric(y)) {
     return(y)
   } else {
     return(x)

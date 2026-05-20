@@ -17,6 +17,8 @@ calendarPlot(
   windflow = NULL,
   cols = "heat",
   limits = NULL,
+  breaks = NULL,
+  trans = FALSE,
   lim = NULL,
   col.lim = c("grey30", "black"),
   col.na = "white",
@@ -24,15 +26,12 @@ calendarPlot(
   cex.lim = c(0.6, 0.9),
   cex.date = 0.6,
   digits = 0,
-  labels = NULL,
-  breaks = NULL,
   w.shift = 0,
   w.abbr.len = 1,
   remove.empty = TRUE,
   show.year = TRUE,
   key.title = paste(statistic, pollutant, sep = " "),
   key.position = "right",
-  strip.position = "top",
   auto.text = TRUE,
   plot = TRUE,
   key = NULL,
@@ -97,14 +96,36 @@ etc.). See \code{\link[=windflowOpts]{windflowOpts()}} for details.}
 \item{cols}{Colours to use for plotting. Can be a pre-set palette (e.g.,
 \code{"turbo"}, \code{"viridis"}, \code{"tol"}, \code{"Dark2"}, etc.) or a user-defined vector
 of R colours (e.g., \code{c("yellow", "green", "blue", "black")} - see
-\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). See \code{\link[=openColours]{openColours()}} for more details.}
+\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). Alternatively, can be a list of arguments to control the
+colour palette more closely (e.g., \code{palette}, \code{direction}, \code{alpha}, etc.).
+See \code{\link[=openColours]{openColours()}} and \code{\link[=colourOpts]{colourOpts()}} for more details.}
 
-\item{limits}{Use this option to manually set the colour scale limits. This
-is useful in the case when there is a need for two or more plots and a
-consistent scale is needed on each. Set the limits to cover the maximum
-range of the data for all plots of interest. For example, if one plot had
-data covering 0--60 and another 0--100, then set \code{limits = c(0, 100)}. Note
-that data will be ignored if outside the limits range.}
+\item{limits}{The limits of the colour scale, in the form \code{c(lower, upper)}.
+For example, \code{limits = c(0, 100)} will set the colour scale to be between
+\code{0} and \code{100}. Values greater than \code{100} will be coloured as if they were
+\code{100}, and those lower than \code{0} will be coloured as if they were \code{0}.
+\code{limits} can be wider than the range of the data, which can be useful for
+ensuring multiple plots share the same colour scale.}
+
+\item{breaks}{\code{breaks} bins a continuous axis into discrete bins. It can
+either take a single number (e.g., \code{breaks = 5}) to split the scale into
+quantiles, a vector of numbers (e.g., \verb{breaks = c(0, 50, 100, 200, 500}) to
+define specific break-points, or a named list. See \code{\link[=breakOpts]{breakOpts()}} for more
+details.}
+
+\item{trans}{Should a transformation be applied to the colour scale? If the
+distribution of data is skewed, the default scale may be dominated by a few
+high values, so a log or square-root transform may mean the whole colour
+scale is better presented on the plot. Can be:
+\itemize{
+\item \code{FALSE}, which performs no transform.
+\item \code{TRUE}, which uses an appropriate transform for the plot type (usually
+\code{"log10"}).
+\item A \code{scales} 'transform' object (e.g., \code{\link[scales:transform_log10]{scales::transform_log10()}}).
+\item A character string corresponding to a \code{scales} transform function. Useful
+options include \code{"sqrt"}, \code{"log10"}, \code{"log2"}, \code{"log1p"}, \code{"pseudo_log"}
+and \code{"reverse"}.
+}}
 
 \item{lim}{A threshold value to help differentiate values above and below
 \code{lim}. It is used when \code{annotate = "value"}. See next few options for
@@ -130,16 +151,6 @@ the text above \code{lim}.}
 \item{digits}{The number of digits used to display concentration values when
 \code{annotate = "value"}.}
 
-\item{breaks, labels}{If a categorical colour scale is required then \code{breaks}
-should be specified. These should be provided as a numeric vector, e.g.,
-\code{breaks = c(0, 50, 100, 1000)}. Users should set the maximum value of
-\code{breaks} to exceed the maximum data value to ensure it is within the
-maximum final range, e.g., 100--1000 in this case. Labels will
-automatically be generated, but can be customised by passing a character
-vector to \code{labels}, e.g., \code{labels = c("good", "bad", "very bad")}. In this
-example, \code{0 - 50} will be \code{"good"} and so on. Note there is one less label
-than break.}
-
 \item{w.shift}{Controls the order of the days of the week. By default the
 plot shows Saturday first (\code{w.shift = 0}). To change this so that it starts
 on a Monday for example, set \code{w.shift = 2}, and so on.}
@@ -164,13 +175,6 @@ passed to \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.}
 arguments include \code{"top"}, \code{"right"}, \code{"bottom"}, \code{"left"} and \code{"none"},
 the last of which removes the legend entirely.}
 
-\item{strip.position}{Location where the facet 'strips' are located when
-using \code{type}. When one \code{type} is provided, can be one of \code{"left"},
-\code{"right"}, \code{"bottom"} or \code{"top"}. When two \code{type}s are provided, this
-argument defines whether the strips are "switched" and can take either
-\code{"x"}, \code{"y"}, or \code{"both"}. For example, \code{"x"} will switch the 'top' strip
-locations to the bottom of the plot.}
-
 \item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE} titles and
 axis labels will automatically try and format pollutant names and units
 properly, e.g., by subscripting the "2" in "NO2". Passed to \code{\link[=quickText]{quickText()}}.}
@@ -185,12 +189,36 @@ to a file).}
 \code{key.position} to \code{"none"}.}
 
 \item{...}{Addition options are passed on to \code{\link[=cutData]{cutData()}} for \code{type} handling.
-Some additional arguments are also available:
+Some additional arguments are also available, varying somewhat in different
+plotting functions:
 \itemize{
-\item \code{xlab}, \code{ylab} and \code{main} override the x-axis label, y-axis label, and plot title.
-\item \code{layout} sets the layout of facets - e.g., \code{layout(2, 5)} will have 2 columns and 5 rows.
-\item \code{fontsize} overrides the overall font size of the plot.
-\item \code{border} sets the border colour of each tile.
+\item \code{title}, \code{subtitle}, \code{caption}, \code{tag}, \code{xlab} and \code{ylab} control the plot
+title, subtitle, caption, tag, x-axis label and y-axis label, passed to
+\code{\link[ggplot2:labs]{ggplot2::labs()}} via \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.
+\item \code{xlim}, \code{ylim} and \code{limits} control the limits of the x-axis, y-axis and
+colorbar scales.
+\item \code{ncol} and \code{nrow} set the number of columns and rows in a faceted plot.
+\item \code{scales} can be \code{"fixed"}, \code{"free_x"}, \code{"free_y"} or \code{"free"} to control
+whether axes are shared across facets when using \code{type}. Also supported are
+the legacy \code{x.relation} and \code{y.relation}, which can be either \code{"same"} or
+\code{"free"} and get remapped to \code{scales} automatically.
+\item Similarly, \code{space}, \code{axes}, \code{axis.labels}, \code{switch} and \code{strip.position}
+can be used to customise the appearance of faceted plots. See
+\code{\link[ggplot2:facet_wrap]{ggplot2::facet_wrap()}} and \code{\link[ggplot2:facet_grid]{ggplot2::facet_grid()}} for the arguments these
+take.
+\item \code{fontsize} overrides the overall font size of the plot by setting the
+\code{text} argument of \code{\link[ggplot2:theme]{ggplot2::theme()}}. It may also be applied
+proportionately to any \code{openair} annotations (e.g., N/E/S/W labels on polar
+coordinate plots).
+\item Various graphical parameters are also supported: \code{linewidth},
+\code{linetype},\code{ shape}, \code{size}, \code{border}, and \code{alpha}. Not all parameters
+apply to all plots. These can take a single value, or a vector of multiple
+values - e.g., \code{shape = c(1, 2)} - which will be recycled to the length of
+values needed.
+\item \code{lineend}, \code{linejoin} and \code{linemitre} tweak the appearance of line
+plots; see \code{\link[ggplot2:geom_line]{ggplot2::geom_line()}} for more information.
+\item In polar coordinate plots, \code{annotate = FALSE} will remove the N/E/S/W
+labels and any other annotations.
 }}
 }
 \value{
@@ -215,9 +243,9 @@ hourly or higher time resolution are supplied, then \code{\link[=calendarPlot]{c
 calculate daily averages using \code{\link[=timeAverage]{timeAverage()}}, which ensures that wind
 directions are vector-averaged.
 
-If wind speed is also available, then setting the option \code{annotate = "ws"}
-will plot the wind vectors whose length is scaled to the wind speed. Thus
-information on the daily mean wind speed and direction are available.
+If wind speed is also available, then using the \code{windflow} option will plot
+the wind vectors whose length is scaled to the wind speed. Thus information
+on the daily mean wind speed and direction are available.
 
 It is also possible to plot categorical scales. This is useful where, for
 example, an air quality index defines concentrations as bands, e.g., "good",
@@ -234,24 +262,36 @@ maximum daily 8-hour mean concentrations.
 calendarPlot(mydata, pollutant = "o3", year = 2003)
 
 # show wind vectors
-calendarPlot(mydata, pollutant = "o3", year = 2003, annotate = "wd")
+calendarPlot(mydata, pollutant = "o3", year = 2003, windflow = TRUE)
 \dontrun{
 # show wind vectors scaled by wind speed and different colours
-calendarPlot(mydata,
-  pollutant = "o3", year = 2003, annotate = "ws",
+calendarPlot(
+  mydata,
+  pollutant = "o3",
+  year = 2003,
+  windflow = TRUE,
   cols = "heat"
 )
 
 # show only specific months with selectByDate
-calendarPlot(selectByDate(mydata, month = c(3, 6, 10), year = 2003),
-  pollutant = "o3", year = 2003, annotate = "ws", cols = "heat"
+calendarPlot(
+  selectByDate(mydata, month = c(3, 6, 10), year = 2003),
+  pollutant = "o3",
+  year = 2003,
+  windflow = TRUE,
+  cols = "heat"
 )
 
 # categorical scale example
-calendarPlot(mydata,
-  pollutant = "no2", breaks = c(0, 50, 100, 150, 1000),
-  labels = c("Very low", "Low", "High", "Very High"),
-  cols = c("lightblue", "green", "yellow", "red"), statistic = "max"
+calendarPlot(
+  mydata,
+  pollutant = "no2",
+  breaks = breakOpts(
+    c(0, 50, 100, 150, 1000),
+    labels = c("Very low", "Low", "High", "Very High")
+  ),
+  cols = c("lightblue", "green", "yellow", "red"),
+  statistic = "max"
 )
 
 # UK daily air quality index
@@ -260,8 +300,10 @@ calendarPlot(
   mydata,
   "pm10",
   year = 1999,
-  breaks = pm10.breaks,
-  labels = c(1:10),
+  breaks = breakOpts(
+    pm10.breaks,
+    labels = c(1:10)
+  ),
   cols = "daqi",
   statistic = "mean",
   key.title = "PM10 DAQI"
@@ -269,12 +311,12 @@ calendarPlot(
 }
 }
 \seealso{
-Other time series and trend functions: 
-\code{\link{TheilSen}()},
-\code{\link{smoothTrend}()},
-\code{\link{timePlot}()},
-\code{\link{timeProp}()},
-\code{\link{timeVariation}()}
+Other time series and trend functions:
+\code{\link[=TheilSen]{TheilSen()}},
+\code{\link[=smoothTrend]{smoothTrend()}},
+\code{\link[=timePlot]{timePlot()}},
+\code{\link[=timeProp]{timeProp()}},
+\code{\link[=timeVariation]{timeVariation()}}
 }
 \author{
 David Carslaw

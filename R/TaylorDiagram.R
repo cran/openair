@@ -102,13 +102,6 @@
 #' @param text.obs The plot annotation for observed values; default is
 #'   "observed".
 #'
-#' @param ... Addition options are passed on to [cutData()] for `type` handling.
-#'   Some additional arguments are also available:
-#'   - `xlab`, `ylab` and `main` override the x-axis label, y-axis label, and plot title.
-#'   - `layout` sets the layout of facets - e.g., `layout(2, 5)` will have 2 columns and 5 rows.
-#'   - `fontsize` overrides the overall font size of the plot.
-#'   - `cex`, `lwd`, and `pch` control various graphical parameters.
-#'
 #' @export
 #'
 #' @return an [openair][openair-package] object. If retained, e.g., using
@@ -228,7 +221,6 @@ TaylorDiagram <- function(
   key.title = group,
   key.columns = 1,
   key.position = "right",
-  strip.position = "top",
   auto.text = TRUE,
   plot = TRUE,
   key = NULL,
@@ -238,7 +230,7 @@ TaylorDiagram <- function(
   key.position <- check_key_position(key.position, key)
 
   # extra.args setup
-  extra.args <- list(...)
+  extra.args <- capture_dots(...)
 
   # label controls
   extra.args$xlab <- quickText(
@@ -259,9 +251,12 @@ TaylorDiagram <- function(
       ),
     auto.text
   )
-  extra.args$main <- quickText(extra.args$main, auto.text)
-  extra.args$pch <- extra.args$pch %||% 20
-  extra.args$cex <- extra.args$cex %||% 2
+  extra.args$title <- quickText(extra.args$title, auto.text)
+  extra.args$subtitle <- quickText(extra.args$subtitle, auto.text)
+  extra.args$caption <- quickText(extra.args$caption, auto.text)
+  extra.args$tag <- quickText(extra.args$tag, auto.text)
+  extra.args$shape <- extra.args$shape %||% 20
+  extra.args$size <- extra.args$size %||% 2
   extra.args$fontsize <- extra.args$fontsize %||% 11
 
   # check to see if two data sets are present
@@ -465,7 +460,7 @@ TaylorDiagram <- function(
   }
 
   # ensure correct number of shapes
-  shapes <- extra.args$pch
+  shapes <- extra.args$shape
   while (length(shapes) <= nlevels(results[[group]])) {
     shapes <- c(shapes, shapes)
   }
@@ -522,7 +517,7 @@ TaylorDiagram <- function(
         colour = text.obs,
         shape = text.obs
       ),
-      size = extra.args$cex * 2
+      size = extra.args$size * 2
     ) +
     ggplot2::annotate(
       geom = "text",
@@ -569,7 +564,11 @@ TaylorDiagram <- function(
       breaks = scales::pretty_breaks(6),
       expand = ggplot2::expansion()
     ) +
-    theme_openair_radial(key.position = key.position, panel.ontop = FALSE) +
+    theme_openair_radial(
+      key.position = key.position,
+      extra.args,
+      panel.ontop = FALSE
+    ) +
     ggplot2::theme(
       panel.grid.major.x = ggplot2::element_line(color = "grey85"),
       panel.spacing = ggplot2::unit(0, "cm"),
@@ -578,11 +577,13 @@ TaylorDiagram <- function(
       panel.grid.minor = ggplot2::element_blank(),
       panel.grid.major.y = ggplot2::element_line()
     ) +
-    set_extra_fontsize(extra.args) +
     ggplot2::labs(
       x = extra.args$xlab,
       y = if (!positive_only) NULL else extra.args$ylab,
-      title = extra.args$main,
+      title = extra.args$title,
+      subtitle = extra.args$subtitle,
+      caption = extra.args$caption,
+      tag = extra.args$tag,
       color = quickText(key.title, auto.text = auto.text),
       shape = quickText(key.title, auto.text = auto.text)
     ) +
@@ -593,10 +594,9 @@ TaylorDiagram <- function(
     get_facet(
       type,
       extra.args,
-      scales = "fixed",
       auto.text = auto.text,
       drop = FALSE,
-      strip.position = strip.position
+      wd.res = extra.args$wd.res %||% 8
     )
 
   # if two sets of model data are present, then show the change in model
@@ -626,7 +626,10 @@ TaylorDiagram <- function(
         linewidth = arrow.lwd / 3
       ) +
       ggplot2::scale_color_manual(
-        values = c(openColours(cols, n = nlevels(results[[group]])), "black"),
+        values = c(
+          resolve_colour_opts(cols, n = nlevels(results[[group]])),
+          "black"
+        ),
         breaks = c(levels(results[[group]]), text.obs)
       ) +
       ggplot2::guides(
@@ -642,10 +645,13 @@ TaylorDiagram <- function(
           shape = .data[[group]],
           group = .data$newgrp
         ),
-        size = extra.args$cex * 2
+        size = extra.args$size * 2
       ) +
       ggplot2::scale_color_manual(
-        values = c(openColours(cols, n = nlevels(results[[group]])), "black"),
+        values = c(
+          resolve_colour_opts(cols, n = nlevels(results[[group]])),
+          "black"
+        ),
         breaks = c(levels(results[[group]]), text.obs)
       ) +
       ggplot2::guides(

@@ -5,13 +5,13 @@
 #' concentrations of pollutants vary by wind direction and a time period e.g. by
 #' month, day of week.
 #'
-#' The `polarAnnulus` function shares many of the properties of the
-#' `polarPlot`. However, `polarAnnulus` is focussed on displaying
-#' information on how concentrations of a pollutant (values of another variable)
-#' vary with wind direction and time. Plotting as an annulus helps to reduce
-#' compression of information towards the centre of the plot. The circular plot
-#' is easy to interpret because wind direction is most easily understood in
-#' polar rather than Cartesian coordinates.
+#' The `polarAnnulus` function shares many of the properties of the `polarPlot`.
+#' However, `polarAnnulus` is focussed on displaying information on how
+#' concentrations of a pollutant (values of another variable) vary with wind
+#' direction and time. Plotting as an annulus helps to reduce compression of
+#' information towards the centre of the plot. The circular plot is easy to
+#' interpret because wind direction is most easily understood in polar rather
+#' than Cartesian coordinates.
 #'
 #' The inner part of the annulus represents the earliest time and the outer part
 #' of the annulus the latest time. The time dimension can be shown in many ways
@@ -21,8 +21,8 @@
 #' be very useful for understanding how different source influences affect a
 #' location.
 #'
-#' For `type = "trend"` the amount of smoothing does not vary linearly with
-#' the length of the time series i.e. a certain amount of smoothing per unit
+#' For `type = "trend"` the amount of smoothing does not vary linearly with the
+#' length of the time series i.e. a certain amount of smoothing per unit
 #' interval in time. This is a deliberate choice because should one be
 #' interested in a subset (in time) of data, more detail will be provided for
 #' the subset compared with the full data set. This allows users to investigate
@@ -32,8 +32,8 @@
 #' @inheritParams shared_openair_params
 #' @inheritParams polarPlot
 #'
-#' @param mydata A data frame minimally containing `date`, `wd` and a
-#'   pollutant.
+#' @param mydata A data frame minimally containing `date`, a wind direction and
+#'   a pollutant.
 #'
 #' @param pollutant Mandatory. A pollutant name corresponding to a variable in a
 #'   data frame should be supplied e.g. `pollutant = "nox"`. There can also be
@@ -102,13 +102,6 @@
 #'   too noisy and affected more by outliers. Choosing a lower value of `k` (say
 #'   10) may help produce a better plot.
 #'
-#' @param ... Addition options are passed on to [cutData()] for `type` handling.
-#'   Some additional arguments are also available:
-#'   - `xlab`, `ylab` and `main` override the x-axis label, y-axis label, and plot title.
-#'   - `layout` sets the layout of facets - e.g., `layout(2, 5)` will have 2 columns and 5 rows.
-#'   - `fontsize` overrides the overall font size of the plot.
-#'   - `annotate = FALSE` will not plot the N/E/S/W labels.
-#'
 #' @export
 #' @return an [openair][openair-package] object
 #' @author David Carslaw
@@ -119,7 +112,7 @@
 #' \dontrun{
 #' polarAnnulus(mydata,
 #'   pollutant = "pm10",
-#'   main = "diurnal variation in pm10 at Marylebone Road"
+#'   title = "diurnal variation in pm10 at Marylebone Road"
 #' )
 #' }
 #'
@@ -134,13 +127,14 @@
 #' \dontrun{
 #' polarAnnulus(mydata,
 #'   poll = "pmc", period = "trend",
-#'   main = "trend in pmc at Marylebone Road"
+#'   title = "trend in pmc at Marylebone Road"
 #' )
 #' }
 polarAnnulus <-
   function(
     mydata,
     pollutant = "nox",
+    wd = "wd",
     resolution = "fine",
     local.tz = NULL,
     period = "hour",
@@ -148,8 +142,10 @@ polarAnnulus <-
     statistic = "mean",
     percentile = NA,
     limits = NULL,
+    breaks = NULL,
+    trans = FALSE,
     cols = "default",
-    col.na = "white",
+    col.na = "grey",
     offset = 50,
     angle.scale = 0,
     min.bin = 1,
@@ -158,7 +154,6 @@ polarAnnulus <-
     force.positive = TRUE,
     k = c(20, 10),
     normalise = FALSE,
-    strip.position = "top",
     key.title = paste(statistic, pollutant, sep = " "),
     key.position = "right",
     auto.text = TRUE,
@@ -196,7 +191,7 @@ polarAnnulus <-
     }
 
     # extract variables of interest
-    vars <- c("wd", "date", pollutant)
+    vars <- c(wd, "date", pollutant)
 
     if (period == "trend" && "season" %in% type) {
       cli::cli_abort(
@@ -208,12 +203,22 @@ polarAnnulus <-
     }
 
     # extra.args setup
-    extra.args <- list(...)
+    extra.args <- capture_dots(...)
 
     # label controls
     extra.args$xlab <- quickText(extra.args$xlab, auto.text)
     extra.args$ylab <- quickText(extra.args$ylab, auto.text)
-    extra.args$main <- quickText(extra.args$main, auto.text)
+    extra.args$title <- quickText(extra.args$title, auto.text)
+    extra.args$subtitle <- quickText(extra.args$subtitle, auto.text)
+    extra.args$tag <- quickText(extra.args$tag, auto.text)
+
+    # deal with breaks
+    break_opts <- resolve_break_opts(breaks, extra.args)
+
+    # separate handling for being overwritten
+    if ("caption" %in% names(extra.args)) {
+      extra.args$caption <- quickText(extra.args$caption, auto.text)
+    }
 
     # check data
     mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
@@ -234,10 +239,10 @@ polarAnnulus <-
     }
 
     # add extra wds - reduces discontinuity at 0/360
-    zero.wd <- dplyr::filter(mydata, .data$wd == 360)
+    zero.wd <- dplyr::filter(mydata, .data[[wd]] == 360)
 
     if (nrow(zero.wd) > 0) {
-      zero.wd$wd <- 0
+      zero.wd[[wd]] <- 0
       mydata <- rbind(mydata, zero.wd)
     }
 
@@ -270,16 +275,33 @@ polarAnnulus <-
       na.rm = TRUE
     )
 
-    if (statistic == "cpf") {
-      sub <- paste0(
-        "CPF probability at the ",
-        percentile,
-        "th percentile (=",
-        round(Pval, 1),
-        ")"
+    # handle caption
+    sub <- NULL
+    if (extra.args$annotate %||% TRUE) {
+      if (statistic == "cpf") {
+        sub <- paste0(
+          "CPF probability at the ",
+          percentile,
+          "th percentile (=",
+          round(Pval, 1),
+          ")"
+        )
+      } else {
+        sub <- NULL
+      }
+
+      sub <- paste(
+        list(
+          "hour" = "Radial axis shows hour of the day",
+          "weekday" = "Radial axis shows day of the week",
+          "season" = "Radial axis shows month of the year",
+          "trend" = NULL
+        )[[period]],
+        sub,
+        sep = "\n"
       )
-    } else {
-      sub <- NULL
+
+      sub <- quickText(sub, auto.text = auto.text)
     }
 
     prepare.grid <- function(mydata) {
@@ -350,11 +372,15 @@ polarAnnulus <-
 
       time.seq <- seq(0, 10, length = 24)
 
-      wd <- seq(from = 0, to = 360, 10) # wind directions from 10 to 360
-      ws.wd <- expand.grid(time.seq = time.seq, wd = wd)
+      wd_seq <- seq(from = 0, to = 360, 10) # wind directions from 10 to 360
+      ws.wd <- expand.grid(time.seq = time.seq, wd = wd_seq)
 
       # identify which ws and wd bins the data belong
-      wd.cut <- cut(mydata$wd, seq(0, 360, length = 38), include.lowest = TRUE)
+      wd.cut <- cut(
+        mydata[[wd]],
+        seq(0, 360, length = 38),
+        include.lowest = TRUE
+      )
 
       # divide-up the data for the annulus
       time.cut <- cut(
@@ -422,7 +448,7 @@ polarAnnulus <-
 
       # data to predict over
       time.seq <- ws.wd$time.seq
-      wd <- ws.wd$wd
+      wd_seq <- ws.wd$wd
 
       input.data <- expand.grid(
         time.seq = seq(0, 10, length = len.int),
@@ -437,7 +463,7 @@ polarAnnulus <-
         n <- 1
       }
 
-      input <- data.frame(binned, time.seq, wd)
+      input <- data.frame(binned, time.seq, wd = wd_seq)
 
       # note use of cyclic smooth for the wind direction component
       Mgam <- mgcv::gam(
@@ -537,6 +563,13 @@ polarAnnulus <-
     # check if key.header / key.footer are being used
     key.title <- check_key_header(key.title, extra.args)
 
+    # handle breaks
+    categorical <- !is.null(break_opts$breaks)
+    results.grid$pred <- cut_plot_breaks(
+      results.grid$pred,
+      break_opts
+    )
+
     # plotting
     thePlot <-
       ggplot2::ggplot(
@@ -558,7 +591,11 @@ polarAnnulus <-
         inner_radius = c(offset / 100, 1) * 0.475
       ) +
       scale_x_compass() +
-      theme_openair_radial(key.position, panel.ontop = TRUE) +
+      theme_openair_radial(
+        key.position,
+        extra.args = extra.args,
+        panel.ontop = TRUE
+      ) +
       ggplot2::theme(
         panel.grid.major.y = ggplot2::element_line(
           colour = "grey50",
@@ -566,18 +603,63 @@ polarAnnulus <-
           linewidth = 0.25
         )
       ) +
-      ggplot2::scale_fill_gradientn(
-        colours = openColours(cols),
-        aesthetics = c("colour", "fill"),
-        limits = limits,
-        breaks = scales::breaks_pretty(6),
-        na.value = col.na
-      ) +
+      {
+        if (categorical) {
+          list(
+            ggplot2::scale_fill_manual(
+              values = resolve_colour_opts(cols, nlevels(results.grid$pred)),
+              aesthetics = c("colour", "fill"),
+              na.value = col.na,
+              drop = FALSE
+            ),
+            ggplot2::guides(
+              fill = ggplot2::guide_legend(
+                reverse = TRUE,
+                theme = ggplot2::theme(
+                  legend.title.position = ifelse(
+                    key.position %in% c("left", "right"),
+                    "top",
+                    key.position
+                  ),
+                  legend.text.position = key.position
+                )
+              ),
+              color = ggplot2::guide_none()
+            )
+          )
+        } else {
+          list(
+            ggplot2::scale_fill_gradientn(
+              colours = resolve_colour_opts(cols, 100),
+              aesthetics = c("colour", "fill"),
+              limits = limits,
+              breaks = scales::breaks_pretty(6),
+              na.value = col.na,
+              transform = get_scale_transform(trans)
+            ),
+            ggplot2::guides(
+              fill = ggplot2::guide_colorbar(
+                theme = ggplot2::theme(
+                  legend.title.position = ifelse(
+                    key.position %in% c("left", "right"),
+                    "top",
+                    key.position
+                  ),
+                  legend.text.position = key.position
+                )
+              ),
+              color = ggplot2::guide_none()
+            )
+          )
+        }
+      } +
       ggplot2::labs(
         x = extra.args$xlab,
         y = extra.args$ylab,
-        title = extra.args$main,
-        caption = sub,
+        title = extra.args$title,
+        subtitle = extra.args$subtitle,
+        caption = extra.args$caption %||% sub,
+        tag = extra.args$tag,
         colour = quickText(key.title, auto.text = auto.text),
         fill = quickText(key.title, auto.text = auto.text)
       ) +
@@ -591,10 +673,9 @@ polarAnnulus <-
       get_facet(
         type = type,
         extra.args = extra.args,
-        scales = "fixed",
         auto.text = auto.text,
         drop = FALSE,
-        strip.position = strip.position
+        wd.res = extra.args$wd.res %||% 8
       ) +
       ggplot2::guides(
         r = ggplot2::guide_axis(check.overlap = TRUE)

@@ -26,10 +26,6 @@
 #'
 #' @param mydata A data frame containing fields `ws` and `wd`
 #'
-#' @param ws Name of the column representing wind speed.
-#'
-#' @param wd Name of the column representing wind direction.
-#'
 #' @param ws2,wd2 The user can supply a second set of wind speed and wind
 #'   direction values with which the first can be compared. See
 #'   [pollutionRose()] for more details.
@@ -112,12 +108,6 @@
 #'
 #' @param border Border colour for shaded areas. Default is no border.
 #'
-#' @param ... Addition options are passed on to [cutData()] for `type` handling.
-#'   Some additional arguments are also available:
-#'   - `xlab`, `ylab` and `main` override the x-axis label, y-axis label, and plot title.
-#'   - `layout` sets the layout of facets - e.g., `layout(2, 5)` will have 2 columns and 5 rows.
-#'   - `fontsize` overrides the overall font size of the plot.
-#'
 #' @export
 #' @return an [openair][openair-package] object. Summarised proportions can be
 #'   extracted directly using the `$data` operator, e.g. `object$data` for
@@ -151,6 +141,37 @@
 #' \dontrun{
 #' windRose(mydata, angle = 10, width = 0.2, grid.line = 1)
 #' }
+#'
+#' \dontrun{
+#' #' # example of comparing 2 met sites
+#' # first we will make some new ws/wd data with a postive bias
+#' mydata$ws2 <- mydata$ws + 2 * rnorm(nrow(mydata)) + 1
+#' mydata$wd2 <- mydata$wd + 30 * rnorm(nrow(mydata)) + 30
+#'
+#' # need to correct negative wd
+#' id <- which(mydata$wd2 < 0)
+#' mydata$wd2[id] <- mydata$wd2[id] + 360
+#'
+#' # results show postive bias in wd and ws
+#' windRose(mydata, ws = "ws", wd = "wd", ws2 = "ws2", wd2 = "wd2")
+#'
+#' ## add some wd bias to some nighttime hours
+#' id <- which(as.numeric(format(mydata$date, "%H")) %in% c(23, 1, 2, 3, 4, 5))
+#' mydata$wd2[id] <- mydata$wd[id] + 30 * rnorm(length(id)) + 120
+#' id <- which(mydata$wd2 < 0)
+#' mydata$wd2[id] <- mydata$wd2[id] + 360
+#'
+#' windRose(
+#'   mydata,
+#'   ws = "ws",
+#'   wd = "wd",
+#'   ws2 = "ws2",
+#'   wd2 = "wd2",
+#'   breaks = c(-11, -2, -1, -0.5, 0.5, 1, 2, 11),
+#'   cols = "vik",
+#'   type = "daylight"
+#' )
+#' }
 windRose <- function(
   mydata,
   ws = "ws",
@@ -174,7 +195,6 @@ windRose <- function(
   paddle = TRUE,
   key.title = "(m/s)",
   key.position = "bottom",
-  strip.position = "top",
   dig.lab = 5,
   include.lowest = FALSE,
   statistic = "prop.count",
@@ -215,12 +235,19 @@ windRose <- function(
   angle[angle < 3] <- 3
 
   # extra.args args setup
-  extra.args <- list(...)
+  extra.args <- capture_dots(...)
 
   # label controls
   extra.args$xlab <- quickText(extra.args$xlab, auto.text)
   extra.args$ylab <- quickText(extra.args$ylab, auto.text)
-  extra.args$main <- quickText(extra.args$main, auto.text)
+  extra.args$title <- quickText(extra.args$title, auto.text)
+  extra.args$subtitle <- quickText(extra.args$subtitle, auto.text)
+  extra.args$tag <- quickText(extra.args$tag, auto.text)
+
+  # need separate handling to be overwritten
+  if ("caption" %in% names(extra.args)) {
+    extra.args$caption <- quickText(extra.args$caption %||% NULL, auto.text)
+  }
 
   # preset statitistics
   if (is.character(statistic)) {
@@ -295,9 +322,6 @@ windRose <- function(
     # Reference wd/ws retained for binning — do not overwrite them
     vars <- c(wd, ws, ".ws_bias", ".wd_bias")
 
-    if (missing(cols)) {
-      cols <- c("steelblue3", "white", "tomato2")
-    }
     seg <- 1
   }
 
@@ -403,10 +427,10 @@ windRose <- function(
     }
 
     # Diverging colour scale (expect cols to be length-3 low/mid/high)
-    diff_colors <- if (length(cols) >= 3) {
-      cols[c(1, ceiling(length(cols) / 2), length(cols))]
+    if (missing(cols)) {
+      cols <- c("steelblue3", "white", "tomato2")
     } else {
-      c("steelblue3", "white", "tomato2")
+      cols <- openair::openColors(cols, n = 3L)
     }
 
     fill_guide <- if (key.position == "none") {
@@ -430,8 +454,7 @@ windRose <- function(
 
     thePlot <-
       ggplot2::ggplot(diff_results) +
-      theme_openair_radial(key.position) +
-      set_extra_fontsize(extra.args) +
+      theme_openair_radial(key.position, extra.args = extra.args) +
       ggplot2::theme(
         panel.grid.major.y = ggplot2::element_line(
           colour = grid.col,
@@ -486,9 +509,9 @@ windRose <- function(
       ) +
       scale_x_compass() +
       ggplot2::scale_fill_gradient2(
-        low = diff_colors[1],
-        mid = diff_colors[2],
-        high = diff_colors[3],
+        low = cols[1],
+        mid = cols[2],
+        high = cols[3],
         midpoint = 0,
         name = quickText(
           key.title,
@@ -498,19 +521,21 @@ windRose <- function(
       ggplot2::labs(
         x = extra.args$xlab,
         y = extra.args$ylab,
-        title = extra.args$main,
-        caption = if (annotate) {
-          "Mean wind speed bias (test \u2212 reference) by reference direction"
-        }
+        title = extra.args$title,
+        subtitle = extra.args$subtitle,
+        caption = extra.args$caption %||%
+          if (annotate) {
+            "Mean wind speed bias (test \u2212 reference) by reference direction"
+          },
+        tag = extra.args$tag
       ) +
       ggplot2::guides(fill = fill_guide) +
       get_facet(
         type,
         extra.args,
-        scales = "fixed",
         auto.text = auto.text,
-        strip.position = strip.position,
-        drop = FALSE
+        drop = FALSE,
+        wd.res = extra.args$wd.res %||% 8
       )
 
     if (annotate) {
@@ -793,8 +818,11 @@ windRose <- function(
         y = .data$value
       )
     ) +
-    theme_openair_radial(key.position, panel.ontop = normalise) +
-    set_extra_fontsize(extra.args) +
+    theme_openair_radial(
+      key.position,
+      extra.args = extra.args,
+      panel.ontop = normalise
+    ) +
     ggplot2::theme(
       panel.grid.major.y = ggplot2::element_line(
         colour = grid.col,
@@ -824,15 +852,17 @@ windRose <- function(
     ) +
     scale_x_compass() +
     ggplot2::scale_fill_manual(
-      values = openColours(scheme = cols, n = length(interval_labels)),
+      values = resolve_colour_opts(cols, n = length(interval_labels)),
       aesthetics = c("colour", "fill"),
       na.translate = FALSE
     ) +
     ggplot2::labs(
       x = extra.args$xlab,
       y = extra.args$ylab,
-      title = extra.args$main,
-      caption = if (annotate) stat.lab
+      title = extra.args$title,
+      subtitle = extra.args$subtitle,
+      caption = extra.args$caption %||% if (annotate) stat.lab,
+      tag = extra.args$tag
     ) +
     ggplot2::guides(
       fill = key_guide,
@@ -842,10 +872,9 @@ windRose <- function(
     get_facet(
       type,
       extra.args,
-      scales = "fixed",
       auto.text = auto.text,
-      strip.position = strip.position,
-      drop = FALSE
+      drop = FALSE,
+      wd.res = extra.args$wd.res %||% 8
     )
 
   if (normalise) {
@@ -1023,8 +1052,8 @@ windRose <- function(
 #'   used to set specific break points. For example, the argument `breaks =
 #'   c(0, 1, 10, 100)` breaks the data into segments <1, 1-10, 10-100, >100.
 #'
-#' @inheritDotParams windRose -pollutant -key.title -key.position -key -breaks
-#'   -seg -normalise -plot -paddle
+#' @param ... Other arguments passed on to [windRose()].
+#'
 #' @export
 #' @return an [openair][openair-package] object. Summarised proportions can be
 #'   extracted directly using the `$data` operator, e.g.
@@ -1044,35 +1073,6 @@ windRose <- function(
 #' # source apportionment plot - contribution to mean
 #' \dontrun{
 #' pollutionRose(mydata, pollutant = "pm10", type = "year", statistic = "prop.mean")
-#'
-#' # example of comparing 2 met sites
-#' # first we will make some new ws/wd data with a postive bias
-#' mydata$ws2 <- mydata$ws + 2 * rnorm(nrow(mydata)) + 1
-#' mydata$wd2 <- mydata$wd + 30 * rnorm(nrow(mydata)) + 30
-#'
-#' # need to correct negative wd
-#' id <- which(mydata$wd2 < 0)
-#' mydata$wd2[id] <- mydata$wd2[id] + 360
-#'
-#' # results show postive bias in wd and ws
-#' pollutionRose(mydata, ws = "ws", wd = "wd", ws2 = "ws2", wd2 = "wd2")
-#'
-#' ## add some wd bias to some nighttime hours
-#' id <- which(as.numeric(format(mydata$date, "%H")) %in% c(23, 1, 2, 3, 4, 5))
-#' mydata$wd2[id] <- mydata$wd[id] + 30 * rnorm(length(id)) + 120
-#' id <- which(mydata$wd2 < 0)
-#' mydata$wd2[id] <- mydata$wd2[id] + 360
-#'
-#' pollutionRose(
-#'   mydata,
-#'   ws = "ws",
-#'   wd = "wd",
-#'   ws2 = "ws2",
-#'   wd2 = "wd2",
-#'   breaks = c(-11, -2, -1, -0.5, 0.5, 1, 2, 11),
-#'   cols = c("dodgerblue4", "white", "firebrick"),
-#'   type = "daylight"
-#' )
 #' }
 pollutionRose <- function(
   mydata,
@@ -1088,7 +1088,7 @@ pollutionRose <- function(
   ...
 ) {
   # extra.args args setup
-  extra.args <- list(...)
+  extra.args <- capture_dots(...)
 
   # check if key.header / key.footer are being used
   key.title <- check_key_header(key.title, extra.args)

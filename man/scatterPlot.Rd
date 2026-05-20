@@ -26,15 +26,13 @@ scatterPlot(
   key.title = group,
   key.columns = 1,
   key.position = "right",
-  strip.position = "top",
   log.x = FALSE,
   log.y = FALSE,
   x.inc = NULL,
   y.inc = NULL,
   limits = NULL,
+  trans = FALSE,
   windflow = NULL,
-  y.relation = "same",
-  x.relation = "same",
   ref.x = NULL,
   ref.y = NULL,
   k = NA,
@@ -77,6 +75,25 @@ followed by a space. For example, an average of 2 months would be
 \code{avg.time = "2 month"}. In addition, \code{avg.time} can equal \code{"season"}, in
 which case 3-month seasonal values are calculated with spring defined as
 March, April, May and so on.
+
+\strong{Period boundary behaviour:} how bin boundaries are determined depends on
+the type of period:
+\itemize{
+\item \emph{Single-unit periods} (\code{"hour"}, \code{"day"}, \code{"week"}, etc.) are floored to
+the start of the enclosing unit in the data's timezone (e.g. \code{"day"}
+floors to midnight).
+\item \emph{Multi-unit fixed-length periods} (\code{"3 day"}, \code{"6 hour"}, \code{"2 week"},
+etc.) use epoch-aligned arithmetic: bin boundaries are fixed multiples of
+the period length counted from 1970-01-01, so the same calendar dates
+always fall in the same bin regardless of where the data starts, and bins
+run continuously across month boundaries without resetting at the start of
+each month. For example, with \code{avg.time = "3 day"} a bin that begins on
+29 January will end on 31 January, and the next bin begins on 1 February
+— the month boundary does not start a new bin.
+\item \emph{Calendar periods} (\code{"month"}, \code{"quarter"}, \code{"year"}) are floored to the
+start of the enclosing calendar unit, so they correctly respect variable
+month and year lengths.
+}
 
 Note that \code{avg.time} can be \emph{less} than the time interval of the original
 series, in which case the series is expanded to the new time interval. This
@@ -152,7 +169,9 @@ two (FAC2).}
 \item{cols}{Colours to use for plotting. Can be a pre-set palette (e.g.,
 \code{"turbo"}, \code{"viridis"}, \code{"tol"}, \code{"Dark2"}, etc.) or a user-defined vector
 of R colours (e.g., \code{c("yellow", "green", "blue", "black")} - see
-\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). See \code{\link[=openColours]{openColours()}} for more details.}
+\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). Alternatively, can be a list of arguments to control the
+colour palette more closely (e.g., \code{palette}, \code{direction}, \code{alpha}, etc.).
+See \code{\link[=openColours]{openColours()}} and \code{\link[=colourOpts]{colourOpts()}} for more details.}
 
 \item{plot.type}{Type of plot: \dQuote{p} (points, default), \dQuote{l}
 (lines) or \dQuote{b} (both points and lines).}
@@ -169,38 +188,47 @@ number of categories.}
 arguments include \code{"top"}, \code{"right"}, \code{"bottom"}, \code{"left"} and \code{"none"},
 the last of which removes the legend entirely.}
 
-\item{strip.position}{Location where the facet 'strips' are located when
-using \code{type}. When one \code{type} is provided, can be one of \code{"left"},
-\code{"right"}, \code{"bottom"} or \code{"top"}. When two \code{type}s are provided, this
-argument defines whether the strips are "switched" and can take either
-\code{"x"}, \code{"y"}, or \code{"both"}. For example, \code{"x"} will switch the 'top' strip
-locations to the bottom of the plot.}
-
 \item{log.x, log.y}{Should the x-axis/y-axis appear on a log scale? The
 default is \code{FALSE}. If \code{TRUE} a well-formatted log10 scale is used. This
 can be useful for checking linearity once logged.}
 
 \item{x.inc, y.inc}{The x/y-interval to be used for binning data when \code{method = "level"}.}
 
-\item{limits}{For \code{method = "level"} the function does its best to choose
-sensible limits automatically. However, there are circumstances when the
-user will wish to set different ones. The limits are set in the form
-\code{c(lower, upper)}, so \code{limits = c(0, 100)} would force the plot limits to
-span 0-100.}
+\item{limits}{The limits of the colour scale, in the form \code{c(lower, upper)}.
+For example, \code{limits = c(0, 100)} will set the colour scale to be between
+\code{0} and \code{100}. Values greater than \code{100} will be coloured as if they were
+\code{100}, and those lower than \code{0} will be coloured as if they were \code{0}.
+\code{limits} can be wider than the range of the data, which can be useful for
+ensuring multiple plots share the same colour scale.}
+
+\item{trans}{Should a transformation be applied to the colour scale? If the
+distribution of data is skewed, the default scale may be dominated by a few
+high values, so a log or square-root transform may mean the whole colour
+scale is better presented on the plot. Can be:
+\itemize{
+\item \code{FALSE}, which performs no transform.
+\item \code{TRUE}, which uses an appropriate transform for the plot type (usually
+\code{"log10"}).
+\item A \code{scales} 'transform' object (e.g., \code{\link[scales:transform_log10]{scales::transform_log10()}}).
+\item A character string corresponding to a \code{scales} transform function. Useful
+options include \code{"sqrt"}, \code{"log10"}, \code{"log2"}, \code{"log1p"}, \code{"pseudo_log"}
+and \code{"reverse"}.
+}}
 
 \item{windflow}{If \code{TRUE}, the vector-averaged wind speed and direction will
 be plotted using arrows. Alternatively, can be a list of arguments to
 control the appearance of the arrows (colour, linewidth, alpha value,
 etc.). See \code{\link[=windflowOpts]{windflowOpts()}} for details.}
 
-\item{x.relation, y.relation}{This determines how the x- and y-axis scales are
-plotted. \code{"same"} ensures all panels use the same scale and \code{"free"} will
-use panel-specific scales. The latter is a useful setting when plotting
-data with very different values.}
+\item{ref.x}{Either a single value or values representing the x axis
+intercepts to draw lines, or a list such as that provided by \code{\link[=refOpts]{refOpts()}} to
+customise the colour/width/type/etc. of each line. See \code{\link[=refOpts]{refOpts()}} for more
+details.}
 
-\item{ref.x, ref.y}{A list with details of the horizontal or vertical lines to
-be added representing reference line(s). For example, \code{ref.y = list(h = 50, lty = 5)} will add a dashed horizontal line at 50. Several lines can be
-plotted e.g. \code{ref.y = list(h = c(50, 100), lty = c(1, 5), col = c("green", "blue"))}.}
+\item{ref.y}{Either a single value or values representing the y axis
+intercepts to draw lines, or a list such as that provided by \code{\link[=refOpts]{refOpts()}} to
+customise the colour/width/type/etc. of each line. See \code{\link[=refOpts]{refOpts()}} for more
+details.}
 
 \item{k}{Smoothing parameter supplied to \code{gam} for fitting a smooth surface
 when \code{method = "level"}.}
@@ -223,14 +251,25 @@ to a file).}
 \code{key.position} to \code{"none"}.}
 
 \item{...}{Addition options are passed on to \code{\link[=cutData]{cutData()}} for \code{type} handling.
-Some additional arguments are also available:
+Some additional arguments are also available, varying somewhat in different
+plotting functions:
 \itemize{
-\item \code{xlab}, \code{ylab} and \code{main} override the x-axis label, y-axis label, and plot title.
-\item \code{layout} sets the layout of facets - e.g., \code{layout(2, 5)} will have 2 columns and 5 rows.
-\item \code{fontsize} overrides the overall font size of the plot.
-\item \code{cex}, \code{lwd}, \code{lty}, \code{alpha}, \code{pch} and \code{border} control various graphical parameters.
-\item For \code{method = "hexbin"} a log-scale fill is applied by default; pass \code{trans = NULL} to disable or
-provide custom \code{trans} and \code{inv} transform functions. \code{bins} controls the number of bins.
+\item \code{title}, \code{subtitle}, \code{caption}, \code{xlab} and \code{ylab} control the plot
+title, subtitle, caption, x-axis label and y-axis label. All of these are
+passed through to \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.
+\item \code{xlim}, \code{ylim} and \code{limits} control the limits of the x-axis, y-axis and
+colorbar scales.
+\item \code{ncol} and \code{nrow} set the number of columns and rows in a faceted plot.
+\item \code{fontsize} overrides the overall font size of the plot by setting the
+\code{text} argument of \code{\link[ggplot2:theme]{ggplot2::theme()}}. It may also be applied
+proportionately to any \code{openair} annotations (e.g., N/E/S/W labels on polar
+coordinate plots).
+\item Various graphical parameters are also supported: \code{linewidth},
+\code{linetype},\code{ shape}, \code{size}, \code{border}, and \code{alpha}. Not all parameters
+apply to all plots. These can take a single value, or a vector of multiple
+values - e.g., \code{shape = c(1, 2)} - which will be recycled to the length of
+values needed.
+\item For \code{method = "hexbin"}, \code{bins} controls the number of bins.
 \item \code{date.format} controls the format of date-time x-axes.
 }}
 }
@@ -291,11 +330,11 @@ scatterPlot(dat2004,
 
 # example of the use of continuous where colour is used to show
 # different levels of a third (numeric) variable
-# plot daily averages and choose a filled plot symbol (pch = 16)
+# plot daily averages and choose a filled plot symbol (shape = 16)
 # select only 2004
 \dontrun{
 
-scatterPlot(dat2004, x = "nox", y = "no2", z = "co", avg.time = "day", pch = 16)
+scatterPlot(dat2004, x = "nox", y = "no2", z = "co", avg.time = "day", shape = 16)
 
 # show linear fit, by year
 scatterPlot(mydata,

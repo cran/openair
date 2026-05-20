@@ -3,6 +3,13 @@
 #' @description This is a central place for describing common shared parameters.
 #'   This ensures consistency across `openair`
 #'
+#' @param ws The name of the column in `mydata` representing the wind speed.
+#'   Defaults to `"ws"`.
+#'
+#' @param wd The name of the column in `mydata` representing the decimal wind
+#'   direction, 0 to 360 where 0/360 are North and 180 is South. Defaults to
+#'   `"wd"`.
+#'
 #' @param type Character string(s) defining how data should be split/conditioned
 #'   before plotting. `"default"` produces a single panel using the entire
 #'   dataset. Any other options will split the plot into different panels - a
@@ -30,7 +37,9 @@
 #'   `"turbo"`, `"viridis"`, `"tol"`, `"Dark2"`, etc.) or a user-defined vector
 #'   of R colours (e.g., `c("yellow", "green", "blue", "black")` - see
 #'   [colours()] for a full list) or hex-codes (e.g., `c("#30123B", "#9CF649",
-#'   "#7A0403")`). See [openColours()] for more details.
+#'   "#7A0403")`). Alternatively, can be a list of arguments to control the
+#'   colour palette more closely (e.g., `palette`, `direction`, `alpha`, etc.).
+#'   See [openColours()] and [colourOpts()] for more details.
 #'
 #' @param date.breaks Number of major x-axis intervals to use. The function will
 #'   try and choose a sensible number of dates/times as well as formatting the
@@ -42,20 +51,21 @@
 #'   override this. For format types see [strptime()]. For example, to format
 #'   the date like "Jan-2012" set `date.format = "\%b-\%Y"`.
 #'
-#' @param breaks,labels If a categorical colour scale is required then `breaks`
-#'   should be specified. These should be provided as a numeric vector, e.g.,
-#'   `breaks = c(0, 50, 100, 1000)`. Users should set the maximum value of
-#'   `breaks` to exceed the maximum data value to ensure it is within the
-#'   maximum final range, e.g., 100--1000 in this case. Labels will
-#'   automatically be generated, but can be customised by passing a character
-#'   vector to `labels`, e.g., `labels = c("good", "bad", "very bad")`. In this
-#'   example, `0 - 50` will be `"good"` and so on. Note there is one less label
-#'   than break.
+#' @param breaks `breaks` bins a continuous axis into discrete bins. It can
+#'   either take a single number (e.g., `breaks = 5`) to split the scale into
+#'   quantiles, a vector of numbers (e.g., `breaks = c(0, 50, 100, 200, 500`) to
+#'   define specific break-points, or a named list. See [breakOpts()] for more
+#'   details.
 #'
-#' @param x.relation,y.relation This determines how the x- and y-axis scales are
-#'   plotted. `"same"` ensures all panels use the same scale and `"free"` will
-#'   use panel-specific scales. The latter is a useful setting when plotting
-#'   data with very different values.
+#' @param ref.x Either a single value or values representing the x axis
+#'   intercepts to draw lines, or a list such as that provided by [refOpts()] to
+#'   customise the colour/width/type/etc. of each line. See [refOpts()] for more
+#'   details.
+#'
+#' @param ref.y Either a single value or values representing the y axis
+#'   intercepts to draw lines, or a list such as that provided by [refOpts()] to
+#'   customise the colour/width/type/etc. of each line. See [refOpts()] for more
+#'   details.
 #'
 #' @param angle.scale In radial plots (e.g., [polarPlot()]), the radial scale is
 #'   drawn directly on the plot itself. While suitable defaults have been
@@ -73,6 +83,29 @@
 #'   expressed on a scale of `0` to `100`, where `0` is no hole and `100` is a
 #'   hole that takes up the entire plotting area.
 #'
+#' @param limits The limits of the colour scale, in the form `c(lower, upper)`.
+#'   For example, `limits = c(0, 100)` will set the colour scale to be between
+#'   `0` and `100`. Values greater than `100` will be coloured as if they were
+#'   `100`, and those lower than `0` will be coloured as if they were `0`.
+#'   `limits` can be wider than the range of the data, which can be useful for
+#'   ensuring multiple plots share the same colour scale.
+#'
+#' @param trans Should a transformation be applied to the colour scale? If the
+#'   distribution of data is skewed, the default scale may be dominated by a few
+#'   high values, so a log or square-root transform may mean the whole colour
+#'   scale is better presented on the plot. Can be:
+#'
+#'   - `FALSE`, which performs no transform.
+#'
+#'   - `TRUE`, which uses an appropriate transform for the plot type (usually
+#'   `"log10"`).
+#'
+#'   - A `scales` 'transform' object (e.g., [scales::transform_log10()]).
+#'
+#'   - A character string corresponding to a `scales` transform function. Useful
+#'   options include `"sqrt"`, `"log10"`, `"log2"`, `"log1p"`, `"pseudo_log"`
+#'   and `"reverse"`.
+#'
 #' @param key.position Location where the legend is to be placed. Allowed
 #'   arguments include `"top"`, `"right"`, `"bottom"`, `"left"` and `"none"`,
 #'   the last of which removes the legend entirely.
@@ -84,13 +117,6 @@
 #'   many categories a single column can make to key too wide. The user can thus
 #'   choose to use several columns by setting `key.columns` to be less than the
 #'   number of categories.
-#'
-#' @param strip.position Location where the facet 'strips' are located when
-#'   using `type`. When one `type` is provided, can be one of `"left"`,
-#'   `"right"`, `"bottom"` or `"top"`. When two `type`s are provided, this
-#'   argument defines whether the strips are "switched" and can take either
-#'   `"x"`, `"y"`, or `"both"`. For example, `"x"` will switch the 'top' strip
-#'   locations to the bottom of the plot.
 #'
 #' @param auto.text Either `TRUE` (default) or `FALSE`. If `TRUE` titles and
 #'   axis labels will automatically try and format pollutant names and units
@@ -104,6 +130,46 @@
 #'
 #' @param key Deprecated; please use `key.position`. If `FALSE`, sets
 #'   `key.position` to `"none"`.
+#'
+#' @param ... Addition options are passed on to [cutData()] for `type` handling.
+#'   Some additional arguments are also available, varying somewhat in different
+#'   plotting functions:
+#'
+#'   - `title`, `subtitle`, `caption`, `tag`, `xlab` and `ylab` control the plot
+#'   title, subtitle, caption, tag, x-axis label and y-axis label, passed to
+#'   [ggplot2::labs()] via [quickText()] if `auto.text = TRUE`.
+#'
+#'   - `xlim`, `ylim` and `limits` control the limits of the x-axis, y-axis and
+#'   colorbar scales.
+#'
+#'   - `ncol` and `nrow` set the number of columns and rows in a faceted plot.
+#'
+#'   - `scales` can be `"fixed"`, `"free_x"`, `"free_y"` or `"free"` to control
+#'   whether axes are shared across facets when using `type`. Also supported are
+#'   the legacy `x.relation` and `y.relation`, which can be either `"same"` or
+#'   `"free"` and get remapped to `scales` automatically.
+#'
+#'   - Similarly, `space`, `axes`, `axis.labels`, `switch` and `strip.position`
+#'   can be used to customise the appearance of faceted plots. See
+#'   [ggplot2::facet_wrap()] and [ggplot2::facet_grid()] for the arguments these
+#'   take.
+#'
+#'   - `fontsize` overrides the overall font size of the plot by setting the
+#'   `text` argument of [ggplot2::theme()]. It may also be applied
+#'   proportionately to any `openair` annotations (e.g., N/E/S/W labels on polar
+#'   coordinate plots).
+#'
+#'   - Various graphical parameters are also supported: `linewidth`,
+#'   `linetype`,` shape`, `size`, `border`, and `alpha`. Not all parameters
+#'   apply to all plots. These can take a single value, or a vector of multiple
+#'   values - e.g., `shape = c(1, 2)` - which will be recycled to the length of
+#'   values needed.
+#'
+#'   - `lineend`, `linejoin` and `linemitre` tweak the appearance of line
+#'   plots; see [ggplot2::geom_line()] for more information.
+#'
+#'   - In polar coordinate plots, `annotate = FALSE` will remove the N/E/S/W
+#'   labels and any other annotations.
 #'
 #' @aliases docs-shared-internal
 #' @keywords internal

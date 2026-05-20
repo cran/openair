@@ -1,11 +1,11 @@
 Type: Package
 Package: openair
 Title: Tools for the Analysis of Air Pollution Data
-Version: 3.0.0
+Version: 3.1.0
 Authors@R: c(
     person("David", "Carslaw", , "david.carslaw@york.ac.uk", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-0991-950X")),
-    person("Jack", "Davison", , "jack.davison@ricardo.com", role = "aut",
+    person("Jack", "Davison", , "jack.davison@wsp.com", role = "aut",
            comment = c(ORCID = "0000-0003-2653-6615")),
     person("Karl", "Ropkins", , "K.Ropkins@its.leeds.ac.uk", role = "aut",
            comment = c(ORCID = "0000-0002-0294-6997"))
@@ -25,8 +25,8 @@ Imports: cli, cluster, dplyr (>= 1.2), ggplot2 (>= 4.0.0), graphics,
         purrr (>= 1.0.0), Rcpp, readr, rlang, scales, stats, tidyr,
         utils
 Suggests: geomtextpath, KernSmooth, knitr, legendry (>= 0.2.4),
-        quantreg, rmarkdown, rnaturalearthdata, sf, spelling, testthat
-        (>= 3.0.0)
+        quantreg, rmarkdown, rnaturalearth, sf, spelling, testthat (>=
+        3.0.0)
 LinkingTo: Rcpp
 ByteCompile: true
 Config/Needs/website: openair-project/openairpkgdown
@@ -35,13 +35,13 @@ Encoding: UTF-8
 Language: en-GB
 LazyData: yes
 LazyLoad: yes
-RoxygenNote: 7.3.3
+Config/roxygen2/version: 8.0.0
 NeedsCompilation: yes
-Packaged: 2026-04-02 07:31:41 UTC; davidcarslaw
+Packaged: 2026-05-20 09:04:22 UTC; JD38
 Author: David Carslaw [aut, cre] (ORCID:
     <https://orcid.org/0000-0003-0991-950X>),
   Jack Davison [aut] (ORCID: <https://orcid.org/0000-0003-2653-6615>),
   Karl Ropkins [aut] (ORCID: <https://orcid.org/0000-0002-0294-6997>)
 Maintainer: David Carslaw <david.carslaw@york.ac.uk>
 Repository: CRAN
-Date/Publication: 2026-04-02 09:00:02 UTC
+Date/Publication: 2026-05-20 10:00:02 UTC

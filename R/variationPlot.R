@@ -75,14 +75,6 @@
 #' @param alpha The alpha transparency used for plotting confidence intervals.
 #'   `0` is fully transparent and 1 is opaque. The default is `0.4`.
 #'
-#' @param ... Addition options are passed on to [cutData()] for `type` handling.
-#'   Some additional arguments are also available:
-#'   - `xlab`, `ylab` and `main` override the x-axis label, y-axis label, and plot title.
-#'   - `layout` sets the layout of facets - e.g., `layout(2, 5)` will have 2 columns and 5 rows.
-#'   - `lwd` and `lty` control various graphical parameters.
-#'   - `fontsize` overrides the overall font size of the plot.
-#'   - `ylim` controls axis limits.
-#'
 #' @export
 #'
 #' @seealso [timeVariation()], which conveniently assembles many time-related
@@ -117,7 +109,6 @@ variationPlot <- function(
   ci = TRUE,
   cols = "hue",
   alpha = 0.4,
-  strip.position = "top",
   key.position = "top",
   key.columns = NULL,
   name.pol = NULL,
@@ -144,7 +135,7 @@ variationPlot <- function(
   )
 
   # extra.args setup
-  extra.args <- list(...)
+  extra.args <- capture_dots(...)
 
   # labels
   extra.args$ylab <- quickText(
@@ -153,12 +144,16 @@ variationPlot <- function(
     auto.text
   )
   extra.args$xlab <- quickText(extra.args$x %||% x, auto.text)
-  extra.args$main <- quickText(extra.args$main %||% "", auto.text)
-  extra.args$sub <- quickText(
-    extra.args$sub %||% create_varplot_sub_text(statistic, conf.int),
+  extra.args$title <- quickText(extra.args$title %||% "", auto.text)
+  extra.args$subtitle <- quickText(extra.args$subtitle %||% "", auto.text)
+  extra.args$caption <- quickText(
+    extra.args$caption %||% create_varplot_sub_text(statistic, conf.int),
     auto.text
   )
-  extra.args$lty <- extra.args$lty %||% 1
+  extra.args$tag <- quickText(extra.args$tag, auto.text)
+  extra.args$linetype <- extra.args$linetype %||% 1
+  extra.args$linewidth <- extra.args$linewidth %||% 0.75
+  extra.args$shape <- extra.args$shape %||% 16
 
   drop <- extra.args$drop %||% "none"
   extra.args$drop <- NULL
@@ -250,7 +245,7 @@ variationPlot <- function(
       values_to = "value"
     ) |>
       dplyr::mutate(
-        group = factor(.data$group)
+        group = factor(.data$group, levels = pollutant)
       )
   } else {
     names(mydata)[names(mydata) == pollutant] <- "value"
@@ -281,7 +276,7 @@ variationPlot <- function(
             group = "wd_v"
           )
       ) |>
-      dplyr::mutate(group = factor(.data$group))
+      dplyr::mutate(group = factor(.data$group, levels = pollutant))
   }
 
   # calculate summary values and confidence intervals
@@ -432,7 +427,7 @@ variationPlot <- function(
     mydata <- mydata |>
       dplyr::filter(!.data$group %in% c("wd_u", "wd_v")) |>
       dplyr::bind_rows(wd_data) |>
-      dplyr::mutate(group = factor(.data$group))
+      dplyr::mutate(group = factor(.data$group, levels = pollutant))
   }
 
   # normalise the pattern by group (i.e., colour) if requested
@@ -473,24 +468,25 @@ variationPlot <- function(
   poll_labels <- name.pol %||% levels(mydata$group)
 
   # linetypes
-  ltys <- extra.args$lty
-  while (length(ltys) < nlevels(mydata$group)) {
-    ltys <- c(ltys, ltys)
+  ltys <- recycle_to_length(extra.args$linetype, nlevels(mydata$group))
+  lwds <- recycle_to_length(extra.args$linewidth, nlevels(mydata$group))
+  shps <- recycle_to_length(extra.args$shape, nlevels(mydata$group))
+
+  # drop missing values if x is a factor; allows for 'free' x-axis
+  if (!is.numeric(mydata$x) && !is.ordered(mydata$x)) {
+    mydata <- tidyr::drop_na(mydata, "mid")
   }
-  ltys <- ltys[1:nlevels(mydata$group)]
 
   # construct plot
   thePlot <-
     ggplot2::ggplot(mydata, ggplot2::aes(x = .data$x)) +
-    theme_openair(key.position = key.position) +
-    set_extra_fontsize(extra.args) +
+    theme_openair(key.position = key.position, extra.args = extra.args) +
     get_facet(
       if (all(type == "default")) "default" else type_cols,
       extra.args,
-      scales = "fixed",
       auto.text = auto.text,
       drop = FALSE,
-      strip.position = strip.position
+      wd.res = extra.args$wd.res %||% 8
     ) +
     ggplot2::labs(
       x = extra.args$xlab,
@@ -498,15 +494,19 @@ variationPlot <- function(
       color = NULL,
       fill = NULL,
       linetype = NULL,
-      title = extra.args$main,
-      caption = extra.args$sub
+      linewidth = NULL,
+      shape = NULL,
+      title = extra.args$title,
+      subtitle = extra.args$subtitle,
+      caption = extra.args$caption,
+      tag = extra.args$tag
     ) +
     ggplot2::coord_cartesian(
       ylim = extra.args$ylim
     ) +
     ggplot2::scale_color_manual(
-      values = openColours(
-        scheme = cols,
+      values = resolve_colour_opts(
+        cols,
         n = nlevels(mydata$group)
       ),
       labels = stats::setNames(
@@ -526,6 +526,24 @@ variationPlot <- function(
       guide = ggplot2::guide_legend(ncol = key.columns),
       drop = FALSE
     ) +
+    ggplot2::scale_linewidth_manual(
+      values = lwds,
+      labels = stats::setNames(
+        label_openair(poll_labels, auto_text = auto.text),
+        levels(mydata$group)
+      ),
+      guide = ggplot2::guide_legend(ncol = key.columns),
+      drop = FALSE
+    ) +
+    ggplot2::scale_shape_manual(
+      values = shps,
+      labels = stats::setNames(
+        label_openair(poll_labels, auto_text = auto.text),
+        levels(mydata$group)
+      ),
+      guide = ggplot2::guide_legend(ncol = key.columns),
+      drop = FALSE
+    ) +
     ggplot2::guides(
       x = ggplot2::guide_axis(check.overlap = TRUE)
     )
@@ -534,7 +552,7 @@ variationPlot <- function(
   if (difference) {
     thePlot <-
       thePlot +
-      ggplot2::geom_hline(yintercept = 0, lty = 2)
+      ggplot2::geom_hline(yintercept = 0, linetype = 2)
   }
 
   # add geometries
@@ -557,6 +575,7 @@ variationPlot <- function(
           ),
           show.legend = FALSE,
           na.rm = TRUE,
+          color = extra.args$border %||% "transparent",
           alpha = alpha / dplyr::n_distinct(mydata$ci)
         )
     }
@@ -567,11 +586,15 @@ variationPlot <- function(
         ggplot2::aes(
           y = .data$mid,
           colour = .data$group,
-          linetype = .data$group
+          linetype = .data$group,
+          linewidth = .data$group
         ),
         show.legend = TRUE,
         na.rm = TRUE,
-        key_glyph = "point"
+        key_glyph = "point",
+        lineend = extra.args$lineend %||% "butt",
+        linejoin = extra.args$linejoin %||% "round",
+        linemitre = extra.args$linemitre %||% 10
       ) +
       ggplot2::scale_x_continuous(
         breaks = xbreaks,
@@ -596,7 +619,7 @@ variationPlot <- function(
               group = interaction(.data$group, .data$ci)
             ),
             show.legend = FALSE,
-            color = NA,
+            color = extra.args$border %||% "transparent",
             alpha = alpha / dplyr::n_distinct(mydata$ci),
             width = widths[[i]],
             na.rm = TRUE
@@ -624,11 +647,15 @@ variationPlot <- function(
             y = .data$mid,
             colour = .data$group,
             group = .data$group,
-            linetype = .data$group
+            linetype = .data$group,
+            linewidth = .data$group
           ),
           show.legend = TRUE,
           na.rm = TRUE,
-          key_glyph = "point"
+          key_glyph = "point",
+          lineend = extra.args$lineend %||% "butt",
+          linejoin = extra.args$linejoin %||% "round",
+          linemitre = extra.args$linemitre %||% 10
         )
     } else {
       thePlot <-
@@ -637,7 +664,8 @@ variationPlot <- function(
           ggplot2::aes(
             y = .data$mid,
             colour = .data$group,
-            group = .data$group
+            group = .data$group,
+            shape = .data$group
           ),
           show.legend = TRUE,
           key_glyph = "point",
@@ -648,7 +676,8 @@ variationPlot <- function(
     thePlot <- thePlot +
       ggplot2::scale_x_discrete(
         labels = \(x) label_openair(x, auto_text = auto.text),
-        drop = FALSE
+        # if user is fixing the x-scales, don't drop x-axis
+        drop = (extra.args$scales %||% "fixed") %in% c("free_x", "free")
       )
   }
 

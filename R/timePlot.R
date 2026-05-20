@@ -95,31 +95,12 @@
 #' @param ci If a smooth fit line is applied, then `ci` determines whether the
 #'   95 percent confidence intervals are shown.
 #'
-#' @param ref.x See `ref.y` for details. In this case the correct date format
-#'   should be used for a vertical line e.g. `ref.x = list(v =
-#'   as.POSIXct("2000-06-15"), lty = 5)`.
-#'
-#' @param ref.y A list with details of the horizontal lines to be added
-#'   representing reference line(s). For example, `ref.y = list(h = 50, lty =
-#'   5)` will add a dashed horizontal line at 50. Several lines can be plotted
-#'   e.g. `ref.y = list(h = c(50, 100), lty = c(1, 5), col = c("green",
-#'   "blue"))`.
-#'
 #' @param name.pol This option can be used to give alternative names for the
 #'   variables plotted. Instead of taking the column headings as names, the user
 #'   can supply replacements. For example, if a column had the name "nox" and
 #'   the user wanted a different description, then setting `name.pol = "nox
 #'   before change"` can be used. If more than one pollutant is plotted then use
 #'   `c` e.g. `name.pol = c("nox here", "o3 there")`.
-#'
-#' @param ... Addition options are passed on to [cutData()] for `type` handling.
-#'   Some additional arguments are also available:
-#'   - `xlab`, `ylab` and `main` override the x-axis label, y-axis label, and plot title.
-#'   - `layout` sets the layout of facets - e.g., `layout(2, 5)` will have 2 columns and 5 rows.
-#'   - `lwd`, `lty`, and `pch` control various graphical parameters.
-#'   - `fontsize` overrides the overall font size of the plot.
-#'   - `border` sets the border colour of each tile.
-#'   - `ylim` and `xlim` control axis limits.
 #'
 #' @export
 #' @return an [openair][openair-package] object
@@ -151,8 +132,8 @@
 #'   group = TRUE,
 #'   avg.time = "year",
 #'   normalise = "1/1/1998",
-#'   lwd = 3,
-#'   lty = 1
+#'   linewidth = 3,
+#'   linetype = 1
 #' )
 #'
 #' # examples of selecting by date
@@ -167,13 +148,13 @@
 #' )
 #'
 #' # choose different line styles etc
-#' timePlot(mydata, pollutant = c("nox", "no2"), lty = 1)
+#' timePlot(mydata, pollutant = c("nox", "no2"), linetype = 1)
 #'
 #' # choose different line styles etc
 #' timePlot(
 #'   selectByDate(mydata, year = 2004, month = 6),
 #'   pollutant = c("nox", "no2"),
-#'   lwd = c(1, 2),
+#'   linewidth = c(1, 2),
 #'   col = "black"
 #' )
 #'
@@ -207,13 +188,11 @@ timePlot <- function(
   smooth = FALSE,
   smooth_k = NULL,
   ci = TRUE,
-  x.relation = "same",
-  y.relation = "same",
   ref.x = NULL,
   ref.y = NULL,
   key.columns = NULL,
   key.position = "bottom",
-  strip.position = "top",
+  key.title = NULL,
   name.pol = pollutant,
   date.breaks = 7,
   date.format = NULL,
@@ -226,7 +205,7 @@ timePlot <- function(
   key.position <- check_key_position(key.position, key)
 
   # Args setup
-  extra.args <- rlang::list2(...)
+  extra.args <- capture_dots(...)
 
   # detect if group is a column name rather than a boolean
   group_is_col <- is.character(group) && length(group) == 1
@@ -265,9 +244,6 @@ timePlot <- function(
     avg.time <- "month"
   }
 
-  rlang::arg_match(x.relation, c("same", "free"))
-  rlang::arg_match(y.relation, c("same", "free"))
-
   if (group_is_col) {
     if (!group %in% names(mydata) && !group %in% dateTypes) {
       cli::cli_abort("Column {.val {group}} not found in {.arg mydata}.")
@@ -288,11 +264,10 @@ timePlot <- function(
   windflow <- resolve_windflow_opts(windflow)
 
   # style controls
-  extra.args$pch <- extra.args$pch %||% NA
-  extra.args$layout <- extra.args$layout %||% NULL
+  extra.args$shape <- extra.args$shape %||% NA
 
   # check & cut data
-  mydata <- prepare_timeplot_data(
+  prepped <- prepare_timeplot_data(
     mydata = mydata,
     pollutant = pollutant,
     type = type,
@@ -302,6 +277,8 @@ timePlot <- function(
     group = group,
     ...
   )
+  mydata <- prepped$data
+  type <- prepped$type
 
   # time average & reshape data
   mydata <- time_average_timeplot_data(
@@ -328,8 +305,11 @@ timePlot <- function(
   }
 
   # label controls
+  extra.args$title <- quickText(extra.args$title, auto.text)
+  extra.args$subtitle <- quickText(extra.args$subtitle, auto.text)
+  extra.args$caption <- quickText(extra.args$caption, auto.text)
+  extra.args$tag <- quickText(extra.args$tag, auto.text)
   extra.args$xlab <- quickText(extra.args$xlab %||% "", auto.text)
-  extra.args$main <- quickText(extra.args$main, auto.text)
   extra.args$ylab <- quickText(
     extra.args$ylab %||%
       dplyr::case_when(
@@ -343,8 +323,9 @@ timePlot <- function(
   # if stacking of plots by year is needed
   if (stack || all(type == "year")) {
     mydata$year <- as.character(lubridate::year(mydata$date))
-    if (is.null(extra.args$layout)) {
-      extra.args$layout <- c(1, length(unique(mydata$year)))
+    if (is.null(extra.args$nrow) && is.null(extra.args$ncol)) {
+      extra.args$ncol <- 1
+      extra.args$nrow <- length(unique(mydata$year))
     }
     lubridate::year(mydata$date) <- lubridate::year(mydata$date)[1]
     date.format <- date.format %||% "%b"
@@ -359,43 +340,60 @@ timePlot <- function(
 
   # x-axis scale function
   if (lubridate::is.Date(mydata$date)) {
+    x_type <- "date"
     x_scale_fun <- ggplot2::scale_x_date
   } else {
+    x_type <- "datetime"
     x_scale_fun <- ggplot2::scale_x_datetime
   }
 
-  # number of distinct pollutants (for panel layout / faceting)
+  # number of distinct pollutants (for faceting)
   npol <- length(unique(mydata$variable))
+
+  # when a single pollutant is plotted with type conditioning, colour by the
+  # type column so each facet gets a distinct colour
+  colour_by_type <- !group_is_col &&
+    !isTRUE(group) &&
+    npol == 1 &&
+    !all(type == "default")
+  type_colour_col <- if (colour_by_type) {
+    type[type != "default"][1L]
+  } else {
+    NULL
+  }
 
   # number of groups used for colour/linetype/linewidth aesthetics
   if (group_is_col) {
     group_levels <- unique(as.character(mydata[[group]]))
     mydata[[group]] <- factor(mydata[[group]], levels = group_levels)
     n_groups <- length(group_levels)
+  } else if (colour_by_type) {
+    n_groups <- length(unique(mydata[[type_colour_col]]))
   } else {
     n_groups <- npol
   }
 
-  extra.args$lty <- extra.args$lty %||% 1
-  while (length(extra.args$lty) < n_groups) {
-    extra.args$lty <- c(extra.args$lty, extra.args$lty)
-  }
-  extra.args$lty <- extra.args$lty[1:n_groups]
+  extra.args$linetype <- recycle_to_length(extra.args$linetype %||% 1, n_groups)
+  extra.args$linewidth <- recycle_to_length(
+    extra.args$linewidth %||% 0.5,
+    n_groups
+  )
 
-  extra.args$lwd <- extra.args$lwd %||% 1
-  while (length(extra.args$lwd) < n_groups) {
-    extra.args$lwd <- c(extra.args$lwd, extra.args$lwd)
+  use_shape <- !all(is.na(extra.args$shape))
+  if (use_shape) {
+    extra.args$shape <- recycle_to_length(extra.args$shape, n_groups)
   }
-  extra.args$lwd <- extra.args$lwd[1:n_groups]
 
-  # layout - stack vertically
+  # stack vertically
   if (
-    is.null(extra.args$layout) &&
+    is.null(extra.args$nrow) &&
+      is.null(extra.args$ncol) &&
       !isTRUE(group) &&
       !stack &&
       all(type == "default")
   ) {
-    extra.args$layout <- c(1, npol)
+    extra.args$ncol <- 1L
+    extra.args$nrow <- npol
   }
 
   # deal with type
@@ -434,10 +432,28 @@ timePlot <- function(
       }
     )
 
-  # aesthetic column: group column name when group is a string, else "variable"
-  aes_col <- if (group_is_col) group else "variable"
-  # legend title: show group column name when group is a string, else no title
-  legend_title <- if (group_is_col) quickText(group, auto.text) else NULL
+  # aesthetic column: group column name when group is a string, the type column
+  # when colouring by type (single pollutant + conditioning), else "variable"
+  aes_col <- if (group_is_col) {
+    group
+  } else if (colour_by_type) {
+    type_colour_col
+  } else {
+    "variable"
+  }
+  # legend title
+  if (missing(key.title)) {
+    legend_title <-
+      if (group_is_col) {
+        quickText(group, auto.text)
+      } else if (colour_by_type) {
+        quickText(type_colour_col, auto.text)
+      } else {
+        NULL
+      }
+  } else {
+    legend_title <- key.title
+  }
 
   # built plot
   thePlot <-
@@ -453,27 +469,46 @@ timePlot <- function(
     ) +
     ggplot2::geom_line(
       ggplot2::aes(linewidth = .data[[aes_col]]),
+      lineend = extra.args$lineend %||% "butt",
+      linejoin = extra.args$linejoin %||% "round",
+      linemitre = extra.args$linemitre %||% 10,
       show.legend = TRUE
     ) +
-    gg_ref_x(ref.x) +
-    gg_ref_y(ref.y) +
-    theme_openair(key.position = ifelse(n_groups == 1, "none", key.position)) +
+    {
+      if (use_shape) {
+        ggplot2::geom_point(ggplot2::aes(shape = .data[[aes_col]]))
+      }
+    } +
+    layer_ref(
+      ref = ref.x,
+      which = "x",
+      type = x_type,
+      tz = lubridate::tz(mydata$date)
+    ) +
+    layer_ref(ref = ref.y, which = "y", type = "numeric") +
+    theme_openair(
+      key.position = ifelse(n_groups == 1, "none", key.position),
+      extra.args = extra.args
+    ) +
     ggplot2::labs(
       x = extra.args$xlab,
       y = extra.args$ylab,
-      title = extra.args$main,
+      title = extra.args$title,
+      subtitle = extra.args$subtitle,
+      caption = extra.args$caption,
+      tag = extra.args$tag,
       fill = legend_title,
       colour = legend_title,
       linetype = legend_title,
-      linewidth = legend_title
+      linewidth = legend_title,
+      shape = if (use_shape) legend_title
     ) +
     get_facet(
       type,
       extra.args,
-      scales = relation_to_facet_scales(x.relation, y.relation),
       auto.text = auto.text,
       drop = FALSE,
-      strip.position = strip.position
+      wd.res = extra.args$wd.res %||% 8
     ) +
     ggplot2::coord_cartesian(
       xlim = extra.args$xlim,
@@ -493,26 +528,36 @@ timePlot <- function(
       transform = ifelse(log, "log10", "identity")
     ) +
     ggplot2::scale_color_manual(
-      values = openColours(scheme = cols, n = n_groups),
+      values = resolve_colour_opts(cols, n = n_groups),
       drop = FALSE,
       label = \(x) label_openair(x, auto_text = auto.text),
       aesthetics = c("fill", "colour")
     ) +
     ggplot2::scale_linetype_manual(
-      values = extra.args$lty,
+      values = extra.args$linetype,
       drop = FALSE,
       label = \(x) label_openair(x, auto_text = auto.text)
     ) +
     ggplot2::scale_linewidth_manual(
-      values = extra.args$lwd / 2,
+      values = extra.args$linewidth,
       drop = FALSE,
       label = \(x) label_openair(x, auto_text = auto.text)
     ) +
+    {
+      if (use_shape) {
+        ggplot2::scale_shape_manual(
+          values = extra.args$shape,
+          drop = FALSE,
+          label = \(x) label_openair(x, auto_text = auto.text)
+        )
+      }
+    } +
     ggplot2::guides(
       fill = theGuide,
       color = theGuide,
       linetype = theGuide,
-      linewidth = theGuide
+      linewidth = theGuide,
+      shape = if (use_shape) theGuide else "none"
     )
 
   if (stack) {
@@ -582,7 +627,12 @@ prepare_timeplot_data <- function(
   }
 
   # cut data
-  mydata <- cutData(mydata, type, ...)
+  names <- type
+  if (windflow$windflow) {
+    names[names == "ws"] <- "ws_type"
+    names[names == "wd"] <- "wd_type"
+  }
+  mydata <- cutData(mydata, type, names = names, ...)
 
   # check for duplicates - can't really have duplicate data in a timeplot
   # when group is a column, duplicate check must also split by that column
@@ -592,7 +642,7 @@ prepare_timeplot_data <- function(
   }
 
   # return data
-  return(mydata)
+  return(list(data = mydata, type = names))
 }
 
 #' timeAverage and reshape timeplot data
@@ -655,7 +705,7 @@ time_average_timeplot_data <- function(
 
   # need to flag if ws/wd are being plotted *and* used for windflow
   flag_wind_pollutant <- windflow$windflow &&
-    ("ws" %in% pollutant || "wd" %in% pollutant)
+    ("ws" %in% c(type, pollutant) || "wd" %in% c(type, pollutant))
 
   # retain ws/wd if needed later
   if (flag_wind_pollutant) {

@@ -65,17 +65,21 @@ quickText <- function(text, auto.text = TRUE, ...) {
 
   ## #return if auto.text false
   if (!auto.text) {
-    return(ans <- text)
+    ans <- text
+    return(ans)
   }
 
   # are we going to actually parse this?
-  extra_args <- rlang::list2(...)
+  extra_args <- capture_dots(...)
   parse <- extra_args$parse %||% TRUE
 
   ## #return if already expression
   if (is.expression(text)) {
-    return(ans <- text)
+    ans <- text
+    return(ans)
   }
+
+  text <- gsub("'", "\\\\'", text)
 
   if (parse) {
     ans <- paste("expression(paste('", text, " ", sep = "")
@@ -220,17 +224,21 @@ quickText <- function(text, auto.text = TRUE, ...) {
   ## one newline only
 
   if (grepl("\n", ans)) {
-    a <- ans
-    ans <- paste(substr(a, 1, 17), "atop(", substr(a, 18, nchar(a)), sep = "")
-    ans <- gsub("\n", "' , '", ans)
-    temp <- paste(")", sep = "", collapse = "")
-    ans <- paste(ans, temp, sep = "")
+    if (parse) {
+      a <- ans
+      ans <- paste(substr(a, 1, 17), "atop(", substr(a, 18, nchar(a)), sep = "")
+      ans <- gsub("\n", "' , '", ans)
+      temp <- paste(")", sep = "", collapse = "")
+      ans <- paste(ans, temp, sep = "")
+    } else {
+      ans <- gsub("\n", " ", ans)
+    }
   }
 
   ## ########################
 
   if (parse) {
-    if (inherits(try(eval(parse(text = ans)), TRUE), "try-error") == FALSE) {
+    if (!inherits(try(eval(parse(text = ans)), TRUE), "try-error")) {
       ans <- eval(parse(text = ans))
     } else {
       ans <- text

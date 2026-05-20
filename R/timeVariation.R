@@ -79,12 +79,12 @@
 #' @family time series and trend functions
 #' @examples
 #'
+#' \dontrun{
 #' # basic use
 #' timeVariation(mydata, pollutant = "nox")
 #'
 #' # for a subset of conditions
-#' \dontrun{
-#' timeVariation(subset(mydata, ws > 3 & wd > 100 & wd < 270),
+#' #' timeVariation(subset(mydata, ws > 3 & wd > 100 & wd < 270),
 #'   pollutant = "pm10", ylab = "pm10 (ug/m3)"
 #' )
 #'
@@ -192,7 +192,6 @@ timeVariation <- function(
   key = NULL,
   key.columns = NULL,
   key.position = "top",
-  strip.position = "top",
   panel.gap = 1.5,
   auto.text = TRUE,
   alpha = 0.4,
@@ -212,7 +211,7 @@ timeVariation <- function(
     )
   }
 
-  extra.args <- rlang::list2(...)
+  extra.args <- capture_dots(...)
 
   # month.last deprecation
   if ("month.last" %in% names(extra.args)) {
@@ -233,9 +232,10 @@ timeVariation <- function(
       ifelse(normalise, "normalised level", toString(pollutant)),
     auto.text
   )
-  extra.args$main <- quickText(extra.args$main %||% "", auto.text)
-  extra.args$sub <- quickText(
-    extra.args$sub %||% create_varplot_sub_text(statistic, conf.int),
+  extra.args$title <- quickText(extra.args$title %||% "", auto.text)
+  extra.args$subtitle <- quickText(extra.args$subtitle %||% "", auto.text)
+  extra.args$caption <- quickText(
+    extra.args$caption %||% create_varplot_sub_text(statistic, conf.int),
     auto.text
   )
 
@@ -269,10 +269,12 @@ timeVariation <- function(
   }
 
   # title for overall and individual plots
-  overall.main <- extra.args$main
-  extra.args$main <- ""
-  overall.sub <- extra.args$sub
-  extra.args$sub <- ""
+  overall.title <- extra.args$title
+  extra.args$title <- ""
+  overall.subtitle <- extra.args$subtitle
+  extra.args$subtitle <- ""
+  overall.caption <- extra.args$caption
+  extra.args$caption <- ""
 
   # get the xvars and facets for each panel
   panels_x <- list()
@@ -311,7 +313,6 @@ timeVariation <- function(
           ci = ci,
           cols = cols,
           alpha = alpha,
-          strip.position = strip.position,
           key.position = key.position,
           key.columns = key.columns,
           name.pol = name.pol,
@@ -324,7 +325,8 @@ timeVariation <- function(
         args <- append(args, extra.args)
 
         if (i == 1) {
-          args$layout <- c(NA, 1)
+          args$nrow <- 1L
+          args$ncol <- NULL
         }
 
         do.call(variationPlot, args)
@@ -337,7 +339,9 @@ timeVariation <- function(
 
   # add reference if requested
   if (!is.null(ref.y)) {
-    plots <- purrr::map(plots, \(plt) plt + gg_ref_y(ref.y = ref.y))
+    plots <- purrr::map(plots, \(plt) {
+      plt + layer_ref(ref = ref.y, which = "y", type = "numeric")
+    })
   }
 
   # if more than one plot, use patchwork to combine
@@ -357,13 +361,15 @@ timeVariation <- function(
       ) +
       patchwork::plot_layout(guides = "collect") &
       patchwork::plot_annotation(
-        title = overall.main,
-        caption = overall.sub
+        title = overall.title,
+        subtitle = overall.subtitle,
+        caption = overall.caption
       ) &
-      theme_openair(key.position) &
+      theme_openair(key.position, extra.args = extra.args) &
       ggplot2::theme(
         panel.spacing = ggplot2::rel(panel.gap),
-        plot.margin = ggplot2::unit(rep(0.25, 4), "cm")
+        plot.margin = ggplot2::unit(rep(0.25, 4), "cm"),
+        legend.position = key.position
       )
   } else {
     thePlot <- plots[[1]]

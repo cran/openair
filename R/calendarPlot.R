@@ -17,9 +17,9 @@
 #' calculate daily averages using [timeAverage()], which ensures that wind
 #' directions are vector-averaged.
 #'
-#' If wind speed is also available, then setting the option `annotate = "ws"`
-#' will plot the wind vectors whose length is scaled to the wind speed. Thus
-#' information on the daily mean wind speed and direction are available.
+#' If wind speed is also available, then using the `windflow` option will plot
+#' the wind vectors whose length is scaled to the wind speed. Thus information
+#' on the daily mean wind speed and direction are available.
 #'
 #' It is also possible to plot categorical scales. This is useful where, for
 #' example, an air quality index defines concentrations as bands, e.g., "good",
@@ -70,13 +70,6 @@
 #'   provide the associated `ws` or `wd` and not the maximum/minimum daily `ws`
 #'   or `wd`.
 #'
-#' @param limits Use this option to manually set the colour scale limits. This
-#'   is useful in the case when there is a need for two or more plots and a
-#'   consistent scale is needed on each. Set the limits to cover the maximum
-#'   range of the data for all plots of interest. For example, if one plot had
-#'   data covering 0--60 and another 0--100, then set `limits = c(0, 100)`. Note
-#'   that data will be ignored if outside the limits range.
-#'
 #' @param lim A threshold value to help differentiate values above and below
 #'   `lim`. It is used when `annotate = "value"`. See next few options for
 #'   control over the labels used.
@@ -118,13 +111,6 @@
 #'   `FALSE` labels just as "January". If multiple years of data are detected,
 #'   this option is forced to be `TRUE`.
 #'
-#' @param ... Addition options are passed on to [cutData()] for `type` handling.
-#'   Some additional arguments are also available:
-#'   - `xlab`, `ylab` and `main` override the x-axis label, y-axis label, and plot title.
-#'   - `layout` sets the layout of facets - e.g., `layout(2, 5)` will have 2 columns and 5 rows.
-#'   - `fontsize` overrides the overall font size of the plot.
-#'   - `border` sets the border colour of each tile.
-#'
 #' @export
 #' @return an [openair][openair-package] object
 #' @author David Carslaw
@@ -134,24 +120,36 @@
 #' calendarPlot(mydata, pollutant = "o3", year = 2003)
 #'
 #' # show wind vectors
-#' calendarPlot(mydata, pollutant = "o3", year = 2003, annotate = "wd")
+#' calendarPlot(mydata, pollutant = "o3", year = 2003, windflow = TRUE)
 #' \dontrun{
 #' # show wind vectors scaled by wind speed and different colours
-#' calendarPlot(mydata,
-#'   pollutant = "o3", year = 2003, annotate = "ws",
+#' calendarPlot(
+#'   mydata,
+#'   pollutant = "o3",
+#'   year = 2003,
+#'   windflow = TRUE,
 #'   cols = "heat"
 #' )
 #'
 #' # show only specific months with selectByDate
-#' calendarPlot(selectByDate(mydata, month = c(3, 6, 10), year = 2003),
-#'   pollutant = "o3", year = 2003, annotate = "ws", cols = "heat"
+#' calendarPlot(
+#'   selectByDate(mydata, month = c(3, 6, 10), year = 2003),
+#'   pollutant = "o3",
+#'   year = 2003,
+#'   windflow = TRUE,
+#'   cols = "heat"
 #' )
 #'
 #' # categorical scale example
-#' calendarPlot(mydata,
-#'   pollutant = "no2", breaks = c(0, 50, 100, 150, 1000),
-#'   labels = c("Very low", "Low", "High", "Very High"),
-#'   cols = c("lightblue", "green", "yellow", "red"), statistic = "max"
+#' calendarPlot(
+#'   mydata,
+#'   pollutant = "no2",
+#'   breaks = breakOpts(
+#'     c(0, 50, 100, 150, 1000),
+#'     labels = c("Very low", "Low", "High", "Very High")
+#'   ),
+#'   cols = c("lightblue", "green", "yellow", "red"),
+#'   statistic = "max"
 #' )
 #'
 #' # UK daily air quality index
@@ -160,8 +158,10 @@
 #'   mydata,
 #'   "pm10",
 #'   year = 1999,
-#'   breaks = pm10.breaks,
-#'   labels = c(1:10),
+#'   breaks = breakOpts(
+#'     pm10.breaks,
+#'     labels = c(1:10)
+#'   ),
 #'   cols = "daqi",
 #'   statistic = "mean",
 #'   key.title = "PM10 DAQI"
@@ -181,6 +181,8 @@ calendarPlot <-
     windflow = NULL,
     cols = "heat",
     limits = NULL,
+    breaks = NULL,
+    trans = FALSE,
     lim = NULL,
     col.lim = c("grey30", "black"),
     col.na = "white",
@@ -188,15 +190,12 @@ calendarPlot <-
     cex.lim = c(0.6, 0.9),
     cex.date = 0.6,
     digits = 0,
-    labels = NULL,
-    breaks = NULL,
     w.shift = 0,
     w.abbr.len = 1,
     remove.empty = TRUE,
     show.year = TRUE,
     key.title = paste(statistic, pollutant, sep = " "),
     key.position = "right",
-    strip.position = "top",
     auto.text = TRUE,
     plot = TRUE,
     key = NULL,
@@ -261,12 +260,21 @@ calendarPlot <-
     }
 
     # extra args
-    extra.args <- list(...)
+    extra.args <- capture_dots(...)
+
+    # if no axes set, use all_x for a nice default
+    extra.args$axes <- extra.args$axes %||% "all_x"
 
     # label controls
     extra.args$xlab <- quickText(extra.args$xlab %||% NULL, auto.text)
     extra.args$ylab <- quickText(extra.args$ylab %||% NULL, auto.text)
-    extra.args$main <- quickText(extra.args$main %||% NULL, auto.text)
+    extra.args$title <- quickText(extra.args$title %||% NULL, auto.text)
+    extra.args$subtitle <- quickText(extra.args$subtitle, auto.text)
+    extra.args$caption <- quickText(extra.args$caption, auto.text)
+    extra.args$tag <- quickText(extra.args$tag, auto.text)
+
+    # resolve breaks
+    break_opts <- resolve_break_opts(breaks, extra.args)
 
     # check if key.header / key.footer are being used
     key.title <- check_key_header(key.title, extra.args)
@@ -311,6 +319,11 @@ calendarPlot <-
       windflow = windflow,
       ...
     )
+
+    # need to replace type if "wd" to retain "wd" col
+    if (type == "wd") {
+      type <- "wd_cuts"
+    }
 
     # all the days in the period - to be bound later
     all_dates <- seq(
@@ -471,23 +484,21 @@ calendarPlot <-
       dplyr::mutate(value = .data$conc.mat)
 
     # handle breaks
-    categorical <- FALSE
-    if (!is.null(breaks)) {
-      # assign labels if no labels are given
-      labels <- get_labels_from_breaks(breaks, labels)
-      categorical <- TRUE
-      mydata <- dplyr::mutate(
-        mydata,
-        conc.mat = cut(.data$conc.mat, breaks = breaks, labels = labels)
-      )
-    }
+    categorical <- !is.null(break_opts$breaks)
+    mydata$conc.mat <- cut_plot_breaks(
+      mydata$conc.mat,
+      break_opts
+    )
 
     # add in ws and wd if there
     newdata <-
       dplyr::left_join(
         mydata,
-        dplyr::select(original_data, dplyr::any_of(c("date", "ws", "wd"))),
-        by = "date"
+        dplyr::select(
+          original_data,
+          dplyr::any_of(c("date", "ws", "wd", type[type != "cuts"]))
+        ),
+        by = c("date", type[type != "cuts"])
       )
 
     # get weekday abbreviation for axis
@@ -528,22 +539,21 @@ calendarPlot <-
         type,
         extra.args,
         auto.text = auto.text,
-        scales = "fixed",
-        drop = remove.empty,
-        strip.position = strip.position,
-        axes = "all_x"
+        drop = remove.empty
       ) +
       ggplot2::coord_cartesian(expand = FALSE, ratio = 1) +
-      theme_openair(key.position = key.position) +
+      theme_openair(key.position = key.position, extra.args = extra.args) +
       ggplot2::theme(
         axis.ticks = ggplot2::element_blank(),
         axis.text.y = ggplot2::element_blank()
       ) +
-      set_extra_fontsize(extra.args) +
       ggplot2::labs(
         y = extra.args$ylab,
         x = extra.args$xlab,
-        title = extra.args$main,
+        title = extra.args$title,
+        subtitle = extra.args$subtitle,
+        caption = extra.args$caption,
+        tag = extra.args$tag,
         fill = quickText(key.title, auto.text = auto.text)
       ) +
       ggplot2::scale_x_continuous(
@@ -556,8 +566,8 @@ calendarPlot <-
       thePlot <-
         thePlot +
         ggplot2::scale_fill_manual(
-          values = openColours(
-            scheme = cols,
+          values = resolve_colour_opts(
+            cols,
             n = dplyr::n_distinct(levels(newdata$conc.mat))
           ),
           na.value = col.na,
@@ -582,10 +592,11 @@ calendarPlot <-
       thePlot <-
         thePlot +
         ggplot2::scale_fill_gradientn(
-          colours = openColours(cols),
+          colours = resolve_colour_opts(cols, 100),
           na.value = col.na,
           oob = scales::oob_squish,
-          limit = limits
+          limit = limits,
+          transform = get_scale_transform(trans)
         ) +
         ggplot2::guides(
           fill = ggplot2::guide_colorbar(
@@ -714,9 +725,15 @@ prepare_calendar_data <- function(
     vars <- c(vars, "wd", "ws")
   }
 
+  # need to extract wd if using for cuts
+  cut_names <- NULL
+  if (type == "wd") {
+    cut_names <- "wd_cuts"
+  }
+
   # check input data
   mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE) |>
-    cutData(type, ...)
+    cutData(type, names = cut_names, ...)
 
   return(mydata)
 }

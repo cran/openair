@@ -17,8 +17,8 @@ TheilSen(
   dec.place = 2,
   lab.frac = 0.99,
   lab.cex = 0.8,
-  x.relation = "same",
-  y.relation = "same",
+  ref.x = NULL,
+  ref.y = NULL,
   data.col = "cornflowerblue",
   trend = list(lty = c(1, 5), lwd = c(2, 1), col = c("red", "red")),
   text.col = "darkgreen",
@@ -29,7 +29,6 @@ TheilSen(
   slope.percent = FALSE,
   date.breaks = 7,
   date.format = NULL,
-  strip.position = "top",
   plot = TRUE,
   silent = FALSE,
   ...
@@ -44,8 +43,7 @@ necessarily) a pollutant.}
 
 \item{deseason}{Should the data be de-deasonalized first? If \code{TRUE} the
 function \code{stl} is used (seasonal trend decomposition using loess). Note
-that if \code{TRUE} missing data are first imputed using a Kalman filter and
-Kalman smooth.}
+that if \code{TRUE} missing data are first imputed using a linear regression by month because \code{stl} cannot handle missing data. In this case the plot shows where the missing data have been imputed as a grey filled circle.}
 
 \item{type}{Character string(s) defining how data should be split/conditioned
 before plotting. \code{"default"} produces a single panel using the entire
@@ -99,10 +97,15 @@ be printed at, default 0.99.}
 
 \item{lab.cex}{Size of text for trend information.}
 
-\item{x.relation, y.relation}{This determines how the x- and y-axis scales are
-plotted. \code{"same"} ensures all panels use the same scale and \code{"free"} will
-use panel-specific scales. The latter is a useful setting when plotting
-data with very different values.}
+\item{ref.x}{Either a single value or values representing the x axis
+intercepts to draw lines, or a list such as that provided by \code{\link[=refOpts]{refOpts()}} to
+customise the colour/width/type/etc. of each line. See \code{\link[=refOpts]{refOpts()}} for more
+details.}
+
+\item{ref.y}{Either a single value or values representing the y axis
+intercepts to draw lines, or a list such as that provided by \code{\link[=refOpts]{refOpts()}} to
+customise the colour/width/type/etc. of each line. See \code{\link[=refOpts]{refOpts()}} for more
+details.}
 
 \item{data.col}{Colour name for the data}
 
@@ -154,13 +157,6 @@ sensible format is chosen by default, but the user can set \code{date.format} to
 override this. For format types see \code{\link[=strptime]{strptime()}}. For example, to format
 the date like "Jan-2012" set \code{date.format = "\\\%b-\\\%Y"}.}
 
-\item{strip.position}{Location where the facet 'strips' are located when
-using \code{type}. When one \code{type} is provided, can be one of \code{"left"},
-\code{"right"}, \code{"bottom"} or \code{"top"}. When two \code{type}s are provided, this
-argument defines whether the strips are "switched" and can take either
-\code{"x"}, \code{"y"}, or \code{"both"}. For example, \code{"x"} will switch the 'top' strip
-locations to the bottom of the plot.}
-
 \item{plot}{When \code{openair} plots are created they are automatically printed
 to the active graphics device. \code{plot = FALSE} deactivates this behaviour.
 This may be useful when the plot \emph{data} is of more interest, or the plot is
@@ -171,13 +167,36 @@ to a file).}
 progress.}
 
 \item{...}{Addition options are passed on to \code{\link[=cutData]{cutData()}} for \code{type} handling.
-Some additional arguments are also available:
+Some additional arguments are also available, varying somewhat in different
+plotting functions:
 \itemize{
-\item \code{xlab}, \code{ylab} and \code{main} override the x-axis label, y-axis label, and plot title.
-\item \code{layout} sets the layout of facets - e.g., \code{layout(2, 5)} will have 2 columns and 5 rows.
-\item \code{fontsize} overrides the overall font size of the plot.
-\item \code{cex}, \code{lwd}, and \code{pch} control various graphical parameters.
-\item \code{ylim} and \code{xlim} control axis limits.
+\item \code{title}, \code{subtitle}, \code{caption}, \code{tag}, \code{xlab} and \code{ylab} control the plot
+title, subtitle, caption, tag, x-axis label and y-axis label, passed to
+\code{\link[ggplot2:labs]{ggplot2::labs()}} via \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.
+\item \code{xlim}, \code{ylim} and \code{limits} control the limits of the x-axis, y-axis and
+colorbar scales.
+\item \code{ncol} and \code{nrow} set the number of columns and rows in a faceted plot.
+\item \code{scales} can be \code{"fixed"}, \code{"free_x"}, \code{"free_y"} or \code{"free"} to control
+whether axes are shared across facets when using \code{type}. Also supported are
+the legacy \code{x.relation} and \code{y.relation}, which can be either \code{"same"} or
+\code{"free"} and get remapped to \code{scales} automatically.
+\item Similarly, \code{space}, \code{axes}, \code{axis.labels}, \code{switch} and \code{strip.position}
+can be used to customise the appearance of faceted plots. See
+\code{\link[ggplot2:facet_wrap]{ggplot2::facet_wrap()}} and \code{\link[ggplot2:facet_grid]{ggplot2::facet_grid()}} for the arguments these
+take.
+\item \code{fontsize} overrides the overall font size of the plot by setting the
+\code{text} argument of \code{\link[ggplot2:theme]{ggplot2::theme()}}. It may also be applied
+proportionately to any \code{openair} annotations (e.g., N/E/S/W labels on polar
+coordinate plots).
+\item Various graphical parameters are also supported: \code{linewidth},
+\code{linetype},\code{ shape}, \code{size}, \code{border}, and \code{alpha}. Not all parameters
+apply to all plots. These can take a single value, or a vector of multiple
+values - e.g., \code{shape = c(1, 2)} - which will be recycled to the length of
+values needed.
+\item \code{lineend}, \code{linejoin} and \code{linemitre} tweak the appearance of line
+plots; see \code{\link[ggplot2:geom_line]{ggplot2::geom_line()}} for more information.
+\item In polar coordinate plots, \code{annotate = FALSE} will remove the N/E/S/W
+labels and any other annotations.
 }}
 }
 \value{
@@ -269,12 +288,12 @@ Wetenschappen, Series A - Mathematical Sciences 53, 386-392, 521-525,
 the use of similar tests applied to UK/European air quality data.
 }
 \seealso{
-Other time series and trend functions: 
-\code{\link{calendarPlot}()},
-\code{\link{smoothTrend}()},
-\code{\link{timePlot}()},
-\code{\link{timeProp}()},
-\code{\link{timeVariation}()}
+Other time series and trend functions:
+\code{\link[=calendarPlot]{calendarPlot()}},
+\code{\link[=smoothTrend]{smoothTrend()}},
+\code{\link[=timePlot]{timePlot()}},
+\code{\link[=timeProp]{timeProp()}},
+\code{\link[=timeVariation]{timeVariation()}}
 }
 \author{
 David Carslaw with some trend code from Rand Wilcox

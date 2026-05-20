@@ -29,8 +29,8 @@
 #' @inheritParams shared_openair_params
 #' @inheritParams polarPlot
 #'
-#' @param mydata A data frame minimally containing `wd` and a numeric field to
-#'   plot --- `pollutant`.
+#' @param mydata A data frame minimally containing a decimal wind direction and
+#'   a numeric field to plot.
 #'
 #' @param pollutant Mandatory. A pollutant name corresponding to a variable in a
 #'   data frame should be supplied e.g. `pollutant = "nox"`. More than one
@@ -67,14 +67,6 @@
 #' @param intervals User-supplied intervals for the scale e.g. `intervals = c(0,
 #'   10, 30, 50)`.
 #'
-#' @param ... Addition options are passed on to [cutData()] for `type` handling.
-#'   Some additional arguments are also available:
-#'   - `xlab`, `ylab` and `main` override the x-axis label, y-axis label, and plot title.
-#'   - `layout` sets the layout of facets - e.g., `layout(2, 5)` will have 2 columns and 5 rows.
-#'   - `fontsize` overrides the overall font size of the plot.
-#'   - `lwd` overrides the line width for percentile lines when `fill = FALSE`.
-#'   - `annotate = FALSE` will not plot the N/E/S/W labels.
-#'
 #' @export
 #' @return an [openair][openair-package] object
 #' @family polar directional analysis functions
@@ -100,7 +92,8 @@
 #'   type = "year",
 #'   pollutant = "o3",
 #'   col = "brewer1",
-#'   layout = c(4, 2)
+#'   ncol = 4,
+#'   nrow = 2
 #' )
 #'
 #' # percentile concentrations by season and day/nighttime..
@@ -114,6 +107,7 @@
 percentileRose <- function(
   mydata,
   pollutant = "nox",
+  ws = "ws",
   wd = "wd",
   type = "default",
   percentile = c(25, 50, 75, 90, 95),
@@ -123,7 +117,7 @@ percentileRose <- function(
   angle = 10,
   mean = TRUE,
   mean.lty = 1,
-  mean.lwd = 3,
+  mean.lwd = 1,
   mean.col = "grey",
   fill = TRUE,
   intervals = NULL,
@@ -132,7 +126,6 @@ percentileRose <- function(
   auto.text = TRUE,
   key.title = NULL,
   key.position = "bottom",
-  strip.position = "top",
   plot = TRUE,
   key = NULL,
   ...
@@ -163,8 +156,8 @@ percentileRose <- function(
   }
 
   # check to see if ws is in the data and is calm (need to remove as no wd)
-  if ("ws" %in% names(mydata)) {
-    id <- which(mydata$ws == 0 & mydata[[wd]] == 0)
+  if (ws %in% names(mydata)) {
+    id <- which(mydata[[ws]] == 0 & mydata[[wd]] == 0)
     if (length(id) > 0) {
       mydata <- mydata[-id, ]
     }
@@ -176,7 +169,7 @@ percentileRose <- function(
   mydata[[wd]] <- angle * ceiling(mydata[[wd]] / angle - 0.5)
 
   # when it generates angle at 0 and 360, make all 360
-  if (0 %in% mydata$wd) {
+  if (0 %in% mydata[[wd]]) {
     id <- which(mydata[[wd]] == 0)
     mydata[[wd]][id] <- 360
   }
@@ -227,14 +220,21 @@ percentileRose <- function(
   }
 
   # extra.args setup
-  extra.args <- list(...)
+  extra.args <- capture_dots(...)
 
   # label controls
   extra.args$xlab <- quickText(extra.args$xlab, auto.text)
   extra.args$ylab <- quickText(extra.args$ylab, auto.text)
-  extra.args$main <- quickText(extra.args$main, auto.text)
+  extra.args$title <- quickText(extra.args$title, auto.text)
+  extra.args$subtitle <- quickText(extra.args$subtitle, auto.text)
+  extra.args$tag <- quickText(extra.args$tag, auto.text)
 
-  extra.args$lwd <- extra.args$lwd %||% 2
+  # separate handling for being overwritten
+  if ("caption" %in% names(extra.args)) {
+    extra.args$caption <- quickText(extra.args$caption, auto.text)
+  }
+
+  extra.args$linewidth <- extra.args$linewidth %||% 2
 
   # check if key.header / key.footer are being used
   key.title <- check_key_header(key.title, extra.args)
@@ -302,7 +302,8 @@ percentileRose <- function(
 
     if (method == "default") {
       ## calculate percentiles
-      percentiles <- dplyr::group_by(mydata, wd) |>
+      percentiles <- mydata |>
+        dplyr::group_by(.data[[wd]]) |>
         dplyr::reframe(
           {{ pollutant }} := stats::quantile(
             .data[[pollutant]],
@@ -310,12 +311,13 @@ percentileRose <- function(
             na.rm = TRUE
           )
         ) |>
-        dplyr::group_by(wd) |>
+        dplyr::group_by(.data[[wd]]) |>
         dplyr::mutate(percentile = percentile)
     }
 
     if (tolower(method) == "cpf") {
-      percentiles1 <- dplyr::group_by(mydata, wd) |>
+      percentiles1 <- mydata |>
+        dplyr::group_by(.data[[wd]]) |>
         dplyr::summarise(dplyr::across(
           dplyr::where(is.numeric),
           ~ length(which(.x < overall.lower)) / length(.x)
@@ -323,7 +325,8 @@ percentileRose <- function(
 
       percentiles1$percentile <- min(percentile)
 
-      percentiles2 <- dplyr::group_by(mydata, wd) |>
+      percentiles2 <- mydata |>
+        dplyr::group_by(.data[[wd]]) |>
         dplyr::summarise(dplyr::across(
           dplyr::where(is.numeric),
           ~ length(which(.x > upper)) / length(.x)
@@ -358,7 +361,8 @@ percentileRose <- function(
 
     ## calculate mean; assume a percentile of 999 to flag it later
 
-    percentiles <- dplyr::group_by(mydata, wd) |>
+    percentiles <- mydata |>
+      dplyr::group_by(.data[[wd]]) |>
       dplyr::summarise(dplyr::across(
         dplyr::where(is.numeric),
         ~ mean(.x, na.rm = TRUE)
@@ -516,16 +520,22 @@ percentileRose <- function(
       limits = c(0, ifelse(is.null(intervals), NA, max(intervals))),
       breaks = intervals %||% scales::breaks_pretty()
     ) +
-    theme_openair_radial(key.position = key.position, panel.ontop = TRUE) +
-    set_extra_fontsize(extra.args) +
+    theme_openair_radial(
+      key.position = key.position,
+      extra.args = extra.args,
+      panel.ontop = TRUE
+    ) +
     ggplot2::labs(
       x = extra.args$xlab,
       y = extra.args$ylab,
-      title = extra.args$main,
+      title = extra.args$title,
+      subtitle = extra.args$subtitle,
+      caption = extra.args$caption %||% sub,
+      tag = extra.args$tag
     ) +
     ggplot2::scale_colour_manual(
       values = c(
-        openair::openColours(cols, n = length(percentile[percentile != 0])),
+        resolve_colour_opts(cols, n = length(percentile[percentile != 0])),
         mean.col
       ),
       breaks = fct_labels,
@@ -539,10 +549,9 @@ percentileRose <- function(
     get_facet(
       type = type,
       extra.args = extra.args,
-      scales = "fixed",
       auto.text = auto.text,
       drop = FALSE,
-      strip.position = strip.position
+      wd.res = extra.args$wd.res %||% 8
     )
 
   if (!mean.only) {
@@ -560,10 +569,13 @@ percentileRose <- function(
         thePlot +
         ggplot2::geom_line(
           ggplot2::aes(colour = .data[["percentile"]]),
-          linewidth = extra.args$lwd / 3,
+          linewidth = extra.args$linewidth / 3,
           show.legend = method != "cpf",
           key_glyph = ggplot2::draw_key_rect,
-          position = ggplot2::position_identity()
+          position = ggplot2::position_identity(),
+          lineend = extra.args$lineend %||% "butt",
+          linejoin = extra.args$linejoin %||% "round",
+          linemitre = extra.args$linemitre %||% 10
         )
     }
   }
@@ -574,13 +586,12 @@ percentileRose <- function(
       ggplot2::geom_line(
         data = plot_data |> dplyr::filter(.data$percentile == "Mean"),
         colour = mean.col,
-        linewidth = mean.lwd / 3,
-        linetype = mean.lty
+        linewidth = mean.lwd,
+        linetype = mean.lty,
+        lineend = extra.args$lineend %||% "butt",
+        linejoin = extra.args$linejoin %||% "round",
+        linemitre = extra.args$linemitre %||% 10
       )
-  }
-
-  if (method == "cpf") {
-    thePlot <- thePlot + ggplot2::labs(caption = sub)
   }
 
   # make key full width/height
@@ -611,7 +622,16 @@ percentileRose <- function(
     plot(thePlot)
   }
 
-  output <- list(plot = thePlot, data = results.grid, call = match.call())
+  # standardise output data
+  out_data <- dplyr::ungroup(results.grid)
+  names(out_data)[names(out_data) == wd] <- "wd"
+
+  # output
+  output <- list(
+    plot = thePlot,
+    data = out_data,
+    call = match.call()
+  )
   class(output) <- "openair"
 
   invisible(output)

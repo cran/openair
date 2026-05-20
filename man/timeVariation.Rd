@@ -24,7 +24,6 @@ timeVariation(
   key = NULL,
   key.columns = NULL,
   key.position = "top",
-  strip.position = "top",
   panel.gap = 1.5,
   auto.text = TRUE,
   alpha = 0.4,
@@ -119,11 +118,14 @@ where over-lapping confidence intervals can over complicate plots.}
 \item{cols}{Colours to use for plotting. Can be a pre-set palette (e.g.,
 \code{"turbo"}, \code{"viridis"}, \code{"tol"}, \code{"Dark2"}, etc.) or a user-defined vector
 of R colours (e.g., \code{c("yellow", "green", "blue", "black")} - see
-\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). See \code{\link[=openColours]{openColours()}} for more details.}
+\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). Alternatively, can be a list of arguments to control the
+colour palette more closely (e.g., \code{palette}, \code{direction}, \code{alpha}, etc.).
+See \code{\link[=openColours]{openColours()}} and \code{\link[=colourOpts]{colourOpts()}} for more details.}
 
-\item{ref.y}{A list with details of the horizontal lines to be added
-representing reference line(s). For example, \code{ref.y = list(h = 50, lty = 5)} will add a dashed horizontal line at 50. Several lines can be plotted
-e.g. \code{ref.y = list(h = c(50, 100), lty = c(1, 5), col = c("green", "blue"))}.}
+\item{ref.y}{Either a single value or values representing the y axis
+intercepts to draw lines, or a list such as that provided by \code{\link[=refOpts]{refOpts()}} to
+customise the colour/width/type/etc. of each line. See \code{\link[=refOpts]{refOpts()}} for more
+details.}
 
 \item{key}{By default \code{\link[=timeVariation]{timeVariation()}} produces four plots on one page.
 While it is useful to see these plots together, it is sometimes necessary
@@ -139,13 +141,6 @@ number of categories.}
 \item{key.position}{Location where the legend is to be placed. Allowed
 arguments include \code{"top"}, \code{"right"}, \code{"bottom"}, \code{"left"} and \code{"none"},
 the last of which removes the legend entirely.}
-
-\item{strip.position}{Location where the facet 'strips' are located when
-using \code{type}. When one \code{type} is provided, can be one of \code{"left"},
-\code{"right"}, \code{"bottom"} or \code{"top"}. When two \code{type}s are provided, this
-argument defines whether the strips are "switched" and can take either
-\code{"x"}, \code{"y"}, or \code{"both"}. For example, \code{"x"} will switch the 'top' strip
-locations to the bottom of the plot.}
 
 \item{panel.gap}{The gap between panels in any split panel (e.g., the default
 \code{"hour.weekday"} panel).}
@@ -164,13 +159,36 @@ required to appear later (e.g., later in a Quarto document, or to be saved
 to a file).}
 
 \item{...}{Addition options are passed on to \code{\link[=cutData]{cutData()}} for \code{type} handling.
-Some additional arguments are also available:
+Some additional arguments are also available, varying somewhat in different
+plotting functions:
 \itemize{
-\item \code{xlab}, \code{ylab} and \code{main} override the x-axis label, y-axis label, and plot title.
-\item \code{layout} sets the layout of facets - e.g., \code{layout(2, 5)} will have 2 columns and 5 rows.
-\item \code{lwd} and \code{lty} control various graphical parameters.
-\item \code{fontsize} overrides the overall font size of the plot.
-\item \code{ylim} controls axis limits.
+\item \code{title}, \code{subtitle}, \code{caption}, \code{tag}, \code{xlab} and \code{ylab} control the plot
+title, subtitle, caption, tag, x-axis label and y-axis label, passed to
+\code{\link[ggplot2:labs]{ggplot2::labs()}} via \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.
+\item \code{xlim}, \code{ylim} and \code{limits} control the limits of the x-axis, y-axis and
+colorbar scales.
+\item \code{ncol} and \code{nrow} set the number of columns and rows in a faceted plot.
+\item \code{scales} can be \code{"fixed"}, \code{"free_x"}, \code{"free_y"} or \code{"free"} to control
+whether axes are shared across facets when using \code{type}. Also supported are
+the legacy \code{x.relation} and \code{y.relation}, which can be either \code{"same"} or
+\code{"free"} and get remapped to \code{scales} automatically.
+\item Similarly, \code{space}, \code{axes}, \code{axis.labels}, \code{switch} and \code{strip.position}
+can be used to customise the appearance of faceted plots. See
+\code{\link[ggplot2:facet_wrap]{ggplot2::facet_wrap()}} and \code{\link[ggplot2:facet_grid]{ggplot2::facet_grid()}} for the arguments these
+take.
+\item \code{fontsize} overrides the overall font size of the plot by setting the
+\code{text} argument of \code{\link[ggplot2:theme]{ggplot2::theme()}}. It may also be applied
+proportionately to any \code{openair} annotations (e.g., N/E/S/W labels on polar
+coordinate plots).
+\item Various graphical parameters are also supported: \code{linewidth},
+\code{linetype},\code{ shape}, \code{size}, \code{border}, and \code{alpha}. Not all parameters
+apply to all plots. These can take a single value, or a vector of multiple
+values - e.g., \code{shape = c(1, 2)} - which will be recycled to the length of
+values needed.
+\item \code{lineend}, \code{linejoin} and \code{linemitre} tweak the appearance of line
+plots; see \code{\link[ggplot2:geom_line]{ggplot2::geom_line()}} for more information.
+\item In polar coordinate plots, \code{annotate = FALSE} will remove the N/E/S/W
+labels and any other annotations.
 }}
 }
 \value{
@@ -207,12 +225,12 @@ whether the temporal variation of that feature differs from other features
 }
 \examples{
 
+\dontrun{
 # basic use
 timeVariation(mydata, pollutant = "nox")
 
 # for a subset of conditions
-\dontrun{
-timeVariation(subset(mydata, ws > 3 & wd > 100 & wd < 270),
+#' timeVariation(subset(mydata, ws > 3 & wd > 100 & wd < 270),
   pollutant = "pm10", ylab = "pm10 (ug/m3)"
 )
 
@@ -297,12 +315,12 @@ timeVariation(
 }
 }
 \seealso{
-Other time series and trend functions: 
-\code{\link{TheilSen}()},
-\code{\link{calendarPlot}()},
-\code{\link{smoothTrend}()},
-\code{\link{timePlot}()},
-\code{\link{timeProp}()}
+Other time series and trend functions:
+\code{\link[=TheilSen]{TheilSen()}},
+\code{\link[=calendarPlot]{calendarPlot()}},
+\code{\link[=smoothTrend]{smoothTrend()}},
+\code{\link[=timePlot]{timePlot()}},
+\code{\link[=timeProp]{timeProp()}}
 }
 \author{
 David Carslaw

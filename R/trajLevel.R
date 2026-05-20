@@ -98,12 +98,13 @@
 #'   values reveal source regions more effectively while not introducing too
 #'   much noise.
 #'
-#' @param ... Addition options are passed on to [cutData()] for `type` handling.
-#'   Some additional arguments are also available:
-#'   - `xlab`, `ylab` and `main` override the x-axis label, y-axis label, and plot title.
-#'   - `layout` sets the layout of facets - e.g., `layout(2, 5)` will have 2 columns and 5 rows.
-#'   - `fontsize` overrides the overall font size of the plot.
-#'   - `border` sets the border colour of each tile.
+#' @param breaks `breaks` bins a continuous axis into discrete bins. It can
+#'   either take a single number (e.g., `breaks = 5`) to split the scale into
+#'   quantiles, a vector of numbers (e.g., `breaks = c(0, 50, 100, 200, 500`) to
+#'   define specific break-points, or a named list. See [breakOpts()] for more
+#'   details. Note that, in `trajLevel()`, each `statistic` provides a different
+#'   default break strategy; to override those that bin the limits by default
+#'   (e.g., `"frequency"`), pass `breaks = NULL` explicitly.
 #'
 #' @export
 #' @return an [openair][openair-package] object
@@ -170,12 +171,16 @@ trajLevel <- function(
   percentile = 90,
   lon.inc = 1.0,
   lat.inc = lon.inc,
+  limits = NULL,
+  breaks = NULL,
+  trans = FALSE,
   min.bin = 1,
   .combine = NULL,
   sigma = 1.5,
   cols = "default",
   crs = 4326,
   map = TRUE,
+  map.res = "medium",
   map.fill = TRUE,
   map.cols = "grey40",
   map.border = "black",
@@ -189,13 +194,17 @@ trajLevel <- function(
   key.title = NULL,
   key.position = "right",
   key.columns = NULL,
-  strip.position = "top",
   auto.text = TRUE,
   plot = TRUE,
   key = NULL,
   ...
 ) {
-  rlang::check_installed(c("sf", "rnaturalearthdata"))
+  rlang::check_installed(c("sf", "rnaturalearth"))
+  if (!map.res %in% c(10, 50, 110, "small", "medium", "large")) {
+    cli::cli_abort(
+      "{.arg map.res} must be one of {10}/'large', {50}/'medium' or {110}/'small'."
+    )
+  }
 
   # check key.position
   key.position <- check_key_position(key.position, key)
@@ -224,11 +233,13 @@ trajLevel <- function(
   mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
 
   # extra.args
-  extra.args <- rlang::list2(...)
+  extra.args <- capture_dots(...)
 
   extra.args$ylab <- extra.args$ylab %||% ""
   extra.args$xlab <- extra.args$xlab %||% ""
-  extra.args$main <- extra.args$main %||% ""
+  extra.args$title <- extra.args$title %||% ""
+  extra.args$subtitle <- extra.args$subtitle %||% ""
+  extra.args$caption <- extra.args$caption %||% ""
   extra.args$border <- extra.args$border %||% NA
 
   if ("method" %in% names(extra.args)) {
@@ -350,6 +361,18 @@ trajLevel <- function(
           .include_default = TRUE
         )
     }
+
+    # default is no cuts in the data
+    if (!missing(breaks)) {
+      break_opts <- resolve_break_opts(breaks, extra.args)
+      out_data <- dplyr::mutate(
+        out_data,
+        {{ pollutant }} := cut_plot_breaks(
+          .data[[pollutant]],
+          opts = break_opts
+        )
+      )
+    }
   }
 
   # plot trajectory frequencies
@@ -379,15 +402,23 @@ trajLevel <- function(
         )
     }
 
+    # default is to use set breaks
+    if (!missing(breaks)) {
+      break_opts <- resolve_break_opts(breaks, extra.args)
+    } else {
+      break_opts <- breakOpts(
+        breaks = c(0, 1, 5, 10, 25, 100),
+        labels = c("0 to 1", "1 to 5", "5 to 10", "10 to 25", "25 to 100"),
+        include.lowest = TRUE
+      ) |>
+        resolve_break_opts(extra.args = extra.args)
+    }
+
+    # cut data
     mydata <-
       dplyr::mutate(
         mydata,
-        cuts = cut(
-          .data[[pollutant]],
-          breaks = c(0, 1, 5, 10, 25, 100),
-          labels = c("0 to 1", "1 to 5", "5 to 10", "10 to 25", "25 to 100"),
-          include.lowest = TRUE
-        )
+        {{ pollutant }} := cut_plot_breaks(.data[[pollutant]], break_opts)
       )
 
     # prep output data
@@ -439,6 +470,18 @@ trajLevel <- function(
           \(x) smooth_trajgrid(x, z = pollutant),
           .include_default = TRUE
         )
+    }
+
+    # default is no cuts in the data
+    if (!missing(breaks)) {
+      break_opts <- resolve_break_opts(breaks, extra.args)
+      mydata <- dplyr::mutate(
+        mydata,
+        {{ pollutant }} := cut_plot_breaks(
+          .data[[pollutant]],
+          opts = break_opts
+        )
+      )
     }
 
     # prep output data
@@ -510,6 +553,18 @@ trajLevel <- function(
         )
     }
 
+    # default is no cuts in the data
+    if (!missing(breaks)) {
+      break_opts <- resolve_break_opts(breaks, extra.args)
+      mydata <- dplyr::mutate(
+        mydata,
+        {{ pollutant }} := cut_plot_breaks(
+          .data[[pollutant]],
+          opts = break_opts
+        )
+      )
+    }
+
     out_data <- dplyr::ungroup(mydata) |>
       dplyr::select(
         -dplyr::any_of(c("lat_rnd", "lon_rnd", "Q", "Q_c", "SQTBA"))
@@ -560,6 +615,9 @@ trajLevel <- function(
     mydata <- base
     mydata[[pollutant]] <- high[[pollutant]] - mydata[[pollutant]]
 
+    ## select only if > min.bin points in grid cell
+    mydata <- dplyr::filter(mydata, .data$count >= min.bin)
+
     if (smooth) {
       mydata <-
         map_type(
@@ -570,27 +628,31 @@ trajLevel <- function(
         )
     }
 
+    # default is to use set breaks
+    if (!missing(breaks)) {
+      break_opts <- resolve_break_opts(breaks, extra.args)
+    } else {
+      break_opts <- breakOpts(
+        breaks = c(-Inf, -10, -5, -1, 1, 5, 10, Inf),
+        labels = c(
+          "<-10",
+          "-10 to -5",
+          "-5 to -1",
+          "-1 to 1",
+          "1 to 5",
+          "5 to 10",
+          ">10"
+        ),
+        include.lowest = TRUE
+      ) |>
+        resolve_break_opts(extra.args = extra.args)
+    }
+
     mydata <-
       dplyr::mutate(
         mydata,
-        cuts = cut(
-          .data[[pollutant]],
-          breaks = c(-Inf, -10, -5, -1, 1, 5, 10, Inf),
-          labels = c(
-            "<-10",
-            "-10 to -5",
-            "-5 to -1",
-            "-1 to 1",
-            "1 to 5",
-            "5 to 10",
-            ">10"
-          ),
-          include.lowest = TRUE
-        )
+        {{ pollutant }} := cut_plot_breaks(.data[[pollutant]], break_opts)
       )
-
-    ## select only if > min.bin points in grid cell
-    mydata <- dplyr::filter(mydata, .data$count >= min.bin)
 
     # prep output data
     out_data <- dplyr::ungroup(mydata) |>
@@ -648,25 +710,30 @@ trajLevel <- function(
 
   # get bbox - axis limits
   bbox <- sf::st_bbox(out_data_sf)
-  extra.args$xlim <- extra.args$xilm %||% unname(bbox[c(1, 3)])
+  extra.args$xlim <- extra.args$xlim %||% unname(bbox[c(1, 3)])
   extra.args$ylim <- extra.args$ylim %||% unname(bbox[c(2, 4)])
 
   # base plot & themes
   thePlot <- ggplot2::ggplot(data = out_data_sf) +
-    theme_openair_sf(key.position, grid.col = grid.col) +
-    set_extra_fontsize(extra.args) +
+    theme_openair_sf(
+      key.position,
+      extra.args = extra.args,
+      grid.col = grid.col
+    ) +
     get_facet(
       type,
       extra.args,
-      scales = "fixed",
       drop = FALSE,
       auto.text = auto.text,
-      strip.position = strip.position
+      wd.res = extra.args$wd.res %||% 8
     ) +
     ggplot2::labs(
       x = quickText(extra.args$xlab, auto.text),
       y = quickText(extra.args$ylab, auto.text),
-      title = quickText(extra.args$main, auto.text),
+      title = quickText(extra.args$title, auto.text),
+      subtitle = quickText(extra.args$subtitle, auto.text),
+      caption = quickText(extra.args$caption, auto.text),
+      tag = quickText(extra.args$tag, auto.text),
       fill = quickText(key.title, auto.text = auto.text)
     )
 
@@ -676,6 +743,7 @@ trajLevel <- function(
       layer_worldmap(
         crs,
         n_maps = n_types,
+        map.res = map.res,
         map.fill = map.fill,
         map.cols = map.cols,
         map.border = map.border,
@@ -686,21 +754,22 @@ trajLevel <- function(
   }
 
   # each statistic needs different handling
+  is_discrete <- is.factor(out_data_sf[[pollutant]])
 
   # discrete statistics
-  if (statistic %in% c("frequency", "difference")) {
+  if (is_discrete && statistic != "hexbin") {
     thePlot <-
       thePlot +
       ggplot2::geom_sf(
         data = out_data_sf,
-        ggplot2::aes(fill = .data$cuts),
+        ggplot2::aes(fill = .data[[pollutant]]),
         colour = extra.args$border,
         show.legend = TRUE
       ) +
       ggplot2::scale_fill_manual(
-        values = openair::openColours(
+        values = resolve_colour_opts(
           cols,
-          n = dplyr::n_distinct(levels(out_data_sf$cuts))
+          n = dplyr::n_distinct(levels(out_data_sf[[pollutant]]))
         ),
         drop = FALSE
       ) +
@@ -719,7 +788,7 @@ trajLevel <- function(
             if (key.position %in% c("left", "right")) {
               NULL
             } else {
-              dplyr::n_distinct(levels(out_data_sf$cuts))
+              dplyr::n_distinct(levels(out_data_sf[[pollutant]]))
             }
           } else {
             key.columns
@@ -729,7 +798,7 @@ trajLevel <- function(
   }
 
   # continuous statistics
-  if (statistic %in% c("pscf", "cwt", "sqtba")) {
+  if (!is_discrete && statistic != "hexbin") {
     thePlot <-
       thePlot +
       ggplot2::geom_sf(
@@ -739,9 +808,11 @@ trajLevel <- function(
         show.legend = TRUE
       ) +
       ggplot2::scale_fill_gradientn(
-        colours = openair::openColours(cols),
+        colours = resolve_colour_opts(cols, 100),
         oob = scales::oob_squish,
-        na.value = NA
+        na.value = NA,
+        limits = limits,
+        transform = get_scale_transform(trans)
       )
   }
 
@@ -752,6 +823,7 @@ trajLevel <- function(
         layer_worldmap(
           crs,
           n_maps = n_types,
+          map.res = map.res,
           map.fill = FALSE,
           map.cols = map.cols,
           map.border = map.border,
@@ -774,21 +846,34 @@ trajLevel <- function(
         default_crs = crs,
         crs = crs
       ) +
-      ggplot2::scale_x_continuous(breaks = scales::breaks_pretty(grid.nx)) +
-      ggplot2::scale_y_continuous(breaks = scales::breaks_pretty(grid.ny))
+      ggplot2::scale_x_continuous(
+        breaks = scales::breaks_pretty(grid.nx),
+        expand = c(0, 0)
+      ) +
+      ggplot2::scale_y_continuous(
+        breaks = scales::breaks_pretty(grid.ny),
+        expand = c(0, 0)
+      )
   }
 
   # hexbin needs separate handling - everything needs to be set as lat/lng as
   # ggplot2 needs to transform everything simultaneously
   if (statistic == "hexbin") {
+    missing_breaks <- missing(breaks)
+
+    # default is no cuts in the data
+    break_opts <- resolve_break_opts(breaks, extra.args)
+
     thePlot <-
       thePlot +
       ggplot2::geom_hex(
         data = original_data,
+        show.legend = TRUE,
         ggplot2::aes(
           x = .data$xgrid,
           y = .data$ygrid,
-          alpha = as.integer(!(ggplot2::after_stat(.data$count) < min.bin))
+          fill = cut_plot_breaks(ggplot2::after_stat(.data$count), break_opts),
+          alpha = as.integer(ggplot2::after_stat(.data$count) >= min.bin)
         ),
         binwidth = min(c(lat.inc * 1.5, lon.inc * 1.5))
       )
@@ -798,6 +883,7 @@ trajLevel <- function(
         layer_worldmap(
           crs = 4326,
           n_maps = n_types,
+          map.res = map.res,
           map.fill = FALSE,
           map.cols = map.cols,
           map.border = map.border,
@@ -822,16 +908,61 @@ trajLevel <- function(
       ) +
       ggplot2::scale_x_continuous(breaks = scales::breaks_pretty(grid.nx)) +
       ggplot2::scale_y_continuous(breaks = scales::breaks_pretty(grid.ny)) +
-      ggplot2::scale_alpha_identity() +
-      ggplot2::scale_fill_stepsn(
-        transform = scales::transform_log10(),
-        colors = openColours(cols),
-        n.breaks = 15,
-        limits = c(min.bin, NA)
-      ) +
-      ggplot2::guides(
-        fill = ggplot2::guide_colorsteps(show.limits = TRUE)
-      )
+      ggplot2::scale_alpha_identity()
+
+    if (missing(breaks)) {
+      if (missing(trans)) {
+        trans <- scales::transform_log10()
+      }
+
+      thePlot <-
+        thePlot +
+        ggplot2::scale_fill_stepsn(
+          colors = resolve_colour_opts(cols, 100),
+          n.breaks = 15,
+          limits = c(min.bin, NA),
+          transform = get_scale_transform(trans)
+        ) +
+        ggplot2::guides(
+          fill = ggplot2::guide_colorsteps(show.limits = TRUE)
+        )
+    } else if (is.null(break_opts$breaks)) {
+      thePlot <- thePlot +
+        ggplot2::scale_fill_gradientn(
+          colours = resolve_colour_opts(cols, 100),
+          oob = scales::oob_squish,
+          na.value = NA,
+          limits = limits
+        )
+    } else {
+      thePlot <- thePlot +
+        ggplot2::scale_fill_discrete(
+          palette = \(x) resolve_colour_opts(cols, x),
+          drop = FALSE
+        ) +
+        ggplot2::guides(
+          fill = ggplot2::guide_legend(
+            reverse = key.position %in% c("left", "right"),
+            theme = ggplot2::theme(
+              legend.title.position = ifelse(
+                key.position %in% c("left", "right"),
+                "top",
+                key.position
+              ),
+              legend.text.position = key.position
+            ),
+            ncol = if (missing(key.columns)) {
+              if (key.position %in% c("left", "right")) {
+                NULL
+              } else {
+                dplyr::n_distinct(levels(out_data_sf[[pollutant]]))
+              }
+            } else {
+              key.columns
+            }
+          )
+        )
+    }
   }
 
   # make legends full width

@@ -2,15 +2,61 @@
 % Please edit documentation in R/openColours.R
 \name{openColours}
 \alias{openColours}
+\alias{openColors}
 \title{Pre-defined openair colours and definition of user-defined colours}
 \usage{
-openColours(scheme = "default", n = 100)
+openColours(
+  scheme = "default",
+  n = NULL,
+  alpha = 1,
+  begin = 0,
+  end = 1,
+  direction = 1,
+  saturation = 0.5,
+  lightness = 0.5
+)
+
+openColors(
+  scheme = "default",
+  n = NULL,
+  alpha = 1,
+  begin = 0,
+  end = 1,
+  direction = 1,
+  saturation = 0.5,
+  lightness = 0.5
+)
 }
 \arguments{
 \item{scheme}{Any one of the pre-defined \code{openair} schemes (e.g.,
-\code{"increment"}) or a user-defined palette (e.g., \code{c("red", "orange", "gold")}). See \code{?openColours} for a full list of available schemes.}
+\code{"increment"}) or a user-defined palette (e.g., \code{c("red", "orange", "gold")}). Use \code{\link[=openSchemes]{openSchemes()}} for a full list of available schemes.}
 
-\item{n}{number of colours required.}
+\item{n}{The whole number of colours required. If not provided, sequential
+palettes will return \code{100} colours and qualitative palettes will return the
+maximum number of colours available for that scheme.}
+
+\item{alpha}{The alpha transparency level (between \code{0} and \code{1}) for the
+colours. \code{0} is fully transparent, and \code{1} is fully opaque.}
+
+\item{begin, end}{For sequential schemes, the fraction (between \code{0} and \code{1})
+of the colour scheme to use. For example, if \code{begin = 0.2} and \code{end = 0.8},
+only the middle 60\% of the colour scheme will be used. This can be useful
+for avoiding very light or dark colours at the ends of schemes.}
+
+\item{direction}{The order of the colours. \code{1} is the default and gives the
+normal order. \code{-1} will reverse the order of the colours.}
+
+\item{saturation}{The saturation of the colours, between \code{0} (completely
+desaturated, i.e., grey) and \code{1} (completely saturated). The default is
+\code{0.5}, which gives the original saturation of the colours. Values less than
+\code{0.5} will make the colours more desaturated (greyer), and values greater
+than \code{0.5} will make the colours more saturated (vibrant).}
+
+\item{lightness}{The lightness of the colours, between \code{0} (completely
+black) and \code{1} (completely white). The default is \code{0.5}, which gives the
+original lightness of the colours. Values less than \code{0.5} will make the
+colours darker, and values greater than \code{0.5} will make the colours
+brighter.}
 }
 \value{
 A character vector of hex codes
@@ -18,28 +64,36 @@ A character vector of hex codes
 \description{
 This in primarily an internal openair function to make it easy for users to
 select particular colour schemes, or define their own range of colours of a
-user-defined length.
+user-defined length. \code{openColours()} and \code{openColors()} are synonyms.
 }
 \section{Schemes}{
 
 
-The following schemes are made available by \code{openColours()}:
+The following schemes are made available by \code{openColours()}. This list is
+also available as a table by using \code{openSchemes()}.
 
 \strong{Sequential Colours:}
 \itemize{
-\item "default", "increment", "brewer1", "heat", "jet", "turbo", "hue",
-"greyscale".
+\item "default", "increment", "heat", "jet", "turbo", "hue", "greyscale".
 \item Simplified versions of the \code{viridis} colours: "viridis", "plasma",
-"magma", "inferno", "cividis", and "turbo".
+"magma", "inferno", "cividis", "turbo", "rocket" and "mako".
 \item Simplified versions of the \code{RColorBrewer} sequential palettes: "Blues", "BuGn",
 "BuPu", "GnBu", "Greens", "Greys", "Oranges", "OrRd", "PuBu", "PuBuGn",
 "PuRd", "Purples", "RdPu", "Reds", "YlGn", "YlGnBu", "YlOrBr", "YlOrRd".
+\item Simplified versions of Fabio Crameri's sequential palettes: "acton",
+"bamO", "bamako", "batlow", "batlowK", "batlowW", "bilbao", "brocO",
+"buda", "corkO", "davos", "devon", "glasgow", "grayC", "hawaii", "imola",
+"lajolla", "lapaz", "lipari", "navia", "naviaW", "nuuk", "oslo", "romaO",
+"tokyo", "turku", "vikO".
 }
 
 \strong{Diverging Palettes:}
 \itemize{
 \item Simplified versions of the \code{RColorBrewer} diverging palettes: "BrBG",
 "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu", "RdYlGn", "Spectral".
+\item Simplified versions of Fabio Crameri's diverging palettes: "bam",
+"berlin", "broc", "cork", "lisbon", "managua", "roma", "tofino", "vanimo",
+"vik"
 }
 
 \strong{Qualitative Palettes:}
@@ -48,8 +102,9 @@ The following schemes are made available by \code{openColours()}:
 "Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1", "Set2", "Set3".
 \item "okabeito" (or "cbPalette"), a colour-blind safe palette based on
 the work of Masataka Okabe and Kei Ito (\url{https://jfly.uni-koeln.de/color/})
-\item "tol.bright" (or "tol"), "tol.muted" and "tol.light", colour-blind safe
-palettes based on the work of Paul Tol.
+\item "tol.bright" (or "tol"), "tol.highcontrast", "tol.vibrant", "tol.muted",
+"tol.mediumcontrast", "tol.pale", "tol.dark", and "tol.light"; colour-blind
+safe palettes based on the work of Paul Tol.
 \item "tableau" and "observable", aliases for the
 "Tableau10"
 (\url{https://www.tableau.com/blog/colors-upgrade-tableau-10-56782}) and
@@ -78,9 +133,9 @@ like \code{\link[=calendarPlot]{calendarPlot()}}.
 
 
 Because of the way many of the schemes have been developed they only exist
-over certain number of colour gradations (typically 3--10) --- see
-\code{?brewer.pal} for actual details. If less than or more than the required
-number of colours is supplied then \code{openair} will interpolate the colours.
+over certain number of colour gradations (typically 3--10). If less than or
+more than the required number of colours is supplied then \code{openair} will
+interpolate the colours.
 
 Each of the pre-defined schemes have merits and their use will depend on a
 particular situation. For showing incrementing concentrations, e.g., high
@@ -113,14 +168,24 @@ cols
 
 }
 \references{
-\url{https://colorbrewer2.org/}
+Color Brewer: \url{https://colorbrewer2.org/}
 
-\url{https://check-air-quality.service.gov.uk/}
+DAQI Colours: \url{https://check-air-quality.service.gov.uk/}
 
+UK Government Analysis Function:
 \url{https://analysisfunction.civilservice.gov.uk/policy-store/data-visualisation-colours-in-charts/}
+
+Fabio Crameri's Color Schemes: Crameri, F. 2023. Scientific Colour Maps
+(version 8.0.1). Zenodo. DOI: \doi{doi:10.5281/zenodo.1243862}.
+}
+\seealso{
+Other colour functions:
+\code{\link[=colourOpts]{colourOpts()}},
+\code{\link[=openSchemes]{openSchemes()}}
 }
 \author{
 David Carslaw
 
 Jack Davison
 }
+\concept{colour functions}

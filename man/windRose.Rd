@@ -27,7 +27,6 @@ windRose(
   paddle = TRUE,
   key.title = "(m/s)",
   key.position = "bottom",
-  strip.position = "top",
   dig.lab = 5,
   include.lowest = FALSE,
   statistic = "prop.count",
@@ -43,9 +42,12 @@ windRose(
 \arguments{
 \item{mydata}{A data frame containing fields \code{ws} and \code{wd}}
 
-\item{ws}{Name of the column representing wind speed.}
+\item{ws}{The name of the column in \code{mydata} representing the wind speed.
+Defaults to \code{"ws"}.}
 
-\item{wd}{Name of the column representing wind direction.}
+\item{wd}{The name of the column in \code{mydata} representing the decimal wind
+direction, 0 to 360 where 0/360 are North and 180 is South. Defaults to
+\code{"wd"}.}
 
 \item{ws2, wd2}{The user can supply a second set of wind speed and wind
 direction values with which the first can be compared. See
@@ -96,7 +98,9 @@ frequencies.}
 \item{cols}{Colours to use for plotting. Can be a pre-set palette (e.g.,
 \code{"turbo"}, \code{"viridis"}, \code{"tol"}, \code{"Dark2"}, etc.) or a user-defined vector
 of R colours (e.g., \code{c("yellow", "green", "blue", "black")} - see
-\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). See \code{\link[=openColours]{openColours()}} for more details.}
+\code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). Alternatively, can be a list of arguments to control the
+colour palette more closely (e.g., \code{palette}, \code{direction}, \code{alpha}, etc.).
+See \code{\link[=openColours]{openColours()}} and \code{\link[=colourOpts]{colourOpts()}} for more details.}
 
 \item{grid.line}{Grid line interval to use. If \code{NULL}, as in default, this is
 assigned based on the available data range. However, it can also be forced
@@ -143,13 +147,6 @@ passed to \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.}
 arguments include \code{"top"}, \code{"right"}, \code{"bottom"}, \code{"left"} and \code{"none"},
 the last of which removes the legend entirely.}
 
-\item{strip.position}{Location where the facet 'strips' are located when
-using \code{type}. When one \code{type} is provided, can be one of \code{"left"},
-\code{"right"}, \code{"bottom"} or \code{"top"}. When two \code{type}s are provided, this
-argument defines whether the strips are "switched" and can take either
-\code{"x"}, \code{"y"}, or \code{"both"}. For example, \code{"x"} will switch the 'top' strip
-locations to the bottom of the plot.}
-
 \item{dig.lab}{The number of significant figures at which scientific number
 formatting is used in break point and key labelling. Default 5.}
 
@@ -193,11 +190,36 @@ to a file).}
 \code{key.position} to \code{"none"}.}
 
 \item{...}{Addition options are passed on to \code{\link[=cutData]{cutData()}} for \code{type} handling.
-Some additional arguments are also available:
+Some additional arguments are also available, varying somewhat in different
+plotting functions:
 \itemize{
-\item \code{xlab}, \code{ylab} and \code{main} override the x-axis label, y-axis label, and plot title.
-\item \code{layout} sets the layout of facets - e.g., \code{layout(2, 5)} will have 2 columns and 5 rows.
-\item \code{fontsize} overrides the overall font size of the plot.
+\item \code{title}, \code{subtitle}, \code{caption}, \code{tag}, \code{xlab} and \code{ylab} control the plot
+title, subtitle, caption, tag, x-axis label and y-axis label, passed to
+\code{\link[ggplot2:labs]{ggplot2::labs()}} via \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.
+\item \code{xlim}, \code{ylim} and \code{limits} control the limits of the x-axis, y-axis and
+colorbar scales.
+\item \code{ncol} and \code{nrow} set the number of columns and rows in a faceted plot.
+\item \code{scales} can be \code{"fixed"}, \code{"free_x"}, \code{"free_y"} or \code{"free"} to control
+whether axes are shared across facets when using \code{type}. Also supported are
+the legacy \code{x.relation} and \code{y.relation}, which can be either \code{"same"} or
+\code{"free"} and get remapped to \code{scales} automatically.
+\item Similarly, \code{space}, \code{axes}, \code{axis.labels}, \code{switch} and \code{strip.position}
+can be used to customise the appearance of faceted plots. See
+\code{\link[ggplot2:facet_wrap]{ggplot2::facet_wrap()}} and \code{\link[ggplot2:facet_grid]{ggplot2::facet_grid()}} for the arguments these
+take.
+\item \code{fontsize} overrides the overall font size of the plot by setting the
+\code{text} argument of \code{\link[ggplot2:theme]{ggplot2::theme()}}. It may also be applied
+proportionately to any \code{openair} annotations (e.g., N/E/S/W labels on polar
+coordinate plots).
+\item Various graphical parameters are also supported: \code{linewidth},
+\code{linetype},\code{ shape}, \code{size}, \code{border}, and \code{alpha}. Not all parameters
+apply to all plots. These can take a single value, or a vector of multiple
+values - e.g., \code{shape = c(1, 2)} - which will be recycled to the length of
+values needed.
+\item \code{lineend}, \code{linejoin} and \code{linemitre} tweak the appearance of line
+plots; see \code{\link[ggplot2:geom_line]{ggplot2::geom_line()}} for more information.
+\item In polar coordinate plots, \code{annotate = FALSE} will remove the N/E/S/W
+labels and any other annotations.
 }}
 }
 \value{
@@ -246,6 +268,37 @@ windRose(mydata, type = "year")
 \dontrun{
 windRose(mydata, angle = 10, width = 0.2, grid.line = 1)
 }
+
+\dontrun{
+#' # example of comparing 2 met sites
+# first we will make some new ws/wd data with a postive bias
+mydata$ws2 <- mydata$ws + 2 * rnorm(nrow(mydata)) + 1
+mydata$wd2 <- mydata$wd + 30 * rnorm(nrow(mydata)) + 30
+
+# need to correct negative wd
+id <- which(mydata$wd2 < 0)
+mydata$wd2[id] <- mydata$wd2[id] + 360
+
+# results show postive bias in wd and ws
+windRose(mydata, ws = "ws", wd = "wd", ws2 = "ws2", wd2 = "wd2")
+
+## add some wd bias to some nighttime hours
+id <- which(as.numeric(format(mydata$date, "\%H")) \%in\% c(23, 1, 2, 3, 4, 5))
+mydata$wd2[id] <- mydata$wd[id] + 30 * rnorm(length(id)) + 120
+id <- which(mydata$wd2 < 0)
+mydata$wd2[id] <- mydata$wd2[id] + 360
+
+windRose(
+  mydata,
+  ws = "ws",
+  wd = "wd",
+  ws2 = "ws2",
+  wd2 = "wd2",
+  breaks = c(-11, -2, -1, -0.5, 0.5, 1, 2, 11),
+  cols = "vik",
+  type = "daylight"
+)
+}
 }
 \references{
 Applequist, S, 2012: Wind Rose Bias Correction. J. Appl. Meteor.
@@ -256,14 +309,14 @@ Roses and Conducting Sector-Based Air Dispersion Modeling, Journal of the
 Air & Waste Management Association, 58:7, 913-918.
 }
 \seealso{
-Other polar directional analysis functions: 
-\code{\link{percentileRose}()},
-\code{\link{polarAnnulus}()},
-\code{\link{polarCluster}()},
-\code{\link{polarDiff}()},
-\code{\link{polarFreq}()},
-\code{\link{polarPlot}()},
-\code{\link{pollutionRose}()}
+Other polar directional analysis functions:
+\code{\link[=percentileRose]{percentileRose()}},
+\code{\link[=polarAnnulus]{polarAnnulus()}},
+\code{\link[=polarCluster]{polarCluster()}},
+\code{\link[=polarDiff]{polarDiff()}},
+\code{\link[=polarFreq]{polarFreq()}},
+\code{\link[=polarPlot]{polarPlot()}},
+\code{\link[=pollutionRose]{pollutionRose()}}
 }
 \author{
 David Carslaw

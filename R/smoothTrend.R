@@ -27,8 +27,7 @@
 #'
 #' @param deseason Should the data be de-deasonalized first? If `TRUE` the
 #'   function `stl` is used (seasonal trend decomposition using loess). Note
-#'   that if `TRUE` missing data are first imputed using a Kalman filter and
-#'   Kalman smooth.
+#'   that if `TRUE` missing data are first imputed using a linear regression by month because `stl` cannot handle missing data. In this case the plot shows where the missing data have been imputed as a grey filled circle.
 #'
 #' @param statistic Statistic used for calculating monthly values. Default is
 #'   `"mean"`, but can also be `"percentile"`. See [timeAverage()] for more
@@ -51,21 +50,10 @@
 #'
 #' @param ci Should confidence intervals be plotted? The default is `TRUE`.
 #'
-#' @param alpha The alpha transparency of shaded confidence intervals - if
-#'   plotted. A value of 0 is fully transparent and 1 is fully opaque.
-#'
 #' @param k This is the smoothing parameter used by the [mgcv::gam()] function
 #'   in package `mgcv`. By default it is not used and the amount of smoothing is
 #'   optimised automatically. However, sometimes it is useful to set the
 #'   smoothing amount manually using `k`.
-#'
-#' @param ... Addition options are passed on to [cutData()] for `type` handling.
-#'   Some additional arguments are also available:
-#'   - `xlab`, `ylab` and `main` override the x-axis label, y-axis label, and plot title.
-#'   - `ylim` and `xlim` control axis limits.
-#'   - `layout` sets the layout of facets - e.g., `layout(2, 5)` will have 2 columns and 5 rows.
-#'   - `fontsize` overrides the overall font size of the plot.
-#'   - `cex`, `lwd`, `lty`, `alpha`, and `pch` control various graphical parameters.
 #'
 #' @export
 #' @return an [openair][openair-package] object
@@ -80,7 +68,7 @@
 #' smoothTrend(mydata, pollutant = "o3", type = "wd", ylab = "o3 (ppb)")
 #'
 #' # several pollutants, no plotting symbol
-#' smoothTrend(mydata, pollutant = c("no2", "o3", "pm10", "pm25"), pch = NA)
+#' smoothTrend(mydata, pollutant = c("no2", "o3", "pm10", "pm25"), shape = NA)
 #'
 #' # percentiles
 #' smoothTrend(mydata,
@@ -91,7 +79,7 @@
 #' # several percentiles with control over lines used
 #' smoothTrend(mydata,
 #'   pollutant = "o3", statistic = "percentile",
-#'   percentile = c(5, 50, 95), lwd = c(1, 2, 1), lty = c(5, 1, 5)
+#'   percentile = c(5, 50, 95), linewidth = c(1, 2, 1), linetype = c(5, 1, 5)
 #' )
 #' }
 smoothTrend <- function(
@@ -108,19 +96,15 @@ smoothTrend <- function(
   autocor = FALSE,
   type = "default",
   cols = "brewer1",
-  x.relation = "same",
-  y.relation = "same",
   ref.x = NULL,
   ref.y = NULL,
   key.columns = 1,
   key.position = "bottom",
-  strip.position = "top",
   name.pol = NULL,
   date.breaks = 7,
   date.format = NULL,
   auto.text = TRUE,
   ci = TRUE,
-  alpha = 0.2,
   progress = TRUE,
   plot = TRUE,
   key = NULL,
@@ -130,7 +114,7 @@ smoothTrend <- function(
   key.position <- check_key_position(key.position, key)
 
   # extra.args setup
-  extra.args <- list(...)
+  extra.args <- capture_dots(...)
 
   # validation checks
   if (length(pollutant) > 1 && length(percentile) > 1) {
@@ -139,10 +123,6 @@ smoothTrend <- function(
     )
     percentile <- percentile[1]
   }
-
-  # check avg.time
-  rlang::arg_match(x.relation, c("same", "free"))
-  rlang::arg_match(y.relation, c("same", "free"))
 
   # set stat to percentile if user provides some
   if (!missing(percentile) && statistic != "percentile") {
@@ -153,14 +133,16 @@ smoothTrend <- function(
   }
 
   # Style controls w/ defaults
-  extra.args$lty <- extra.args$lty %||% 1L
-  extra.args$lwd <- extra.args$lwd %||% 1L
-  extra.args$pch <- extra.args$pch %||% 1L
-  extra.args$cex <- extra.args$cex %||% 1L
-  extra.args$layout <- extra.args$layout %||% NULL
+  extra.args$linetype <- extra.args$linetype %||% 1L
+  extra.args$linewidth <- extra.args$linewidth %||% 1L
+  extra.args$shape <- extra.args$shape %||% 1L
+  extra.args$size <- extra.args$size %||% 5L
 
   # label controls
-  extra.args$main <- quickText(extra.args$main %||% "", auto.text)
+  extra.args$title <- quickText(extra.args$title %||% "", auto.text)
+  extra.args$subtitle <- quickText(extra.args$subtitle %||% "", auto.text)
+  extra.args$caption <- quickText(extra.args$caption %||% "", auto.text)
+  extra.args$tag <- quickText(extra.args$tag, auto.text)
   extra.args$ylab <- quickText(
     extra.args$ylab %||% paste(pollutant, collapse = ", "),
     auto.text
@@ -207,7 +189,13 @@ smoothTrend <- function(
     map_type(
       mydata,
       type = vars,
-      fun = \(df) deseason_smoothtrend_data(df, deseason = deseason),
+      fun = \(df) {
+        deseason_smoothtrend_data(
+          df,
+          deseason = deseason,
+          pollutant = pollutant
+        )
+      },
       .include_default = TRUE
     )
 
@@ -265,17 +253,38 @@ smoothTrend <- function(
     ggplot2::ggplot(mapping = ggplot2::aes(x = .data$date)) +
     ggplot2::geom_line(
       data = newdata,
-      ggplot2::aes(color = .data$variable, y = .data$conc),
-      linewidth = extra.args$lwd / 2,
-      linetype = extra.args$lty,
-      show.legend = FALSE
+      ggplot2::aes(
+        color = .data$variable,
+        linetype = .data$variable,
+        linewidth = ggplot2::stage(
+          .data$variable,
+          after_scale = .data$linewidth * 1 / 2
+        ),
+        y = .data$conc
+      ),
+      show.legend = FALSE,
+      lineend = extra.args$lineend %||% "butt",
+      linejoin = extra.args$linejoin %||% "round",
+      linemitre = extra.args$linemitre %||% 10
     ) +
     ggplot2::geom_point(
       data = newdata,
-      ggplot2::aes(color = .data$variable, y = .data$conc),
-      size = extra.args$cex * 3,
-      shape = extra.args$pch,
+      ggplot2::aes(
+        color = .data$variable,
+        shape = .data$variable,
+        size = .data$variable,
+        y = .data$conc
+      ),
       show.legend = dplyr::n_distinct(levels(newdata$variable)) > 1
+    ) +
+    ggplot2::geom_point(
+      data = dplyr::filter(newdata, .data$imputed),
+      ggplot2::aes(y = .data$conc),
+      size = extra.args$cex * 3,
+      shape = 21,
+      fill = "grey50",
+      colour = "grey20",
+      show.legend = FALSE
     ) +
     ggplot2::geom_ribbon(
       data = fit,
@@ -284,28 +293,80 @@ smoothTrend <- function(
         ymax = .data$upper,
         ymin = .data$lower
       ),
-      linewidth = extra.args$lwd,
-      alpha = ifelse(ci, alpha, 0),
+      alpha = ifelse(ci, extra.args$alpha %||% 1 / 3, 0),
       show.legend = FALSE
     ) +
     ggplot2::geom_line(
       data = fit,
-      ggplot2::aes(color = .data$variable, y = .data$pred),
-      linewidth = extra.args$lwd,
-      show.legend = FALSE
+      ggplot2::aes(
+        color = .data$variable,
+        y = .data$pred,
+        linewidth = .data$variable,
+        linetype = .data$variable
+      ),
+      show.legend = FALSE,
+      lineend = extra.args$lineend %||% "butt",
+      linejoin = extra.args$linejoin %||% "round",
+      linemitre = extra.args$linemitre %||% 10
     ) +
-    gg_ref_x(ref.x = ref.x) +
-    gg_ref_y(ref.y = ref.y) +
-    theme_openair(key.position) +
-    set_extra_fontsize(extra.args) +
+    layer_ref(ref = ref.x, "x", "datetime", tz = lubridate::tz(newdata$date)) +
+    layer_ref(ref = ref.y, "y", "numeric") +
+    theme_openair(key.position, extra.args = extra.args) +
     ggplot2::scale_fill_manual(
-      values = openColours(cols, dplyr::n_distinct(levels(newdata$variable))),
+      values = resolve_colour_opts(
+        cols,
+        dplyr::n_distinct(levels(newdata$variable))
+      ),
       breaks = levels(newdata$variable),
       labels = lapply(name.pol %||% levels(newdata$variable), \(x) {
         label_openair(x, auto_text = auto.text)
       }),
       drop = FALSE,
       aesthetics = c("colour", "fill")
+    ) +
+    ggplot2::scale_shape_manual(
+      values = recycle_to_length(
+        extra.args$shape,
+        dplyr::n_distinct(levels(newdata$variable))
+      ),
+      breaks = levels(newdata$variable),
+      labels = lapply(name.pol %||% levels(newdata$variable), \(x) {
+        label_openair(x, auto_text = auto.text)
+      }),
+      drop = FALSE
+    ) +
+    ggplot2::scale_size_manual(
+      values = recycle_to_length(
+        extra.args$size,
+        dplyr::n_distinct(levels(newdata$variable))
+      ),
+      breaks = levels(newdata$variable),
+      labels = lapply(name.pol %||% levels(newdata$variable), \(x) {
+        label_openair(x, auto_text = auto.text)
+      }),
+      drop = FALSE
+    ) +
+    ggplot2::scale_linewidth_manual(
+      values = recycle_to_length(
+        extra.args$linewidth,
+        dplyr::n_distinct(levels(newdata$variable))
+      ),
+      breaks = levels(newdata$variable),
+      labels = lapply(name.pol %||% levels(newdata$variable), \(x) {
+        label_openair(x, auto_text = auto.text)
+      }),
+      drop = FALSE
+    ) +
+    ggplot2::scale_linetype_manual(
+      values = recycle_to_length(
+        extra.args$linetype,
+        dplyr::n_distinct(levels(newdata$variable))
+      ),
+      breaks = levels(newdata$variable),
+      labels = lapply(name.pol %||% levels(newdata$variable), \(x) {
+        label_openair(x, auto_text = auto.text)
+      }),
+      drop = FALSE
     ) +
     ggplot2::scale_x_datetime(
       breaks = scales::breaks_pretty(date.breaks),
@@ -319,21 +380,31 @@ smoothTrend <- function(
     get_facet(
       type = type,
       extra.args = extra.args,
-      scales = relation_to_facet_scales(x.relation, y.relation),
       auto.text = auto.text,
-      strip.position = strip.position,
-      drop = TRUE
+      drop = TRUE,
+      wd.res = extra.args$wd.res %||% 8
     ) +
     ggplot2::labs(
       y = extra.args$ylab,
       x = extra.args$xlab,
-      title = extra.args$main,
+      title = extra.args$title,
+      subtitle = extra.args$subtitle,
+      caption = extra.args$caption,
+      tag = extra.args$tag,
       color = NULL,
-      fill = NULL
+      fill = NULL,
+      shape = NULL,
+      linetype = NULL,
+      linewidth = NULL,
+      size = NULL
     ) +
     ggplot2::guides(
       fill = color_guide,
-      color = color_guide
+      color = color_guide,
+      linetype = color_guide,
+      linewidth = color_guide,
+      shape = color_guide,
+      size = color_guide
     )
 
   # plot
@@ -440,7 +511,7 @@ prepare_smoothtrend_data <- function(
 
 #' Apply deaseason, if requested
 #' @noRd
-deseason_smoothtrend_data <- function(mydata, deseason) {
+deseason_smoothtrend_data <- function(mydata, deseason, pollutant) {
   # return if nothing to analyse
   if (all(is.na(mydata$value))) {
     return(data.frame(date = NA, conc = NA))
@@ -471,14 +542,9 @@ deseason_smoothtrend_data <- function(mydata, deseason) {
       frequency = 12
     )
 
-    # fill any missing data using a Kalman filter
-
+    was_na <- is.na(myts)
     if (anyNA(myts)) {
-      # use forecast package to get best arima
-      fit <- stats::ts(rowSums(stats::tsSmooth(stats::StructTS(myts))[, -2]))
-      id <- which(is.na(myts))
-
-      myts[id] <- fit[id]
+      myts <- fill_ts_gaps(myts, pollutant)
     }
 
     ssd <- stats::stl(myts, s.window = 11, robust = TRUE, s.degree = 1)
@@ -489,12 +555,14 @@ deseason_smoothtrend_data <- function(mydata, deseason) {
     results <- data.frame(
       date = mydata$date,
       conc = as.vector(deseas),
+      imputed = was_na,
       stringsAsFactors = FALSE
     )
   } else {
     results <- data.frame(
       date = mydata$date,
       conc = mydata[["value"]],
+      imputed = FALSE,
       stringsAsFactors = FALSE
     )
   }
@@ -634,8 +702,38 @@ fit_smoothtrend_gam <- function(
       class(results[[x]]) <- class_x
       return(results)
     },
-    error = function(x) {
-      data.orig
+    error = function(e) {
+      if (nrow(thedata) >= 6) {
+        xseq <- seq(
+          min(thedata$x, na.rm = TRUE),
+          max(thedata$x, na.rm = TRUE),
+          length = n
+        )
+        mod_lo <- stats::loess(y ~ x, data = thedata)
+        pred_lo <- stats::predict(
+          mod_lo,
+          newdata = data.frame(x = xseq),
+          se = TRUE
+        )
+        std <- stats::qnorm(level / 2 + 0.5)
+        results <- data.frame(
+          tmp = xseq,
+          pred = pred_lo$fit,
+          lower = pred_lo$fit - std * pred_lo$se.fit,
+          upper = pred_lo$fit + std * pred_lo$se.fit
+        )
+      } else {
+        results <- data.frame(
+          tmp = thedata$x,
+          pred = NA_real_,
+          lower = NA_real_,
+          upper = NA_real_,
+          stringsAsFactors = FALSE
+        )
+      }
+      names(results)[1] <- x
+      class(results[[x]]) <- class_x
+      results
     }
   )
 }
