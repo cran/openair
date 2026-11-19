@@ -71,7 +71,8 @@
 #'
 #' @param linear A linear model is fitted to the data if `TRUE`; optionally with
 #'   95 percent confidence intervals shown. The equation of the line and R2
-#'   value is also shown.
+#'   value is also shown. The fitted coefficients are returned in the `fit`
+#'   component of the output.
 #'
 #' @param ci Should the confidence intervals for the smooth/linear fit be shown?
 #'
@@ -125,10 +126,18 @@
 #'
 #'   - For `method = "hexbin"`, `bins` controls the number of bins.
 #'
-#'   - `date.format` controls the format of date-time x-axes.
+#'   - `date.breaks` and `date.format` control the breaks and format of date
+#'   and date-time x-axes. See [timePlot()] for details.
 #'
 #' @export
-#' @return an [openair][openair-package] object
+#' @return an [openair][openair-package] object. When `linear = TRUE` and
+#'   `method` is `"scatter"` or `"hexbin"`, the object also contains `fit`, a
+#'   data frame of linear model coefficients with one row per panel (and
+#'   `group`, if used). It has columns for any `type` and `group` variables,
+#'   followed by `intercept`, `intercept.se`, `slope`, `slope.se`, `r.squared`
+#'   and `n` (the number of observations used in the fit). For `output <-
+#'   scatterPlot(mydata, linear = TRUE)` this can be extracted using
+#'   `output$fit`.
 #' @author David Carslaw
 #' @seealso [timePlot()] and [timeAverage()] for details on selecting averaging
 #'   times and other statistics in a flexible way
@@ -221,9 +230,11 @@ scatterPlot <- function(
   ci = TRUE,
   mod.line = FALSE,
   cols = "hue",
+  theme = "default",
   plot.type = "p",
   key.title = group,
-  key.columns = 1,
+  key.columns = NULL,
+  key.rows = NULL,
   key.position = "right",
   log.x = FALSE,
   log.y = FALSE,
@@ -244,6 +255,13 @@ scatterPlot <- function(
   # check key.position
   key.position <- check_key_position(key.position, key)
 
+  # default colour based on theme
+  if (missing(cols)) {
+    cols <- get_theme_cols(cols, theme, "seq")
+  }
+
+  check_type(type, max = 2)
+
   ## extra args
   extra.args <- capture_dots(...)
   extra.args$size <- extra.args$size %||% 1
@@ -255,7 +273,7 @@ scatterPlot <- function(
   ## validate
   if (is.na(z) && method == "level") {
     cli::cli_abort(
-      "Need to specify {.arg z} when using {.code method = 'level'}."
+      "Need to specify {.arg z} when using {.code method = \"level\"}."
     )
   }
   if (!is.na(group) && any(group %in% type)) {
@@ -304,6 +322,7 @@ scatterPlot <- function(
       group = group,
       type = type,
       cols = cols,
+      theme = theme,
       plot.type = plot.type,
       smooth = smooth,
       spline = spline,
@@ -318,6 +337,7 @@ scatterPlot <- function(
       key.position = key.position,
       key.title = key.title,
       key.columns = key.columns,
+      key.rows = key.rows,
       limits = limits,
       trans = trans,
       k = k,
@@ -337,6 +357,7 @@ scatterPlot <- function(
       group = group,
       type = type,
       cols = cols,
+      theme = theme,
       border = extra.args$border,
       linear = linear,
       ci = ci,
@@ -363,6 +384,7 @@ scatterPlot <- function(
       z = z,
       type = type,
       cols = cols,
+      theme = theme,
       statistic = statistic,
       smooth = smooth,
       mod.line = mod.line,
@@ -392,6 +414,7 @@ scatterPlot <- function(
       y = y,
       type = type,
       cols = cols,
+      theme = theme,
       mod.line = mod.line,
       log.x = log.x,
       log.y = log.y,
@@ -415,6 +438,9 @@ scatterPlot <- function(
   }
 
   output <- list(plot = out$plot, data = out$data, call = match.call())
+  if (linear && !is.null(out$fit)) {
+    output$fit <- out$fit
+  }
   class(output) <- "openair"
   invisible(output)
 }
@@ -487,7 +513,20 @@ prepare_scatter_data <- function(
     vars <- c(vars, z)
   }
 
-  mydata <- checkPrep(mydata, unique(vars), type)
+  # x, y and z must be numeric, although x and y can also be dates
+  numeric_vars <- c(
+    x,
+    y,
+    if (!is.na(z)) z,
+    if (windflow$windflow) c("wd", "ws")
+  )
+  numeric_vars <- purrr::discard(
+    numeric_vars,
+    function(var) inherits(mydata[[var]], c("Date", "POSIXt"))
+  )
+
+  mydata <- checkPrep(mydata, unique(vars), type) |>
+    check_numeric(vars = numeric_vars, call = rlang::caller_env())
 
   ## filter for log scales (require strictly positive)
   if (log.x) {
@@ -513,6 +552,7 @@ scatter_scatter <- function(
   group,
   type,
   cols,
+  theme,
   plot.type,
   smooth,
   spline,
@@ -527,6 +567,7 @@ scatter_scatter <- function(
   key.position,
   key.title,
   key.columns,
+  key.rows,
   limits,
   trans,
   k,
@@ -544,6 +585,8 @@ scatter_scatter <- function(
 
   ## cut data for conditioning and group
   mydata <- cutData(mydata, type)
+  # numeric groups are binned by cutData() so are treated as ordered in the key
+  group_is_binned <- has_group && is.numeric(mydata[[group]])
   if (has_group) {
     mydata <- cutData(mydata, group)
   }
@@ -554,7 +597,7 @@ scatter_scatter <- function(
     n_groups <- 1L
     group_var <- NULL
     group_levels <- "all"
-    if (missing(cols) || identical(cols, "hue")) cols <- "default"
+    if (identical(cols, "hue")) cols <- "default"
   } else if (has_group) {
     group_levels <- levels(as.factor(mydata[[group]]))
     n_groups <- length(group_levels)
@@ -650,15 +693,12 @@ scatter_scatter <- function(
 
     pol_name <- sapply(group_levels, function(x) quickText(x, auto.text))
 
-    theGuide <- ggplot2::guide_legend(
+    theGuide <- guide_openair(
+      key.position,
+      reverse = group_is_binned,
       ncol = key.columns,
-      theme = ggplot2::theme(
-        legend.title.position = if (key.position %in% c("left", "right")) {
-          "top"
-        } else {
-          key.position
-        }
-      )
+      nrow = key.rows,
+      var_text_position = FALSE
     )
 
     plt <- plt +
@@ -721,6 +761,7 @@ scatter_scatter <- function(
   }
 
   ## linear fit
+  lm_labs <- NULL
   if (linear) {
     if (has_group) {
       ## per-group lines: explicitly map colour/fill so geom_smooth produces one
@@ -788,7 +829,7 @@ scatter_scatter <- function(
             mapping = ggplot2::aes(
               x = I(0.025),
               y = I(.data$y),
-              label = .data$label,
+              label = .data$label
             ),
             hjust = 0,
             vjust = 1,
@@ -814,8 +855,8 @@ scatter_scatter <- function(
 
   ## reference lines
   plt <- plt +
-    .layer_ref_scatter(ref.x, "x", mydata[[x]]) +
-    .layer_ref_scatter(ref.y, "y", mydata[[y]])
+    .layer_ref_scatter(ref.x, "x", mydata[[x]], mydata[[x]]) +
+    .layer_ref_scatter(ref.y, "y", mydata[[y]], mydata[[y]])
 
   ## axis scales
   plt <- plt +
@@ -837,6 +878,8 @@ scatter_scatter <- function(
   ## theme + labels + strip control
   plt <- plt +
     theme_openair(
+      theme = theme,
+      coord = "cartesian",
       key.position = if (n_groups == 1L && !has_z) "none" else key.position,
       extra.args = extra.args
     ) +
@@ -852,7 +895,8 @@ scatter_scatter <- function(
   return(
     list(
       plot = plt,
-      data = mydata
+      data = mydata,
+      fit = tidy_lm_fit(lm_labs)
     )
   )
 }
@@ -869,6 +913,7 @@ scatter_hexbin <- function(
   group,
   type,
   cols,
+  theme,
   border,
   linear,
   ci,
@@ -910,6 +955,7 @@ scatter_hexbin <- function(
     plt <- plt + gg_mod_lines()
   }
 
+  lm_labs <- NULL
   if (linear) {
     plt <- plt +
       ggplot2::geom_smooth(
@@ -949,8 +995,8 @@ scatter_hexbin <- function(
   }
 
   plt <- plt +
-    .layer_ref_scatter(ref.x, "x", mydata[[x]]) +
-    .layer_ref_scatter(ref.y, "y", mydata[[y]]) +
+    .layer_ref_scatter(ref.x, "x", mydata[[x]], mydata[[y]]) +
+    .layer_ref_scatter(ref.y, "y", mydata[[y]], mydata[[x]]) +
     .scatter_x_scale(log.x, x, mydata, extra.args) +
     .scatter_y_scale(log.y, y, mydata, extra.args) +
     gg_coord_limits(extra.args) +
@@ -962,7 +1008,12 @@ scatter_hexbin <- function(
       drop = FALSE,
       wd.res = extra.args$wd.res %||% 8
     ) +
-    theme_openair(key.position = key.position, extra.args = extra.args) +
+    theme_openair(
+      theme = theme,
+      coord = "cartesian",
+      key.position = key.position,
+      extra.args = extra.args
+    ) +
     ggplot2::labs(
       x = xlab,
       y = ylab,
@@ -975,7 +1026,8 @@ scatter_hexbin <- function(
   return(
     list(
       plot = plt,
-      data = mydata
+      data = mydata,
+      fit = tidy_lm_fit(lm_labs)
     )
   )
 }
@@ -992,6 +1044,7 @@ scatter_level <- function(
   z,
   type,
   cols,
+  theme,
   statistic,
   smooth,
   mod.line,
@@ -1078,7 +1131,7 @@ scatter_level <- function(
     mydata[[z]] <- pmin(pmax(mydata[[z]], limits[1L]), limits[2L])
   }
 
-  if (missing(cols) || identical(cols, "hue")) {
+  if (identical(cols, "hue")) {
     cols <- "default"
   }
   myColors <- resolve_colour_opts(cols, 200)
@@ -1110,8 +1163,8 @@ scatter_level <- function(
   }
 
   plt <- plt +
-    .layer_ref_scatter(ref.x, "x", mydata$xgrid) +
-    .layer_ref_scatter(ref.y, "y", mydata$ygrid) +
+    .layer_ref_scatter(ref.x, "x", mydata$xgrid, mydata$ygrid) +
+    .layer_ref_scatter(ref.y, "y", mydata$ygrid, mydata$xgrid) +
     .scatter_x_scale(log.x, "xgrid", mydata, extra.args) +
     .scatter_y_scale(log.y, "ygrid", mydata, extra.args) +
     gg_coord_limits(extra.args) +
@@ -1119,11 +1172,15 @@ scatter_level <- function(
       type,
       extra.args,
       auto.text = auto.text,
-
       drop = FALSE,
       wd.res = extra.args$wd.res %||% 8
     ) +
-    theme_openair(key.position = key.position, extra.args = extra.args) +
+    theme_openair(
+      theme = theme,
+      coord = "cartesian",
+      key.position = key.position,
+      extra.args = extra.args
+    ) +
     ggplot2::labs(
       x = xlab,
       y = ylab,
@@ -1186,11 +1243,16 @@ smooth_level_grid <- function(mydata, z, k, dist) {
 #'
 # Copied from grDevices (GPL-2), with attribution
 .smoothScatterCalcDensity <- function(x, nbin, bandwidth, range.x) {
+  rlang::check_installed(
+    "KernSmooth",
+    reason = "to use `method = \"density\"`."
+  )
+
   if (length(nbin) == 1) {
     nbin <- c(nbin, nbin)
   }
   if (!is.numeric(nbin) || length(nbin) != 2) {
-    stop("'nbin' must be numeric of length 1 or 2")
+    cli::cli_abort("{.arg nbin} must be numeric of length 1 or 2.")
   }
   if (missing(bandwidth)) {
     bandwidth <- diff(apply(
@@ -1205,10 +1267,10 @@ smooth_level_grid <- function(mydata, z, k, dist) {
     bandwidth[bandwidth == 0] <- 1
   } else {
     if (!is.numeric(bandwidth)) {
-      stop("'bandwidth' must be numeric")
+      cli::cli_abort("{.arg bandwidth} must be numeric.")
     }
     if (any(bandwidth <= 0)) {
-      stop("'bandwidth' must be positive")
+      cli::cli_abort("{.arg bandwidth} must be positive.")
     }
   }
 
@@ -1247,6 +1309,7 @@ scatter_density <- function(
   y,
   type,
   cols,
+  theme,
   mod.line,
   log.x,
   log.y,
@@ -1265,7 +1328,7 @@ scatter_density <- function(
 ) {
   mydata <- cutData(mydata, type)
 
-  if (missing(cols) || identical(cols, "hue")) {
+  if (identical(cols, "hue")) {
     cols <- "default"
   }
 
@@ -1300,8 +1363,8 @@ scatter_density <- function(
   }
 
   plt <- plt +
-    .layer_ref_scatter(ref.x, "x", mydata[["x"]]) +
-    .layer_ref_scatter(ref.y, "y", mydata[["y"]]) +
+    .layer_ref_scatter(ref.x, "x", mydata[["x"]], mydata[["y"]]) +
+    .layer_ref_scatter(ref.y, "y", mydata[["y"]], mydata[["x"]]) +
     .scatter_x_scale(log.x, "x", grid_data, extra.args) +
     .scatter_y_scale(log.y, "y", grid_data, extra.args) +
     gg_coord_limits(extra.args) +
@@ -1313,7 +1376,12 @@ scatter_density <- function(
       drop = FALSE,
       wd.res = extra.args$wd.res %||% 8
     ) +
-    theme_openair(key.position = key.position, extra.args = extra.args) +
+    theme_openair(
+      theme = theme,
+      coord = "cartesian",
+      key.position = key.position,
+      extra.args = extra.args
+    ) +
     ggplot2::labs(
       x = xlab,
       y = ylab,
@@ -1394,17 +1462,12 @@ scatter_density <- function(
     x_vals <- mydata[[x_col]]
     is_date <- inherits(x_vals, c("Date", "POSIXct", "POSIXlt"))
     if (is_date) {
-      if (inherits(x_vals, "Date")) {
-        ggplot2::scale_x_date(
-          labels = extra.args$date.format %||% ggplot2::waiver(),
-          expand = ggplot2::expansion(mult = c(0.02, 0.02))
-        )
-      } else {
-        ggplot2::scale_x_datetime(
-          date_labels = extra.args$date.format %||% ggplot2::waiver(),
-          expand = ggplot2::expansion(mult = c(0.02, 0.02))
-        )
-      }
+      scale_x_openair_date(
+        date.breaks = extra.args$date.breaks,
+        date.format = extra.args$date.format,
+        type = if (inherits(x_vals, "Date")) "date" else "datetime",
+        expand = ggplot2::expansion(mult = c(0.02, 0.02))
+      )
     } else {
       ggplot2::scale_x_continuous(
         expand = ggplot2::expansion(mult = c(0.02, 0.02))
@@ -1521,7 +1584,9 @@ compute_lm_labels <- function(
       {
         mod <- stats::lm(yv ~ xv, data = lm_dat)
         b <- stats::coef(mod)
-        r2 <- summary(mod)$r.squared
+        mod_summary <- summary(mod)
+        se <- mod_summary$coefficients[, "Std. Error"]
+        r2 <- mod_summary$r.squared
         symb <- if (b[1L] >= 0) "+" else ""
         ## Build a plotmath string: variable names are deparsed quickText
         ## expressions embedded in paste(...); geom_text uses parse = TRUE.
@@ -1546,6 +1611,12 @@ compute_lm_labels <- function(
           y_pos = Inf,
           g_idx = g_idx,
           label = lbl,
+          intercept = unname(b[1L]),
+          intercept.se = unname(se[1L]),
+          slope = unname(b[2L]),
+          slope.se = unname(se[2L]),
+          r.squared = r2,
+          n = nrow(lm_dat),
           stringsAsFactors = FALSE
         )
       },
@@ -1598,26 +1669,46 @@ compute_lm_labels <- function(
   dplyr::bind_rows(Filter(Negate(is.null), results))
 }
 
-# handle ref layers for scatterplot
-.layer_ref_scatter <- function(ref, which, vec) {
-  if (lubridate::is.POSIXct(vec)) {
-    layer_ref(
-      ref,
-      which,
-      type = "datetime",
-      tz = lubridate::tz(vec)
-    )
-  } else if (lubridate::is.Date(vec)) {
-    layer_ref(
-      ref,
-      which,
-      type = "date"
-    )
-  } else {
-    layer_ref(
-      ref,
-      which,
-      type = "numeric"
-    )
+## Drops the plotting columns from compute_lm_labels() output, leaving a tidy
+## table of linear model coefficients to be returned to the user.
+## @noRd
+tidy_lm_fit <- function(lm_labs) {
+  if (is.null(lm_labs) || nrow(lm_labs) == 0L) {
+    return(NULL)
   }
+  lm_labs |>
+    dplyr::select(-dplyr::any_of(c("x_pos", "y_pos", "g_idx", "label"))) |>
+    dplyr::tibble()
+}
+
+# handle ref layers for scatterplot
+.layer_ref_scatter <- function(ref, which, vec, vec2) {
+  tz <- NULL
+  if (lubridate::is.POSIXct(vec)) {
+    tz <- lubridate::tz(vec)
+  } else if (lubridate::is.POSIXct(vec2)) {
+    tz <- lubridate::tz(vec2)
+  }
+
+  type <- "numeric"
+  if (lubridate::is.POSIXct(vec)) {
+    type <- "datetime"
+  } else if (lubridate::is.Date(vec)) {
+    type <- "date"
+  }
+
+  other <- "numeric"
+  if (lubridate::is.POSIXct(vec2)) {
+    other <- "datetime"
+  } else if (lubridate::is.Date(vec2)) {
+    other <- "date"
+  }
+
+  layer_ref(
+    ref,
+    which,
+    type = type,
+    other_type = other,
+    tz = tz
+  )
 }

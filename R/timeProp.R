@@ -63,10 +63,12 @@ timeProp <- function(
   avg.time = "day",
   type = "default",
   cols = "Set1",
+  theme = "default",
   normalise = FALSE,
   ref.x = NULL,
   ref.y = NULL,
-  key.columns = 1,
+  key.columns = NULL,
+  key.rows = NULL,
   key.position = "right",
   key.title = proportion,
   date.breaks = 7,
@@ -76,16 +78,23 @@ timeProp <- function(
   key = NULL,
   ...
 ) {
+  # default colour based on theme
+  if (missing(cols)) {
+    cols <- get_theme_cols(cols, theme, "qual")
+  }
+
+  check_type(type, max = 2)
+
   # extra.args setup
   extra.args <- capture_dots(...)
 
   # label controls
   extra.args$title <- quickText(extra.args$title %||% "", auto.text)
-  extra.args$subtitle <- quickText(
-    extra.args$subtitle %||% "contribution weighted by mean",
+  extra.args$subtitle <- quickText(extra.args$subtitle %||% "", auto.text)
+  extra.args$caption <- quickText(
+    extra.args$caption %||% "\ncontribution weighted by mean",
     auto.text
   )
-  extra.args$caption <- quickText(extra.args$caption %||% "", auto.text)
   extra.args$tag <- quickText(extra.args$tag, auto.text)
   extra.args$xlab <- quickText(extra.args$xlab %||% "date", auto.text)
   extra.args$ylab <- quickText(
@@ -98,7 +107,8 @@ timeProp <- function(
   vars <- c("date", pollutant)
 
   # check the data
-  mydata <- checkPrep(mydata, vars, c(type, proportion), remove.calm = FALSE)
+  mydata <- checkPrep(mydata, vars, c(type, proportion), remove.calm = FALSE) |>
+    check_numeric(vars = pollutant)
 
   # cut data
   mydata <- cutData(mydata, c(type, proportion), ...)
@@ -115,7 +125,7 @@ timeProp <- function(
   if (avg.time == "season") {
     if (any(c("season", "seasonyear") %in% type)) {
       cli::cli_abort(
-        "In {.fun openair::timeProp}, {.arg type} and {.arg avg.time} cannot both be 'season'."
+        "In {.fun openair::timeProp}, {.arg type} and {.arg avg.time} cannot both be {.val season}."
       )
     }
     results <- mydata |>
@@ -183,21 +193,11 @@ timeProp <- function(
   # make sure we know order of data frame for adding other dates
   results <- dplyr::arrange(results, dplyr::pick(dplyr::all_of(type)), "date")
 
-  # set limits, if not set by user
-  xlim <- extra.args$xlim %||% NULL
-  ylim <- extra.args$ylim %||% NULL
-
   # check key.position
   key.position <- check_key_position(key.position, key)
 
-  # x-axis scale function
-  if (lubridate::is.Date(results$xleft)) {
-    x_type <- "date"
-    x_scale_fun <- ggplot2::scale_x_date
-  } else {
-    x_type <- "datetime"
-    x_scale_fun <- ggplot2::scale_x_datetime
-  }
+  # x-axis scale type
+  x_type <- if (lubridate::is.Date(results$xleft)) "date" else "datetime"
 
   # plot
   thePlot <-
@@ -221,12 +221,15 @@ timeProp <- function(
       ref = ref.x,
       which = "x",
       type = x_type,
+      other_type = "numeric",
       tz = lubridate::tz(results$xleft)
     ) +
     layer_ref(
       ref = ref.y,
       which = "y",
-      type = "numeric"
+      type = "numeric",
+      other_type = x_type,
+      tz = lubridate::tz(results$xleft)
     ) +
     ggplot2::scale_fill_manual(
       values = resolve_colour_opts(
@@ -238,35 +241,22 @@ timeProp <- function(
       drop = FALSE
     ) +
     ggplot2::guides(
-      fill = ggplot2::guide_legend(
+      fill = guide_openair(
+        key.position,
         reverse = TRUE,
-        theme = ggplot2::theme(
-          legend.title.position = ifelse(
-            key.position %in% c("left", "right"),
-            "top",
-            key.position
-          ),
-          legend.text.position = ifelse(
-            key.position %in% c("top", "bottom"),
-            "right",
-            key.position
-          )
-        ),
-        ncol = if (key.position %in% c("left", "right")) {
-          NULL
-        } else {
-          dplyr::n_distinct(results[[proportion]])
-        }
+        ncol = key.columns,
+        nrow = key.rows
       )
     ) +
-    x_scale_fun(
-      breaks = scales::breaks_pretty(date.breaks),
-      date_labels = date.format %||% ggplot2::waiver(),
-      limits = xlim,
-      expand = ggplot2::expansion()
+    scale_x_openair_date(
+      date.breaks = date.breaks,
+      date.format = date.format,
+      type = x_type,
+      expand = ggplot2::expansion(c(0, 0)),
+      limits = extra.args$xlim
     ) +
     ggplot2::scale_y_continuous(
-      limits = ylim,
+      limits = extra.args$ylim,
       expand = ggplot2::expansion(if (normalise) c(0, 0) else c(0, 0.1))
     ) +
     ggplot2::labs(
@@ -278,7 +268,12 @@ timeProp <- function(
       tag = extra.args$tag,
       fill = quickText(key.title, auto.text = auto.text)
     ) +
-    theme_openair(key.position, extra.args = extra.args) +
+    theme_openair(
+      theme = theme,
+      coord = "cartesian",
+      key.position,
+      extra.args = extra.args
+    ) +
     get_facet(
       type,
       extra.args,
@@ -288,18 +283,8 @@ timeProp <- function(
     )
 
   # make key full width/height
-  if (key.position %in% c("left", "right")) {
-    thePlot <- thePlot +
-      ggplot2::theme(
-        legend.key.height = ggplot2::rel(2)
-      )
-  }
-  if (key.position %in% c("top", "bottom")) {
-    thePlot <- thePlot +
-      ggplot2::theme(
-        legend.key.width = ggplot2::rel(2)
-      )
-  }
+  thePlot <- thePlot +
+    theme_legend_key(key.position, size = ggplot2::rel(2), spacing = NULL)
 
   if (plot) {
     plot(thePlot)

@@ -180,6 +180,7 @@ calendarPlot <-
     annotate = "date",
     windflow = NULL,
     cols = "heat",
+    theme = "default",
     limits = NULL,
     breaks = NULL,
     trans = FALSE,
@@ -195,6 +196,8 @@ calendarPlot <-
     remove.empty = TRUE,
     show.year = TRUE,
     key.title = paste(statistic, pollutant, sep = " "),
+    key.columns = NULL,
+    key.rows = NULL,
     key.position = "right",
     auto.text = TRUE,
     plot = TRUE,
@@ -205,8 +208,8 @@ calendarPlot <-
     if (annotate %in% c("ws", "wd")) {
       cli::cli_warn(
         c(
-          "!" = "{.arg annotate} in {.fun openair::calendarPlot} no longer supports {.arg 'ws'} or {.arg 'wd'}.",
-          "i" = "Please use the {.arg windflow} argument instead for more thorough control over the apperance of the 'windflow' arrow.",
+          "!" = "{.arg annotate} in {.fun openair::calendarPlot} no longer supports {.val ws} or {.val wd}.",
+          "i" = "Please use the {.arg windflow} argument instead for more thorough control over the appearance of the windflow arrow.",
           "i" = "Setting {.arg windflow} to {TRUE}."
         )
       )
@@ -214,17 +217,14 @@ calendarPlot <-
       windflow <- windflowOpts(range = c(0.01, 0.5), linewidth = 0.75)
     }
 
-    # can't have three types
-    if (length(type) >= 3L) {
-      cli::cli_abort("{.arg type} must be length 1 or 2.")
-    }
+    check_type(type, max = 2)
 
     # if 2 types provided, one must be "month", and use that to work out the
     # rows/cols assignment
     if (length(type) == 2L) {
       if (!"month" %in% type) {
         cli::cli_abort(
-          "In {.fun openair::calendarPlot}, at least one {.arg type} must be 'month'."
+          "In {.fun openair::calendarPlot}, at least one {.arg type} must be {.val month}."
         )
       }
 
@@ -254,9 +254,17 @@ calendarPlot <-
     # check key.position
     key.position <- check_key_position(key.position, key)
 
+    # default colour based on theme
+    if (missing(cols)) {
+      cols <- get_theme_cols(cols, theme, "seq")
+    }
+    if (missing(col.na)) {
+      col.na <- get_theme_col_na(col.na, theme)
+    }
+
     # check w.shift
     if (w.shift < 0 || w.shift > 6) {
-      cli::cli_abort("{.field w.shift} should be between {0} and {6}.")
+      cli::cli_abort("{.arg w.shift} should be between {.val {0}} and {.val {6}}.")
     }
 
     # extra args
@@ -283,7 +291,7 @@ calendarPlot <-
       cli::cli_warn(
         c(
           "!" = "The {.arg col.arrow} argument of {.fun openair::calendarPlot} has been deprecated.",
-          "i" = "Please use the {.arg windflow} argument with {.fun openair::windflowOpts} to control the appearance of the 'windflow' arrow."
+          "i" = "Please use the {.arg windflow} argument with {.fun openair::windflowOpts} to control the appearance of the windflow arrow."
         )
       )
       windflow$colour <- extra.args$col.arrow
@@ -485,6 +493,7 @@ calendarPlot <-
 
     # handle breaks
     categorical <- !is.null(break_opts$breaks)
+    mydata$conc.labs <- mydata$conc.mat
     mydata$conc.mat <- cut_plot_breaks(
       mydata$conc.mat,
       break_opts
@@ -533,7 +542,7 @@ calendarPlot <-
         ),
         size = cex.lim[1] * 11,
         fontface = font.lim[1],
-        size.unit = "pt",
+        size.unit = "pt"
       ) +
       get_facet(
         type,
@@ -542,7 +551,12 @@ calendarPlot <-
         drop = remove.empty
       ) +
       ggplot2::coord_cartesian(expand = FALSE, ratio = 1) +
-      theme_openair(key.position = key.position, extra.args = extra.args) +
+      theme_openair(
+        theme = theme,
+        coord = "cartesian",
+        key.position = key.position,
+        extra.args = extra.args
+      ) +
       ggplot2::theme(
         axis.ticks = ggplot2::element_blank(),
         axis.text.y = ggplot2::element_blank()
@@ -575,17 +589,11 @@ calendarPlot <-
           drop = FALSE
         ) +
         ggplot2::guides(
-          fill = ggplot2::guide_legend(
-            reverse = key.position %in% c("left", "right"),
-            theme = ggplot2::theme(
-              legend.title.position = ifelse(
-                key.position %in% c("left", "right"),
-                "top",
-                key.position
-              ),
-              legend.text.position = key.position
-            ),
-            nrow = if (key.position %in% c("left", "right")) NULL else 1
+          fill = guide_openair(
+            key.position,
+            reverse = TRUE,
+            ncol = key.columns,
+            nrow = key.rows
           )
         )
     } else {
@@ -599,34 +607,12 @@ calendarPlot <-
           transform = get_scale_transform(trans)
         ) +
         ggplot2::guides(
-          fill = ggplot2::guide_colorbar(
-            theme = ggplot2::theme(
-              legend.title.position = ifelse(
-                key.position %in% c("left", "right"),
-                "top",
-                key.position
-              ),
-              legend.text.position = key.position
-            )
-          )
+          fill = guide_openair(key.position, type = "colourbar")
         )
     }
 
     # make key full width/height
-    if (key.position %in% c("left", "right")) {
-      thePlot <- thePlot +
-        ggplot2::theme(
-          legend.key.height = ggplot2::unit(1, "null"),
-          legend.key.spacing.y = ggplot2::unit(0, "cm")
-        )
-    }
-    if (key.position %in% c("top", "bottom")) {
-      thePlot <- thePlot +
-        ggplot2::theme(
-          legend.key.width = ggplot2::unit(1, "null"),
-          legend.key.spacing.x = ggplot2::unit(0, "cm")
-        )
-    }
+    thePlot <- thePlot + theme_legend_key(key.position)
 
     if (annotate == "date") {
       thePlot <- thePlot +
@@ -646,9 +632,9 @@ calendarPlot <-
       lim <- lim %||% Inf
       thePlot <- thePlot +
         ggplot2::geom_text(
-          data = dplyr::filter(newdata, .data$conc.mat < lim),
+          data = dplyr::filter(newdata, .data$conc.labs < lim),
           ggplot2::aes(
-            label = round(.data[["conc.mat"]], digits = digits)
+            label = round(.data[["conc.labs"]], digits = digits)
           ),
           size = cex.lim[1] * 11,
           size.unit = "pt",
@@ -656,9 +642,9 @@ calendarPlot <-
           color = col.lim[ifelse(is.infinite(lim), 2, 1)]
         ) +
         ggplot2::geom_text(
-          data = dplyr::filter(newdata, .data$conc.mat >= lim),
+          data = dplyr::filter(newdata, .data$conc.labs >= lim),
           ggplot2::aes(
-            label = round(.data[["conc.mat"]], digits = digits)
+            label = round(.data[["conc.labs"]], digits = digits)
           ),
           size = cex.lim[2] * 11,
           size.unit = "pt",
@@ -684,7 +670,7 @@ calendarPlot <-
     # return
     output <- list(
       plot = thePlot,
-      data = newdata,
+      data = newdata |> dplyr::select(-dplyr::any_of("conc.labs")),
       call = match.call()
     )
     class(output) <- "openair"
@@ -715,7 +701,7 @@ prepare_calendar_data <- function(
   if (nrow(mydata) == 0) {
     cli::cli_abort(c(
       "x" = "No data to plot.",
-      "i" = "Check {.field year} and {.field month}."
+      "i" = "Check {.arg year} and {.arg month}."
     ))
   }
 
@@ -733,6 +719,7 @@ prepare_calendar_data <- function(
 
   # check input data
   mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE) |>
+    check_numeric(vars = setdiff(vars, "date"), call = rlang::caller_env()) |>
     cutData(type, names = cut_names, ...)
 
   return(mydata)

@@ -112,7 +112,9 @@ conditionalQuantile <- function(
   bins = 31,
   min.bin = c(10, 20),
   cols = "YlOrRd",
+  theme = "default",
   key.columns = 2,
+  key.rows = NULL,
   key.position = "bottom",
   auto.text = TRUE,
   plot = TRUE,
@@ -122,9 +124,12 @@ conditionalQuantile <- function(
   # check key.position
   key.position <- check_key_position(key.position, key)
 
-  if (length(type) > 2) {
-    cli::cli_abort("Only two types can be used with this function")
+  # default colour based on theme
+  if (missing(cols)) {
+    cols <- get_theme_cols(cols, theme, "seq")
   }
+
+  check_type(type, max = 2)
 
   extra.args <- capture_dots(...)
 
@@ -133,7 +138,8 @@ conditionalQuantile <- function(
     vars <- c("date", vars)
   }
 
-  mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
+  mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE) |>
+    check_numeric(vars = c(mod, obs))
   mydata <- stats::na.omit(mydata)
   mydata <- cutData(mydata, type)
 
@@ -258,7 +264,8 @@ conditionalQuantile <- function(
   hist_obs <- hist_data[hist_data$hist_type == "observed", ]
 
   key_guide <- ggplot2::guide_legend(
-    ncol = key.columns
+    ncol = key.columns,
+    nrow = key.rows
   )
 
   # build plot
@@ -382,7 +389,12 @@ conditionalQuantile <- function(
       auto.text,
       wd.res = extra.args$wd.res %||% 8
     ) +
-    theme_openair(key.position, extra.args = extra.args) +
+    theme_openair(
+      theme = theme,
+      coord = "cartesian",
+      key.position,
+      extra.args = extra.args
+    ) +
     ggplot2::labs(
       color = NULL,
       fill = NULL,

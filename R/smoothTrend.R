@@ -96,9 +96,11 @@ smoothTrend <- function(
   autocor = FALSE,
   type = "default",
   cols = "brewer1",
+  theme = "default",
   ref.x = NULL,
   ref.y = NULL,
-  key.columns = 1,
+  key.columns = NULL,
+  key.rows = NULL,
   key.position = "bottom",
   name.pol = NULL,
   date.breaks = 7,
@@ -113,13 +115,20 @@ smoothTrend <- function(
   # check key.position
   key.position <- check_key_position(key.position, key)
 
+  # default colour based on theme
+  if (missing(cols)) {
+    cols <- get_theme_cols(cols, theme, "qual")
+  }
+
+  check_type(type, max = 2)
+
   # extra.args setup
   extra.args <- capture_dots(...)
 
   # validation checks
   if (length(pollutant) > 1 && length(percentile) > 1) {
     cli::cli_warn(
-      "You cannot choose multiple {.field percentiles} and {.field pollutants}; using {.field percentile} = {percentile[1]}."
+      "You cannot choose multiple values of both {.arg percentile} and {.arg pollutant}; using {.code percentile = {percentile[1]}}."
     )
     percentile <- percentile[1]
   }
@@ -127,7 +136,7 @@ smoothTrend <- function(
   # set stat to percentile if user provides some
   if (!missing(percentile) && statistic != "percentile") {
     cli::cli_inform(
-      "{.field percentiles} provided ({percentile}); setting {.field statistic} to 'percentile'."
+      "{.arg percentile} provided ({.val {percentile}}); setting {.arg statistic} to {.val percentile}."
     )
     statistic <- "percentile"
   }
@@ -223,30 +232,12 @@ smoothTrend <- function(
   class(fit$date) <- c("POSIXct", "POSIXt")
 
   # create a guide for both fill and colour using openair styling
-  color_guide <-
-    ggplot2::guide_legend(
-      theme = ggplot2::theme(
-        legend.title.position = ifelse(
-          key.position %in% c("left", "right"),
-          "top",
-          key.position
-        ),
-        legend.text.position = ifelse(
-          key.position %in% c("top", "bottom"),
-          "right",
-          key.position
-        )
-      ),
-      ncol = if (key.position %in% c("left", "right")) {
-        key.columns
-      } else {
-        if (missing(key.columns)) {
-          dplyr::n_distinct(newdata$variable)
-        } else {
-          key.columns
-        }
-      }
-    )
+  color_guide <- guide_openair(
+    key.position,
+    var_text_position = FALSE,
+    ncol = key.columns,
+    nrow = key.rows
+  )
 
   # create plot
   thePlot <-
@@ -309,9 +300,26 @@ smoothTrend <- function(
       linejoin = extra.args$linejoin %||% "round",
       linemitre = extra.args$linemitre %||% 10
     ) +
-    layer_ref(ref = ref.x, "x", "datetime", tz = lubridate::tz(newdata$date)) +
-    layer_ref(ref = ref.y, "y", "numeric") +
-    theme_openair(key.position, extra.args = extra.args) +
+    layer_ref(
+      ref = ref.x,
+      which = "x",
+      type = "datetime",
+      other_type = "numeric",
+      tz = lubridate::tz(newdata$date)
+    ) +
+    layer_ref(
+      ref = ref.y,
+      which = "y",
+      type = "numeric",
+      other_type = "datetime",
+      tz = lubridate::tz(newdata$date)
+    ) +
+    theme_openair(
+      theme = theme,
+      coord = "cartesian",
+      key.position,
+      extra.args = extra.args
+    ) +
     ggplot2::scale_fill_manual(
       values = resolve_colour_opts(
         cols,
@@ -368,11 +376,11 @@ smoothTrend <- function(
       }),
       drop = FALSE
     ) +
-    ggplot2::scale_x_datetime(
-      breaks = scales::breaks_pretty(date.breaks),
-      date_labels = date.format %||% ggplot2::waiver(),
-      limits = extra.args$xlim,
-      expand = ggplot2::expansion(c(0.02, 0.02))
+    scale_x_openair_date(
+      date.breaks = date.breaks,
+      date.format = date.format,
+      type = "datetime",
+      limits = extra.args$xlim
     ) +
     ggplot2::scale_y_continuous(
       limits = extra.args$ylim
@@ -438,7 +446,8 @@ prepare_smoothtrend_data <- function(
 ) {
   # default checks
   vars <- c("date", pollutant)
-  mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
+  mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE) |>
+    check_numeric(vars = pollutant, call = rlang::caller_env())
 
   # cutData depending on type
   mydata <- cutData(mydata, type, ...)

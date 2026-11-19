@@ -10,8 +10,8 @@
 \title{Import data from individual UK Air Pollution Networks}
 \usage{
 importAURN(
-  site = "my1",
-  year = 2009,
+  site,
+  year,
   data_type = "hourly",
   pollutant = "all",
   hc = FALSE,
@@ -25,8 +25,8 @@ importAURN(
 )
 
 importAQE(
-  site = "yk13",
-  year = 2018,
+  site,
+  year,
   data_type = "hourly",
   pollutant = "all",
   meta = FALSE,
@@ -39,8 +39,8 @@ importAQE(
 )
 
 importSAQN(
-  site = "gla4",
-  year = 2009,
+  site,
+  year,
   data_type = "hourly",
   pollutant = "all",
   meta = FALSE,
@@ -53,8 +53,8 @@ importSAQN(
 )
 
 importWAQN(
-  site = "card",
-  year = 2018,
+  site,
+  year,
   data_type = "hourly",
   pollutant = "all",
   meta = FALSE,
@@ -67,8 +67,8 @@ importWAQN(
 )
 
 importNI(
-  site = "bel0",
-  year = 2018,
+  site,
+  year,
   data_type = "hourly",
   pollutant = "all",
   meta = FALSE,
@@ -81,8 +81,8 @@ importNI(
 )
 
 importLocal(
-  site = "ad1",
-  year = 2018,
+  site,
+  year,
   data_type = "hourly",
   pollutant = "all",
   meta = FALSE,
@@ -95,7 +95,9 @@ importLocal(
 \arguments{
 \item{site}{Site code of the site to import, e.g., \code{"my1"} is Marylebone
 Road. Site codes can be discovered through the use of \code{\link[=importMeta]{importMeta()}}.
-Several sites can be imported at once. For example, \code{site = c("my1", "nott")} imports both Marylebone Road and Nottingham.}
+Several sites can be imported at once. For example, \code{site = c("my1", "nott")} imports both Marylebone Road and Nottingham. When \code{data_type} is
+\code{"annual"}, \code{"monthly"} or \code{"daqi"}, \code{site} can be omitted to import all
+sites in the network.}
 
 \item{year}{Year(s) to import. To import a series of years use, e.g.,
 \code{2000:2020}. To import several specific years use \code{year = c(2000, 2010, 2020)}.}
@@ -120,7 +122,8 @@ not available for locally managed monitoring networks.
 from a site. To import only NOx and NO2 for example use \code{pollutant = c("nox", "no2")}. Pollutant names can be upper or lower case.}
 
 \item{hc}{Include hydrocarbon measurements in the imported data? Defaults to
-\code{FALSE} as most users will not be interested in using hydrocarbon data.}
+\code{FALSE} as most users will not be interested in using hydrocarbon data.
+Hydrocarbon data are only available for the AURN.}
 
 \item{meta}{Append metadata columns to data for each selected \code{site}?
 Defaults to \code{FALSE}. Columns are defined using \code{meta_columns}.}
@@ -134,13 +137,13 @@ Defaults to site type, latitude and longitude. Can be any of \code{"site_type"},
 \item{meteo}{Append modelled meteorological data, if available? Defaults to
 \code{TRUE}, which will return wind speed (\code{ws}), wind direction (\code{wd}) and
 ambient temperature (\code{air_temp}). The variables are calculated from using
-the WRF model run by Ricardo Energy & Environment and are available for
-most but not all networks. Setting \code{meteo = FALSE} is useful if you have
-other meteorological data to use in preference, for example from the
-\code{worldmet} package.}
+the WRF model run by WSP and are available for most but not all networks.
+They are not available for locally managed networks. Setting \code{meteo = FALSE} is useful if you have other meteorological data to use in
+preference, for example from the \code{worldmet} package.}
 
 \item{ratified}{Append \code{qc} column(s) to hourly data indicating whether each
-species was ratified (i.e., quality-checked)?  Defaults to \code{FALSE}.}
+species was ratified (i.e., quality-checked)?  Defaults to \code{FALSE}.
+Ratification information is not available for locally managed networks.}
 
 \item{to_narrow}{Return the data in a "narrow"/"long"/"tidy" format? By
 default the returned data is "wide" and has a column for each
@@ -148,10 +151,10 @@ pollutant/variable. When \code{to_narrow = TRUE} the data are returned with a
 column identifying the pollutant name and a column containing the
 corresponding concentration/statistic. Defaults to \code{FALSE}.}
 
-\item{verbose}{Print messages to the console if hourly data cannot be
-imported? Default is \code{FALSE}. \code{TRUE} is useful for debugging as the
-specific \code{year}(s), \code{site}(s) and \code{source}(s) which cannot be imported will
-be returned.}
+\item{verbose}{Print a message to the console if any data cannot be imported?
+Default is \code{FALSE}. \code{TRUE} is useful for debugging as the specific
+\code{year}(s), \code{site}(s) and \code{source}(s) which cannot be imported will be
+listed. Not used when \code{data_type} is \code{"annual"}, \code{"monthly"} or \code{"daqi"}.}
 
 \item{progress}{Show a progress bar when many sites/years are being imported?
 Defaults to \code{TRUE}.}
@@ -165,14 +168,25 @@ networks across England. While \code{\link[=importUKAQ]{importUKAQ()}} allows fo
 more flexibly, including across multiple monitoring networks, these functions
 are provided for convenience and back-compatibility.
 }
+\details{
+Not every argument is available in every wrapper, as not all data are
+available for every network:
+\itemize{
+\item \code{hc} is only available in \code{\link[=importAURN]{importAURN()}}, as hydrocarbon data are only
+measured by the AURN.
+\item \code{meteo} and \code{ratified} are not available in \code{\link[=importLocal]{importLocal()}}, as neither
+modelled meteorological data nor ratification information are available for
+locally managed networks.
+}
+}
 \section{Importing UK Air Pollution Data}{
 
 
 This family of functions has been written to make it easy to import data
-from across several UK air quality networks. Ricardo have provided .RData
-files (R workspaces) of all individual sites and years, as well as up to
-date meta data. These files are updated on a daily basis. This approach
-requires a link to the Internet to work.
+from across several UK air quality networks. WSP have provided .RData files
+(R workspaces) of all individual sites and years, as well as up to date
+meta data. These files are updated on a daily basis. This approach requires
+a link to the Internet to work.
 
 There are several advantages over the web portal approach where .csv files
 are downloaded.
@@ -224,7 +238,7 @@ latter corresponding to daily gravimetric measurements.
 The function returns modelled hourly values of wind speed (\code{ws}), wind
 direction (\code{wd}) and ambient temperature (\code{air_temp}) if available
 (generally from around 2010). These values are modelled using the WRF model
-operated by Ricardo.
+operated by WSP.
 
 The BAM (Beta-Attenuation Monitor) instruments that have been incorporated
 into the network throughout its history have been scaled by 1.3 if they

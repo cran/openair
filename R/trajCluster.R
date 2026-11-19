@@ -72,10 +72,16 @@ trajCluster <- function(
   by.type = FALSE,
   crs = 4326,
   cols = "Set1",
+  theme = "default",
   plot = TRUE,
   ...
 ) {
-  rlang::check_installed(c("sf", "rnaturalearthdata"))
+  rlang::check_installed("sf")
+
+  # default colour based on theme
+  if (missing(cols)) {
+    cols <- get_theme_cols(cols, theme, "qual")
+  }
 
   if (tolower(method) == "euclid") {
     method <- "distEuclid"
@@ -198,13 +204,11 @@ trajCluster <- function(
       crs = crs,
       cols = cols,
       type = type,
+      theme = theme,
       ...,
       plot = FALSE
     ) |>
-    purrr::pluck("plot") +
-    ggplot2::guides(
-      color = ggplot2::guide_legend(reverse = FALSE)
-    )
+    purrr::pluck("plot")
 
   # get the ends of the lines
   line_ends <-
@@ -261,6 +265,7 @@ trajCluster <- function(
         results = dplyr::left_join(newdata, clusters, by = c("cluster", type)),
         subsets = c("traj", "results")
       ),
+      plot = thePlot,
       call = match.call()
     )
   class(output) <- "openair"

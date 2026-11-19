@@ -128,7 +128,7 @@
 #' \dontrun{
 #' library(dplyr)
 #'
-#' dummy model data for 2003
+#' # dummy model data for 2003
 #' dat <- selectByDate(mydata, year = 2003) |>
 #'   transmute(date, obs = nox, mod = nox, month = as.integer(format(date, "%m")))
 #'
@@ -213,13 +213,15 @@ TaylorDiagram <- function(
   normalise = FALSE,
   pos.cor = NULL,
   cols = "brewer1",
+  theme = "default",
   rms.col = "darkgoldenrod",
   cor.col = "black",
   arrow.lwd = 3,
   annotate = "centred\nRMS error",
   text.obs = "observed",
   key.title = group,
-  key.columns = 1,
+  key.columns = NULL,
+  key.rows = NULL,
   key.position = "right",
   auto.text = TRUE,
   plot = TRUE,
@@ -228,6 +230,13 @@ TaylorDiagram <- function(
 ) {
   # check key.position
   key.position <- check_key_position(key.position, key)
+
+  # default colour based on theme
+  if (missing(cols)) {
+    cols <- get_theme_cols(cols, theme, "qual")
+  }
+
+  check_type(type, max = 2)
 
   # extra.args setup
   extra.args <- capture_dots(...)
@@ -484,10 +493,11 @@ TaylorDiagram <- function(
   }
 
   # guides
-  legend_guide <-
-    ggplot2::guide_legend(
-      ncol = if (missing(key.columns)) NULL else key.columns
-    )
+  legend_guide <- guide_openair(
+    key.position,
+    ncol = key.columns,
+    nrow = key.rows
+  )
 
   # plotting
   thePlot <-
@@ -564,7 +574,9 @@ TaylorDiagram <- function(
       breaks = scales::pretty_breaks(6),
       expand = ggplot2::expansion()
     ) +
-    theme_openair_radial(
+    theme_openair(
+      theme = theme,
+      coord = "radial",
       key.position = key.position,
       extra.args,
       panel.ontop = FALSE

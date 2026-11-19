@@ -188,9 +188,11 @@ timeVariation <- function(
   B = 100,
   ci = TRUE,
   cols = "hue",
+  theme = "default",
   ref.y = NULL,
   key = NULL,
   key.columns = NULL,
+  key.rows = NULL,
   key.position = "top",
   panel.gap = 1.5,
   auto.text = TRUE,
@@ -198,27 +200,33 @@ timeVariation <- function(
   plot = TRUE,
   ...
 ) {
-  if (length(type) > 1) {
-    cli::cli_abort("Only one 'type' permitted.")
+  # default colour based on theme
+  if (missing(cols)) {
+    cols <- get_theme_cols(cols, theme, "qual")
   }
+
+  check_type(type, max = 1)
 
   if (length(panels) == 1) {
     cli::cli_warn(
       c(
-        "!" = "Instead of setting {.arg panel} to a single variable, use {.fun openair::plotVariation}.",
-        "i" = 'i.e., {.code plotVariation(..., x = "{panels}")}'
+        "!" = "Instead of setting {.arg panels} to a single variable, use {.fun openair::variationPlot}.",
+        "i" = 'i.e., {.code variationPlot(..., x = "{panels}")}'
       )
     )
   }
 
   extra.args <- capture_dots(...)
 
+  # check pollutants once here, rather than once per panel in variationPlot()
+  mydata <- check_numeric(mydata, vars = pollutant)
+
   # month.last deprecation
   if ("month.last" %in% names(extra.args)) {
     if (isTRUE(extra.args$month.last)) {
       cli::cli_warn(c(
         "!" = "{.arg month.last} has been deprecated. Please use the {.arg panels} argument for flexible control over panels.",
-        "i" = "Setting {.arg panels} to {.code c('hour.weekday', 'hour', 'weekday', 'month')}."
+        "i" = "Setting {.arg panels} to {.val {c(\"hour.weekday\", \"hour\", \"weekday\", \"month\")}}."
       ))
       panels <- c("hour.weekday", "hour", "weekday", "month")
     }
@@ -232,10 +240,10 @@ timeVariation <- function(
       ifelse(normalise, "normalised level", toString(pollutant)),
     auto.text
   )
-  extra.args$title <- quickText(extra.args$title %||% "", auto.text)
-  extra.args$subtitle <- quickText(extra.args$subtitle %||% "", auto.text)
+  extra.args$title <- quickText(extra.args$title, auto.text)
+  extra.args$subtitle <- quickText(extra.args$subtitle, auto.text)
   extra.args$caption <- quickText(
-    extra.args$caption %||% create_varplot_sub_text(statistic, conf.int),
+    extra.args$caption %||% create_varplot_sub_text(statistic, conf.int, ci),
     auto.text
   )
 
@@ -269,11 +277,25 @@ timeVariation <- function(
   }
 
   # title for overall and individual plots
-  overall.title <- extra.args$title
+  overall.title <- if (identical(extra.args$title, expression(paste()))) {
+    NULL
+  } else {
+    extra.args$title
+  }
   extra.args$title <- ""
-  overall.subtitle <- extra.args$subtitle
+
+  overall.subtitle <- if (identical(extra.args$subtitle, expression(paste()))) {
+    NULL
+  } else {
+    extra.args$subtitle
+  }
   extra.args$subtitle <- ""
-  overall.caption <- extra.args$caption
+
+  overall.caption <- if (identical(extra.args$caption, expression(paste()))) {
+    NULL
+  } else {
+    extra.args$caption
+  }
   extra.args$caption <- ""
 
   # get the xvars and facets for each panel
@@ -312,9 +334,12 @@ timeVariation <- function(
           local.tz = local.tz,
           ci = ci,
           cols = cols,
+          theme = theme,
           alpha = alpha,
+          ref.y = ref.y,
           key.position = key.position,
           key.columns = key.columns,
+          key.rows = key.rows,
           name.pol = name.pol,
           auto.text = auto.text,
           ylim = ylim_list[[i]],
@@ -337,40 +362,66 @@ timeVariation <- function(
   plots <- outputs |> purrr::map("plot") |> stats::setNames(panels)
   datum <- outputs |> purrr::map("data") |> stats::setNames(panels)
 
-  # add reference if requested
-  if (!is.null(ref.y)) {
-    plots <- purrr::map(plots, \(plt) {
-      plt + layer_ref(ref = ref.y, which = "y", type = "numeric")
-    })
+  # check groups are consistent
+  datum_groups <- datum |> purrr::map("group") |> purrr::map(levels)
+  group_check <- all(sapply(datum_groups, identical, datum_groups[[1]]))
+  if (!group_check) {
+    cli::cli_abort("Groups are inconsistent between panels.")
   }
 
   # if more than one plot, use patchwork to combine
   if (length(plots) > 1) {
-    # "bottom row"
-    bottom <- patchwork::wrap_plots(
-      plots[-1],
-      nrow = 1
+    # number of plots in assembly
+    n_plots <- length(plots)
+    n_lower_plots <- n_plots - 1
+
+    # each bottom plot gets one panel
+    bottom_layout <-
+      do.call(
+        c,
+        sapply(seq_len(n_lower_plots), \(x) {
+          patchwork::area(t = 2, b = 2, l = x, r = x)
+        })
+      )
+
+    # top row covers whole width
+    layout <- c(
+      patchwork::area(t = 1, b = 1, l = 1, r = n_lower_plots),
+      bottom_layout
     )
 
+    # assemble patchwork
     thePlot <-
       patchwork::wrap_plots(
-        plots[[1]],
-        bottom,
-        ncol = 1,
+        plots,
+        design = layout,
         heights = c(0.4, 0.6)
       ) +
-      patchwork::plot_layout(guides = "collect") &
       patchwork::plot_annotation(
         title = overall.title,
         subtitle = overall.subtitle,
-        caption = overall.caption
+        caption = overall.caption,
+        theme = ggplot2::theme(
+          plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"),
+          plot.subtitle = ggplot2::element_text(hjust = 0.5),
+          plot.caption = ggplot2::element_text(hjust = 0.5, face = "bold")
+        )
       ) &
-      theme_openair(key.position, extra.args = extra.args) &
+      theme_openair(
+        theme = theme,
+        coord = "cartesian",
+        key.position = key.position,
+        extra.args = extra.args
+      ) &
       ggplot2::theme(
         panel.spacing = ggplot2::rel(panel.gap),
-        plot.margin = ggplot2::unit(rep(0.25, 4), "cm"),
-        legend.position = key.position
+        plot.margin = ggplot2::unit(rep(0.25, 4), "cm")
       )
+
+    # remove legends besides the first one
+    for (i in seq(2, length(thePlot), 1)) {
+      thePlot[[i]] <- thePlot[[i]] + ggplot2::theme(legend.position = "none")
+    }
   } else {
     thePlot <- plots[[1]]
   }

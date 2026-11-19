@@ -24,6 +24,7 @@ TheilSen(
   text.col = "darkgreen",
   slope.text = NULL,
   cols = NULL,
+  theme = "default",
   auto.text = TRUE,
   autocor = FALSE,
   slope.percent = FALSE,
@@ -120,6 +121,37 @@ line colour for the main trend line and confidence intervals respectively.}
 \item{cols}{Predefined colour scheme, currently only enabled for
 \code{"greyscale"}.}
 
+\item{theme}{A string representing an overall plot theme, defaulting to
+\code{"default"}. This option makes sweeping changes to non-data plot features
+such as fonts, colours, line widths, and so on, and may also change default
+arguments like \code{cols} if not set by the user. Can also take a
+\code{\link[ggplot2:theme]{ggplot2::theme()}} object, which will be used to modify the \code{"default"}
+theme. Pre-set options include:
+\itemize{
+\item \code{"default"}, a lattice-inspired theme resembling the traditional
+\code{openair} look, with structured panels and visible gridlines.
+\item \code{"dark"}, a dark-background variant of the default theme, designed for
+presentations and low-light viewing, using high-contrast text and colour
+palettes optimised for visibility against dark panels.
+\item \code{"modern"}, a minimalist, contemporary theme inspired by tools such as
+Plotly and Observable Plot, with reduced visual clutter, horizontal
+emphasis in gridlines, a clean legend style, and typography suited to
+dashboards and reports.
+\item \code{"soft"}, a low-contrast, 'editorial' theme with warm
+background tones, subtle gridlines, and gently desaturated colours,
+designed for reports and publication-style figures, particularly where a
+calmer appearance improves readability.
+\item \code{"print"}, a strictly greyscale theme optimised for black-and-white
+reproduction, with stronger structural elements such as clearer gridlines
+and axis definitions to ensure good contrast and readability in printed or
+photocopied outputs.
+}
+
+Please note that if a global theme is set with \code{\link[ggplot2:theme_set]{ggplot2::theme_set()}} to
+anything other than the default \code{\link[ggplot2:theme_grey]{ggplot2::theme_grey()}}, the selected
+openair theme will not be fully applied; instead, only minimal adjustments
+(such as legend positioning) will be made.}
+
 \item{auto.text}{Either \code{TRUE} (default) or \code{FALSE}. If \code{TRUE} titles and
 axis labels will automatically try and format pollutant names and units
 properly, e.g., by subscripting the "2" in "NO2". Passed to \code{\link[=quickText]{quickText()}}.}
@@ -147,10 +179,12 @@ is therefore able to deal with partial years. There can be slight
 differences in the \%/yr trend estimate therefore, depending on whether
 monthly or annual values are considered.}
 
-\item{date.breaks}{Number of major x-axis intervals to use. The function will
-try and choose a sensible number of dates/times as well as formatting the
-date/time appropriately to the range being considered. The user can
-override this behaviour by adjusting the value of \code{date.breaks} up or down.}
+\item{date.breaks}{Either a number of major x-axis intervals to use, or a
+character string giving the distance between breaks like \code{"2 weeks"}, or
+\code{"10 years"}. Valid specifications are \code{"sec"}, \code{"min"}, \code{"hour"}, \code{"day"},
+\code{"week"}, \code{"month"} or \code{"year"}, optionally followed by \code{"s"}. If
+\code{date.breaks} is given a character string, it is recommended to also set
+\code{date.format} as this will automatically default to \code{"\%Y-\%m-\%d"}.}
 
 \item{date.format}{This option controls the date format on the x-axis. A
 sensible format is chosen by default, but the user can set \code{date.format} to

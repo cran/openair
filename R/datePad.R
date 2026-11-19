@@ -59,7 +59,7 @@ datePad <- function(
     return(mydata)
   }
   if (!"date" %in% names(mydata)) {
-    stop("Dataframe must contain a 'date' column.")
+    cli::cli_abort("{.arg mydata} must contain a {.field date} column.")
   }
 
   # 1. Detect Native Interval (The resolution of the INPUT data)
@@ -69,10 +69,14 @@ datePad <- function(
   # 2. Determine Target Interval
   if (!is.null(interval)) {
     target_interval <- interval
-    if (print.int) message("Target interval (User): ", target_interval)
+    if (print.int) {
+      cli::cli_inform("Target interval (User): {target_interval}")
+    }
   } else {
     target_interval <- native_interval
-    if (print.int) message("Target interval (Auto): ", target_interval)
+    if (print.int) {
+      cli::cli_inform("Target interval (Auto): {target_interval}")
+    }
   }
 
   # 3. Handle Timezones/Dates

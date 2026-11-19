@@ -1,156 +1,16 @@
-# Theme -------------------------------------------------------------------
-
-# generic theme that makes a ggplot2 look like the old lattice plots
-theme_openair <- function(key.position, extra.args) {
-  fontsize <- set_extra_fontsize(extra.args)
-
-  if (user_has_set_theme()) {
-    return(
-      list(
-        ggplot2::theme(
-          legend.position = key.position,
-          legend.ticks.length = structure(
-            if (key.position %in% c("bottom", "right")) {
-              c(-0.2, 0)
-            } else {
-              c(0, -0.2)
-            },
-            class = "rel"
-          )
-        ),
-        fontsize
-      )
-    )
-  }
-
-  list(
-    ggplot2::theme_bw() +
-      ggplot2::theme(
-        strip.background = ggplot2::element_rect(fill = "white"),
-        panel.spacing = ggplot2::rel(2.5),
-        legend.position = key.position,
-        legend.background = ggplot2::element_blank(),
-        plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"),
-        plot.subtitle = ggplot2::element_text(hjust = 0.5),
-        plot.caption = ggplot2::element_text(hjust = 0.5, face = "bold"),
-        plot.margin = ggplot2::rel(4),
-        legend.frame = ggplot2::element_rect(
-          fill = NA,
-          color = "black",
-          linewidth = 0.25
-        ),
-        legend.title = ggplot2::element_text(hjust = 0.5),
-        legend.ticks = ggplot2::element_line(),
-        legend.ticks.length = structure(
-          if (key.position %in% c("bottom", "right")) {
-            c(-0.2, 0)
-          } else {
-            c(0, -0.2)
-          },
-          class = "rel"
-        ),
-        plot.background = ggplot2::element_rect(
-          fill = "transparent",
-          color = NA
-        ),
-        strip.text = ggplot2::element_text(margin = ggplot2::margin_auto(1))
-      ),
-    fontsize
-  )
-}
-
-# theme for radial plots
-theme_openair_radial <- function(
-  key.position,
-  extra.args,
-  panel.ontop = FALSE
-) {
-  if (user_has_set_theme()) {
-    return(theme_openair(key.position, extra.args))
-  }
-
-  list(
-    theme_openair(key.position, extra.args),
-    ggplot2::theme(
-      axis.text = ggplot2::element_text(color = "black"),
-      axis.ticks.theta = ggplot2::element_blank(),
-      panel.border = ggplot2::element_blank(),
-      axis.line.x = ggplot2::element_line(
-        colour = "grey75"
-      ),
-      axis.line.x.top = ggplot2::element_line(
-        colour = "grey75"
-      ),
-      axis.line.x.bottom = ggplot2::element_line(
-        colour = "grey75"
-      ),
-      panel.grid.major.x = ggplot2::element_line(
-        colour = "grey10",
-        linewidth = 0.4
-      ),
-      panel.grid.minor = ggplot2::element_blank(),
-      panel.grid.major.y = ggplot2::element_line(
-        colour = "grey75",
-        linetype = 2,
-        linewidth = 0.25
-      ),
-      panel.spacing = ggplot2::rel(1),
-      panel.ontop = panel.ontop,
-      panel.background = ggplot2::element_rect(fill = "transparent"),
-      strip.text = ggplot2::element_text(margin = ggplot2::margin_auto(0.5))
-    )
-  )
-}
-
-# adapted theme_openair with a (by default) blue dashed gridline
-theme_openair_sf <- function(key.position, extra.args, grid.col) {
-  if (user_has_set_theme()) {
-    return(theme_openair(key.position, extra.args))
-  }
-
-  list(
-    theme_openair(key.position, extra.args),
-    ggplot2::theme(
-      panel.grid = ggplot2::element_line(
-        colour = grid.col,
-        linetype = 2,
-        linewidth = 0.25
-      ),
-      axis.ticks = ggplot2::element_blank(),
-      axis.text = ggplot2::element_text(colour = grid.col),
-      panel.ontop = TRUE,
-      panel.background = ggplot2::element_blank()
-    )
-  )
-}
-
-# handle "fontsize" arg - used in theme_openair
-set_extra_fontsize <- function(extra.args) {
-  if ("fontsize" %in% names(extra.args)) {
-    list(
-      ggplot2::theme(
-        text = ggplot2::element_text(size = extra.args$fontsize)
-      )
-    )
-  } else {
-    list()
-  }
-}
-
-# check if a theme is set
-user_has_set_theme <- function() {
-  !identical(ggplot2::get_theme(), ggplot2::theme_gray())
-}
-
 # Facet -------------------------------------------------------------------
 
-# work out the faceting strategy
+# work out the faceting strategy. `wd_layout` controls whether a single `type`
+# is laid out as a compass (via `facet_wd()`); by default this is inferred from
+# the column name, but functions which rename the `type` column (e.g.,
+# `variationPlot()`) need to set it explicitly
 get_facet <- function(
   type,
   extra.args,
   auto.text,
   drop = FALSE,
-  wd.res = 8
+  wd.res = 8,
+  wd_layout = NULL
 ) {
   fun <- NULL
   if (any(type != "default")) {
@@ -165,7 +25,7 @@ get_facet <- function(
       }
 
       # special handling for wd, else normal facet_wrap
-      if (type %in% c("wd", "wd_type")) {
+      if (wd_layout %||% (type %in% c("wd", "wd_type"))) {
         fun <-
           facet_wd(
             ggplot2::vars(.data[[type]]),
@@ -219,6 +79,66 @@ get_facet <- function(
   fun
 }
 
+# Guides ------------------------------------------------------------------
+
+# ggplot2 legend, colourbar or coloursteps with openair's title/text placement.
+# Titles sit above legends placed on the left/right. High values should sit at
+# the top of a left/right key and at the right of a top/bottom key; continuous
+# guides already do this, so `reverse = TRUE` is only applied to left/right
+# legends, and should be used where a legend shows binned (e.g., `breaks`)
+# values. `...` is passed to the guide function (e.g., `ncol`, `nrow`,
+# `override.aes`).
+guide_openair <- function(
+  key.position,
+  type = c("legend", "colourbar", "coloursteps"),
+  reverse = FALSE,
+  var_text_position = TRUE,
+  ...
+) {
+  type <- rlang::arg_match(type)
+  is_side <- key.position %in% c("left", "right")
+
+  theme <- ggplot2::theme(
+    legend.title.position = if (is_side) {
+      "top"
+    } else {
+      key.position
+    },
+    legend.text.position = if (var_text_position || is_side) {
+      key.position
+    } else {
+      NULL
+    }
+  )
+
+  switch(
+    type,
+    legend = ggplot2::guide_legend(
+      reverse = reverse && is_side,
+      theme = theme,
+      ...
+    ),
+    colourbar = ggplot2::guide_colourbar(theme = theme, ...),
+    coloursteps = ggplot2::guide_coloursteps(theme = theme, ...)
+  )
+}
+
+# Theme setting the length of the legend key along the side of the plot it sits
+# on. By default this makes the key span the full height/width of the plot with
+# no gaps; `spacing = NULL` leaves key spacing unchanged. Returns `NULL` for
+# other positions (e.g., "none"), so it can always be added to a plot.
+theme_legend_key <- function(
+  key.position,
+  size = ggplot2::unit(1, "null"),
+  spacing = ggplot2::unit(0, "cm")
+) {
+  if (key.position %in% c("left", "right")) {
+    ggplot2::theme(legend.key.height = size, legend.key.spacing.y = spacing)
+  } else if (key.position %in% c("top", "bottom")) {
+    ggplot2::theme(legend.key.width = size, legend.key.spacing.x = spacing)
+  }
+}
+
 # Scales ------------------------------------------------------------------
 
 # ggplot2 scale for radial plots
@@ -239,6 +159,52 @@ scale_x_compass <- function(
         guide = ggplot2::guide_axis_theta()
       )
     )
+  )
+}
+
+# ggplot2 date/datetime x-axis scale using openair's `date.breaks` and
+# `date.format` arguments. `date.breaks` can be `NULL` (ggplot2 defaults), a
+# number (the approximate number of breaks) or a string giving the distance
+# between breaks (e.g., "2 weeks"). `...` is passed to the scale function (e.g.,
+# `limits`, `expand`).
+scale_x_openair_date <- function(
+  date.breaks = NULL,
+  date.format = NULL,
+  type = c("datetime", "date"),
+  expand = ggplot2::expansion(c(0.02, 0.02)),
+  ...,
+  call = rlang::caller_env()
+) {
+  type <- rlang::arg_match(type)
+  scale_fun <- switch(
+    type,
+    datetime = ggplot2::scale_x_datetime,
+    date = ggplot2::scale_x_date
+  )
+
+  breaks_args <- if (is.null(date.breaks)) {
+    list()
+  } else if (rlang::is_string(date.breaks)) {
+    list(date_breaks = date.breaks)
+  } else if (
+    rlang::is_scalar_double(date.breaks) ||
+      rlang::is_scalar_integer(date.breaks)
+  ) {
+    list(breaks = scales::breaks_pretty(date.breaks))
+  } else {
+    cli::cli_abort(
+      "{.arg date.breaks} must be a single number, a single character, or \\
+      {.code NULL}, not {.obj_type_friendly {date.breaks}}.",
+      call = call
+    )
+  }
+
+  rlang::exec(
+    scale_fun,
+    !!!breaks_args,
+    date_labels = date.format %||% ggplot2::waiver(),
+    expand = expand,
+    ...
   )
 }
 
@@ -270,49 +236,64 @@ get_scale_transform <- function(
   }
 
   cli::cli_abort(
-    "{.arg trans} must be logical, a string, or a {.pkg scales} 'transform' object."
+    "{.arg trans} must be logical, a string, or a {.pkg scales} {.cls transform} object."
   )
 }
 
 # Layers ------------------------------------------------------------------
 
-annotate_compass_points <- function(size, labels = c("N", "E", "S", "W")) {
-  list(
+annotate_compass_points <- function(
+  size,
+  theme,
+  labels = c("N", "E", "S", "W")
+) {
+  theme <- theme %||% "default"
+  if (ggplot2::is_theme(theme)) {
+    theme <- "default"
+  }
+  if (theme == "dark") {
+    colour <- "white"
+  } else {
+    colour <- "black"
+  }
+
+  compass_annotate <- function(y, x, label, ...) {
     ggplot2::annotate(
+      y = y,
+      x = x,
+      label = label,
+      geom = "text",
+      ...,
+      size = size,
+      fontface = "bold",
+      colour = colour
+    )
+  }
+
+  list(
+    compass_annotate(
       y = I(0.935),
       x = I(0.52),
-      geom = "text",
       label = labels[1],
-      hjust = 0,
-      size = size,
-      fontface = "bold"
+      hjust = 0
     ),
-    ggplot2::annotate(
+    compass_annotate(
       y = I(1 - 0.935),
       x = I(0.52),
-      geom = "text",
       label = labels[3],
-      hjust = 0,
-      size = size,
-      fontface = "bold"
+      hjust = 0
     ),
-    ggplot2::annotate(
+    compass_annotate(
       y = I(0.52),
       x = I(1 - 0.935),
-      geom = "text",
       label = labels[4],
-      vjust = 0,
-      size = size,
-      fontface = "bold"
+      vjust = 0
     ),
-    ggplot2::annotate(
+    compass_annotate(
       y = I(0.52),
       x = I(0.935),
-      geom = "text",
       label = labels[2],
-      vjust = 0,
-      size = size,
-      fontface = "bold"
+      vjust = 0
     )
   )
 }

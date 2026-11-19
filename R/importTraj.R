@@ -97,10 +97,10 @@
 #'   use `year = c(1990, 1995, 2000)` for example.
 #'
 #' @param local File path to .RData trajectory files run by user and
-#' not stored on the Ricardo web server. These files would have been
+#' not stored on the WSP web server. These files would have been
 #' generated from the Hysplit trajectory code shown in the appendix
 #' of the openair manual. An example would be `local =
-#' 'c:/users/david/TrajFiles/'`.
+#' 'C:/Users/David/TrajFiles/'`.
 #' @export
 #' @return Returns a data frame with pre-calculated back trajectories.
 #' @author David Carslaw
@@ -128,7 +128,7 @@ importTraj <-
     traj <- NULL
 
     if (length(site) > 1) {
-      stop("Only one site can be imported at a time.")
+      cli::cli_abort("Only one site can be imported at a time.")
     }
     site <- tolower(site)
 
@@ -158,7 +158,7 @@ importTraj <-
           traj
         },
         error = function(ex) {
-          warning(x, "does not exist - ignoring that one.\n")
+          cli::cli_warn(c("i" = "{x} does not exist - ignoring that one."))
           NULL
         },
         finally = {

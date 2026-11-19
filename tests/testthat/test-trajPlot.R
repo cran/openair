@@ -6,8 +6,20 @@ if (!identical(Sys.getenv("NOT_CRAN"), "true")) {
 skip_if_not_installed("sf")
 skip_if_not_installed("rnaturalearthdata")
 
-traj <- importTraj() |>
-  selectByDate(month = 1)
+traj <- tryCatch(
+  {
+    importTraj() |>
+      selectByDate(month = 1)
+  },
+  error = function(e) {
+    NULL
+  },
+  warning = function(w) {
+    NULL
+  }
+)
+
+skip_if(is.null(traj))
 
 traj$nox <- randu$x[seq_along(traj$pressure)]
 
@@ -74,10 +86,10 @@ test_that("group adds a column derived from the grouping variable", {
 # type conditioning
 # =============================================================================
 
-test_that("type = 'daylight' adds a daylight column to $data", {
+test_that("type = 'season' adds a season column to $data", {
   # Give enough data to populate multiple months
-  tp_type <- trajPlot(traj, type = "daylight", map = FALSE, plot = FALSE)
-  expect_true("daylight" %in% names(tp_type$data))
+  tp_type <- trajPlot(traj, type = "season", map = FALSE, plot = FALSE)
+  expect_true("season" %in% names(tp_type$data))
 })
 
 # =============================================================================

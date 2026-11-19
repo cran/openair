@@ -131,6 +131,7 @@ trajPlot <- function(
   type = "default",
   group = NULL,
   cols = "default",
+  theme = "default",
   crs = 4326,
   map = TRUE,
   map.res = "medium",
@@ -147,7 +148,8 @@ trajPlot <- function(
   origin = TRUE,
   key.title = group,
   key.position = "right",
-  key.columns = 1,
+  key.columns = NULL,
+  key.rows = NULL,
   auto.text = TRUE,
   plot = TRUE,
   key = NULL,
@@ -156,12 +158,36 @@ trajPlot <- function(
   rlang::check_installed(c("sf", "rnaturalearth"))
   if (!map.res %in% c(10, 50, 110, "small", "medium", "large")) {
     cli::cli_abort(
-      "{.arg map.res} must be one of {10}/'large', {50}/'medium' or {110}/'small'."
+      "{.arg map.res} must be one of {.val {10}}/{.val large}, {.val {50}}/{.val medium} or {.val {110}}/{.val small}."
     )
   }
 
   # check key.position
   key.position <- check_key_position(key.position, key)
+
+  # default colour based on theme
+  if (missing(cols)) {
+    cols <- get_theme_cols(cols, theme, "seq")
+  }
+  map_defaults <- get_theme_map(theme)
+  if (missing(map.cols)) {
+    map.cols <- map_defaults$fill
+  }
+  if (missing(map.border)) {
+    map.border <- map_defaults$border
+  }
+  if (missing(map.lwd)) {
+    map.lwd <- map_defaults$lwd
+  }
+  if (missing(map.lty)) {
+    map.lty <- map_defaults$lty
+  }
+  if (missing(map.alpha)) {
+    map.alpha <- map_defaults$alpha
+  }
+  if (missing(grid.col)) {
+    grid.col <- map_defaults$grid
+  }
 
   # favour group over pollutant - set a flag to see if `cutData()` is needed
   group_is_pollutant <- !is.null(pollutant) && is.null(group)
@@ -186,10 +212,15 @@ trajPlot <- function(
   }
 
   # check data and prepare for plotting
+  check_type(type, max = 2)
   mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
   mydata <- cutData(mydata, type = type, ...)
 
-  # prepare group, unless `pollutant` is being used
+  # prepare group, unless `pollutant` is being used; numeric groups are binned
+  # by cutData() so are treated as ordered in the key
+  group_is_binned <- !group_is_pollutant &&
+    !is.null(group) &&
+    is.numeric(mydata[[group]])
   if (!group_is_pollutant) {
     mydata <- cutData(mydata, type = group, is.axis = TRUE)
   }
@@ -224,7 +255,7 @@ trajPlot <- function(
     cli::cli_abort(
       c(
         "x" = "Duplicates in {.field date2} detected. Does {.arg mydata} contain multiple trajectories from different origins?",
-        "i" = "Try setting `type` or `group` to silence this error."
+        "i" = "Try setting {.arg type} or {.arg group} to silence this error."
       )
     )
   }
@@ -289,7 +320,9 @@ trajPlot <- function(
 
   # base plot & themes
   thePlot <- ggplot2::ggplot() +
-    theme_openair_sf(
+    theme_openair(
+      theme = theme,
+      coord = "sf",
       key.position,
       extra.args = extra.args,
       grid.col = grid.col
@@ -369,32 +402,18 @@ trajPlot <- function(
       thePlot +
       ggplot2::scale_color_manual(
         values = resolve_colour_opts(
-          ifelse(n_cols == 1, "grey20", cols),
+          cols,
           n = n_cols
         ),
         drop = FALSE,
         labels = \(x) label_openair(x, auto_text = auto.text)
       ) +
       ggplot2::guides(
-        colour = ggplot2::guide_legend(
-          reverse = key.position %in% c("left", "right"),
-          theme = ggplot2::theme(
-            legend.title.position = ifelse(
-              key.position %in% c("left", "right"),
-              "top",
-              key.position
-            ),
-            legend.text.position = key.position
-          ),
-          ncol = if (missing(key.columns)) {
-            if (key.position %in% c("left", "right")) {
-              NULL
-            } else {
-              n_cols
-            }
-          } else {
-            key.columns
-          }
+        colour = guide_openair(
+          key.position,
+          reverse = group_is_binned,
+          ncol = key.columns,
+          nrow = key.rows
         )
       )
 
@@ -416,32 +435,10 @@ trajPlot <- function(
         }
       ) +
       ggplot2::guides(
-        colour = ggplot2::guide_colorbar(
-          theme = ggplot2::theme(
-            legend.title.position = ifelse(
-              key.position %in% c("left", "right"),
-              "top",
-              key.position
-            ),
-            legend.text.position = key.position
-          )
-        )
+        colour = guide_openair(key.position, type = "colourbar")
       )
 
-    if (key.position %in% c("left", "right")) {
-      thePlot <- thePlot +
-        ggplot2::theme(
-          legend.key.height = ggplot2::unit(1, "null"),
-          legend.key.spacing.y = ggplot2::unit(0, "cm")
-        )
-    }
-    if (key.position %in% c("top", "bottom")) {
-      thePlot <- thePlot +
-        ggplot2::theme(
-          legend.key.width = ggplot2::unit(1, "null"),
-          legend.key.spacing.x = ggplot2::unit(0, "cm")
-        )
-    }
+    thePlot <- thePlot + theme_legend_key(key.position)
   }
 
   if (plot) {

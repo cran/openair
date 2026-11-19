@@ -106,16 +106,20 @@ conditionalEval <- function(
   statistic = "MB",
   cols = "YlOrRd",
   col.var = "Set1",
+  theme = "default",
   var.names = NULL,
   auto.text = TRUE,
   plot = TRUE,
   ...
 ) {
+  # default colour based on theme
+  if (missing(cols)) {
+    cols <- get_theme_cols(cols, theme, "seq")
+  }
+
   the_stats <- c("MB", "NMB", "r", "COE", "MGE", "NMGE", "RMSE", "FAC2")
 
-  if (length(type) > 1) {
-    cli::cli_abort("Only one type can be used with this function")
-  }
+  check_type(type, max = 1)
 
   extra.args <- capture_dots(...)
 
@@ -164,7 +168,8 @@ conditionalEval <- function(
     }
   }
 
-  mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
+  mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE) |>
+    check_numeric(vars = c(mod, obs, var.obs, var.mod))
   mydata <- stats::na.omit(mydata)
 
   lo <- min(mydata[, c(mod, obs)])
@@ -255,7 +260,12 @@ conditionalEval <- function(
         auto.text,
         wd.res = extra.args$wd.res %||% 8
       ) +
-      theme_openair(key.position = "bottom", extra.args = extra.args) +
+      theme_openair(
+        theme = theme,
+        coord = "cartesian",
+        key.position = "bottom",
+        extra.args = extra.args
+      ) +
       ggplot2::guides(
         fill = ggplot2::guide_legend(direction = "vertical")
       ) +
@@ -424,7 +434,12 @@ conditionalEval <- function(
         limits = c(y_lo, y_hi)
       ) +
       right_facet +
-      theme_openair("bottom", extra.args = extra.args) +
+      theme_openair(
+        theme = theme,
+        coord = "cartesian",
+        key.position = "bottom",
+        extra.args = extra.args
+      ) +
       ggplot2::labs(
         x = quickText(extra.args$xlab, auto.text),
         y = quickText(extra.args$ylab, auto.text),

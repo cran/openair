@@ -18,7 +18,9 @@ timePlot(
   date.pad = FALSE,
   type = "default",
   cols = "brewer1",
+  theme = "default",
   log = FALSE,
+  step = FALSE,
   windflow = NULL,
   smooth = FALSE,
   smooth_k = NULL,
@@ -26,6 +28,7 @@ timePlot(
   ref.x = NULL,
   ref.y = NULL,
   key.columns = NULL,
+  key.rows = NULL,
   key.position = "bottom",
   key.title = NULL,
   name.pol = pollutant,
@@ -167,10 +170,47 @@ of R colours (e.g., \code{c("yellow", "green", "blue", "black")} - see
 colour palette more closely (e.g., \code{palette}, \code{direction}, \code{alpha}, etc.).
 See \code{\link[=openColours]{openColours()}} and \code{\link[=colourOpts]{colourOpts()}} for more details.}
 
+\item{theme}{A string representing an overall plot theme, defaulting to
+\code{"default"}. This option makes sweeping changes to non-data plot features
+such as fonts, colours, line widths, and so on, and may also change default
+arguments like \code{cols} if not set by the user. Can also take a
+\code{\link[ggplot2:theme]{ggplot2::theme()}} object, which will be used to modify the \code{"default"}
+theme. Pre-set options include:
+\itemize{
+\item \code{"default"}, a lattice-inspired theme resembling the traditional
+\code{openair} look, with structured panels and visible gridlines.
+\item \code{"dark"}, a dark-background variant of the default theme, designed for
+presentations and low-light viewing, using high-contrast text and colour
+palettes optimised for visibility against dark panels.
+\item \code{"modern"}, a minimalist, contemporary theme inspired by tools such as
+Plotly and Observable Plot, with reduced visual clutter, horizontal
+emphasis in gridlines, a clean legend style, and typography suited to
+dashboards and reports.
+\item \code{"soft"}, a low-contrast, 'editorial' theme with warm
+background tones, subtle gridlines, and gently desaturated colours,
+designed for reports and publication-style figures, particularly where a
+calmer appearance improves readability.
+\item \code{"print"}, a strictly greyscale theme optimised for black-and-white
+reproduction, with stronger structural elements such as clearer gridlines
+and axis definitions to ensure good contrast and readability in printed or
+photocopied outputs.
+}
+
+Please note that if a global theme is set with \code{\link[ggplot2:theme_set]{ggplot2::theme_set()}} to
+anything other than the default \code{\link[ggplot2:theme_grey]{ggplot2::theme_grey()}}, the selected
+openair theme will not be fully applied; instead, only minimal adjustments
+(such as legend positioning) will be made.}
+
 \item{log}{Should the y-axis appear on a log scale? The default is \code{FALSE}.
 If \code{TRUE} a well-formatted log10 scale is used. This can be useful for
 plotting data for several different pollutants that exist on very different
 scales. It is therefore useful to use \code{log = TRUE} together with \code{group = TRUE}.}
+
+\item{step}{If \code{TRUE}, will create a "stairstep" plot which more clearly
+highlights where changes occur. This is likely most useful for low
+resolution data or for multi-day measurement techniques (e.g., diffusion
+tubes). Can also be any of \code{"vh"}, \code{"hv"} or \code{"mid"}, passed to the
+\code{direction} argument of \code{\link[ggplot2:geom_step]{ggplot2::geom_step()}}.}
 
 \item{windflow}{If \code{TRUE}, the vector-averaged wind speed and direction will
 be plotted using arrows. Alternatively, can be a list of arguments to
@@ -201,10 +241,10 @@ intercepts to draw lines, or a list such as that provided by \code{\link[=refOpt
 customise the colour/width/type/etc. of each line. See \code{\link[=refOpts]{refOpts()}} for more
 details.}
 
-\item{key.columns}{Number of columns to be used in a categorical legend. With
-many categories a single column can make to key too wide. The user can thus
-choose to use several columns by setting \code{key.columns} to be less than the
-number of categories.}
+\item{key.columns, key.rows}{Number of columns or rows to be used in a
+categorical legend. With many categories a single column or row can make
+the key fit poorly in the plot. The user can thus choose to use several
+columns by setting \code{key.columns} to be less than the number of categories.}
 
 \item{key.position}{Location where the legend is to be placed. Allowed
 arguments include \code{"top"}, \code{"right"}, \code{"bottom"}, \code{"left"} and \code{"none"},
@@ -219,10 +259,12 @@ can supply replacements. For example, if a column had the name "nox" and
 the user wanted a different description, then setting \code{name.pol = "nox before change"} can be used. If more than one pollutant is plotted then use
 \code{c} e.g. \code{name.pol = c("nox here", "o3 there")}.}
 
-\item{date.breaks}{Number of major x-axis intervals to use. The function will
-try and choose a sensible number of dates/times as well as formatting the
-date/time appropriately to the range being considered. The user can
-override this behaviour by adjusting the value of \code{date.breaks} up or down.}
+\item{date.breaks}{Either a number of major x-axis intervals to use, or a
+character string giving the distance between breaks like \code{"2 weeks"}, or
+\code{"10 years"}. Valid specifications are \code{"sec"}, \code{"min"}, \code{"hour"}, \code{"day"},
+\code{"week"}, \code{"month"} or \code{"year"}, optionally followed by \code{"s"}. If
+\code{date.breaks} is given a character string, it is recommended to also set
+\code{date.format} as this will automatically default to \code{"\%Y-\%m-\%d"}.}
 
 \item{date.format}{This option controls the date format on the x-axis. A
 sensible format is chosen by default, but the user can set \code{date.format} to

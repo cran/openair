@@ -153,3 +153,81 @@ test_that("invalid method raises an error", {
     regexp = "method"
   )
 })
+
+# --- Date x-axes -------------------------------------------------------------
+
+test_that("date.format and date.breaks work with Date and POSIXct x-axes", {
+  dat_date <- dat_day
+  dat_date$date <- as.Date(dat_date$date)
+
+  for (input in list(dat_date, dat_day)) {
+    sp_date <- scatterPlot(
+      input,
+      x = "date",
+      y = "nox",
+      date.format = "%d %b",
+      date.breaks = "1 week",
+      plot = FALSE
+    )
+    built <- ggplot2::ggplot_build(sp_date$plot)
+    labels <- built$layout$panel_params[[1]]$x$get_labels()
+    labels <- labels[!is.na(labels)]
+    expect_true(all(grepl("^[0-9]{2} Jan$", labels)))
+  }
+})
+
+# =============================================================================
+# linear = TRUE — fit coefficients (#454)
+# =============================================================================
+
+test_that("linear = TRUE returns a table of fit coefficients", {
+  result <- scatterPlot(dat, x = "nox", y = "no2", linear = TRUE, plot = FALSE)
+  expect_named(result, c("plot", "data", "call", "fit"))
+  expect_s3_class(result$fit, "tbl_df")
+  expect_named(
+    result$fit,
+    c("intercept", "intercept.se", "slope", "slope.se", "r.squared", "n")
+  )
+
+  mod <- stats::lm(no2 ~ nox, data = dat)
+  expect_equal(result$fit$intercept, unname(coef(mod)[1]))
+  expect_equal(result$fit$slope, unname(coef(mod)[2]))
+  expect_equal(result$fit$r.squared, summary(mod)$r.squared)
+  expect_equal(result$fit$n, stats::nobs(mod))
+})
+
+test_that("fit has one row per panel and group", {
+  result <- scatterPlot(
+    dat,
+    x = "nox",
+    y = "no2",
+    type = "weekend",
+    group = "ws",
+    linear = TRUE,
+    plot = FALSE
+  )
+  expect_true(all(c("weekend", "ws") %in% names(result$fit)))
+  expect_equal(
+    nrow(result$fit),
+    nrow(dplyr::distinct(result$fit, .data$weekend, .data$ws))
+  )
+  expect_gt(nrow(result$fit), 1L)
+})
+
+test_that("fit is returned for method = 'hexbin'", {
+  skip_if_not_installed("hexbin")
+  result <- scatterPlot(
+    dat,
+    x = "nox",
+    y = "no2",
+    method = "hexbin",
+    linear = TRUE,
+    plot = FALSE
+  )
+  expect_s3_class(result$fit, "tbl_df")
+  expect_equal(nrow(result$fit), 1L)
+})
+
+test_that("no fit is returned when linear = FALSE", {
+  expect_null(sp_default$fit)
+})

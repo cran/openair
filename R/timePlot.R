@@ -75,6 +75,12 @@
 #'   irregular data, set to `FALSE`. Note, this should not be set for `type`
 #'   other than `default`.
 #'
+#' @param step If `TRUE`, will create a "stairstep" plot which more clearly
+#'   highlights where changes occur. This is likely most useful for low
+#'   resolution data or for multi-day measurement techniques (e.g., diffusion
+#'   tubes). Can also be any of `"vh"`, `"hv"` or `"mid"`, passed to the
+#'   `direction` argument of [ggplot2::geom_step()].
+#'
 #' @param log Should the y-axis appear on a log scale? The default is `FALSE`.
 #'   If `TRUE` a well-formatted log10 scale is used. This can be useful for
 #'   plotting data for several different pollutants that exist on very different
@@ -183,7 +189,9 @@ timePlot <- function(
   date.pad = FALSE,
   type = "default",
   cols = "brewer1",
+  theme = "default",
   log = FALSE,
+  step = FALSE,
   windflow = NULL,
   smooth = FALSE,
   smooth_k = NULL,
@@ -191,6 +199,7 @@ timePlot <- function(
   ref.x = NULL,
   ref.y = NULL,
   key.columns = NULL,
+  key.rows = NULL,
   key.position = "bottom",
   key.title = NULL,
   name.pol = pollutant,
@@ -203,6 +212,11 @@ timePlot <- function(
 ) {
   # check key.position
   key.position <- check_key_position(key.position, key)
+
+  # default colour based on theme
+  if (missing(cols)) {
+    cols <- get_theme_cols(cols, theme, "qual")
+  }
 
   # Args setup
   extra.args <- capture_dots(...)
@@ -233,14 +247,10 @@ timePlot <- function(
     )
   }
 
-  if (length(type) > 2) {
-    cli::cli_abort(
-      "Cannot have more than 2 {.arg type}s."
-    )
-  }
+  check_type(type, max = 2)
 
   if (!missing(statistic) && missing(avg.time)) {
-    cli::cli_inform("No {.field avg.time} specified; using 'month'.")
+    cli::cli_inform("No {.arg avg.time} specified; using {.val month}.")
     avg.time <- "month"
   }
 
@@ -338,14 +348,8 @@ timePlot <- function(
     labels = name.pol
   )
 
-  # x-axis scale function
-  if (lubridate::is.Date(mydata$date)) {
-    x_type <- "date"
-    x_scale_fun <- ggplot2::scale_x_date
-  } else {
-    x_type <- "datetime"
-    x_scale_fun <- ggplot2::scale_x_datetime
-  }
+  # x-axis scale type
+  x_type <- if (lubridate::is.Date(mydata$date)) "date" else "datetime"
 
   # number of distinct pollutants (for faceting)
   npol <- length(unique(mydata$variable))
@@ -411,26 +415,12 @@ timePlot <- function(
     type <- type[type != "default"]
   }
 
-  theGuide <-
-    ggplot2::guide_legend(
-      reverse = key.position %in% c("left", "right"),
-      theme = ggplot2::theme(
-        legend.title.position = ifelse(
-          key.position %in% c("left", "right"),
-          "top",
-          key.position
-        )
-      ),
-      ncol = if (missing(key.columns)) {
-        if (key.position %in% c("left", "right")) {
-          1
-        } else {
-          n_groups
-        }
-      } else {
-        key.columns
-      }
-    )
+  theGuide <- guide_openair(
+    key.position,
+    var_text_position = FALSE,
+    ncol = key.columns,
+    nrow = key.rows
+  )
 
   # aesthetic column: group column name when group is a string, the type column
   # when colouring by type (single pollutant + conditioning), else "variable"
@@ -455,6 +445,20 @@ timePlot <- function(
     legend_title <- key.title
   }
 
+  if (rlang::is_logical(step)) {
+    use_step <- step
+    step_direction <- "hv"
+  } else {
+    use_step <- TRUE
+    step_direction <- rlang::arg_match(step, c("hv", "vh", "mid"))
+  }
+
+  if (use_step) {
+    geom <- function(...) ggplot2::geom_step(..., direction = step_direction)
+  } else {
+    geom <- ggplot2::geom_line
+  }
+
   # built plot
   thePlot <-
     ggplot2::ggplot(
@@ -467,7 +471,7 @@ timePlot <- function(
         linetype = .data[[aes_col]]
       )
     ) +
-    ggplot2::geom_line(
+    geom(
       ggplot2::aes(linewidth = .data[[aes_col]]),
       lineend = extra.args$lineend %||% "butt",
       linejoin = extra.args$linejoin %||% "round",
@@ -483,10 +487,19 @@ timePlot <- function(
       ref = ref.x,
       which = "x",
       type = x_type,
+      other_type = "numeric",
       tz = lubridate::tz(mydata$date)
     ) +
-    layer_ref(ref = ref.y, which = "y", type = "numeric") +
+    layer_ref(
+      ref = ref.y,
+      which = "y",
+      type = "numeric",
+      other_type = x_type,
+      tz = lubridate::tz(mydata$date)
+    ) +
     theme_openair(
+      theme = theme,
+      coord = "cartesian",
       key.position = ifelse(n_groups == 1, "none", key.position),
       extra.args = extra.args
     ) +
@@ -514,10 +527,10 @@ timePlot <- function(
       xlim = extra.args$xlim,
       ylim = extra.args$ylim
     ) +
-    x_scale_fun(
-      breaks = scales::breaks_pretty(date.breaks),
-      date_labels = date.format %||% ggplot2::waiver(),
-      expand = ggplot2::expansion(c(0.025, 0.025))
+    scale_x_openair_date(
+      date.breaks = date.breaks,
+      date.format = date.format,
+      type = x_type
     ) +
     ggplot2::scale_y_continuous(
       expand = if (is.null(extra.args$ylim)) {
@@ -619,7 +632,11 @@ prepare_timeplot_data <- function(
   }
 
   # standard data checks
-  mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
+  mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE) |>
+    check_numeric(
+      vars = setdiff(vars, c("date", group)),
+      call = rlang::caller_env()
+    )
 
   # pad out any missing date/times so that line don't extend between areas of missing data
   if (date.pad) {
@@ -633,6 +650,11 @@ prepare_timeplot_data <- function(
     names[names == "wd"] <- "wd_type"
   }
   mydata <- cutData(mydata, type, names = names, ...)
+
+  # ensure date groups are cut before duplicate checking
+  if (is.character(group) && !group %in% names(mydata)) {
+    mydata <- cutData(mydata, group, ...)
+  }
 
   # check for duplicates - can't really have duplicate data in a timeplot
   # when group is a column, duplicate check must also split by that column
@@ -694,8 +716,6 @@ time_average_timeplot_data <- function(
         ...
       )
     }
-  } else if (is.character(group)) {
-    mydata <- cutData(mydata, type = group, ...)
   }
 
   # timeAverage drops type if default
@@ -712,7 +732,9 @@ time_average_timeplot_data <- function(
     # only select what is being pivoted, as it will need joining back on
     met_vars <- c("ws", "wd")
     met_vars <- met_vars[met_vars %in% pollutant]
-    met_data <- dplyr::select(mydata, dplyr::any_of(c("date", met_vars)))
+    # join keys must include type/group columns, else rows are duplicated
+    met_keys <- intersect(c("date", avg_type), names(mydata))
+    met_data <- dplyr::select(mydata, dplyr::all_of(c(met_keys, met_vars)))
   }
 
   # reshape
@@ -729,7 +751,7 @@ time_average_timeplot_data <- function(
     mydata <- dplyr::left_join(
       mydata,
       met_data,
-      by = dplyr::join_by("date")
+      by = met_keys
     ) |>
       dplyr::relocate(dplyr::any_of(c("ws", "wd")), .after = "date")
   }
@@ -774,8 +796,8 @@ normalise_timeplot_data <-
 
       if (is.na(target_date)) {
         cli::cli_abort(c(
-          "x" = "Provided {.field normalise} option not recognised.",
-          "i" = "{.field normalise} must be either 'mean' or a string in the format 'DD/MM/YYYY'."
+          "x" = "Provided {.arg normalise} option not recognised.",
+          "i" = "{.arg normalise} must be either {.val mean} or a string in the format {.val DD/MM/YYYY}."
         ))
       }
 

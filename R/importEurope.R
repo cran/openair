@@ -11,7 +11,8 @@
 #' @param year Year or years to import. To import a sequence of years from 1990
 #'   to 2000 use `year = 1990:2000`. To import several specific years use `year
 #'   = c(1990, 1995, 2000)` for example.
-#' @param tz Not used
+#' @param tz The time zone used to parse the `date` and `date_end` columns,
+#'   passed to [lubridate::ymd_hms()]. Defaults to `"UTC"`.
 #' @param meta Should meta data be returned? If `TRUE` the site type, latitude
 #'   and longitude are returned.
 #' @param to_narrow By default the returned data has a column for each
@@ -32,17 +33,21 @@
 #' }
 #'
 importEurope <- function(
-  site = "debw118",
-  year = 2018,
+  site,
+  year,
   tz = "UTC",
   meta = FALSE,
   to_narrow = FALSE,
   progress = TRUE
 ) {
+  rlang::check_required(site)
+  rlang::check_required(year)
+  rlang::check_installed("readr")
+
   # warn/error w/ deprecation
   msg <-
     c(
-      "!" = "{.fun importEurope} has been discontinued and cannot import data after February 2024.",
+      "!" = "{.fun openair::importEurope} has been discontinued and cannot import data after February 2024.",
       "i" = "Consider using the EEA Air Quality Download Service instead {.url https://eeadmz1-downloads-webapp.azurewebsites.net/}"
     )
   if (any(year > 2024)) {
@@ -93,7 +98,7 @@ importEurope <- function(
     purrr::list_rbind()
 
   if (nrow(df) == 0L) {
-    warning("No data available,")
+    cli::cli_warn("No data available.")
     return()
   }
 
@@ -139,7 +144,7 @@ get_saq_observations_worker <- function(file, tz) {
 
 
 # Reading function
-read_saq_observations <- function(file, tz = tz, verbose) {
+read_saq_observations <- function(file, tz) {
   # Data types
   col_types <- readr::cols(
     date = readr::col_character(),
@@ -178,7 +183,7 @@ read_saq_observations <- function(file, tz = tz, verbose) {
   )
 
   if (nrow(df) == 0) {
-    warning(paste(basename(file), "is missing."))
+    cli::cli_warn("{.file {basename(file)}} is missing.")
   }
 
   return(df)
@@ -186,34 +191,21 @@ read_saq_observations <- function(file, tz = tz, verbose) {
 
 
 make_saq_observations_wider <- function(df) {
-  tryCatch(
-    {
-      df |>
-        dplyr::select(
-          "date",
-          "date_end",
-          "site",
-          "variable",
-          "value"
-        ) |>
-        tidyr::spread("variable", "value")
-    },
-    error = function(e) {
-      warning(
-        "Duplicated date-site-variable combinations detected, observations have been removed...",
-        call. = FALSE
-      )
+  df <- dplyr::select(df, "date", "date_end", "site", "variable", "value")
 
-      df |>
-        dplyr::select(
-          "date",
-          "date_end",
-          "site",
-          "variable",
-          "value"
-        ) |>
-        dplyr::distinct("date", "site", "variable", .keep_all = TRUE) |>
-        tidyr::spread("variable", "value")
-    }
-  )
+  dupes <- duplicated(df[c("date", "site", "variable")])
+  if (any(dupes)) {
+    cli::cli_warn(
+      "Duplicated date-site-variable combinations detected, observations have been removed..."
+    )
+    df <- df[!dupes, ]
+  }
+
+  df |>
+    dplyr::arrange(.data$date, .data$date_end, .data$site) |>
+    tidyr::pivot_wider(
+      names_from = "variable",
+      values_from = "value",
+      names_sort = TRUE
+    )
 }

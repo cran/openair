@@ -1,3 +1,69 @@
+# ColorBrewer palette names; colours themselves come from {RColorBrewer}
+.brewer_div_schemes <- c(
+  "BrBG",
+  "PiYG",
+  "PRGn",
+  "PuOr",
+  "RdBu",
+  "RdGy",
+  "RdYlBu",
+  "RdYlGn",
+  "Spectral"
+)
+
+.brewer_qual_schemes <- c(
+  "Accent",
+  "Dark2",
+  "Paired",
+  "Pastel1",
+  "Pastel2",
+  "Set1",
+  "Set2",
+  "Set3"
+)
+
+.brewer_seq_schemes <- c(
+  "Blues",
+  "BuGn",
+  "BuPu",
+  "GnBu",
+  "Greens",
+  "Greys",
+  "Oranges",
+  "OrRd",
+  "PuBu",
+  "PuBuGn",
+  "PuRd",
+  "Purples",
+  "RdPu",
+  "Reds",
+  "YlGn",
+  "YlGnBu",
+  "YlOrBr",
+  "YlOrRd"
+)
+
+names(.brewer_div_schemes) <- .brewer_div_schemes
+names(.brewer_qual_schemes) <- .brewer_qual_schemes
+names(.brewer_seq_schemes) <- .brewer_seq_schemes
+
+.brewer_schemes <- c(
+  .brewer_div_schemes,
+  .brewer_qual_schemes,
+  .brewer_seq_schemes
+)
+
+# maximum number of colours in each ColorBrewer palette
+qualnum <- stats::setNames(
+  c(8L, 8L, 12L, 9L, 8L, 9L, 8L, 12L),
+  .brewer_qual_schemes
+)
+maxcolors <- c(
+  stats::setNames(rep(11L, length(.brewer_div_schemes)), .brewer_div_schemes),
+  qualnum,
+  stats::setNames(rep(9L, length(.brewer_seq_schemes)), .brewer_seq_schemes)
+)
+
 # Qualitative palette definitions and their maximum lengths
 .qual_schemes <- c(
   "okabeito" = 9,
@@ -271,11 +337,12 @@ openColours <- function(
   direction[direction == 0] <- 1
 
   # user-supplied colour vectors
-  if (length(scheme) > 1L || !scheme %in% .all_schemes) {
+  # NB: WSP palette not for wider use so remains undocumented
+  if (length(scheme) > 1L || !scheme %in% c(.all_schemes, "wsp", "wsp2")) {
     if (length(scheme) > 1L && any(scheme %in% .all_schemes)) {
       cli::cli_abort(
         c(
-          "x" = "Please provide {.strong either} 1 {.fun openColours} palette {.emph or} a vector of valid R colours.",
+          "x" = "Please provide {.strong either} 1 {.fun openair::openColours} palette {.emph or} a vector of valid R colours.",
           "i" = "See {.code ?openColours} for a list of palettes."
         ),
         call = NULL
@@ -285,7 +352,7 @@ openColours <- function(
     if (!all(check)) {
       cli::cli_abort(
         c(
-          "x" = "The following are {.emph neither} valid R colours {.emph nor} {.fun openColours} palettes: {.field {names(check[!check])}}"
+          "x" = "The following are {.emph neither} valid R colours {.emph nor} {.fun openair::openColours} palettes: {.val {names(check[!check])}}"
         ),
         call = NULL
       )
@@ -333,7 +400,7 @@ openColours <- function(
       lightness,
       saturation
     )
-  } else if (scheme %in% names(.qual_schemes)) {
+  } else if (scheme %in% c(names(.qual_schemes), "wsp", "wsp2")) {
     .qualPalette(n_out, scheme, direction, alpha, lightness, saturation)
   }
 
@@ -368,7 +435,7 @@ openColors <- openColours
 #'
 #' @export
 openSchemes <- function(palette_type = c("seq", "div", "qual"), n = NULL) {
-  palette_type = rlang::arg_match(
+  palette_type <- rlang::arg_match(
     palette_type,
     c("seq", "div", "qual"),
     multiple = TRUE
@@ -508,6 +575,29 @@ openSchemes <- function(palette_type = c("seq", "div", "qual"), n = NULL) {
   })
 }
 
+#' Get a ColorBrewer palette from {RColorBrewer}, applying begin/end (sequential
+#' palettes only)
+#' @noRd
+.brewer_pal <- function(n, name, begin = 0, end = 1) {
+  rlang::check_installed(
+    "RColorBrewer",
+    reason = "to use ColorBrewer palettes."
+  )
+
+  # ColorBrewer palettes have between 3 and `maxcolors` colours
+  n <- min(max(n, 3L), maxcolors[[name]])
+  cols <- RColorBrewer::brewer.pal(n, name)
+
+  # begin/end: subset the input colours then interpolate back to n
+  if (name %in% .brewer_seq_schemes && (begin != 0 || end != 1)) {
+    indices <- round(1 + (length(cols) - 1) * c(begin, end))
+    cols <- cols[indices[1]:indices[2]]
+    cols <- grDevices::colorRampPalette(cols)(n)
+  }
+
+  cols
+}
+
 #' Brewer palette dispatcher
 #' @noRd
 .brewerPalette <- function(
@@ -521,33 +611,25 @@ openSchemes <- function(palette_type = c("seq", "div", "qual"), n = NULL) {
   saturation
 ) {
   max_n <- maxcolors[[scheme]]
-  if (n >= 3L && n <= max_n) {
-    brewer.pal(
-      n,
-      scheme,
-      direction = direction,
-      begin = begin,
-      end = end,
-      alpha = alpha
-    )
+
+  cols <- if (n < 3L && scheme %in% .brewer_qual_schemes) {
+    # qualitative palettes use their first n colours, as in {scales}, rather
+    # than interpolating between the ends of the palette
+    .brewer_pal(3L, scheme)[seq_len(n)]
+  } else if (n >= 3L && n <= max_n) {
+    .brewer_pal(n, scheme, begin = begin, end = end)
   } else {
-    base_cols <- suppressWarnings(
-      brewer.pal(
-        max_n,
-        scheme,
-        direction = direction,
-        begin = begin,
-        end = end,
-        alpha = alpha
-      )
-    )
-    # alpha already baked in — strip before ramp, reapply after
-    cols <- grDevices::colorRampPalette(
-      substr(base_cols, 1, 7),
-      interpolate = "spline"
-    )(n)
-    .finalise(cols, direction = 1L, alpha = alpha, lightness, saturation)
+    # otherwise interpolate across the full palette, reversing it first so
+    # that, e.g., n = 1 is taken from the correct end
+    base_cols <- .brewer_pal(max_n, scheme, begin = begin, end = end)
+    if (direction == -1) {
+      base_cols <- rev(base_cols)
+      direction <- 1
+    }
+    grDevices::colorRampPalette(base_cols, interpolate = "spline")(n)
   }
+
+  .finalise(cols, direction, alpha, lightness, saturation)
 }
 
 #' Hue palette
@@ -592,6 +674,13 @@ openSchemes <- function(palette_type = c("seq", "div", "qual"), n = NULL) {
   if (end == 1) {
     end <- 0.9
   }
+
+  # if only one colour needed, give grey50
+  if (n == 1) {
+    begin <- 0.5
+    end <- 0.5
+  }
+
   cols <- grDevices::grey(seq(end, begin, length.out = n))
   .finalise(cols, direction, alpha, lightness, saturation)
 }
@@ -612,13 +701,37 @@ openSchemes <- function(palette_type = c("seq", "div", "qual"), n = NULL) {
 
   cols <- switch(
     scheme,
+    # reversed ColorBrewer "Spectral", inlined so defaults need no Suggests
     default = {
       interpolate <- "spline"
-      rev(brewer.pal(11, "Spectral"))
+      c(
+        "#5E4FA2",
+        "#3288BD",
+        "#66C2A5",
+        "#ABDDA4",
+        "#E6F598",
+        "#FFFFBF",
+        "#FEE08B",
+        "#FDAE61",
+        "#F46D43",
+        "#D53E4F",
+        "#9E0142"
+      )
     },
+    # ColorBrewer "YlOrRd"
     heat = {
       interpolate <- "spline"
-      brewer.pal(9, "YlOrRd")
+      c(
+        "#FFFFCC",
+        "#FFEDA0",
+        "#FED976",
+        "#FEB24C",
+        "#FD8D3C",
+        "#FC4E2A",
+        "#E31A1C",
+        "#BD0026",
+        "#800026"
+      )
     },
     increment = c(
       "#B0FFF1",
@@ -744,7 +857,7 @@ openSchemes <- function(palette_type = c("seq", "div", "qual"), n = NULL) {
       "#A0DFB9FF",
       "#DEF5E5FF"
     ),
-    gaf.seq = c("#12436D", "#2073BC", "#6BACE6"),
+    gaf.seq = c("#092135", "#12436D", "#2073BC", "#6BACE6", "#ADD1F1"),
     bam = c(
       '#65024B',
       '#9E3C85',
@@ -1353,6 +1466,30 @@ openSchemes <- function(palette_type = c("seq", "div", "qual"), n = NULL) {
       "#97BBF5",
       "#9C6B4E",
       "#9498A0"
+    ),
+    wsp = c(
+      "#1594FD",
+      "#F35B05",
+      "#FFD10A",
+      "#496C1A",
+      "#B16F4F",
+      "#162E76",
+      "#C33900",
+      "#FEA513",
+      "#224807",
+      "#4C2C00"
+    ),
+    wsp2 = c(
+      "#1594FD",
+      "#162E76",
+      "#F35B05",
+      "#C33900",
+      "#FFD10A",
+      "#FEA513",
+      "#496C1A",
+      "#224807",
+      "#B16F4F",
+      "#4C2C00"
     )
   )
 
@@ -1361,7 +1498,7 @@ openSchemes <- function(palette_type = c("seq", "div", "qual"), n = NULL) {
     cli::cli_abort(
       c(
         "!" = "Too many colours selected for {.code {scheme}}.",
-        "i" = "{.code n} should be between 1 and {max_n}."
+        "i" = "{.arg n} should be between {.val {1}} and {.val {max_n}}."
       ),
       call = NULL
     )

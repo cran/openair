@@ -137,6 +137,7 @@ polarFreq <- function(
   breaks = NULL,
   trans = "sqrt",
   cols = "default",
+  theme = "default",
   type = "default",
   min.bin = 1,
   ws.upper = NA,
@@ -144,6 +145,8 @@ polarFreq <- function(
   offset = 10,
   border.col = "transparent",
   key.title = paste(statistic, pollutant, sep = " "),
+  key.columns = NULL,
+  key.rows = NULL,
   key.position = "right",
   auto.text = TRUE,
   plot = TRUE,
@@ -153,6 +156,11 @@ polarFreq <- function(
   # check key.position
   key.position <- check_key_position(key.position, key)
 
+  # default colour based on theme
+  if (missing(cols)) {
+    cols <- get_theme_cols(cols, theme, "seq")
+  }
+
   # extract necessary data
   vars <- c(wd, ws)
   if (any(type %in% dateTypes)) {
@@ -161,6 +169,8 @@ polarFreq <- function(
 
   # intervals in wind direction
   wd.int <- 360 / round(wd.nint)
+
+  check_type(type, max = 2)
 
   # extra.args setup
   extra.args <- capture_dots(...)
@@ -181,7 +191,8 @@ polarFreq <- function(
   }
 
   # data checks
-  mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
+  mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE) |>
+    check_numeric(vars = c(wd, ws, pollutant))
 
   # to make first interval easier to work with, set ws = 0 + e
   ids <- which(mydata[[ws]] == 0)
@@ -195,8 +206,8 @@ polarFreq <- function(
   # if pollutant chosen but no statistic - use mean, issue warning
   if (statistic == "frequency" && !is.null(pollutant)) {
     cli::cli_warn(c(
-      "x" = "{.code statistic == 'frequency'} incompatible with a defined {.field pollutant}.",
-      "i" = "Setting {.field statistic} to {.code 'mean'}."
+      "x" = "{.code statistic = \"frequency\"} is incompatible with a defined {.arg pollutant}.",
+      "i" = "Setting {.arg statistic} to {.val mean}."
     ))
     statistic <- "mean"
   }
@@ -204,8 +215,8 @@ polarFreq <- function(
   # if statistic chosen but no pollutant stop
   if (statistic != "frequency" && is.null(pollutant)) {
     cli::cli_abort(c(
-      "x" = "No {.field pollutant} chosen",
-      "i" = "Please choose a {.field pollutant}, e.g., {.code pollutant = 'nox'}"
+      "x" = "No {.arg pollutant} chosen.",
+      "i" = "Please choose a {.arg pollutant}, e.g., {.code pollutant = \"nox\"}."
     ))
   }
 
@@ -344,7 +355,9 @@ polarFreq <- function(
       breaks = seq(0, max.ws, by = grid.line),
       expand = ggplot2::expansion(c(0, 0.1))
     ) +
-    theme_openair_radial(
+    theme_openair(
+      theme = theme,
+      coord = "radial",
       key.position = key.position,
       extra.args = extra.args,
       panel.ontop = TRUE
@@ -377,17 +390,11 @@ polarFreq <- function(
         drop = FALSE
       ) +
       ggplot2::guides(
-        fill = ggplot2::guide_legend(
-          reverse = key.position %in% c("left", "right"),
-          theme = ggplot2::theme(
-            legend.title.position = ifelse(
-              key.position %in% c("left", "right"),
-              "top",
-              key.position
-            ),
-            legend.text.position = key.position
-          ),
-          nrow = if (key.position %in% c("left", "right")) NULL else 1
+        fill = guide_openair(
+          key.position,
+          reverse = TRUE,
+          ncol = key.columns,
+          nrow = key.rows
         )
       )
   } else {
@@ -404,34 +411,12 @@ polarFreq <- function(
         limits = limits
       ) +
       ggplot2::guides(
-        fill = ggplot2::guide_colorbar(
-          theme = ggplot2::theme(
-            legend.title.position = ifelse(
-              key.position %in% c("left", "right"),
-              "top",
-              key.position
-            ),
-            legend.text.position = key.position
-          )
-        )
+        fill = guide_openair(key.position, type = "colourbar")
       )
   }
 
   # make key full width/height
-  if (key.position %in% c("left", "right")) {
-    thePlot <- thePlot +
-      ggplot2::theme(
-        legend.key.height = ggplot2::unit(1, "null"),
-        legend.key.spacing.y = ggplot2::unit(0, "cm")
-      )
-  }
-  if (key.position %in% c("top", "bottom")) {
-    thePlot <- thePlot +
-      ggplot2::theme(
-        legend.key.width = ggplot2::unit(1, "null"),
-        legend.key.spacing.x = ggplot2::unit(0, "cm")
-      )
-  }
+  thePlot <- thePlot + theme_legend_key(key.position)
 
   # add compass points
   thePlot <- thePlot +
@@ -440,7 +425,8 @@ polarFreq <- function(
         extra.args$annotate %||% TRUE,
         if (is.null(extra.args$fontsize)) 3 else extra.args$fontsize / 3,
         0
-      )
+      ),
+      theme = theme
     )
 
   if (plot) {

@@ -22,6 +22,9 @@ checkPrep <- function(
   remove.neg = TRUE,
   wd = "wd"
 ) {
+  # ensure data is ungrouped
+  mydata <- dplyr::ungroup(mydata)
+
   # deal with conditioning variable if present, if user-defined, must exist in
   # data pre-defined types existing conditioning variables that only depend on
   # date (which is checked)
@@ -90,7 +93,7 @@ checkPrep <- function(
   # data not rounded will be rounded to nearest 10 degrees
   # assumes 10 is average of 5-15 etc
   if (wd %in% Names) {
-    if (wd %in% Names && is.numeric(mydata[, wd])) {
+    if (wd %in% Names && is.numeric(mydata[[wd]])) {
       # check for wd <0 or > 360
       if (
         any(
@@ -127,8 +130,8 @@ checkPrep <- function(
     if (!inherits(mydata$date, "Date") && !inherits(mydata$date, "POSIXct")) {
       cli::cli_abort(
         c(
-          "x" = "{.field mydata$date} is {.type {mydata$date}}.",
-          "i" = "{.field mydata$date} must be {.type {as.Date(ISOdate(1,1,1))}} or {.type {ISOdate(1,1,1)}}."
+          "x" = "{.code mydata$date} is {.type {mydata$date}}.",
+          "i" = "{.code mydata$date} must be {.type {as.Date(ISOdate(1,1,1))}} or {.type {ISOdate(1,1,1)}}."
         ),
         call = NULL
       )

@@ -137,8 +137,8 @@
 #' }
 importImperial <-
   function(
-    site = "my1",
-    year = 2009,
+    site,
+    year,
     pollutant = "all",
     meta = FALSE,
     meteo = FALSE,
@@ -147,6 +147,9 @@ importImperial <-
     to_narrow = FALSE,
     progress = TRUE
   ) {
+    rlang::check_required(site)
+    rlang::check_required(year)
+
     ## get rid of R check annoyances
     sites <- NULL
     v10 <- NULL
@@ -209,7 +212,7 @@ importImperial <-
           x
         },
         error = function(ex) {
-          warning(x, "does not exist - ignoring that one.")
+          cli::cli_warn(c("i" = "{x} does not exist - ignoring that one."))
           NULL
         },
         finally = {
@@ -226,12 +229,12 @@ importImperial <-
       purrr::list_rbind()
 
     if (is.null(thedata)) {
-      warning("No data to import - check site codes and year.", call. = FALSE)
+      cli::cli_warn("No data to import - check site codes and year.")
       return()
     }
 
     if (nrow(thedata) < 1) {
-      warning("No data to import - check site codes and year.", call. = FALSE)
+      cli::cli_warn("No data to import - check site codes and year.")
       return()
     }
 
@@ -344,7 +347,7 @@ importImperial <-
     timeDiff <-
       difftime(Sys.time(), max(thedata$date), units = "days")
     if (timeDiff < 180) {
-      warning("Some of the more recent data may not be ratified.")
+      cli::cli_warn("Some of the more recent data may not be ratified.")
     }
 
     if (meteo) {
@@ -408,8 +411,8 @@ importImperial <-
 #' @export
 importKCL <-
   function(
-    site = "my1",
-    year = 2009,
+    site,
+    year,
     pollutant = "all",
     met = FALSE,
     units = "mass",
@@ -420,7 +423,7 @@ importKCL <-
   ) {
     cli::cli_warn(
       c(
-        "i" = "{.fun importKCL} has been superseded by, and is equivalent to, {.fun importImperial}. {.strong Please use {.fun importImperial} going forward.}"
+        "i" = "{.fun openair::importKCL} has been superseded by, and is equivalent to, {.fun openair::importImperial}. {.strong Please use {.fun openair::importImperial} going forward.}"
       ),
       .frequency = "regularly",
       .frequency_id = "imperial"

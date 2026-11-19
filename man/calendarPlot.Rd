@@ -16,6 +16,7 @@ calendarPlot(
   annotate = "date",
   windflow = NULL,
   cols = "heat",
+  theme = "default",
   limits = NULL,
   breaks = NULL,
   trans = FALSE,
@@ -31,6 +32,8 @@ calendarPlot(
   remove.empty = TRUE,
   show.year = TRUE,
   key.title = paste(statistic, pollutant, sep = " "),
+  key.columns = NULL,
+  key.rows = NULL,
   key.position = "right",
   auto.text = TRUE,
   plot = TRUE,
@@ -99,6 +102,37 @@ of R colours (e.g., \code{c("yellow", "green", "blue", "black")} - see
 \code{\link[=colours]{colours()}} for a full list) or hex-codes (e.g., \code{c("#30123B", "#9CF649", "#7A0403")}). Alternatively, can be a list of arguments to control the
 colour palette more closely (e.g., \code{palette}, \code{direction}, \code{alpha}, etc.).
 See \code{\link[=openColours]{openColours()}} and \code{\link[=colourOpts]{colourOpts()}} for more details.}
+
+\item{theme}{A string representing an overall plot theme, defaulting to
+\code{"default"}. This option makes sweeping changes to non-data plot features
+such as fonts, colours, line widths, and so on, and may also change default
+arguments like \code{cols} if not set by the user. Can also take a
+\code{\link[ggplot2:theme]{ggplot2::theme()}} object, which will be used to modify the \code{"default"}
+theme. Pre-set options include:
+\itemize{
+\item \code{"default"}, a lattice-inspired theme resembling the traditional
+\code{openair} look, with structured panels and visible gridlines.
+\item \code{"dark"}, a dark-background variant of the default theme, designed for
+presentations and low-light viewing, using high-contrast text and colour
+palettes optimised for visibility against dark panels.
+\item \code{"modern"}, a minimalist, contemporary theme inspired by tools such as
+Plotly and Observable Plot, with reduced visual clutter, horizontal
+emphasis in gridlines, a clean legend style, and typography suited to
+dashboards and reports.
+\item \code{"soft"}, a low-contrast, 'editorial' theme with warm
+background tones, subtle gridlines, and gently desaturated colours,
+designed for reports and publication-style figures, particularly where a
+calmer appearance improves readability.
+\item \code{"print"}, a strictly greyscale theme optimised for black-and-white
+reproduction, with stronger structural elements such as clearer gridlines
+and axis definitions to ensure good contrast and readability in printed or
+photocopied outputs.
+}
+
+Please note that if a global theme is set with \code{\link[ggplot2:theme_set]{ggplot2::theme_set()}} to
+anything other than the default \code{\link[ggplot2:theme_grey]{ggplot2::theme_grey()}}, the selected
+openair theme will not be fully applied; instead, only minimal adjustments
+(such as legend positioning) will be made.}
 
 \item{limits}{The limits of the colour scale, in the form \code{c(lower, upper)}.
 For example, \code{limits = c(0, 100)} will set the colour scale to be between
@@ -170,6 +204,11 @@ this option is forced to be \code{TRUE}.}
 
 \item{key.title}{Used to set the title of the legend. The legend title is
 passed to \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.}
+
+\item{key.columns, key.rows}{Number of columns or rows to be used in a
+categorical legend. With many categories a single column or row can make
+the key fit poorly in the plot. The user can thus choose to use several
+columns by setting \code{key.columns} to be less than the number of categories.}
 
 \item{key.position}{Location where the legend is to be placed. Allowed
 arguments include \code{"top"}, \code{"right"}, \code{"bottom"}, \code{"left"} and \code{"none"},

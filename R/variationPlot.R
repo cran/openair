@@ -108,20 +108,31 @@ variationPlot <- function(
   local.tz = NULL,
   ci = TRUE,
   cols = "hue",
+  theme = "default",
   alpha = 0.4,
+  ref.y = NULL,
   key.position = "top",
   key.columns = NULL,
+  key.rows = NULL,
   name.pol = NULL,
   auto.text = TRUE,
   plot = TRUE,
   ...
 ) {
+  # check key.position
+  key.position <- check_key_position(key.position, key = NULL)
+
   if (is.null(conf.int)) {
     if (statistic == "median") {
       conf.int <- c(0.75, 0.95)
     } else {
       conf.int <- c(0.95)
     }
+  }
+
+  # default colour based on theme
+  if (missing(cols)) {
+    cols <- get_theme_cols(cols, theme, "qual")
   }
 
   # validate inputs
@@ -147,7 +158,7 @@ variationPlot <- function(
   extra.args$title <- quickText(extra.args$title %||% "", auto.text)
   extra.args$subtitle <- quickText(extra.args$subtitle %||% "", auto.text)
   extra.args$caption <- quickText(
-    extra.args$caption %||% create_varplot_sub_text(statistic, conf.int),
+    extra.args$caption %||% create_varplot_sub_text(statistic, conf.int, ci),
     auto.text
   )
   extra.args$tag <- quickText(extra.args$tag, auto.text)
@@ -183,6 +194,7 @@ variationPlot <- function(
   # need special handling of cutData as `drop` needs to be passed separately
   mydata <- mydata |>
     checkPrep(vars, c(type, group), remove.calm = FALSE) |>
+    check_numeric(vars = pollutant) |>
     (\(df) {
       do.call(
         cutData,
@@ -283,7 +295,7 @@ variationPlot <- function(
   if (difference) {
     # identify the two things being differenced
     if (nlevels(mydata$group) != 2L) {
-      cli::cli_abort("Need 2 'groups' to calculate a difference.")
+      cli::cli_abort("{.arg group} must have exactly {.val {2}} levels to calculate a difference.")
     }
     the_levels <- levels(mydata$group) # already set by pivot_longer or group cutData
     poll1 <- the_levels[1]
@@ -480,13 +492,19 @@ variationPlot <- function(
   # construct plot
   thePlot <-
     ggplot2::ggplot(mydata, ggplot2::aes(x = .data$x)) +
-    theme_openair(key.position = key.position, extra.args = extra.args) +
+    theme_openair(
+      theme = theme,
+      coord = "cartesian",
+      key.position = key.position,
+      extra.args = extra.args
+    ) +
     get_facet(
       if (all(type == "default")) "default" else type_cols,
       extra.args,
       auto.text = auto.text,
       drop = FALSE,
-      wd.res = extra.args$wd.res %||% 8
+      wd.res = extra.args$wd.res %||% 8,
+      wd_layout = identical(type, "wd")
     ) +
     ggplot2::labs(
       x = extra.args$xlab,
@@ -513,7 +531,12 @@ variationPlot <- function(
         label_openair(poll_labels, auto_text = auto.text),
         levels(mydata$group)
       ),
-      guide = ggplot2::guide_legend(ncol = key.columns),
+      guide = guide_openair(
+        key.position,
+        ncol = key.columns,
+        nrow = key.rows,
+        var_text_position = FALSE
+      ),
       aesthetics = c("fill", "colour"),
       drop = FALSE
     ) +
@@ -523,7 +546,12 @@ variationPlot <- function(
         label_openair(poll_labels, auto_text = auto.text),
         levels(mydata$group)
       ),
-      guide = ggplot2::guide_legend(ncol = key.columns),
+      guide = guide_openair(
+        key.position,
+        ncol = key.columns,
+        nrow = key.rows,
+        var_text_position = FALSE
+      ),
       drop = FALSE
     ) +
     ggplot2::scale_linewidth_manual(
@@ -532,7 +560,12 @@ variationPlot <- function(
         label_openair(poll_labels, auto_text = auto.text),
         levels(mydata$group)
       ),
-      guide = ggplot2::guide_legend(ncol = key.columns),
+      guide = guide_openair(
+        key.position,
+        ncol = key.columns,
+        nrow = key.rows,
+        var_text_position = FALSE
+      ),
       drop = FALSE
     ) +
     ggplot2::scale_shape_manual(
@@ -541,7 +574,12 @@ variationPlot <- function(
         label_openair(poll_labels, auto_text = auto.text),
         levels(mydata$group)
       ),
-      guide = ggplot2::guide_legend(ncol = key.columns),
+      guide = guide_openair(
+        key.position,
+        ncol = key.columns,
+        nrow = key.rows,
+        var_text_position = FALSE
+      ),
       drop = FALSE
     ) +
     ggplot2::guides(
@@ -681,6 +719,15 @@ variationPlot <- function(
       )
   }
 
+  thePlot <-
+    thePlot +
+    layer_ref(
+      ref = ref.y,
+      which = "y",
+      type = "numeric",
+      other_type = "numeric"
+    )
+
   if (plot) {
     plot(thePlot)
   }
@@ -704,11 +751,7 @@ validate_varplot_inputs <- function(
   statistic,
   conf.int
 ) {
-  if (length(type) > 2) {
-    cli::cli_abort(
-      "Can only have one {.arg type} for {.fun openair::variationPlot}."
-    )
-  }
+  check_type(type, max = 2, call = rlang::caller_env())
 
   # validate inputs
   if (any(group != "default") && length(pollutant) > 1) {
@@ -737,7 +780,11 @@ validate_varplot_inputs <- function(
 
 
 # sub heading stat info
-create_varplot_sub_text <- function(statistic, conf.int) {
+create_varplot_sub_text <- function(statistic, conf.int, ci) {
+  if (!ci) {
+    return(NULL)
+  }
+
   if (statistic == "mean") {
     ci_str <- paste(paste0(100 * conf.int, "%"), collapse = " and ")
     return(paste0("mean and ", ci_str, " confidence interval in mean"))

@@ -190,6 +190,7 @@ TheilSen <- function(
   text.col = "darkgreen",
   slope.text = NULL,
   cols = NULL,
+  theme = "default",
   auto.text = TRUE,
   autocor = FALSE,
   slope.percent = FALSE,
@@ -207,6 +208,8 @@ TheilSen <- function(
     data.col <- "darkgrey"
     text.col <- "black"
   }
+
+  check_type(type, max = 2)
 
   # extra.args setup
   extra.args <- capture_dots(...)
@@ -230,7 +233,13 @@ TheilSen <- function(
     interval <- "year"
   }
 
-  mydata <- checkPrep(mydata, c("date", pollutant), type, remove.calm = FALSE)
+  mydata <- checkPrep(
+    mydata,
+    c("date", pollutant),
+    type,
+    remove.calm = FALSE
+  ) |>
+    check_numeric(vars = pollutant)
   mydata <- cutData(mydata, type, ...)
 
   mydata <- timeAverage(
@@ -312,7 +321,8 @@ TheilSen <- function(
     ref.y = ref.y,
     auto.text = auto.text,
     date.breaks = date.breaks,
-    date.format = date.format
+    date.format = date.format,
+    theme = theme
   )
 
   if (plot) {
@@ -527,20 +537,15 @@ build_theilsen_plot <- function(
   ref.y,
   auto.text,
   date.breaks,
-  date.format
+  date.format,
+  theme
 ) {
   slope_var <- if (slope.percent) "slope.percent" else "slope"
   lower_var <- if (slope.percent) "lower.percent" else "lower"
   upper_var <- if (slope.percent) "upper.percent" else "upper"
   units_str <- if (slope.percent) "%" else "units"
 
-  if (lubridate::is.Date(split.data$date)) {
-    x_type <- "date"
-    x_scale_fun <- ggplot2::scale_x_date
-  } else {
-    x_type <- "datetime"
-    x_scale_fun <- ggplot2::scale_x_datetime
-  }
+  x_type <- if (lubridate::is.Date(split.data$date)) "date" else "datetime"
 
   ggplot2::ggplot() +
     ggplot2::geom_line(
@@ -595,12 +600,15 @@ build_theilsen_plot <- function(
       ref = ref.x,
       which = "x",
       type = x_type,
+      other_type = "numeric",
       tz = lubridate::tz(split.data$date)
     ) +
     layer_ref(
       ref = ref.y,
       which = "y",
-      type = "numeric"
+      type = "numeric",
+      other_type = x_type,
+      tz = lubridate::tz(split.data$date)
     ) +
     ggplot2::geom_text(
       data = res2,
@@ -625,7 +633,12 @@ build_theilsen_plot <- function(
       vjust = 1,
       fontface = "bold"
     ) +
-    theme_openair("none", extra.args) +
+    theme_openair(
+      theme = theme,
+      coord = "cartesian",
+      key.position = "none",
+      extra.args
+    ) +
     get_facet(
       type,
       extra.args,
@@ -633,9 +646,10 @@ build_theilsen_plot <- function(
       drop = FALSE,
       wd.res = extra.args$wd.res %||% 8
     ) +
-    x_scale_fun(
-      breaks = scales::breaks_pretty(date.breaks),
-      date_labels = date.format %||% ggplot2::waiver(),
+    scale_x_openair_date(
+      date.breaks = date.breaks,
+      date.format = date.format,
+      type = x_type,
       limits = extra.args$xlim
     ) +
     ggplot2::scale_y_continuous(limits = extra.args$ylim) +

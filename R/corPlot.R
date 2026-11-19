@@ -115,9 +115,12 @@ corPlot <- function(
   breaks = NULL,
   trans = FALSE,
   cols = "default",
+  theme = "default",
   r.thresh = 0.8,
   text.col = c("black", "black"),
   key.title = NULL,
+  key.columns = NULL,
+  key.rows = NULL,
   key.position = "right",
   auto.text = TRUE,
   plot = TRUE,
@@ -127,11 +130,12 @@ corPlot <- function(
   # check key.position
   key.position <- check_key_position(key.position, key)
 
-  if (length(type) > 1) {
-    cli::cli_abort(
-      "Only one {.arg type} is permitted in {.fun openair::corPlot}"
-    )
+  # default colour based on theme
+  if (missing(cols)) {
+    cols <- get_theme_cols(cols, theme, "seq")
   }
+
+  check_type(type, max = 1)
 
   # extra.args setup
   extra.args <- capture_dots(...)
@@ -147,13 +151,22 @@ corPlot <- function(
 
   # deprecated lower arg
   if ("lower" %in% names(extra.args)) {
-    cli::cli_warn(
-      c(
-        "!" = "The {.arg lower} argument has been deprecated. Setting {.arg triangle} to 'lower'.",
-        "i" = "Please use the {.arg triangle} argument directly in {.fun openair::corPlot}."
+    if (isTRUE(extra.args$lower)) {
+      cli::cli_warn(
+        c(
+          "!" = "The {.arg lower} argument has been deprecated. Setting {.arg triangle} to {.val lower}.",
+          "i" = "Please use the {.arg triangle} argument directly in {.fun openair::corPlot}."
+        )
       )
-    )
-    triangle <- "upper"
+      triangle <- "lower"
+    } else {
+      cli::cli_warn(
+        c(
+          "!" = "The {.arg lower} argument has been deprecated.",
+          "i" = "Please use the {.arg triangle} argument directly in {.fun openair::corPlot}."
+        )
+      )
+    }
   }
 
   # label controls
@@ -176,6 +189,9 @@ corPlot <- function(
   # null and all cases
   if (is.null(pollutants) || any(pollutants == "all")) {
     pollutants <- names(mydata)
+  } else {
+    # only check named pollutants; otherwise non-numeric columns are dropped
+    mydata <- check_numeric(mydata, vars = pollutants)
   }
 
   # keep date if about
@@ -308,8 +324,16 @@ corPlot <- function(
             )
         } else {
           hc <- NULL
-          cor_matrix_df$x <- factor(cor_matrix_df$x)
-          cor_matrix_df$y <- factor(cor_matrix_df$y)
+          cor_matrix_df$x <- factor(
+            cor_matrix_df$x,
+            levels = vars,
+            labels = paste(tag, vars, sep = "___")
+          )
+          cor_matrix_df$y <- factor(
+            cor_matrix_df$y,
+            levels = vars,
+            labels = paste(tag, vars, sep = "___")
+          )
         }
 
         return(
@@ -394,7 +418,7 @@ corPlot <- function(
 
   # need different scales if we're using dendrograms
   if (dendrogram) {
-    rlang::check_installed("legendry", version = "0.2.4")
+    rlang::check_installed("legendry", version = "0.3.0")
     x_axis_scale <- function(...) {
       legendry::scale_x_dendro(clust = hc, ...)
     }
@@ -450,7 +474,12 @@ corPlot <- function(
       auto.text = auto.text,
       wd.res = extra.args$wd.res %||% 8
     ) +
-    theme_openair(key.position, extra.args = extra.args) +
+    theme_openair(
+      theme = theme,
+      coord = "cartesian",
+      key.position,
+      extra.args = extra.args
+    ) +
     ggplot2::theme(panel.grid = ggplot2::element_blank(), aspect.ratio = 1) +
     x_axis_scale(
       labels = label_openair(
@@ -484,16 +513,11 @@ corPlot <- function(
         drop = FALSE
       ) +
       ggplot2::guides(
-        fill = ggplot2::guide_legend(
+        fill = guide_openair(
+          key.position,
           reverse = TRUE,
-          theme = ggplot2::theme(
-            legend.title.position = ifelse(
-              key.position %in% c("left", "right"),
-              "top",
-              key.position
-            ),
-            legend.text.position = key.position
-          )
+          ncol = key.columns,
+          nrow = key.rows
         )
       )
   } else {
@@ -506,16 +530,7 @@ corPlot <- function(
         transform = get_scale_transform(trans)
       ) +
       ggplot2::guides(
-        fill = ggplot2::guide_colorbar(
-          theme = ggplot2::theme(
-            legend.title.position = ifelse(
-              key.position %in% c("left", "right"),
-              "top",
-              key.position
-            ),
-            legend.text.position = key.position
-          )
-        )
+        fill = guide_openair(key.position, type = "colourbar")
       )
   }
 
@@ -588,20 +603,7 @@ corPlot <- function(
   }
 
   # make key full width/height
-  if (key.position %in% c("left", "right")) {
-    thePlot <- thePlot +
-      ggplot2::theme(
-        legend.key.height = ggplot2::unit(1, "null"),
-        legend.key.spacing.y = ggplot2::unit(0, "cm")
-      )
-  }
-  if (key.position %in% c("top", "bottom")) {
-    thePlot <- thePlot +
-      ggplot2::theme(
-        legend.key.width = ggplot2::unit(1, "null"),
-        legend.key.spacing.x = ggplot2::unit(0, "cm")
-      )
-  }
+  thePlot <- thePlot + theme_legend_key(key.position)
 
   # plot
   if (plot) {
@@ -614,19 +616,10 @@ corPlot <- function(
   names(newdata)[names(newdata) == "z"] <- "cor"
   names(newdata)[names(newdata) == "x"] <- "row"
   names(newdata)[names(newdata) == "y"] <- "col"
-  levels(newdata$row) <-
-    gsub(
-      pattern = unique(paste(paste0(plotdata$tag, "___"), collapse = "|")),
-      replacement = "",
-      levels(newdata$row)
-    )
-  levels(newdata$col) <-
-    gsub(
-      pattern = unique(paste(paste0(plotdata$tag, "___"), collapse = "|")),
-      replacement = "",
-      levels(newdata$col)
-    )
-  newdata <- dplyr::select(newdata, -"tag", -dplyr::any_of(type))
+  newdata <-
+    tidyr::separate(newdata, "row", sep = "___", into = c("type1", "row")) |>
+    tidyr::separate("col", sep = "___", into = c("type2", "col")) |>
+    dplyr::select(-"type1", -"type2", -"tag")
 
   # main handling
   output <-

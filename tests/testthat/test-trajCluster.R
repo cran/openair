@@ -6,8 +6,20 @@ if (!identical(Sys.getenv("NOT_CRAN"), "true")) {
 skip_if_not_installed("sf")
 skip_if_not_installed("rnaturalearthdata")
 
-traj <- importTraj() |>
-  selectByDate(month = 1)
+traj <- tryCatch(
+  {
+    importTraj() |>
+      selectByDate(month = 1)
+  },
+  error = function(e) {
+    NULL
+  },
+  warning = function(w) {
+    NULL
+  }
+)
+
+skip_if(is.null(traj))
 
 traj$nox <- randu$x[seq_along(traj$pressure)]
 
@@ -18,7 +30,7 @@ tc <- trajCluster(traj, n.cluster = 3, plot = FALSE)
 
 test_that("trajCluster returns an openair object with data and call", {
   expect_s3_class(tc, "openair")
-  expect_true(all(c("data", "call") %in% names(tc)))
+  expect_true(all(c("data", "plot", "call") %in% names(tc)))
 })
 
 test_that("$data is a list with traj and results elements", {

@@ -178,6 +178,7 @@ trajLevel <- function(
   .combine = NULL,
   sigma = 1.5,
   cols = "default",
+  theme = "default",
   crs = 4326,
   map = TRUE,
   map.res = "medium",
@@ -194,6 +195,7 @@ trajLevel <- function(
   key.title = NULL,
   key.position = "right",
   key.columns = NULL,
+  key.rows = NULL,
   auto.text = TRUE,
   plot = TRUE,
   key = NULL,
@@ -202,12 +204,36 @@ trajLevel <- function(
   rlang::check_installed(c("sf", "rnaturalearth"))
   if (!map.res %in% c(10, 50, 110, "small", "medium", "large")) {
     cli::cli_abort(
-      "{.arg map.res} must be one of {10}/'large', {50}/'medium' or {110}/'small'."
+      "{.arg map.res} must be one of {.val {10}}/{.val large}, {.val {50}}/{.val medium} or {.val {110}}/{.val small}."
     )
   }
 
   # check key.position
   key.position <- check_key_position(key.position, key)
+
+  # default colour based on theme
+  if (missing(cols)) {
+    cols <- get_theme_cols(cols, theme, "seq")
+  }
+  map_defaults <- get_theme_map(theme)
+  if (missing(map.cols)) {
+    map.cols <- map_defaults$fill
+  }
+  if (missing(map.border)) {
+    map.border <- map_defaults$border
+  }
+  if (missing(map.lwd)) {
+    map.lwd <- map_defaults$lwd
+  }
+  if (missing(map.lty)) {
+    map.lty <- map_defaults$lty
+  }
+  if (missing(map.alpha)) {
+    map.alpha <- map_defaults$alpha
+  }
+  if (missing(grid.col)) {
+    grid.col <- map_defaults$grid
+  }
 
   # checks
   statistic <- tolower(statistic)
@@ -218,7 +244,7 @@ trajLevel <- function(
 
   # check that SQTBA is not being used with a type
   if (statistic == "sqtba" && type != "default") {
-    cli::cli_abort("{.arg type} not available when {.arg statistic} = 'SQTBA'.")
+    cli::cli_abort("{.arg type} not available when {.arg statistic} is {.val sqtba}.")
   }
 
   # variables needed in trajectory plots
@@ -230,7 +256,9 @@ trajLevel <- function(
   }
 
   # check data and set up
-  mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
+  check_type(type, max = 2)
+  mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE) |>
+    check_numeric(vars = c("lat", "lon", pollutant))
 
   # extra.args
   extra.args <- capture_dots(...)
@@ -247,7 +275,7 @@ trajLevel <- function(
       "{.arg method} is no longer supported in {.fun openair::trajLevel}, please use {.arg statistic}."
     )
     if (extra.args$method == "hexbin") {
-      cli::cli_warn("Setting {.arg statistic} to 'hexbin'. ")
+      cli::cli_warn("Setting {.arg statistic} to {.val hexbin}.")
       statistic <- "hexbin"
     }
   }
@@ -462,28 +490,6 @@ trajLevel <- function(
     id <- which(mydata$N <= (n / 2))
     mydata[id, pollutant] <- mydata[id, pollutant] * 0.15
 
-    if (smooth) {
-      mydata <-
-        map_type(
-          mydata,
-          type = type,
-          \(x) smooth_trajgrid(x, z = pollutant),
-          .include_default = TRUE
-        )
-    }
-
-    # default is no cuts in the data
-    if (!missing(breaks)) {
-      break_opts <- resolve_break_opts(breaks, extra.args)
-      mydata <- dplyr::mutate(
-        mydata,
-        {{ pollutant }} := cut_plot_breaks(
-          .data[[pollutant]],
-          opts = break_opts
-        )
-      )
-    }
-
     # prep output data
     out_data <- dplyr::ungroup(mydata) |>
       dplyr::select(-dplyr::any_of(c("date", "count"))) |>
@@ -493,6 +499,28 @@ trajLevel <- function(
         percentile = percentile,
         .before = dplyr::everything()
       )
+
+    if (smooth) {
+      out_data <-
+        map_type(
+          out_data,
+          type = type,
+          \(x) smooth_trajgrid(x, z = pollutant),
+          .include_default = TRUE
+        )
+    }
+
+    # default is no cuts in the data
+    if (!missing(breaks)) {
+      break_opts <- resolve_break_opts(breaks, extra.args)
+      out_data <- dplyr::mutate(
+        out_data,
+        {{ pollutant }} := cut_plot_breaks(
+          .data[[pollutant]],
+          opts = break_opts
+        )
+      )
+    }
   }
 
   # simplified quantitative transport bias analysis  ------------------------
@@ -569,7 +597,10 @@ trajLevel <- function(
       dplyr::select(
         -dplyr::any_of(c("lat_rnd", "lon_rnd", "Q", "Q_c", "SQTBA"))
       ) |>
-      dplyr::relocate(dplyr::any_of("count"), .before = pollutant) |>
+      dplyr::relocate(
+        dplyr::any_of("count"),
+        .before = dplyr::all_of(pollutant)
+      ) |>
       dplyr::relocate("xgrid", .before = "ygrid") |>
       dplyr::mutate(
         statistic = statistic,
@@ -715,7 +746,9 @@ trajLevel <- function(
 
   # base plot & themes
   thePlot <- ggplot2::ggplot(data = out_data_sf) +
-    theme_openair_sf(
+    theme_openair(
+      theme = theme,
+      coord = "sf",
       key.position,
       extra.args = extra.args,
       grid.col = grid.col
@@ -774,25 +807,11 @@ trajLevel <- function(
         drop = FALSE
       ) +
       ggplot2::guides(
-        fill = ggplot2::guide_legend(
-          reverse = key.position %in% c("left", "right"),
-          theme = ggplot2::theme(
-            legend.title.position = ifelse(
-              key.position %in% c("left", "right"),
-              "top",
-              key.position
-            ),
-            legend.text.position = key.position
-          ),
-          ncol = if (missing(key.columns)) {
-            if (key.position %in% c("left", "right")) {
-              NULL
-            } else {
-              dplyr::n_distinct(levels(out_data_sf[[pollutant]]))
-            }
-          } else {
-            key.columns
-          }
+        fill = guide_openair(
+          key.position,
+          reverse = TRUE,
+          ncol = key.columns,
+          nrow = key.rows
         )
       )
   }
@@ -924,7 +943,11 @@ trajLevel <- function(
           transform = get_scale_transform(trans)
         ) +
         ggplot2::guides(
-          fill = ggplot2::guide_colorsteps(show.limits = TRUE)
+          fill = guide_openair(
+            key.position,
+            type = "coloursteps",
+            show.limits = TRUE
+          )
         )
     } else if (is.null(break_opts$breaks)) {
       thePlot <- thePlot +
@@ -933,6 +956,9 @@ trajLevel <- function(
           oob = scales::oob_squish,
           na.value = NA,
           limits = limits
+        ) +
+        ggplot2::guides(
+          fill = guide_openair(key.position, type = "colourbar")
         )
     } else {
       thePlot <- thePlot +
@@ -941,45 +967,18 @@ trajLevel <- function(
           drop = FALSE
         ) +
         ggplot2::guides(
-          fill = ggplot2::guide_legend(
-            reverse = key.position %in% c("left", "right"),
-            theme = ggplot2::theme(
-              legend.title.position = ifelse(
-                key.position %in% c("left", "right"),
-                "top",
-                key.position
-              ),
-              legend.text.position = key.position
-            ),
-            ncol = if (missing(key.columns)) {
-              if (key.position %in% c("left", "right")) {
-                NULL
-              } else {
-                dplyr::n_distinct(levels(out_data_sf[[pollutant]]))
-              }
-            } else {
-              key.columns
-            }
+          fill = guide_openair(
+            key.position,
+            reverse = TRUE,
+            ncol = key.columns,
+            nrow = key.rows
           )
         )
     }
   }
 
   # make legends full width
-  if (key.position %in% c("left", "right")) {
-    thePlot <- thePlot +
-      ggplot2::theme(
-        legend.key.height = ggplot2::unit(1, "null"),
-        legend.key.spacing.y = ggplot2::unit(0, "cm")
-      )
-  }
-  if (key.position %in% c("top", "bottom")) {
-    thePlot <- thePlot +
-      ggplot2::theme(
-        legend.key.width = ggplot2::unit(1, "null"),
-        legend.key.spacing.x = ggplot2::unit(0, "cm")
-      )
-  }
+  thePlot <- thePlot + theme_legend_key(key.position)
 
   if (plot) {
     plot(thePlot)

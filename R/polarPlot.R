@@ -360,6 +360,7 @@ polarPlot <-
     uncertainty = FALSE,
     percentile = NA,
     cols = "default",
+    theme = "default",
     weights = c(0.25, 0.5, 0.75),
     min.bin = 1,
     col.na = "grey",
@@ -370,6 +371,8 @@ polarPlot <-
     k = 100,
     normalise = FALSE,
     key.title = paste(statistic, pollutant, sep = " "),
+    key.columns = NULL,
+    key.rows = NULL,
     key.position = "right",
     auto.text = TRUE,
     ws_spread = 1.5,
@@ -383,15 +386,13 @@ polarPlot <-
     key = NULL,
     ...
   ) {
-    if (
-      statistic == "percentile" && is.na(percentile[1] && statistic != "cpf")
-    ) {
-      warning("percentile value missing, using 50")
+    if (statistic == "percentile" && is.na(percentile[1])) {
+      cli::cli_warn("{.arg percentile} value missing, using 50.")
       percentile <- 50
     }
 
     if (statistic == "cpf" && is.na(percentile[1])) {
-      warning("percentile value missing, using 75")
+      cli::cli_warn("{.arg percentile} value missing, using 75.")
       percentile <- 75
     }
 
@@ -413,12 +414,12 @@ polarPlot <-
     )
 
     if (statistic %in% correlation_stats && length(pollutant) != 2) {
-      stop("Correlation statistic requires two pollutants.")
+      cli::cli_abort(
+        "Correlation {.arg statistic} {.val {statistic}} requires two pollutants."
+      )
     }
 
-    if (length(type) > 2) {
-      stop("Maximum number of types is 2.")
-    }
+    check_type(type, max = 2)
 
     # can't have conditioning here
     if (uncertainty) {
@@ -426,7 +427,9 @@ polarPlot <-
     }
 
     if (uncertainty && length(pollutant) > 1) {
-      stop("Can only have one pollutant when uncertainty = TRUE")
+      cli::cli_abort(
+        "Can only have one {.arg pollutant} when {.code uncertainty = TRUE}."
+      )
     }
 
     if (
@@ -444,15 +447,23 @@ polarPlot <-
           correlation_stats
         )
     ) {
-      stop("statistic '", statistic, "' not recognised.")
+      cli::cli_abort("{.arg statistic} {.val {statistic}} not recognised.")
     }
 
     if (length(weights) != 3) {
-      stop("weights should be of length 3.")
+      cli::cli_abort("{.arg weights} should be of length 3.")
     }
 
     # check key.position
     key.position <- check_key_position(key.position, key)
+
+    # default colour based on theme
+    if (missing(cols)) {
+      cols <- get_theme_cols(cols, theme, "seq")
+    }
+    if (missing(col.na)) {
+      col.na <- get_theme_col_na(col.na, theme)
+    }
 
     # extra.args setup
     extra.args <- capture_dots(...)
@@ -496,7 +507,8 @@ polarPlot <-
       vars <- c(vars, "date")
     }
 
-    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE) |>
+      check_numeric(vars = setdiff(vars, "date"))
 
     mydata <- stats::na.omit(mydata)
 
@@ -505,7 +517,9 @@ polarPlot <-
       length(which(mydata[pollutant] < 0)) / nrow(mydata) > 0.1 &&
         force.positive
     ) {
-      warning(">10% negative data detected, set force.positive = FALSE?")
+      cli::cli_warn(
+        ">10% negative data detected, set {.code force.positive = FALSE}?"
+      )
     }
 
     # scale data by subtracting the min value this helps with dealing
@@ -526,18 +540,18 @@ polarPlot <-
     # if statistic is 'r' we need the data for two pollutants in columns
     if (length(pollutant) > 1 && !statistic %in% correlation_stats) {
       if (length(type) > 1) {
-        cli::cli_warn("Only {.arg type} = '{type[1]}' will be used.")
+        cli::cli_warn("Only {.arg type} {.val {type[1]}} will be used.")
         type <- type[1]
       }
 
       # use pollutants as conditioning variables
-      mydata <- tidyr::gather(
+      mydata <- tidyr::pivot_longer(
         mydata,
-        key = "variable",
-        value = "value",
-        dplyr::all_of(pollutant),
-        factor_key = TRUE
+        cols = dplyr::all_of(pollutant),
+        names_to = "variable",
+        values_to = "value"
       )
+      mydata$variable <- factor(mydata$variable, levels = pollutant)
       # now set pollutant to "value"
       pollutant <- "value"
 
@@ -554,11 +568,14 @@ polarPlot <-
     # if upper ws not set, set it to the max to display all information
     max.ws <- max(mydata[[x]], na.rm = TRUE)
     min.ws <- min(mydata[[x]], na.rm = TRUE)
-    clip <- TRUE # used for removing data where ws > upper
 
     if (is.na(upper)) {
       upper <- max.ws
+      rlim <- c(NA, NA)
       clip <- FALSE
+    } else {
+      rlim <- c(NA, upper)
+      clip <- TRUE
     }
 
     # resolution deprecated, int is resolution of GAM surface predictions over int * int grid
@@ -920,7 +937,7 @@ polarPlot <-
       ) +
       ggplot2::ggproto(
         NULL,
-        ggplot2::coord_radial(r.axis.inside = angle.scale),
+        ggplot2::coord_radial(r.axis.inside = angle.scale, rlim = rlim),
         inner_radius = c(0, 1) * 0.475
       ) +
       scale_x_compass() +
@@ -938,16 +955,11 @@ polarPlot <-
               drop = FALSE
             ),
             ggplot2::guides(
-              fill = ggplot2::guide_legend(
+              fill = guide_openair(
+                key.position,
                 reverse = TRUE,
-                theme = ggplot2::theme(
-                  legend.title.position = ifelse(
-                    key.position %in% c("left", "right"),
-                    "top",
-                    key.position
-                  ),
-                  legend.text.position = key.position
-                )
+                ncol = key.columns,
+                nrow = key.rows
               ),
               color = ggplot2::guide_none()
             )
@@ -963,22 +975,15 @@ polarPlot <-
               trans = get_scale_transform(trans)
             ),
             ggplot2::guides(
-              fill = ggplot2::guide_colorbar(
-                theme = ggplot2::theme(
-                  legend.title.position = ifelse(
-                    key.position %in% c("left", "right"),
-                    "top",
-                    key.position
-                  ),
-                  legend.text.position = key.position
-                )
-              ),
+              fill = guide_openair(key.position, type = "colourbar"),
               color = ggplot2::guide_none()
             )
           )
         }
       } +
-      theme_openair_radial(
+      theme_openair(
+        theme = theme,
+        coord = "radial",
         key.position,
         extra.args = extra.args,
         panel.ontop = TRUE
@@ -988,7 +993,8 @@ polarPlot <-
           extra.args$annotate,
           if (is.null(extra.args$fontsize)) 3 else extra.args$fontsize / 3,
           0
-        )
+        ),
+        theme = theme
       ) +
       ggplot2::labs(
         fill = legend_title,
@@ -999,22 +1005,7 @@ polarPlot <-
         caption = extra.args$caption %||% sub,
         tag = extra.args$tag
       ) +
-      {
-        if (key.position %in% c("left", "right")) {
-          ggplot2::theme(
-            legend.key.height = ggplot2::unit(1, "null"),
-            legend.key.spacing.y = ggplot2::unit(0, "cm")
-          )
-        }
-      } +
-      {
-        if (key.position %in% c("top", "bottom")) {
-          ggplot2::theme(
-            legend.key.width = ggplot2::unit(1, "null"),
-            legend.key.spacing.x = ggplot2::unit(0, "cm")
-          )
-        }
-      } +
+      theme_legend_key(key.position) +
       get_facet(
         type,
         extra.args = extra.args,
@@ -1212,7 +1203,7 @@ polar_prepare_grid <- function(
         c(
           "Not enough data to fit surface. Try:",
           "i" = "Reducing the value of the smoothing parameter, k to less than {k}, or",
-          "i" = "Using {.arg statistic} = 'nwr'"
+          "i" = "Using {.arg statistic} {.val nwr}."
         )
       )
     }
@@ -1378,6 +1369,7 @@ calc_york_stat <- function(thedata, pol_1, pol_2, x_error, y_error) {
 # Weighted robust (M-estimator) regression slope or intercept
 calc_robust_stat <- function(thedata, pol_1, pol_2, statistic) {
   thedata <- data.frame(thedata)
+  rlang::check_installed("MASS")
   fit <- suppressWarnings(
     try(
       MASS::rlm(

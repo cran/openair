@@ -41,10 +41,46 @@
 #'   colour palette more closely (e.g., `palette`, `direction`, `alpha`, etc.).
 #'   See [openColours()] and [colourOpts()] for more details.
 #'
-#' @param date.breaks Number of major x-axis intervals to use. The function will
-#'   try and choose a sensible number of dates/times as well as formatting the
-#'   date/time appropriately to the range being considered. The user can
-#'   override this behaviour by adjusting the value of `date.breaks` up or down.
+#' @param theme A string representing an overall plot theme, defaulting to
+#'   `"default"`. This option makes sweeping changes to non-data plot features
+#'   such as fonts, colours, line widths, and so on, and may also change default
+#'   arguments like `cols` if not set by the user. Can also take a
+#'   [ggplot2::theme()] object, which will be used to modify the `"default"`
+#'   theme. Pre-set options include:
+#'
+#'   - `"default"`, a lattice-inspired theme resembling the traditional
+#'   `openair` look, with structured panels and visible gridlines.
+#'
+#'   - `"dark"`, a dark-background variant of the default theme, designed for
+#'   presentations and low-light viewing, using high-contrast text and colour
+#'   palettes optimised for visibility against dark panels.
+#'
+#'   - `"modern"`, a minimalist, contemporary theme inspired by tools such as
+#'   Plotly and Observable Plot, with reduced visual clutter, horizontal
+#'   emphasis in gridlines, a clean legend style, and typography suited to
+#'   dashboards and reports.
+#'
+#'   - `"soft"`, a low-contrast, 'editorial' theme with warm
+#'   background tones, subtle gridlines, and gently desaturated colours,
+#'   designed for reports and publication-style figures, particularly where a
+#'   calmer appearance improves readability.
+#'
+#'   - `"print"`, a strictly greyscale theme optimised for black-and-white
+#'   reproduction, with stronger structural elements such as clearer gridlines
+#'   and axis definitions to ensure good contrast and readability in printed or
+#'   photocopied outputs.
+#'
+#'   Please note that if a global theme is set with [ggplot2::theme_set()] to
+#'   anything other than the default [ggplot2::theme_grey()], the selected
+#'   openair theme will not be fully applied; instead, only minimal adjustments
+#'   (such as legend positioning) will be made.
+#'
+#' @param date.breaks Either a number of major x-axis intervals to use, or a
+#'   character string giving the distance between breaks like `"2 weeks"`, or
+#'   `"10 years"`. Valid specifications are `"sec"`, `"min"`, `"hour"`, `"day"`,
+#'   `"week"`, `"month"` or `"year"`, optionally followed by `"s"`. If
+#'   `date.breaks` is given a character string, it is recommended to also set
+#'   `date.format` as this will automatically default to `"%Y-%m-%d"`.
 #'
 #' @param date.format This option controls the date format on the x-axis. A
 #'   sensible format is chosen by default, but the user can set `date.format` to
@@ -113,10 +149,10 @@
 #' @param key.title Used to set the title of the legend. The legend title is
 #'   passed to [quickText()] if `auto.text = TRUE`.
 #'
-#' @param key.columns Number of columns to be used in a categorical legend. With
-#'   many categories a single column can make to key too wide. The user can thus
-#'   choose to use several columns by setting `key.columns` to be less than the
-#'   number of categories.
+#' @param key.columns,key.rows Number of columns or rows to be used in a
+#'   categorical legend. With many categories a single column or row can make
+#'   the key fit poorly in the plot. The user can thus choose to use several
+#'   columns by setting `key.columns` to be less than the number of categories.
 #'
 #' @param auto.text Either `TRUE` (default) or `FALSE`. If `TRUE` titles and
 #'   axis labels will automatically try and format pollutant names and units

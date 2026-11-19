@@ -184,6 +184,7 @@ windRose <- function(
   calm.thresh = 0,
   bias.corr = TRUE,
   cols = "default",
+  theme = "default",
   grid.line = NULL,
   width = 0.9,
   seg = 0.9,
@@ -194,6 +195,8 @@ windRose <- function(
   max.freq = NULL,
   paddle = TRUE,
   key.title = "(m/s)",
+  key.columns = NULL,
+  key.rows = NULL,
   key.position = "bottom",
   dig.lab = 5,
   include.lowest = FALSE,
@@ -209,6 +212,13 @@ windRose <- function(
   # check key.position
   key.position <- check_key_position(key.position, key)
 
+  # default colour based on theme; record missingness first as `missing()` is
+  # unreliable once `cols` has been reassigned
+  cols_missing <- missing(cols)
+  if (cols_missing) {
+    cols <- get_theme_cols(cols, theme, "seq")
+  }
+
   # greyscale handling
   if (length(cols) == 1 && cols == "greyscale") {
     calm.col <- "black"
@@ -216,8 +226,8 @@ windRose <- function(
     calm.col <- "forestgreen"
   }
 
-  # make sure ws and wd and numeric
-  mydata <- check_numeric(mydata, vars = c(ws, wd))
+  # make sure ws, wd and any pollutant are numeric
+  mydata <- check_numeric(mydata, vars = c(ws, wd, pollutant))
 
   if (!is.na(ws2) && !is.na(wd2) && missing(angle)) {
     angle <- 10
@@ -233,6 +243,8 @@ windRose <- function(
     )
   }
   angle[angle < 3] <- 3
+
+  check_type(type, max = 2)
 
   # extra.args args setup
   extra.args <- capture_dots(...)
@@ -427,26 +439,16 @@ windRose <- function(
     }
 
     # Diverging colour scale (expect cols to be length-3 low/mid/high)
-    if (missing(cols)) {
+    if (cols_missing) {
       cols <- c("steelblue3", "white", "tomato2")
     } else {
       cols <- openair::openColors(cols, n = 3L)
     }
 
-    fill_guide <- if (key.position == "none") {
-      "none"
-    } else {
-      ggplot2::guide_colorbar(
-        theme = ggplot2::theme(
-          legend.title.position = ifelse(
-            key.position %in% c("left", "right"),
-            "top",
-            key.position
-          ),
-          legend.text.position = key.position
-        )
-      )
-    }
+    fill_guide <- guide_openair(
+      key.position,
+      type = "colourbar"
+    )
 
     if (missing(key.title)) {
       key.title <- "ws bias\n(m/s)"
@@ -454,7 +456,12 @@ windRose <- function(
 
     thePlot <-
       ggplot2::ggplot(diff_results) +
-      theme_openair_radial(key.position, extra.args = extra.args) +
+      theme_openair(
+        theme = theme,
+        coord = "radial",
+        key.position = key.position,
+        extra.args = extra.args
+      ) +
       ggplot2::theme(
         panel.grid.major.y = ggplot2::element_line(
           colour = grid.col,
@@ -575,7 +582,8 @@ windRose <- function(
             3
           } else {
             extra.args$fontsize / 3
-          }
+          },
+          theme = theme
         )
     }
 
@@ -797,17 +805,11 @@ windRose <- function(
 
   key.title <- check_key_header(key.title, extra.args)
   key_label <- quickText(key.title, auto.text = auto.text)
-  key_guide <- ggplot2::guide_legend(
-    reverse = key.position %in% c("left", "right"),
-    theme = ggplot2::theme(
-      legend.title.position = ifelse(
-        key.position %in% c("left", "right"),
-        "top",
-        key.position
-      ),
-      legend.text.position = key.position
-    ),
-    nrow = if (key.position %in% c("left", "right")) NULL else 1
+  key_guide <- guide_openair(
+    key.position,
+    reverse = TRUE,
+    nrow = key.rows,
+    ncol = key.columns
   )
 
   thePlot <-
@@ -818,8 +820,10 @@ windRose <- function(
         y = .data$value
       )
     ) +
-    theme_openair_radial(
-      key.position,
+    theme_openair(
+      theme = theme,
+      coord = "radial",
+      key.position = key.position,
       extra.args = extra.args,
       panel.ontop = normalise
     ) +
@@ -982,7 +986,8 @@ windRose <- function(
   if (annotate) {
     thePlot <- thePlot +
       annotate_compass_points(
-        size = if (is.null(extra.args$fontsize)) 3 else extra.args$fontsize / 3
+        size = if (is.null(extra.args$fontsize)) 3 else extra.args$fontsize / 3,
+        theme = theme
       )
   }
 
@@ -1103,6 +1108,9 @@ pollutionRose <- function(
   if (is.null(breaks)) {
     breaks <- 6
   }
+
+  # pollutant must be numeric before calculating breaks
+  mydata <- check_numeric(mydata, vars = pollutant)
 
   if (is.numeric(breaks) && length(breaks) == 1) {
     # breaks from the minimum to 90th percentile, which generally gives sensible

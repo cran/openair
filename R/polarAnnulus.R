@@ -146,6 +146,7 @@ polarAnnulus <-
     trans = FALSE,
     cols = "default",
     col.na = "grey",
+    theme = "default",
     offset = 50,
     angle.scale = 0,
     min.bin = 1,
@@ -155,6 +156,8 @@ polarAnnulus <-
     k = c(20, 10),
     normalise = FALSE,
     key.title = paste(statistic, pollutant, sep = " "),
+    key.columns = NULL,
+    key.rows = NULL,
     key.position = "right",
     auto.text = TRUE,
     plot = TRUE,
@@ -163,6 +166,14 @@ polarAnnulus <-
   ) {
     # check key.position
     key.position <- check_key_position(key.position, key)
+
+    # default colour based on theme
+    if (missing(cols)) {
+      cols <- get_theme_cols(cols, theme, "seq")
+    }
+    if (missing(col.na)) {
+      col.na <- get_theme_col_na(col.na, theme)
+    }
 
     # check statistic value is valid
     statistic <- tolower(statistic)
@@ -185,8 +196,8 @@ polarAnnulus <-
     period <- rlang::arg_match(period, c("hour", "weekday", "season", "trend"))
 
     # check other inputs
-    if (statistic == "percentile" && is.na(percentile & statistic != "cpf")) {
-      cli::cli_warn("{.arg percentile} value missing,  using 50")
+    if (statistic == "percentile" && is.na(percentile)) {
+      cli::cli_warn("{.arg percentile} value missing, using 50")
       percentile <- 50
     }
 
@@ -195,12 +206,10 @@ polarAnnulus <-
 
     if (period == "trend" && "season" %in% type) {
       cli::cli_abort(
-        "Cannot have same {.arg type} as {'season'} and {.arg period} as {'trend'}."
+        "Cannot have {.arg type} as {.val season} and {.arg period} as {.val trend}."
       )
     }
-    if (length(type) > 2) {
-      cli::cli_abort("Cannot have more than two {.arg types}.")
-    }
+    check_type(type, max = 2)
 
     # extra.args setup
     extra.args <- capture_dots(...)
@@ -221,18 +230,19 @@ polarAnnulus <-
     }
 
     # check data
-    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE) |>
+      check_numeric(vars = c(wd, pollutant))
 
     # if more than one pollutant, need to stack the data and set type = "variable"
     # this case is most relevent for model-measurement compasrions where data are in columns
     if (length(pollutant) > 1) {
-      mydata <- tidyr::gather(
+      mydata <- tidyr::pivot_longer(
         mydata,
-        key = "variable",
-        value = "value",
-        dplyr::all_of(pollutant),
-        factor_key = TRUE
+        cols = dplyr::all_of(pollutant),
+        names_to = "variable",
+        values_to = "value"
       )
+      mydata$variable <- factor(mydata$variable, levels = pollutant)
       # now set pollutant to "value"
       pollutant <- "value"
       type <- "variable"
@@ -591,7 +601,9 @@ polarAnnulus <-
         inner_radius = c(offset / 100, 1) * 0.475
       ) +
       scale_x_compass() +
-      theme_openair_radial(
+      theme_openair(
+        theme = theme,
+        coord = "radial",
         key.position,
         extra.args = extra.args,
         panel.ontop = TRUE
@@ -613,16 +625,11 @@ polarAnnulus <-
               drop = FALSE
             ),
             ggplot2::guides(
-              fill = ggplot2::guide_legend(
+              fill = guide_openair(
+                key.position,
                 reverse = TRUE,
-                theme = ggplot2::theme(
-                  legend.title.position = ifelse(
-                    key.position %in% c("left", "right"),
-                    "top",
-                    key.position
-                  ),
-                  legend.text.position = key.position
-                )
+                ncol = key.columns,
+                nrow = key.rows
               ),
               color = ggplot2::guide_none()
             )
@@ -638,16 +645,7 @@ polarAnnulus <-
               transform = get_scale_transform(trans)
             ),
             ggplot2::guides(
-              fill = ggplot2::guide_colorbar(
-                theme = ggplot2::theme(
-                  legend.title.position = ifelse(
-                    key.position %in% c("left", "right"),
-                    "top",
-                    key.position
-                  ),
-                  legend.text.position = key.position
-                )
-              ),
+              fill = guide_openair(key.position, type = "colourbar"),
               color = ggplot2::guide_none()
             )
           )
@@ -668,7 +666,8 @@ polarAnnulus <-
           extra.args$annotate %||% TRUE,
           if (is.null(extra.args$fontsize)) 3 else extra.args$fontsize / 3,
           0
-        )
+        ),
+        theme = theme
       ) +
       get_facet(
         type = type,
@@ -733,20 +732,7 @@ polarAnnulus <-
     }
 
     # make key full width/height
-    if (key.position %in% c("left", "right")) {
-      thePlot <- thePlot +
-        ggplot2::theme(
-          legend.key.height = ggplot2::unit(1, "null"),
-          legend.key.spacing.y = ggplot2::unit(0, "cm")
-        )
-    }
-    if (key.position %in% c("top", "bottom")) {
-      thePlot <- thePlot +
-        ggplot2::theme(
-          legend.key.width = ggplot2::unit(1, "null"),
-          legend.key.spacing.x = ggplot2::unit(0, "cm")
-        )
-    }
+    thePlot <- thePlot + theme_legend_key(key.position)
 
     # outputs
     if (plot) {

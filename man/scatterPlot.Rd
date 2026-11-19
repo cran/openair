@@ -22,9 +22,11 @@ scatterPlot(
   ci = TRUE,
   mod.line = FALSE,
   cols = "hue",
+  theme = "default",
   plot.type = "p",
   key.title = group,
-  key.columns = 1,
+  key.columns = NULL,
+  key.rows = NULL,
   key.position = "right",
   log.x = FALSE,
   log.y = FALSE,
@@ -156,7 +158,8 @@ line between a sequence of points is required.}
 
 \item{linear}{A linear model is fitted to the data if \code{TRUE}; optionally with
 95 percent confidence intervals shown. The equation of the line and R2
-value is also shown.}
+value is also shown. The fitted coefficients are returned in the \code{fit}
+component of the output.}
 
 \item{ci}{Should the confidence intervals for the smooth/linear fit be shown?}
 
@@ -173,16 +176,47 @@ of R colours (e.g., \code{c("yellow", "green", "blue", "black")} - see
 colour palette more closely (e.g., \code{palette}, \code{direction}, \code{alpha}, etc.).
 See \code{\link[=openColours]{openColours()}} and \code{\link[=colourOpts]{colourOpts()}} for more details.}
 
+\item{theme}{A string representing an overall plot theme, defaulting to
+\code{"default"}. This option makes sweeping changes to non-data plot features
+such as fonts, colours, line widths, and so on, and may also change default
+arguments like \code{cols} if not set by the user. Can also take a
+\code{\link[ggplot2:theme]{ggplot2::theme()}} object, which will be used to modify the \code{"default"}
+theme. Pre-set options include:
+\itemize{
+\item \code{"default"}, a lattice-inspired theme resembling the traditional
+\code{openair} look, with structured panels and visible gridlines.
+\item \code{"dark"}, a dark-background variant of the default theme, designed for
+presentations and low-light viewing, using high-contrast text and colour
+palettes optimised for visibility against dark panels.
+\item \code{"modern"}, a minimalist, contemporary theme inspired by tools such as
+Plotly and Observable Plot, with reduced visual clutter, horizontal
+emphasis in gridlines, a clean legend style, and typography suited to
+dashboards and reports.
+\item \code{"soft"}, a low-contrast, 'editorial' theme with warm
+background tones, subtle gridlines, and gently desaturated colours,
+designed for reports and publication-style figures, particularly where a
+calmer appearance improves readability.
+\item \code{"print"}, a strictly greyscale theme optimised for black-and-white
+reproduction, with stronger structural elements such as clearer gridlines
+and axis definitions to ensure good contrast and readability in printed or
+photocopied outputs.
+}
+
+Please note that if a global theme is set with \code{\link[ggplot2:theme_set]{ggplot2::theme_set()}} to
+anything other than the default \code{\link[ggplot2:theme_grey]{ggplot2::theme_grey()}}, the selected
+openair theme will not be fully applied; instead, only minimal adjustments
+(such as legend positioning) will be made.}
+
 \item{plot.type}{Type of plot: \dQuote{p} (points, default), \dQuote{l}
 (lines) or \dQuote{b} (both points and lines).}
 
 \item{key.title}{Used to set the title of the legend. The legend title is
 passed to \code{\link[=quickText]{quickText()}} if \code{auto.text = TRUE}.}
 
-\item{key.columns}{Number of columns to be used in a categorical legend. With
-many categories a single column can make to key too wide. The user can thus
-choose to use several columns by setting \code{key.columns} to be less than the
-number of categories.}
+\item{key.columns, key.rows}{Number of columns or rows to be used in a
+categorical legend. With many categories a single column or row can make
+the key fit poorly in the plot. The user can thus choose to use several
+columns by setting \code{key.columns} to be less than the number of categories.}
 
 \item{key.position}{Location where the legend is to be placed. Allowed
 arguments include \code{"top"}, \code{"right"}, \code{"bottom"}, \code{"left"} and \code{"none"},
@@ -270,11 +304,18 @@ apply to all plots. These can take a single value, or a vector of multiple
 values - e.g., \code{shape = c(1, 2)} - which will be recycled to the length of
 values needed.
 \item For \code{method = "hexbin"}, \code{bins} controls the number of bins.
-\item \code{date.format} controls the format of date-time x-axes.
+\item \code{date.breaks} and \code{date.format} control the breaks and format of date
+and date-time x-axes. See \code{\link[=timePlot]{timePlot()}} for details.
 }}
 }
 \value{
-an \link[=openair-package]{openair} object
+an \link[=openair-package]{openair} object. When \code{linear = TRUE} and
+\code{method} is \code{"scatter"} or \code{"hexbin"}, the object also contains \code{fit}, a
+data frame of linear model coefficients with one row per panel (and
+\code{group}, if used). It has columns for any \code{type} and \code{group} variables,
+followed by \code{intercept}, \code{intercept.se}, \code{slope}, \code{slope.se}, \code{r.squared}
+and \code{n} (the number of observations used in the fit). For \code{output <- scatterPlot(mydata, linear = TRUE)} this can be extracted using
+\code{output$fit}.
 }
 \description{
 Scatter plots with conditioning and three main approaches: conventional

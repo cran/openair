@@ -132,6 +132,7 @@ polarCluster <-
     n.clusters = 6,
     after = NA,
     cols = "Paired",
+    theme = "default",
     angle.scale = 315,
     units = x,
     auto.text = TRUE,
@@ -141,6 +142,11 @@ polarCluster <-
   ) {
     # avoid R check annoyances
     u <- v <- z <- strip <- strip.left <- NULL
+
+    # default colour based on theme
+    if (missing(cols)) {
+      cols <- get_theme_cols(cols, theme, "qual")
+    }
 
     # add id for later merging
     mydata <- dplyr::mutate(mydata, .id = seq_len(nrow(mydata)))
@@ -156,10 +162,12 @@ polarCluster <-
     vars <- c("wd", x, pollutant)
     vars <- c(vars, "date", ".id")
 
-    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE)
+    mydata <- checkPrep(mydata, vars, type, remove.calm = FALSE) |>
+      check_numeric(vars = c("wd", x, pollutant))
 
     if (is.data.frame(after)) {
-      after <- checkPrep(after, vars, type, remove.calm = FALSE)
+      after <- checkPrep(after, vars, type, remove.calm = FALSE) |>
+        check_numeric(vars = c("wd", x, pollutant))
     }
 
     max.x <- ceiling(max(mydata[, x], na.rm = TRUE))
@@ -217,7 +225,12 @@ polarCluster <-
     make.clust <- function(i, results.grid) {
       i <- n.clusters[i]
       dat.orig <- results.grid
-      clusters <- cluster::pam(results.grid, i, stand = TRUE, pamonce = 3)
+      clusters <- cluster::pam(
+        results.grid[, c("u", "v", "z")],
+        i,
+        stand = TRUE,
+        pamonce = 3
+      )
       dat.orig$cluster <- clusters$clustering
       dat.orig$nclust <- paste(i, "clusters")
       dat.orig
@@ -319,7 +332,9 @@ polarCluster <-
         ),
         drop = FALSE
       ) +
-      theme_openair_radial(
+      theme_openair(
+        theme = theme,
+        coord = "radial",
         key.position %||% "right",
         extra.args = extra.args,
         panel.ontop = TRUE
@@ -329,7 +344,8 @@ polarCluster <-
           extra.args$annotate %||% TRUE,
           if (is.null(extra.args$fontsize)) 3 else extra.args$fontsize / 3,
           0
-        )
+        ),
+        theme = theme
       ) +
       ggplot2::labs(
         color = "Cluster",
@@ -347,16 +363,10 @@ polarCluster <-
         wd.res = extra.args$wd.res %||% 8
       ) +
       ggplot2::guides(
-        colour = ggplot2::guide_legend(
-          override.aes = list(size = 5),
-          theme = ggplot2::theme(
-            legend.title.position = ifelse(
-              key.position %in% c("left", "right"),
-              "top",
-              key.position
-            ),
-            legend.text.position = key.position
-          )
+        colour = guide_openair(
+          key.position,
+          var_text_position = FALSE,
+          override.aes = list(size = 5)
         )
       )
 
